@@ -1,0 +1,85 @@
+name: Remotion render (sharded)
+on:
+  workflow_dispatch:
+    inputs:
+      composition:
+        default: "BridgeShort"
+      start:
+        description: "first frame"
+        default: "0"
+      end:
+        description: "last frame (inclusive)"
+        default: "2024"
+      shards:
+        description: "parallel jobs (1-20)"
+        default: "8"
+      scale:
+        description: "1 = 1080x1920"
+        default: "1"
+permissions:
+  contents: write
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.m.outputs.matrix }}
+    steps:
+      - id: m
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          s,e,n=int("${{ inputs.start }}"),int("${{ inputs.end }}"),int("${{ inputs.shards }}")
+          total=e-s+1; per=-(-total//n); rows=[]
+          for i in range(n):
+              a=s+i*per; b=min(e,a+per-1)
+              if a<=e: rows.append({"i":i,"a":a,"b":b})
+          print("matrix="+json.dumps({"include":rows}))
+          PY
+  shard:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: npm install --no-audit --no-fund
+        working-directory: remotion
+      - run: python3 scripts/fetch_kenney.py
+        working-directory: remotion
+      - name: Render frames ${{ matrix.a }}-${{ matrix.b }}
+        working-directory: remotion
+        run: |
+          mkdir -p out
+          START=$(date +%s)
+          npx remotion render src/index.ts "${{ inputs.composition }}" out/part_${{ matrix.i }}.mp4 --frames=${{ matrix.a }}-${{ matrix.b }} --scale=${{ inputs.scale }} --gl=swangle --codec=h264 --crf=17 --pixel-format=yuv420p --concurrency=3 --timeout=600000 --log=warn
+          echo "shard ${{ matrix.i }}: $(( $(date +%s) - START ))s for $(( ${{ matrix.b }} - ${{ matrix.a }} + 1 )) frames"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: part-${{ matrix.i }}
+          path: remotion/out/part_${{ matrix.i }}.mp4
+  join:
+    needs: shard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: parts
+          pattern: part-*
+          merge-multiple: true
+      - name: Concatenate
+        run: |
+          sudo apt-get install -y -qq ffmpeg >/dev/null
+          ls parts | sort -V | sed 's/^/file parts\//' > list.txt
+          ffmpeg -loglevel error -y -f concat -safe 0 -i list.txt -c copy video.mp4
+          ffprobe -v error -show_entries format=duration -of csv=p=0 video.mp4
+      - uses: actions/upload-artifact@v4
+        with: { name: video, path: video.mp4 }
+      - name: Publish to branch render-out
+        run: |
+          mkdir /tmp/pub && cp video.mp4 /tmp/pub/ && cd /tmp/pub && git init -q && git checkout -q -b render-out
+          git config user.name bot && git config user.email bot@users.noreply.github.com
+          git add -A && git commit -qm render && git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" render-out

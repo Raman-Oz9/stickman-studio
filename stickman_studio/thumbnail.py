@@ -1,0 +1,15 @@
+from PIL import Image, ImageDraw, ImageFont
+def make_thumbnail(path, title, background="#EAF4FF"):
+    im = Image.new("RGB", (1280, 720), background)
+    d = ImageDraw.Draw(im)
+    d.ellipse((830, 130, 1040, 340), fill="white", outline="#171923", width=15)
+    d.line((935, 340, 935, 540), fill="#171923", width=18)
+    d.line((935, 390, 820, 475), fill="#171923", width=16)
+    d.line((935, 390, 1050, 475), fill="#171923", width=16)
+    d.line((935, 540, 850, 650), fill="#171923", width=18)
+    d.line((935, 540, 1020, 650), fill="#171923", width=18)
+    try: font = ImageFont.truetype("DejaVuSans-Bold.ttf", 64)
+    except OSError: font = ImageFont.load_default()
+    d.rounded_rectangle((55, 185, 760, 515), radius=38, fill="white")
+    d.multiline_text((100, 260), title.upper()[:34], font=font, fill="#171923", spacing=18)
+    im.save(path, quality=95)

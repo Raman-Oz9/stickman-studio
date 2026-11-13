@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - "stickman_studio/**"
+      - "godot_studio/**"
       - "examples/**"
       - ".github/workflows/render.yml"
       - "requirements.txt"
@@ -54,5 +55,30 @@ jobs:
         with:
           name: stickman-studio-prototype
           path: output/
+          if-no-files-found: error
+          retention-days: 7
+
+  godot-character-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Godot 4.7
+        uses: solarlabyrinth/action-setup-godot@v3
+        with:
+          version: 4.7-stable
+          export-templates: false
+      - name: Render animated character proof
+        run: |
+          mkdir -p output-godot
+          godot --headless --path godot_studio --write-movie /tmp/character-proof.avi --fixed-fps 30 --quit-after 240
+          ffmpeg -y -i /tmp/character-proof.avi -c:v libx264 -preset veryfast -crf 19 -pix_fmt yuv420p -movflags +faststart output-godot/character-proof.mp4
+          ffprobe -v error -show_entries format=duration -show_entries stream=codec_name,width,height,r_frame_rate -of json output-godot/character-proof.mp4
+      - name: Upload Godot character proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: godot-character-proof
+          path: output-godot/character-proof.mp4
           if-no-files-found: error
           retention-days: 7

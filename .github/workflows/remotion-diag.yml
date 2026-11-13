@@ -1,0 +1,43 @@
+name: Remotion render diagnostics
+on:
+  workflow_dispatch:
+    inputs:
+      frames:
+        default: "100-103"
+permissions:
+  contents: write
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: a-default-c1, props: '{}', conc: 1, scale: '0.5' }
+          - { name: b-dpr05-msaa4, props: '{"post":{"dpr":0.5}}', conc: 1, scale: '0.5' }
+          - { name: c-dpr05-msaa0, props: '{"post":{"dpr":0.5,"msaa":0}}', conc: 1, scale: '0.5' }
+          - { name: d-default-c4, props: '{}', conc: 4, scale: '0.5' }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: npm install --no-audit --no-fund
+        working-directory: remotion
+      - run: python3 scripts/fetch_kenney.py
+        working-directory: remotion
+      - name: Render
+        working-directory: remotion
+        run: |
+          mkdir -p out
+          START=$(date +%s)
+          npx remotion render src/index.ts BridgeShort out/seq --sequence --image-format=jpeg --frames=${{ inputs.frames }} --scale=${{ matrix.scale }} --gl=swangle --concurrency=${{ matrix.conc }} --props='${{ matrix.props }}' --timeout=900000 --log=warn || true
+          echo "TIME ${{ matrix.name }}: $(( $(date +%s) - START ))s"
+          ls -la out/seq | head
+      - name: Publish
+        if: always()
+        run: |
+          mkdir /tmp/pub && cp -r remotion/out/seq/* /tmp/pub/ 2>/dev/null || true
+          cd /tmp/pub && git init -q && git checkout -q -b diag-${{ matrix.name }}
+          git config user.name bot && git config user.email bot@users.noreply.github.com
+          git add -A && git commit -qm diag --allow-empty && git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" diag-${{ matrix.name }}

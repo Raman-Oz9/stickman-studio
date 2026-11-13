@@ -8,10 +8,18 @@ for slug in ["nature-kit", "fantasy-town-kit", "pirate-kit", "city-kit-suburban"
         html = get(f"https://kenney.nl/assets/{slug}").decode("utf8", "ignore")
         m = re.search(r'(?:https://kenney\.nl)?(/media/pages/assets/[^"\'\s<>]+?\.zip)', html.replace("\\/", "/"))
         if not m:
-            i = html.find("id='inline-download'")
-            print("DIV", " ".join(html[i:i+3000].split()))
+            for mm in re.finditer(r"function initiateDownload", html):
+                print("JS", " ".join(html[mm.start():mm.start()+900].split()))
+            for src in re.findall(r"src=['\"]([^'\"]+\.js[^'\"]*)", html):
+                try:
+                    js = get(src if src.startswith("http") else "https://kenney.nl" + src).decode("utf8", "ignore")
+                    for mm in re.finditer(r"initiateDownload", js):
+                        print("JSFILE", src, " ".join(js[mm.start():mm.start()+900].split()))
+                        break
+                except Exception as e:
+                    print("js fail", src, e)
             print("no zip link for", slug)
-            continue
+            break
         z = zipfile.ZipFile(io.BytesIO(get("https://kenney.nl" + m.group(1))))
         n = 0
         for name in z.namelist():

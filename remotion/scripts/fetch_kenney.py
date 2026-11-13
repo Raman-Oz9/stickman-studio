@@ -8,7 +8,9 @@ for slug in ["nature-kit", "fantasy-town-kit", "pirate-kit", "city-kit-suburban"
         html = get(f"https://kenney.nl/assets/{slug}").decode("utf8", "ignore")
         m = re.search(r'(?:https://kenney\.nl)?(/media/pages/assets/[^"\'\s<>]+?\.zip)', html.replace("\\/", "/"))
         if not m:
-            print("CTX", [html[max(0,m.start()-120):m.end()+200].replace("\n"," ") for m in re.finditer(r"inline-download|kenney_|\.zip|data-url|download=", html)][:5]); print("no zip link for", slug, "| html len", len(html), "| links:", [h for h in re.findall(r'href=["\']([^"\']+)', html) if any(k in h.lower() for k in ("download","media","zip","donate","support"))][:8])
+            i = html.find("id='inline-download'")
+            print("DIV", " ".join(html[i:i+3000].split()))
+            print("no zip link for", slug)
             continue
         z = zipfile.ZipFile(io.BytesIO(get("https://kenney.nl" + m.group(1))))
         n = 0

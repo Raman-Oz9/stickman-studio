@@ -96,7 +96,7 @@ def render_static(data, fmt="short", outdir="output", with_voice=True):
         final = out / f"static_camera_{fmt}.mp4"
         if voice_list:
             listing = temp / "audio_concat.txt"
-            listing.write_text("".join(f"file '{p.as_posix()}'\\n" for p in voice_list), encoding="utf-8")
+            listing.write_text("".join(f"file '{p.as_posix()}'\n" for p in voice_list), encoding="utf-8")
             narration = temp / "narration.mp3"
             subprocess.run([
                 "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(listing),

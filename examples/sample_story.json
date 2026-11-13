@@ -1,39 +1,33 @@
 {
-  "title": "Milo Builds a Rocket",
-  "description": "A cinematic 15-second stickman story prototype with distinct environments, props and continuous movement.",
+  "title": "Milo's Rocket Launch",
+  "description": "A short visual proof-of-concept: layered scenes, articulated character motion, rocket takeoff, particles and cinematic framing.",
   "scenes": [
     {
-      "duration": 5,
-      "narration": "Milo had one ridiculous dream: build a rocket in his tiny workshop.",
+      "duration": 4,
+      "narration": "Milo had one dream: build a rocket that could reach the stars.",
       "visual": "ONE BIG DREAM",
       "action": "think",
       "setting": "workshop",
       "prop": "desk",
-      "background": "#D6EAF5",
-      "shirt": "#2563EB",
-      "accent": "#F59E0B"
+      "shirt": "#2D91DC"
     },
     {
       "duration": 5,
-      "narration": "The first launch failed. The second nearly took the roof off.",
-      "visual": "FAIL. FIX. TRY AGAIN.",
-      "action": "run",
+      "narration": "After one last check, he hit the launch switch and watched it rise.",
+      "visual": "THREE... TWO... ONE...",
+      "action": "launch",
       "setting": "rooftop",
       "prop": "rocket",
-      "background": "#F6C98B",
-      "shirt": "#DC2626",
-      "accent": "#FDE68A"
+      "shirt": "#DC5555"
     },
     {
-      "duration": 5,
-      "narration": "But on the third try, Milo watched his dream rise into the stars.",
-      "visual": "MAKE IT HAPPEN",
+      "duration": 4,
+      "narration": "The rocket broke through the clouds. Milo knew this was only the beginning.",
+      "visual": "THE SKY IS NOT THE LIMIT",
       "action": "celebrate",
       "setting": "space",
       "prop": "rocket",
-      "background": "#111827",
-      "shirt": "#16A34A",
-      "accent": "#38BDF8"
+      "shirt": "#36A879"
     }
   ]
 }

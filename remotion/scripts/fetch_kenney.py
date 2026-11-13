@@ -8,7 +8,7 @@ for slug in ["nature-kit", "fantasy-town-kit", "pirate-kit", "city-kit-suburban"
         html = get(f"https://kenney.nl/assets/{slug}").decode("utf8", "ignore")
         m = re.search(r'(?:https://kenney\.nl)?(/media/pages/assets/[^"\'\s<>]+?\.zip)', html.replace("\\/", "/"))
         if not m:
-            print("no zip link for", slug, "| html len", len(html), "| zip mentions:", re.findall(r'[^"\'\s]*\.zip', html)[:3])
+            print("no zip link for", slug, "| html len", len(html), "| links:", [h for h in re.findall(r'href=["\']([^"\']+)', html) if any(k in h.lower() for k in ("download","media","zip","donate","support"))][:8])
             continue
         z = zipfile.ZipFile(io.BytesIO(get("https://kenney.nl" + m.group(1))))
         n = 0

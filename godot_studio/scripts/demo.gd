@@ -61,9 +61,9 @@ func _draw_background(t: float) -> void:
         draw_line(Vector2(0, 930 + i * 48), Vector2(720, 930 + i * 48), Color("#b4a393"), 2.0)
     # subtle floor shadow follows character
     var shadow_x := lerpf(-100.0, 360.0, smoothstep(0.0, 1.2, t))
-    draw_ellipse(Vector2(shadow_x, 1110), Vector2(105, 18), Color(0, 0, 0, 0.12))
+    _draw_oval(Vector2(shadow_x, 1110), Vector2(105, 18), Color(0, 0, 0, 0.12))
 
-func draw_ellipse(center: Vector2, radius: Vector2, color: Color) -> void:
+func _draw_oval(center: Vector2, radius: Vector2, color: Color) -> void:
     var points := PackedVector2Array()
     for i in range(32):
         var a := TAU * float(i) / 32.0
@@ -159,8 +159,8 @@ func _draw_character(root: Vector2, t: float, walking: bool, talking: bool, poin
     # eyebrows and eyes
     draw_line(head + Vector2(-48, -12), head + Vector2(-18, -20), INK, 7.0)
     draw_line(head + Vector2(20, -20), head + Vector2(50, -12), INK, 7.0)
-    draw_ellipse(head + Vector2(-32, 12), Vector2(9, 15), INK)
-    draw_ellipse(head + Vector2(34, 12), Vector2(9, 15), INK)
+    _draw_oval(head + Vector2(-32, 12), Vector2(9, 15), INK)
+    _draw_oval(head + Vector2(34, 12), Vector2(9, 15), INK)
     if talking:
         draw_arc(head + Vector2(0, 43), 17.0, 0, TAU, 24, INK, 6.0)
     else:

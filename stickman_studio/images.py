@@ -2,8 +2,8 @@
 
 Provider chain (first that works wins, every provider is optional):
   1. Gemini image model   (needs GEMINI_API_KEY; best prompt-following and consistency)
-  2. Pollinations / Flux  (free, no key)
-  3. Procedural fallback  (flat vector scene from cinematic.py, so a render never dies)
+  2. Pollinations / Flux  (opt-in ALLOW_POLLINATIONS=1; free but watermarked and off-style)
+  3. Procedural fallback  (opt-in ALLOW_FALLBACK=1; flat vector scene from cinematic.py)
 """
 import base64
 import io
@@ -96,10 +96,15 @@ def make_image(scene, character, fmt, index, dest):
         return dest
     w, h, aspect = SIZES[fmt]
     prompt = build_prompt(scene, character, fmt)
-    img = _gemini(prompt, aspect) or _pollinations(prompt, w, h, 1000 + index * 17)
+    img = _gemini(prompt, aspect)
+    if img is None and os.environ.get("ALLOW_POLLINATIONS") == "1":  # free but low quality + watermark
+        img = _pollinations(prompt, w, h, 1000 + index * 17)
     source = "ai"
     if img is None:
-        print(f"  scene {index + 1}: no image provider worked, using procedural fallback")
+        if os.environ.get("ALLOW_FALLBACK") != "1":
+            raise RuntimeError("No image provider worked. Add GEMINI_API_KEY as a repository secret "
+                               "(Settings > Secrets and variables > Actions).")
+        print(f"  scene {index + 1}: using procedural fallback")
         img, source = _procedural(scene, fmt, index), "fallback"
     img = img.convert("RGB")
     if img.size != (w, h):  # crop to the exact aspect, then resize

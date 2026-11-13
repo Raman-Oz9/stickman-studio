@@ -199,16 +199,16 @@ func _draw_character(root: Vector2, t: float, walking: bool, talking: bool, poin
     # Brows, whites, pupils and highlights.
     draw_line(head + Vector2(-57,-17), head + Vector2(-17,-29), ink, 11.0)
     draw_line(head + Vector2(17,-29), head + Vector2(57,-17), ink, 11.0)
-    draw_oval(head + Vector2(-34, 10), Vector2(21, 25), Color.WHITE)
-    draw_oval(head + Vector2(34, 10), Vector2(21, 25), Color.WHITE)
-    draw_oval(head + Vector2(-29, 13), Vector2(10, 15), ink)
-    draw_oval(head + Vector2(39, 13), Vector2(10, 15), ink)
+    _draw_oval(head + Vector2(-34, 10), Vector2(21, 25), Color.WHITE)
+    _draw_oval(head + Vector2(34, 10), Vector2(21, 25), Color.WHITE)
+    _draw_oval(head + Vector2(-29, 13), Vector2(10, 15), ink)
+    _draw_oval(head + Vector2(39, 13), Vector2(10, 15), ink)
     draw_circle(head + Vector2(-32, 6), 4.0, Color.WHITE)
     draw_circle(head + Vector2(36, 6), 4.0, Color.WHITE)
     # Nose and expressive mouth.
     draw_line(head + Vector2(0, 22), head + Vector2(-5, 39), Color("#713a2a"), 4.0)
     if talking:
-        draw_oval(head + Vector2(3, 58), Vector2(18, 23), Color("#401c24"))
+        _draw_oval(head + Vector2(3, 58), Vector2(18, 23), Color("#401c24"))
         draw_arc(head + Vector2(3, 58), 18.0, 0, PI, 24, Color("#f58b8b"), 5.0)
     else:
         draw_arc(head + Vector2(0, 43), 38.0, 0.15, PI - 0.15, 32, ink, 7.0)

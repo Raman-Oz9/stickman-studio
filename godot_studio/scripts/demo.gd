@@ -76,98 +76,145 @@ func _line(points: PackedVector2Array, color: Color = INK, width: float = 11.0) 
         draw_circle(p, width * 0.5, color)
 
 func _draw_character(root: Vector2, t: float, walking: bool, talking: bool, pointing: bool, jumping: bool, phase: float) -> void:
-    var sway := sin(phase) * 0.10 if walking else sin(t * 2.1) * 0.025
-    var hip := root + Vector2(0, -125)
-    var shoulder := root + Vector2(sway * 50.0, -430)
-    var head := root + Vector2(sway * 65.0, -555)
-    var leg_swing := sin(phase) * 0.58 if walking else 0.0
-    var jump_spread := 0.32 if jumping else 0.0
+    # Original streetwear cartoon hero: layered clothing, expressive face and
+    # articulated limbs. Coordinates are local to the character root.
+    var stride := sin(phase) if walking else 0.0
+    var bounce := absf(sin(phase * 2.0)) * 7.0 if walking else 0.0
+    var lean := sin(t * 2.0) * 2.0
+    var hip := root + Vector2(lean, -205.0 + bounce)
+    var shoulder := root + Vector2(lean, -475.0 + bounce)
+    var head := root + Vector2(lean, -620.0 + bounce)
+    var skin := Color("#8d4b2d")
+    var skin_light := Color("#b86b43")
+    var ink := Color("#17131a")
+    var hoodie := Color("#171b28")
+    var hoodie_light := Color("#30394c")
+    var red := Color("#f04438")
+    var shoe_white := Color("#f5f0e8")
 
-    # Legs: articulated thigh/shin segments with rounded sneakers.
+    # Ground shadow and legs, animated at hip/knee/ankle joints.
+    _draw_oval(root + Vector2(0, 8), Vector2(105, 17), Color(0,0,0,0.20))
     for side in [-1, 1]:
-        var hip_joint := hip + Vector2(float(side) * 31, 0)
-        var knee := hip_joint + Vector2(float(side) * (18 + leg_swing * 42), 95 + absf(leg_swing) * 12)
-        var ankle := knee + Vector2(float(side) * (18 + leg_swing * 45), 95 - absf(leg_swing) * 20)
+        var s := float(side)
+        var hip_joint := hip + Vector2(s * 34.0, 0)
+        var knee := hip_joint + Vector2(s * (17.0 + stride * 48.0), 105.0 - absf(stride) * 12.0)
+        var ankle := knee + Vector2(s * (12.0 + stride * 53.0), 105.0 + absf(stride) * 10.0)
         if jumping:
-            knee.y -= 30.0
-            ankle.y -= 80.0
-            ankle.x += float(side) * 22.0
-        _line(PackedVector2Array([hip_joint, knee, ankle]), INK, 13.0)
-        var shoe := Rect2(ankle.x - 24, ankle.y - 5, 57, 25)
-        draw_rect(shoe, Color("#26313a"), true)
-        draw_rect(shoe, Color("#f8f7f3"), false, 4.0)
-        draw_line(ankle + Vector2(-9, 2), ankle + Vector2(20, 2), Color("#f8f7f3"), 3.0)
+            knee += Vector2(s * 22.0, -42.0)
+            ankle += Vector2(s * 42.0, -95.0)
+        # Cargo trousers with outlined thigh and shin panels.
+        _line(PackedVector2Array([hip_joint, knee, ankle]), ink, 34.0)
+        _line(PackedVector2Array([hip_joint, knee, ankle]), Color("#252b39"), 26.0)
+        draw_line(hip_joint + Vector2(-10, 34), knee + Vector2(-8, -18), Color("#465064"), 3.0)
+        draw_rect(Rect2(knee.x - 23.0, knee.y - 2.0, 43.0, 37.0), Color("#111722"), true)
+        draw_rect(Rect2(knee.x - 23.0, knee.y - 2.0, 43.0, 37.0), ink, false, 3.0)
+        # High-top sneakers, layered sole, toe cap and laces.
+        var shoe := Rect2(ankle.x - 29.0, ankle.y - 9.0, 76.0, 43.0)
+        draw_rect(shoe, red, true, 10.0)
+        draw_rect(Rect2(shoe.position.x, shoe.position.y + 29.0, shoe.size.x, 13.0), shoe_white, true, 5.0)
+        draw_rect(shoe, ink, false, 5.0)
+        draw_line(ankle + Vector2(-1, 3), ankle + Vector2(26, 3), shoe_white, 4.0)
+        draw_line(ankle + Vector2(4, 11), ankle + Vector2(25, 17), shoe_white, 3.0)
+        draw_line(ankle + Vector2(4, 19), ankle + Vector2(25, 25), shoe_white, 3.0)
 
-    # Arms behind the hoodie; elbow positions change continuously with action.
-    var left_shoulder := shoulder + Vector2(-52, 35)
-    var right_shoulder := shoulder + Vector2(52, 35)
-    var left_elbow := left_shoulder + Vector2(-45, 95)
-    var right_elbow := right_shoulder + Vector2(45, 95)
-    var left_hand := left_elbow + Vector2(-12, 90)
-    var right_hand := right_elbow + Vector2(12, 90)
+    # Neck and hood sit behind the torso.
+    draw_rect(Rect2(head.x - 23.0, head.y + 72.0, 46.0, 68.0), skin, true)
+    draw_rect(Rect2(head.x - 25.0, head.y + 72.0, 50.0, 42.0), skin_light, true)
+    # Arms: shoulder, elbow and wrist positions change with each action.
+    var ls := shoulder + Vector2(-67, 35)
+    var rs := shoulder + Vector2(67, 35)
+    var le := ls + Vector2(-55, 105)
+    var re := rs + Vector2(55, 105)
+    var lh := le + Vector2(-10, 88)
+    var rh := re + Vector2(10, 88)
     if walking:
-        left_elbow += Vector2(0, sin(phase + PI) * 30)
-        right_elbow += Vector2(0, sin(phase) * 30)
-        left_hand += Vector2(0, sin(phase + PI) * 55)
-        right_hand += Vector2(0, sin(phase) * 55)
-    if pointing:
-        right_elbow = right_shoulder + Vector2(75, -30)
-        right_hand = right_elbow + Vector2(95, -45)
+        le.y += sin(phase + PI) * 25.0
+        re.y += sin(phase) * 25.0
+        lh.y += sin(phase + PI) * 45.0
+        rh.y += sin(phase) * 45.0
     if talking:
-        right_elbow = right_shoulder + Vector2(58, 60 + sin(t * 12) * 13)
-        right_hand = right_elbow + Vector2(22, -45 + sin(t * 12) * 15)
+        re = rs + Vector2(65, 48 + sin(t * 11.0) * 17.0)
+        rh = re + Vector2(25, -48 + sin(t * 11.0) * 12.0)
+    if pointing:
+        re = rs + Vector2(92, -45)
+        rh = re + Vector2(105, -48)
     if jumping:
-        left_elbow = left_shoulder + Vector2(-35, -85)
-        right_elbow = right_shoulder + Vector2(35, -85)
-        left_hand = left_elbow + Vector2(-12, -75)
-        right_hand = right_elbow + Vector2(12, -75)
-    _line(PackedVector2Array([left_shoulder, left_elbow, left_hand]), INK, 16.0)
-    _line(PackedVector2Array([right_shoulder, right_elbow, right_hand]), INK, 16.0)
-
-    # Hoodie silhouette and shaded folds.
-    var torso := PackedVector2Array([
-        shoulder + Vector2(-62, 0), shoulder + Vector2(62, 0),
-        hip + Vector2(75, 0), hip + Vector2(-75, 0)
-    ])
-    draw_colored_polygon(torso, HOOD)
-    draw_polyline(PackedVector2Array([torso[0], torso[1], torso[2], torso[3], torso[0]]), INK, 9.0, true)
-    draw_colored_polygon(PackedVector2Array([
-        shoulder + Vector2(-58, 8), shoulder + Vector2(-18, 25),
-        hip + Vector2(-12, -5), hip + Vector2(-66, -8)
-    ]), Color("#d3dde2"))
-    draw_line(shoulder + Vector2(-10, 15), hip + Vector2(-15, -15), HOOD_SHADE, 5.0)
-    # Hood/collar and pocket.
-    draw_arc(shoulder + Vector2(0, 12), 66.0, 0.15, PI - 0.15, 32, HOOD_SHADE, 12.0)
-    draw_rect(Rect2(hip.x - 47, hip.y - 74, 94, 38), HOOD_SHADE, false, 5.0)
-    draw_line(shoulder + Vector2(-18, 34), shoulder + Vector2(-18, 112), HOOD_SHADE, 5.0)
-    draw_line(shoulder + Vector2(18, 34), shoulder + Vector2(18, 112), HOOD_SHADE, 5.0)
-
-    # Neck and large expressive face.
-    draw_rect(Rect2(head.x - 18, head.y + 57, 36, 48), SKIN)
-    draw_circle(head, 92.0, SKIN)
-    draw_arc(head, 92.0, 0, TAU, 80, INK, 8.0)
-    # Hair cap with swept spikes.
-    var hair := PackedVector2Array([
-        head + Vector2(-85, -20), head + Vector2(-102, -94),
-        head + Vector2(-48, -70), head + Vector2(-10, -112),
-        head + Vector2(18, -77), head + Vector2(78, -91),
-        head + Vector2(90, -35), head + Vector2(48, -51),
-        head + Vector2(-8, -43)
-    ])
-    draw_colored_polygon(hair, HAIR)
-    draw_polyline(hair, INK, 7.0, true)
-    # eyebrows and eyes
-    draw_line(head + Vector2(-48, -12), head + Vector2(-18, -20), INK, 7.0)
-    draw_line(head + Vector2(20, -20), head + Vector2(50, -12), INK, 7.0)
-    _draw_oval(head + Vector2(-32, 12), Vector2(9, 15), INK)
-    _draw_oval(head + Vector2(34, 12), Vector2(9, 15), INK)
-    if talking:
-        draw_arc(head + Vector2(0, 43), 17.0, 0, TAU, 24, INK, 6.0)
-    else:
-        draw_arc(head + Vector2(0, 25), 34.0, 0.2, PI - 0.2, 32, INK, 6.0)
-    # Finger/point detail
+        le = ls + Vector2(-48, -100)
+        re = rs + Vector2(48, -100)
+        lh = le + Vector2(-5, -78)
+        rh = re + Vector2(5, -78)
+    _line(PackedVector2Array([ls, le, lh]), ink, 31.0)
+    _line(PackedVector2Array([ls, le, lh]), hoodie, 23.0)
+    _line(PackedVector2Array([rs, re, rh]), ink, 31.0)
+    _line(PackedVector2Array([rs, re, rh]), hoodie, 23.0)
+    # Hands and fingers.
+    for hand in [lh, rh]:
+        draw_circle(hand, 17.0, skin)
+        draw_circle(hand + Vector2(3,-3), 11.0, skin_light)
     if pointing:
-        draw_line(right_hand, right_hand + Vector2(22, -10), SKIN, 9.0)
+        draw_line(rh, rh + Vector2(31,-8), skin, 12.0)
+        draw_circle(rh + Vector2(31,-8), 6.0, skin_light)
+
+    # Oversized hoodie body, shoulder seams, hood, pocket and drawstrings.
+    var body := PackedVector2Array([
+        shoulder + Vector2(-76, 0), shoulder + Vector2(76, 0),
+        hip + Vector2(82, 0), hip + Vector2(-82, 0)
+    ])
+    draw_colored_polygon(body, hoodie)
+    draw_polyline(PackedVector2Array([body[0],body[1],body[2],body[3],body[0]]), ink, 10.0, true)
+    draw_colored_polygon(PackedVector2Array([
+        shoulder + Vector2(-69, 12), shoulder + Vector2(-25, 28),
+        hip + Vector2(-34, -8), hip + Vector2(-75, -8)
+    ]), hoodie_light)
+    draw_colored_polygon(PackedVector2Array([
+        shoulder + Vector2(69, 12), shoulder + Vector2(25, 28),
+        hip + Vector2(34, -8), hip + Vector2(75, -8)
+    ]), Color("#222a3b"))
+    draw_arc(shoulder + Vector2(0, 18), 72.0, 0.05, PI - 0.05, 36, Color("#596276"), 9.0)
+    draw_rect(Rect2(hip.x - 55, hip.y - 88, 110, 48), Color("#242c3c"), true, 9.0)
+    draw_rect(Rect2(hip.x - 55, hip.y - 88, 110, 48), ink, false, 4.0)
+    draw_line(shoulder + Vector2(-19, 48), shoulder + Vector2(-19, 128), red, 5.0)
+    draw_line(shoulder + Vector2(19, 48), shoulder + Vector2(19, 128), red, 5.0)
+    # Chest emblem.
+    draw_colored_polygon(PackedVector2Array([
+        shoulder + Vector2(0, 125), shoulder + Vector2(-22, 158),
+        shoulder + Vector2(0, 150), shoulder + Vector2(22, 158)
+    ]), shoe_white)
+    draw_line(shoulder + Vector2(-10, 166), shoulder + Vector2(10, 166), red, 4.0)
+
+    # Head, ears, hair silhouette and textured curls.
+    draw_circle(head + Vector2(-88, 10), 20.0, skin)
+    draw_circle(head + Vector2(88, 10), 20.0, skin)
+    draw_circle(head, 104.0, skin)
+    draw_arc(head, 104.0, 0, TAU, 90, ink, 9.0)
+    # Afro silhouette with individual curls for a recognisable character.
+    draw_circle(head + Vector2(0,-75), 91.0, ink)
+    draw_circle(head + Vector2(-58,-83), 42.0, ink)
+    draw_circle(head + Vector2(54,-87), 45.0, ink)
+    for i in range(17):
+        var a := PI + PI * float(i) / 16.0
+        var p := head + Vector2(cos(a) * 88.0, -70.0 + sin(a) * 42.0)
+        draw_circle(p, 13.0, Color("#35212a"))
+        draw_circle(p + Vector2(-3,-3), 4.0, Color("#68402f"))
+    # Brows, whites, pupils and highlights.
+    draw_line(head + Vector2(-57,-17), head + Vector2(-17,-29), ink, 11.0)
+    draw_line(head + Vector2(17,-29), head + Vector2(57,-17), ink, 11.0)
+    draw_oval(head + Vector2(-34, 10), Vector2(21, 25), Color.WHITE)
+    draw_oval(head + Vector2(34, 10), Vector2(21, 25), Color.WHITE)
+    draw_oval(head + Vector2(-29, 13), Vector2(10, 15), ink)
+    draw_oval(head + Vector2(39, 13), Vector2(10, 15), ink)
+    draw_circle(head + Vector2(-32, 6), 4.0, Color.WHITE)
+    draw_circle(head + Vector2(36, 6), 4.0, Color.WHITE)
+    # Nose and expressive mouth.
+    draw_line(head + Vector2(0, 22), head + Vector2(-5, 39), Color("#713a2a"), 4.0)
+    if talking:
+        draw_oval(head + Vector2(3, 58), Vector2(18, 23), Color("#401c24"))
+        draw_arc(head + Vector2(3, 58), 18.0, 0, PI, 24, Color("#f58b8b"), 5.0)
+    else:
+        draw_arc(head + Vector2(0, 43), 38.0, 0.15, PI - 0.15, 32, ink, 7.0)
+    # Cheek highlights.
+    draw_circle(head + Vector2(-65, 48), 8.0, Color("#d77b68", 0.55))
+    draw_circle(head + Vector2(65, 48), 8.0, Color("#d77b68", 0.55))
 
 func _draw_caption(t: float) -> void:
     var caption := ""

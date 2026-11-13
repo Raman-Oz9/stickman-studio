@@ -1,0 +1,103 @@
+{
+  "title": "THE 1% RULE — Small Steps Change Everything",
+  "description": "A cinematic stickman story told with illustrated still scenes, dramatic camera moves, captions and narration.",
+  "scenes": [
+    {
+      "duration": 5,
+      "narration": "Every big change begins with a moment that looks almost too small to matter.",
+      "visual": "IT STARTS WITH ONE SMALL STEP",
+      "action": "think",
+      "setting": "workshop",
+      "prop": "desk",
+      "shirt": "#2D91DC",
+      "camera": {
+        "from": 1.02,
+        "to": 1.18,
+        "focus_x": 0.47,
+        "focus_y": 0.52,
+        "end_x": 0.47,
+        "end_y": 0.49
+      }
+    },
+    {
+      "duration": 5,
+      "narration": "You look at the distance ahead, and the goal feels impossibly far away.",
+      "visual": "THE GOAL FEELS TOO FAR",
+      "action": "think",
+      "setting": "city",
+      "shirt": "#DC5555",
+      "camera": {
+        "from": 1.04,
+        "to": 1.28,
+        "focus_x": 0.48,
+        "focus_y": 0.53,
+        "end_x": 0.48,
+        "end_y": 0.47
+      }
+    },
+    {
+      "duration": 5,
+      "narration": "But progress is not one giant leap. It is a series of tiny decisions, repeated every day.",
+      "visual": "PROGRESS IS BUILT DAILY",
+      "action": "idle",
+      "setting": "forest",
+      "shirt": "#36A879",
+      "camera": {
+        "from": 1.18,
+        "to": 1.04,
+        "focus_x": 0.52,
+        "focus_y": 0.55,
+        "end_x": 0.5,
+        "end_y": 0.56
+      }
+    },
+    {
+      "duration": 5,
+      "narration": "Some days you move slowly. Some days nobody notices. Keep showing up anyway.",
+      "visual": "KEEP SHOWING UP",
+      "action": "run",
+      "setting": "rooftop",
+      "shirt": "#E5A13A",
+      "camera": {
+        "from": 1.05,
+        "to": 1.25,
+        "focus_x": 0.45,
+        "focus_y": 0.54,
+        "end_x": 0.57,
+        "end_y": 0.5
+      }
+    },
+    {
+      "duration": 5,
+      "narration": "One percent better, again and again, becomes a completely different life.",
+      "visual": "1% BETTER. EVERY DAY.",
+      "action": "celebrate",
+      "setting": "space",
+      "shirt": "#36A879",
+      "camera": {
+        "from": 1.22,
+        "to": 1.05,
+        "focus_x": 0.5,
+        "focus_y": 0.53,
+        "end_x": 0.5,
+        "end_y": 0.52
+      }
+    },
+    {
+      "duration": 5,
+      "narration": "Do not wait for the perfect moment. Make the next small move. Your future is built from it.",
+      "visual": "MAKE YOUR NEXT MOVE",
+      "action": "wave",
+      "setting": "city",
+      "shirt": "#2D91DC",
+      "camera": {
+        "from": 1.04,
+        "to": 1.2,
+        "focus_x": 0.5,
+        "focus_y": 0.53,
+        "end_x": 0.5,
+        "end_y": 0.48
+      }
+    }
+  ]
+}

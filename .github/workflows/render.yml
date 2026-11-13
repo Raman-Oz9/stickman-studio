@@ -1,0 +1,51 @@
+name: Render Stickman Video
+on:
+  workflow_dispatch:
+    inputs:
+      format:
+        description: "Video format"
+        required: true
+        default: "short"
+        type: choice
+        options: [short, long]
+      voice:
+        description: "Generate narration (uses Edge TTS)"
+        required: true
+        default: false
+        type: boolean
+  schedule:
+    - cron: "0 10 * * 1"
+permissions:
+  contents: read
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Render sample
+        run: |
+          FORMAT="${{ inputs.format || 'short' }}"
+          if [ "${{ inputs.voice }}" = "true" ]; then
+            python -m stickman_studio.cli render examples/sample_story.json --format "$FORMAT" --voice
+          else
+            python -m stickman_studio.cli render examples/sample_story.json --format "$FORMAT"
+          fi
+      - name: Upload rendered files as workflow artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: stickman-studio-output
+          path: output/
+          if-no-files-found: error
+          retention-days: 7

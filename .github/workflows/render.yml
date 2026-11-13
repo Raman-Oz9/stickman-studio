@@ -1,34 +1,26 @@
-name: Render Stickman Video
+name: Render Static Camera Story
 on:
   push:
     branches: [main]
     paths:
       - "stickman_studio/**"
-      - "godot_studio/**"
       - "examples/**"
       - ".github/workflows/render.yml"
       - "requirements.txt"
   workflow_dispatch:
     inputs:
-      format:
-        description: "Video format"
-        required: true
-        default: "short"
-        type: choice
-        options: [short, long]
       voice:
-        description: "Generate narration (uses Edge TTS)"
+        description: "Include free text-to-speech narration"
         required: true
-        default: false
+        default: true
         type: boolean
-  schedule:
-    - cron: "0 10 * * 1"
 permissions:
   contents: read
 jobs:
-  render:
+  static-camera-render:
+    name: Render still-scene storytelling short
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 35
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -40,52 +32,28 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
-      - name: Install dependencies
+      - name: Install Python dependencies
         run: pip install -r requirements.txt
-      - name: Render cinematic prototype
+      - name: Render static-camera story
+        env:
+          INCLUDE_VOICE: ${{ inputs.voice || 'true' }}
         run: |
-          FORMAT="${{ inputs.format || 'short' }}"
-          if [ "${{ inputs.voice }}" = "true" ]; then
-            python -m stickman_studio.cli render examples/sample_story.json --format "$FORMAT" --voice
+          if [ "$INCLUDE_VOICE" = "true" ]; then
+            python -m stickman_studio.static_camera examples/first_static_story.json --format short
           else
-            python -m stickman_studio.cli render examples/sample_story.json --format "$FORMAT"
+            python -m stickman_studio.static_camera examples/first_static_story.json --format short --no-voice
           fi
-      - name: Upload rendered files as workflow artifacts
+      - name: Verify final MP4
+        run: |
+          test -s output/static_camera_short.mp4
+          ffprobe -v error -show_entries format=duration -show_entries stream=codec_name,width,height,r_frame_rate -of json output/static_camera_short.mp4
+      - name: Upload finished video and supporting files
         uses: actions/upload-artifact@v4
         with:
-          name: stickman-studio-prototype
-          path: output/
-          if-no-files-found: error
-          retention-days: 7
-
-  godot-character-proof:
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-      - name: Set up Godot 4.7
-        uses: solarlabyrinth/action-setup-godot@v3
-        with:
-          version: 4.7-stable
-          export-templates: false
-      - name: Install software display for Godot
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y xvfb libgl1-mesa-dri ffmpeg
-      - name: Render animated character proof
-        run: |
-          mkdir -p output-godot
-          set -o pipefail
-          xvfb-run -a godot --path godot_studio --rendering-method gl_compatibility --write-movie /tmp/character-proof.avi --fixed-fps 30 --quit-after 240 2>&1 | tee output-godot/godot-render.log
-          if grep -E "SCRIPT ERROR|Failed to load script|Parse Error" output-godot/godot-render.log; then echo "Godot script errors detected; refusing to publish blank video."; exit 1; fi
-          test -s /tmp/character-proof.avi
-          ffmpeg -y -i /tmp/character-proof.avi -c:v libx264 -preset veryfast -crf 19 -pix_fmt yuv420p -movflags +faststart output-godot/character-proof.mp4
-          ffprobe -v error -show_entries format=duration -show_entries stream=codec_name,width,height,r_frame_rate -of json output-godot/character-proof.mp4
-      - name: Upload Godot character proof
-        uses: actions/upload-artifact@v4
-        with:
-          name: godot-character-proof
-          path: output-godot/character-proof.mp4
+          name: static-camera-story
+          path: |
+            output/static_camera_short.mp4
+            output/static_camera_captions.srt
+            output/static_camera_thumbnail.png
           if-no-files-found: error
           retention-days: 7

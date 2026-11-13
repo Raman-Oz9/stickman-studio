@@ -1,59 +1,66 @@
-name: Render Static Camera Story
+name: Render Stickman Story
 on:
-  push:
-    branches: [main]
-    paths:
-      - "stickman_studio/**"
-      - "examples/**"
-      - ".github/workflows/render.yml"
-      - "requirements.txt"
   workflow_dispatch:
     inputs:
+      story:
+        description: "Story JSON"
+        default: "examples/bamboo_story.json"
+      format:
+        description: "short (9:16) or long (16:9)"
+        default: "short"
+        type: choice
+        options: [short, long]
       voice:
-        description: "Include free text-to-speech narration"
-        required: true
-        default: true
+        description: "Narrator (Kokoro): am_michael, am_puck, am_eric, am_liam, bm_lewis"
+        default: "am_michael"
+      samples:
+        description: "Only render voice samples to pick a narrator"
+        default: false
         type: boolean
 permissions:
-  contents: read
+  contents: write
 jobs:
-  static-camera-render:
-    name: Render still-scene storytelling short
+  render:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 60
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Install FFmpeg
+      - name: Install system + python deps
         run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg
-      - name: Install Python dependencies
-        run: pip install -r requirements.txt
-      - name: Render static-camera story
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg espeak-ng fonts-dejavu-core
+          pip install requests soundfile numpy pillow opencv-python-headless edge-tts
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install kokoro huggingface_hub
+          for i in 1 2 3 4 5; do pip install "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl" && break; sleep 20; done
+      - name: Voice samples
+        if: ${{ inputs.samples }}
+        run: python -m stickman_studio.studio --voice-samples --outdir output
+      - name: Render story
+        if: ${{ !inputs.samples }}
         env:
-          INCLUDE_VOICE: ${{ inputs.voice || 'true' }}
-        run: |
-          if [ "$INCLUDE_VOICE" = "true" ]; then
-            python -m stickman_studio.static_camera examples/first_static_story.json --format short
-          else
-            python -m stickman_studio.static_camera examples/first_static_story.json --format short --no-voice
-          fi
-      - name: Verify final MP4
-        run: |
-          test -s output/static_camera_short.mp4
-          ffprobe -v error -show_entries format=duration -show_entries stream=codec_name,width,height,r_frame_rate -of json output/static_camera_short.mp4
-      - name: Upload finished video and supporting files
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          NARRATOR_VOICE: ${{ inputs.voice }}
+        run: python -m stickman_studio.studio "${{ inputs.story }}" --format "${{ inputs.format }}" --outdir output
+      - name: Upload files
         uses: actions/upload-artifact@v4
         with:
-          name: static-camera-story
+          name: stickman-output
           path: |
-            output/static_camera_short.mp4
-            output/static_camera_captions.srt
-            output/static_camera_thumbnail.png
-          if-no-files-found: error
-          retention-days: 7
+            output/*.mp4
+            output/*.srt
+            output/*.txt
+            output/voices/*.wav
+            output/work/scene_*.jpg
+      - name: Publish test files to branch test-video
+        run: |
+          rm -rf /tmp/pub && mkdir /tmp/pub
+          cp -r output/*.mp4 output/*.srt output/voices /tmp/pub/ 2>/dev/null || true
+          cp output/work/scene_*.jpg /tmp/pub/ 2>/dev/null || true
+          cd /tmp/pub && git init -q && git checkout -q -b test-video
+          git config user.name "render-bot" && git config user.email "bot@users.noreply.github.com"
+          git add -A && git commit -qm "test render" 
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" test-video

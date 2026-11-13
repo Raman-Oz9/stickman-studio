@@ -6,3 +6,6 @@ client_secret.json
 token.json
 .env
 .DS_Store
+node_modules
+remotion/out
+remotion/public/bridge/kenney

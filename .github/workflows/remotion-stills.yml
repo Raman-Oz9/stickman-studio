@@ -1,0 +1,46 @@
+name: Remotion stills
+on:
+  workflow_dispatch:
+    inputs:
+      composition:
+        default: "BridgeShort"
+      frames:
+        description: "Comma separated frame numbers"
+        default: "100,400,900,1500"
+      scale:
+        default: "0.5"
+permissions:
+  contents: write
+jobs:
+  stills:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Install
+        working-directory: remotion
+        run: npm install --no-audit --no-fund
+      - name: Kenney kits (CC0)
+        working-directory: remotion
+        run: python3 scripts/fetch_kenney.py
+      - name: Typecheck (informational)
+        working-directory: remotion
+        continue-on-error: true
+        run: npx tsc --noEmit 2>&1 | head -60
+      - name: Render stills
+        working-directory: remotion
+        run: |
+          mkdir -p out
+          for f in $(echo "${{ inputs.frames }}" | tr ',' ' '); do
+            /usr/bin/time -f "frame $f: %es" npx remotion still src/index.ts "${{ inputs.composition }}" out/f$f.jpg --frame=$f --scale=${{ inputs.scale }} --gl=swangle --image-format=jpeg --jpeg-quality=88 --timeout=300000 --log=warn
+          done
+      - name: Publish stills
+        if: always()
+        run: |
+          rm -rf /tmp/pub && mkdir /tmp/pub && cp remotion/out/* /tmp/pub/ 2>/dev/null || true
+          cd /tmp/pub && git init -q && git checkout -q -b stills
+          git config user.name bot && git config user.email bot@users.noreply.github.com
+          git add -A && git commit -qm stills --allow-empty
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" stills

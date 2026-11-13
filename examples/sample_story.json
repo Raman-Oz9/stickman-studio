@@ -1,10 +1,39 @@
 {
-  "title": "The Stickman Who Never Gave Up",
-  "description": "A short original story about persistence.",
+  "title": "Milo Builds a Rocket",
+  "description": "A cinematic 15-second stickman story prototype with distinct environments, props and continuous movement.",
   "scenes": [
-    {"duration": 4, "narration": "Everyone laughed when Milo tried to build a rocket.", "visual": "A big dream starts small", "action": "idle", "background": "#EAF4FF"},
-    {"duration": 4, "narration": "But every day, he came back and tried again.", "visual": "Try. Learn. Repeat.", "action": "walk", "background": "#F4F0FF"},
-    {"duration": 4, "narration": "One afternoon, the rocket finally lifted off.", "visual": "The impossible becomes possible", "action": "jump", "background": "#FFF4E6"},
-    {"duration": 4, "narration": "Milo smiled. He had proved that patience can beat doubt.", "visual": "Never stop building", "action": "celebrate", "background": "#EAFBEF"}
+    {
+      "duration": 5,
+      "narration": "Milo had one ridiculous dream: build a rocket in his tiny workshop.",
+      "visual": "ONE BIG DREAM",
+      "action": "think",
+      "setting": "workshop",
+      "prop": "desk",
+      "background": "#D6EAF5",
+      "shirt": "#2563EB",
+      "accent": "#F59E0B"
+    },
+    {
+      "duration": 5,
+      "narration": "The first launch failed. The second nearly took the roof off.",
+      "visual": "FAIL. FIX. TRY AGAIN.",
+      "action": "run",
+      "setting": "rooftop",
+      "prop": "rocket",
+      "background": "#F6C98B",
+      "shirt": "#DC2626",
+      "accent": "#FDE68A"
+    },
+    {
+      "duration": 5,
+      "narration": "But on the third try, Milo watched his dream rise into the stars.",
+      "visual": "MAKE IT HAPPEN",
+      "action": "celebrate",
+      "setting": "space",
+      "prop": "rocket",
+      "background": "#111827",
+      "shirt": "#16A34A",
+      "accent": "#38BDF8"
+    }
   ]
 }

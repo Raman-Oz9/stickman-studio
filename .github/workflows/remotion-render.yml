@@ -58,7 +58,7 @@ jobs:
         run: |
           mkdir -p out
           START=$(date +%s)
-          npx remotion render src/index.ts "${{ inputs.composition }}" out/part_${{ matrix.i }}.mp4 --frames=${{ matrix.a }}-${{ matrix.b }} --scale=${{ inputs.scale }} --gl=swangle --codec=h264 --crf=17 --pixel-format=yuv420p --concurrency=4 --props='${{ inputs.props }}' --timeout=900000 --log=warn
+          npx remotion render src/index.ts "${{ inputs.composition }}" out/part_${{ matrix.i }}.mp4 --frames=${{ matrix.a }}-${{ matrix.b }} --scale=${{ inputs.scale }} --gl=swangle --codec=h264 --crf=17 --pixel-format=yuv420p --concurrency=1 --props='${{ inputs.props }}' --timeout=900000 --log=warn
           echo "shard ${{ matrix.i }}: $(( $(date +%s) - START ))s for $(( ${{ matrix.b }} - ${{ matrix.a }} + 1 )) frames"
       - uses: actions/upload-artifact@v4
         with:
@@ -77,7 +77,8 @@ jobs:
         run: |
           sudo apt-get install -y -qq ffmpeg >/dev/null
           ls parts | sort -V | sed 's/^/file parts\//' > list.txt
-          ffmpeg -loglevel error -y -f concat -safe 0 -i list.txt -c copy video.mp4
+          ffmpeg -loglevel error -y -f concat -safe 0 -i list.txt -c copy video_540.mp4
+          ffmpeg -loglevel error -y -i video_540.mp4 -vf "scale=1080:1920:flags=lanczos,unsharp=5:5:0.6:5:5:0.0" -c:v libx264 -crf 17 -preset medium -pix_fmt yuv420p video.mp4
           ffprobe -v error -show_entries format=duration -of csv=p=0 video.mp4
       - uses: actions/upload-artifact@v4
         with: { name: video, path: video.mp4 }

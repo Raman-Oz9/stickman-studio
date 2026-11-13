@@ -1,0 +1,10 @@
+{
+  "title": "The Stickman Who Never Gave Up",
+  "description": "A short original story about persistence.",
+  "scenes": [
+    {"duration": 4, "narration": "Everyone laughed when Milo tried to build a rocket.", "visual": "A big dream starts small", "action": "idle", "background": "#EAF4FF"},
+    {"duration": 4, "narration": "But every day, he came back and tried again.", "visual": "Try. Learn. Repeat.", "action": "walk", "background": "#F4F0FF"},
+    {"duration": 4, "narration": "One afternoon, the rocket finally lifted off.", "visual": "The impossible becomes possible", "action": "jump", "background": "#FFF4E6"},
+    {"duration": 4, "narration": "Milo smiled. He had proved that patience can beat doubt.", "visual": "Never stop building", "action": "celebrate", "background": "#EAFBEF"}
+  ]
+}

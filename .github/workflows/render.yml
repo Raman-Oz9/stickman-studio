@@ -72,7 +72,7 @@ jobs:
       - name: Install software display for Godot
         run: |
           sudo apt-get update
-          sudo apt-get install -y xvfb libgl1-mesa-dri
+          sudo apt-get install -y xvfb libgl1-mesa-dri ffmpeg
       - name: Render animated character proof
         run: |
           mkdir -p output-godot

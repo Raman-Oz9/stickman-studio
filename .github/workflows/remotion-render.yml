@@ -16,6 +16,9 @@ on:
       scale:
         description: "1 = 1080x1920"
         default: "1"
+      props:
+        description: "Remotion input props JSON"
+        default: "{}"
 permissions:
   contents: write
 jobs:
@@ -55,7 +58,7 @@ jobs:
         run: |
           mkdir -p out
           START=$(date +%s)
-          npx remotion render src/index.ts "${{ inputs.composition }}" out/part_${{ matrix.i }}.mp4 --frames=${{ matrix.a }}-${{ matrix.b }} --scale=${{ inputs.scale }} --gl=swangle --codec=h264 --crf=17 --pixel-format=yuv420p --concurrency=3 --timeout=600000 --log=warn
+          npx remotion render src/index.ts "${{ inputs.composition }}" out/part_${{ matrix.i }}.mp4 --frames=${{ matrix.a }}-${{ matrix.b }} --scale=${{ inputs.scale }} --gl=swangle --codec=h264 --crf=17 --pixel-format=yuv420p --concurrency=4 --props='${{ inputs.props }}' --timeout=900000 --log=warn
           echo "shard ${{ matrix.i }}: $(( $(date +%s) - START ))s for $(( ${{ matrix.b }} - ${{ matrix.a }} + 1 )) frames"
       - uses: actions/upload-artifact@v4
         with:

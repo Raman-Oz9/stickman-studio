@@ -76,7 +76,10 @@ jobs:
       - name: Render animated character proof
         run: |
           mkdir -p output-godot
-          xvfb-run -a godot --path godot_studio --rendering-method gl_compatibility --write-movie /tmp/character-proof.avi --fixed-fps 30 --quit-after 240
+          set -o pipefail
+          xvfb-run -a godot --path godot_studio --rendering-method gl_compatibility --write-movie /tmp/character-proof.avi --fixed-fps 30 --quit-after 240 2>&1 | tee output-godot/godot-render.log
+          if grep -E "SCRIPT ERROR|Failed to load script|Parse Error" output-godot/godot-render.log; then echo "Godot script errors detected; refusing to publish blank video."; exit 1; fi
+          test -s /tmp/character-proof.avi
           ffmpeg -y -i /tmp/character-proof.avi -c:v libx264 -preset veryfast -crf 19 -pix_fmt yuv420p -movflags +faststart output-godot/character-proof.mp4
           ffprobe -v error -show_entries format=duration -show_entries stream=codec_name,width,height,r_frame_rate -of json output-godot/character-proof.mp4
       - name: Upload Godot character proof

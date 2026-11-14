@@ -1,0 +1,16 @@
+name: Kenney list
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  l:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          cd remotion && python3 scripts/fetch_kenney.py
+          mkdir -p /tmp/pub && ls public/bridge/kenney | sed 's/.glb$//' | sort > /tmp/pub/names.txt; wc -l /tmp/pub/names.txt
+          cd /tmp/pub && git init -q && git checkout -q -b kenney-list
+          git config user.name bot && git config user.email bot@users.noreply.github.com
+          git add -A && git commit -qm l && git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" kenney-list

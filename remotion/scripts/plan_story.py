@@ -23,13 +23,13 @@ def llm(script):
     prompt = SPEC + "\n\nSCRIPT:\n" + script
     k = os.environ.get("GEMINI_API_KEY", "").strip()
     if k:
-        for m in ("gemini-2.5-flash", "gemini-2.5-flash-lite"):
+        for m in os.environ.get("PLAN_GEMINI_MODELS", "gemini-flash-latest,gemini-3.5-flash,gemini-2.5-flash").split(","):
             try:
                 j = post(f"https://generativelanguage.googleapis.com/v1beta/models/{m}:generateContent", {"x-goog-api-key": k},
                          {"contents": [{"parts": [{"text": prompt}]}], "generationConfig": {"responseMimeType": "application/json"}})
                 return json.loads(j["candidates"][0]["content"]["parts"][0]["text"])
             except Exception as e:
-                print("gemini:", e, file=sys.stderr)
+                print("gemini", m, ":", e, getattr(e, "read", lambda: b"")()[:200], file=sys.stderr)
     k = os.environ.get("GROQ_API_KEY", "").strip()
     if k:
         try:

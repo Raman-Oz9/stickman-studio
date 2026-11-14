@@ -97,12 +97,11 @@ def beats(board):
         ev.append((t, "scene"))
         react = next((c for c in s["cast"] if c.get("at2") is not None and c.get("expr2")), None)
         if react and d > 1.8:
-            cut = min(0.75, max(0.3, react["at2"])); ev.append((t + cut * d, "punch"))
+            cut = min(0.72, max(0.3, react["at2"])); ev.append((t + cut * d, "punch"))
             if react["expr2"] in ("shock", "pained"): ev.append((t + cut * d, "hit"))
             if react["expr2"] in ("laugh", "grin"): ev.append((t + cut * d + 0.05, "pop"))
         else:
-            n = max(1, round(d / 2.4))
-            for k in range(1, n): ev.append((t + d * k / n, "cut"))
+            if d > 4.6 and not s.get("move"): ev.append((t + d * 0.56, "cut"))   # mirrors camera.ts segsOf
         if any(c.get("expr") == "shock" for c in s["cast"]) and not react: ev.append((t + 0.15, "hit"))
         if any(c.get("expr") in ("laugh", "grin") for c in s["cast"]) and not react: ev.append((t + 0.3, "pop"))
         t += d

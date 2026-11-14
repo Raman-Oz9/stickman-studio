@@ -6,13 +6,17 @@ import json, os, re, sys, urllib.request
 
 ROLES = ["king", "queen", "knight", "peasant", "farmer", "wizard", "merchant", "kid", "girl", "parent", "guard"]
 EXPR = ["neutral", "stern", "grin", "laugh", "whistle", "nervous", "shock", "relief", "dazed", "pained", "smile", "smile_closed"]
-SHOTS = ["wide", "medium", "close", "low", "over"]
+SHOTS = ["wide", "medium", "close", "low", "over", "high"]
 SPEC = f"""Return ONLY JSON: {{"title": str, "scenes": [scene,...]}}. One scene per 1-2 sentences of the script, 3-6 s each.
-scene = {{"dur": seconds, "shot": one of {SHOTS}, "target": cast id the camera favours, "move": "push"|"pull"|"orbit"|"hold",
+scene = {{"dur": seconds, "shot": one of {SHOTS}, "target": cast id the camera favours, "move": "push"|"pull"|"reveal"|"pan"|"descend"|"orbit"|"hold",
 "light": "day"|"golden", "extras": 0-12 background townsfolk, "caption": the narration line (max 9 words),
 "narration": full sentence(s) spoken, "cast": [{{"id": str, "role": one of {ROLES}, "x": -2..2, "z": -1..1, "expr": one of {EXPR},
 "expr2": optional reaction expr, "at2": 0.3-0.8 when the reaction lands, "look": "partner"|"left"|"right"|"cam"}}]}}.
-Rules: open with a wide shot, use close shots on emotional beats, alternate shot types, max 3 characters per scene, keep each
+Camera language (Cinematic Camera spec): "reveal" = progressive push-in from the environment to a character (use on the opening scene and when a place or person is introduced);
+"push" = approach a face for emotion; "pull" = start on a face/object and widen to reveal context; "pan" = sweep from one character to another in a two-person exchange;
+"descend" with shot "high" = overhead/elevated view that comes down to the subject (use to establish a place, a crowd or a layout); close shot = slow push from face to eyes.
+Give every narration beat a visual that shows what is said (the person, the object, the action). A character reaction (expr2 + at2) triggers a quick push-in and hold on that face: use it for every surprise, fear, joke or discovery.
+Never repeat the same shot type or move twice in a row. Keep captions to the spoken words. Rules: open with a wide shot, use close shots on emotional beats, alternate shot types, max 3 characters per scene, keep each
 character's id/role consistent across scenes, use golden light for the ending or sad/warm beats, characters at least 1.2 m apart."""
 
 def post(url, headers, body):
@@ -57,7 +61,7 @@ def heuristic(script):
         cast_seen = list(dict.fromkeys(roles + cast_seen))[:3]
         expr = next((e for p, e in MOOD if re.search(p, low)), "neutral" if i % 2 else "smile")
         prev = scenes[-1]["shot"] if scenes else ""
-        cyc = ["medium", "over", "low", "medium", "wide"]
+        cyc = ["medium", "over", "low", "medium", "high"]
         shot = "wide" if i == 0 else ("close" if expr in ("shock", "pained", "laugh") and prev != "close" else cyc[i % 5])
         xs = [0] if len(roles) == 1 else [-0.9, 0.9] if len(roles) == 2 else [-1.6, 0, 1.6]
         words = len(s.split())

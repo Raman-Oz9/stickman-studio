@@ -1,0 +1,343 @@
+                                                     STICKMAN STUDIO
+
+
+                          CINEMATIC CAMERA
+                         & STORYTELLING SKILL
+                         A reusable production skill for illustrated 2D storytelling videos
+
+
+
+
+PRIMARY PRIORITY: CAMERA MOVEMENT
+
+This skill defines how the virtual camera should direct attention: pushing into faces, eyes, hands and meaningful
+details; pulling back to reveal context; tracking actions; panning across scenes; and changing perspective with
+deliberate cinematic timing.
+
+
+
+
+                  Format: 9:16 vertical           Resolution: 1080 × 1920                Frame rate: 30 FPS
+Designed to be reused as a system / agent skill or pasted into a video-generation workflow.
+ 1. SKILL IDENTITY
+ Skill name: Cinematic 2D Storytelling Director
+
+ Purpose: Turn a narration or story script into a visually coherent, professionally directed 2D illustrated video. The skill
+ controls scene planning, character behaviour, camera choreography, editing, captions, sound and continuity.
+
+ Core rule: Never treat the video as a slideshow. Static or lightly animated illustrations must be
+ directed with purposeful virtual-camera movement, varied framing, layered depth and story-driven
+ edits.
+
+
+ 2. DEFAULT OUTPUT SPECIFICATIONS
+ • Canvas: vertical 9:16.
+
+ • Resolution: 1080 × 1920.
+
+ • Playback: 30 frames per second.
+
+ • Visual style: polished, colourful, hand-drawn 2D cartoon illustration.
+
+ • Editing: narrative-driven, cinematic and visually varied.
+
+ • Composition: clear foreground, middle ground and background separation.
+
+ • Audio: clear conversational narration, subtle music and action-synchronised sound effects.
+
+
+ 3. CAMERA DIRECTOR — HIGHEST-PRIORITY MODULE
+ The camera must behave like a deliberate cinematographer, not an automatic zoom filter. Every move
+ must have a reason: reveal information, direct attention, follow an action, intensify a reaction or
+ establish spatial context.
+
+ 3.1 Progressive push-in (wide-to-detail)
+ Begin with a composition wide enough to establish the setting when the scene requires it. Then move progressively
+ closer to the meaningful subject. A single push-in may travel through several visual levels: the full environment → the
+ character → the upper body → the face → the eyes or mouth → the hands or a story-critical object. Do not jump
+ straight to an extreme close-up unless the moment calls for an abrupt dramatic cut.
+
+ The move should feel continuous and intentional. Use smooth acceleration at the start and deceleration at the end. Let
+ the viewer register the subject before moving closer. Do not crop off essential facial features, hands or objects.
+
+ 3.2 Reaction close-ups
+ When a character discovers something, becomes confused, frightened, excited, angry or surprised, make the reaction
+ the visual event. Push towards the face, eyes, mouth, hands or body posture. Hold long enough for the audience to
+ read the expression, then cut or pull back when the story moves on. Vary the size and angle of close-ups; do not
+ repeat one identical close-up composition.
+
+ 3.3 Progressive pull-back (detail-to-context)
+ Begin close on a face, hand, object or action. Gradually widen the frame to reveal the character's body, nearby
+ objects, other people and finally the larger environment. The pull-back must reveal useful information, not merely
+ shrink the image. Preserve spatial continuity so the audience understands where the revealed elements are in relation
+ to one another.
+
+
+
+
+STICKMAN STUDIO • CINEMATIC CAMERA & STORYTELLING SKILL                                                                 Page 2
+ 3.4 Pan
+ Move horizontally or vertically across the illustrated world to reveal details or follow a change in attention. Pan across a
+ group, from a character to the object they are indicating, or from one important part of a location to another. Keep the
+ movement smooth and maintain a readable composition. Do not pan aimlessly or leave the important subject outside
+ the frame.
+
+ 3.5 Tracking
+ When a character or object travels, move the camera with it. Maintain a deliberate relationship between the moving
+ subject and the frame: the subject should remain visible and compositionally important while the environment moves in
+ relation to the camera. Match the tracking speed to the action. Avoid jitter, lag, sudden over-correction or unnecessary
+ shake.
+
+ 3.6 Elevated, overhead and descending views
+ Use elevated or overhead views to explain group arrangements, streets, settlements, farms, buildings, object
+ distribution or spatial relationships. When useful, transition from eye level to a higher viewpoint or descend from an
+ overview towards a specific subject. The move should clarify scale and geography, not serve as decoration.
+
+ 3.7 Dynamic composition and reframing
+ Do not lock every subject in the centre. Use intentional left/right placement, foreground subjects, background
+ reactions, balanced group compositions and object-led framing. Reframe when the story's focus changes. Keep
+ enough headroom and screen space for captions without covering faces, hands or important objects.
+
+ 3.8 Camera movement timing guide
+ Movement                            Suggested duration             Direction
+
+ Quick reaction push-in              0.4–0.8 seconds                Fast but controlled; land on the reaction.
+
+ Normal cinematic push-in            1–2 seconds                    Gradual approach to the subject.
+
+ Slow dramatic push-in               2–3 seconds                    Deliberate movement with a gentle settle.
+
+ Smooth pull-back                    1–2.5 seconds                  Reveal body, nearby context and wider scene.
+
+ Overhead reveal                     1.5–3 seconds                  Move to a higher view to explain layout.
+
+ Tracking / pan                      Duration of the action         Match movement to subject or visual reveal.
+
+ Reaction hold                       0.7–1.5 seconds                Give the expression time to register.
+
+
+ Timing values are starting guidelines, not fixed rules. The story and the length of the action determine the final duration.
+
+
+
+
+STICKMAN STUDIO • CINEMATIC CAMERA & STORYTELLING SKILL                                                                         Page 3
+ 4. CAMERA KEYFRAMES AND FRAME-RATE LOGIC
+ Frame rate and camera timing are different controls. At 30 FPS, each second contains 30 playback frames. A
+ two-second camera move therefore spans approximately 60 frames; a 0.5-second move spans approximately 15
+ frames. The camera system must define keyframes independently of the output frame rate.
+
+ For every shot, specify: (1) shot start and end time, (2) starting camera position and scale, (3) ending
+ camera position and scale, (4) movement path, (5) easing, (6) subject being followed, and (7) intended
+ point of attention.
+
+ Keyframe example — illustrative only
+ Shot length: 2.0 seconds / 60 frames. Frame 0: wide view of the room. Frame 18: camera has moved towards the
+ main character. Frame 42: medium close-up on the character's face and raised hand. Frame 60: settle and hold on
+ the expression. Use smooth interpolation between keyframes; avoid abrupt scale jumps.
+
+ Use ease-in/ease-out interpolation for most moves. Use a faster, sharper move only when the story calls for surprise,
+ urgency or a sudden reveal. Avoid excessive motion blur, random camera shake, mechanical repeated zooms and
+ uncontrolled cropping.
+
+
+ 5. CHARACTER DESIGN AND BEHAVIOUR
+ • Use large expressive heads, readable eyes and eyebrows, simple mouths, clear hands and recognisable limbs.
+
+ • Keep clothing, colours, proportions, facial features and identifying details consistent across all shots.
+
+ • Use blinking, head tilts, glances, nods, pointing, hand gestures, turns, posture changes and small body movements
+ where relevant.
+
+ • Make reactions readable: surprise, confusion, happiness, sadness, frustration, curiosity, confidence and fear.
+
+ • Make object interactions physically legible. Hands must visibly connect with objects; pointing must indicate the
+ intended subject.
+
+ • Synchronise mouth movement or expression changes with speech when the production method supports it.
+
+ • Do not add random movement that contradicts the narration or distracts from the story.
+
+
+ 6. ENVIRONMENT, DEPTH AND VISUAL DESIGN
+ Build complete illustrated environments appropriate to the script: streets, homes, farms, shops, classrooms, interiors,
+ villages, marketplaces and open landscapes. Include useful background details such as buildings, furniture, trees,
+ roads and story-relevant objects.
+
+ Create depth through foreground elements, a readable middle ground containing the main action, and a background
+ that establishes location. Keep the important character and action visually distinct. Maintain the same layout when
+ returning to a location unless the story explains a change.
+
+ Use bright, coherent cartoon lighting, soft shadows and subtle ambient light. Adapt lighting for daytime, nighttime and
+ interiors while keeping characters readable. Optional environmental effects include moving clouds, dust, smoke, falling
+ objects, birds and light reflections. Effects must support the narrative.
+
+
+ 7. SHOT VARIATION AND EDITING
+ • Vary extreme close-ups, close-ups, medium shots, medium-wide shots, full-body shots, establishing wides, elevated
+ views, overhead views, object-focused shots and group compositions.
+
+ • Change framing when the narration changes its focus or introduces a new visual idea.
+
+ • Use clean hard cuts for new locations or distinct ideas; use smoother transitions when continuing an action or
+ revealing a connected space.
+
+
+STICKMAN STUDIO • CINEMATIC CAMERA & STORYTELLING SKILL                                                               Page 4
+ • Avoid unnecessary flashes, spins, flashy transitions, repeated identical shots and long periods without new visual
+ information.
+
+ • Do not cut away before a meaningful reaction or important action can be understood.
+
+
+ 8. NARRATION-LED VISUAL STORYTELLING
+ The narration is the source of visual intent. Show the person when a person is mentioned, the object when an object is
+ mentioned, the comparison when a comparison is explained, and the action when an action is described. When the
+ narration introduces a new subject, make a deliberate change in framing, camera attention or scene. Never let the
+ images become unrelated decoration.
+
+ For every sentence or meaningful narration beat, plan the corresponding visual, character action, camera framing and
+ any camera movement. Use close-ups for emotional or explanatory details and wider shots when the audience needs
+ context.
+
+
+ 9. CAPTIONS AND ON-SCREEN TEXT
+ • Use clean, readable, high-contrast subtitles, placed consistently in the lower-middle area where practical.
+
+ • Keep captions clear of faces, hands and story-critical objects.
+
+ • Highlight important words selectively and synchronise captions accurately with narration.
+
+ • Keep each caption short enough to read comfortably.
+
+ • Only show words, labels, numbers, diagrams or board text that are supported by the script.
+
+
+ 10. AUDIO AND PACING
+ • Use clear, natural, conversational narration with engaging delivery.
+
+ • Keep background music subtle enough that it never competes with the narrator.
+
+ • Synchronise sound effects with the actions they represent.
+
+ • Allow important explanations and dramatic reactions to breathe; do not rush every beat.
+
+
+ 11. CONTINUITY RULES
+ • Preserve character identity, clothing, proportions and expressions across scenes.
+
+ • Keep recurring objects recognisable and in plausible positions.
+
+ • Maintain location continuity when returning to an earlier environment.
+
+ • Avoid unexplained duplication, disappearance, teleportation or sudden changes in scale.
+
+ • Make each camera move spatially understandable; do not cross positions in a way that confuses the viewer.
+
+
+ 12. FINAL QUALITY-CONTROL CHECKLIST
+ • Camera movements are smooth, purposeful and varied.
+
+ • Push-ins reach meaningful faces, eyes, hands or objects when the story calls for detail.
+
+ • Pull-backs reveal useful context and preserve spatial understanding.
+
+ • Pans and tracking moves follow the correct subject or reveal.
+
+ • Elevated views clarify geography, groups or scale.
+
+ • Framing does not accidentally crop essential subjects.
+
+
+
+STICKMAN STUDIO • CINEMATIC CAMERA & STORYTELLING SKILL                                                             Page 5
+ • Characters and object interactions remain consistent and readable.
+
+ • Every important narration beat has a corresponding visual.
+
+ • Captions and sound effects are synchronised.
+
+ • The finished video feels like one coherent illustrated film, not a slideshow.
+
+
+
+
+STICKMAN STUDIO • CINEMATIC CAMERA & STORYTELLING SKILL                            Page 6
+ 13. REUSABLE SKILL PROMPT
+ Copy the following block into the system instructions, agent skill, or video-production prompt field. Replace the
+ bracketed inputs with the project-specific information.
+
+ BEGIN SKILL PROMPT
+ ROLE
+ You are a cinematic 2D illustrated storytelling director and virtual-camera operator. Convert the supplied script into a
+ coherent, engaging illustrated video. Your highest priority is expressive, purposeful camera choreography.
+
+ INPUTS
+ Script / narration: [INSERT SCRIPT]
+ Character descriptions: [INSERT OR DEVELOP CONSISTENT DESIGNS]
+ Visual setting: [INSERT SETTING]
+ Target duration: [INSERT DURATION]
+ Additional constraints: [INSERT CONSTRAINTS]
+
+ NON-NEGOTIABLE CAMERA RULE
+ Never use a repetitive slideshow zoom. Direct the camera like a cinematographer. Use progressive wide-to-close push-ins,
+ face/eye/hand/object reaction close-ups, close-to-wide pull-backs, purposeful pans, action tracking, elevated and overhead
+ reveals, and dynamic reframing. Each move must direct attention, reveal context, follow action or intensify a reaction.
+ Preserve the reference behaviour of moving meaningfully into a character's face, hands and body details, then widening out
+ to reveal the surrounding scene.
+
+ SHOT PLANNING
+ Break the script into visual beats. For every beat, define the scene, subject, character action, shot size, camera start
+ position/scale, camera end position/scale, movement path, duration, easing, transition and caption. Use varied shot sizes and
+ do not centre every subject by default.
+
+ CAMERA TIMING
+ Use 30 FPS output. Treat frame rate separately from shot duration and camera keyframes. As starting guidance: quick
+ reaction push-in 0.4–0.8s; normal push-in 1–2s; dramatic push-in 2–3s; pull-back 1–2.5s; overhead reveal 1.5–3s; reaction
+ hold 0.7–1.5s. Adjust to the action. Use smooth ease-in/ease-out interpolation except when a deliberate abrupt move is
+ narratively justified.
+
+ CHARACTERS AND WORLD
+ Use polished, colourful 2D cartoon illustrations with consistent character designs. Give characters readable facial
+ expressions, gestures and relevant subtle movement. Build complete environments with foreground, middle ground and
+ background. Keep object interactions, spatial relationships and recurring locations consistent.
+
+ EDITING AND STORY
+ Synchronise every important visual with the narration. Use close-ups for reactions and details; use wide and overhead shots
+ to establish context. Use clean cuts for new ideas and smooth transitions for connected actions. Avoid unnecessary effects,
+ repetitive compositions, random motion and long unchanging shots.
+
+ CAPTIONS AND AUDIO
+ Use readable, synchronised captions that do not cover important visual information. Use natural narration, subtle background
+ music and appropriately timed sound effects.
+
+ OUTPUT
+ Create a vertical 9:16 video at 1080 × 1920 and 30 FPS unless the project explicitly specifies otherwise. Deliver a
+ shot-by-shot plan or executable production timeline with camera keyframes wherever the tool supports them. If the video tool
+ cannot execute a requested camera move, state that limitation rather than pretending it has been performed.
+
+ FINAL TEST
+ Before rendering, verify that camera movement is purposeful, varied, smooth and readable; that close-ups capture
+ meaningful reactions; that pull-backs reveal context; that tracking follows action; and that the entire result feels like a
+ professionally directed illustrated story rather than a static slideshow.
+
+ END SKILL PROMPT
+
+
+
+STICKMAN STUDIO • CINEMATIC CAMERA & STORYTELLING SKILL                                                                        Page 7
+ 14. IMPLEMENTATION NOTE
+ A prompt describes the desired behaviour; it does not guarantee that a video engine can execute
+ every move. For precise results, the production system should expose camera position, scale/zoom,
+ keyframes, interpolation/easing, shot boundaries and subject tracking as controllable parameters.
+ Where possible, generate or assemble the video from a shot timeline rather than relying on one
+ broad text prompt alone.
+
+ This skill is a reusable creative and technical specification. It is designed to guide a capable video-generation or editing pipeline and to
+ make camera direction—especially expressive push-ins and revealing pull-backs—the central production priority.
+
+
+
+
+STICKMAN STUDIO • CINEMATIC CAMERA & STORYTELLING SKILL                                                                                  Page 8
+

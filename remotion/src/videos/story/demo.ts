@@ -9,5 +9,6 @@ export const DEMO: Board = {
     { dur: 3.0, shot: "over", target: "k", cast: [{ id: "king", role: "king", x: -0.9, z: 0, expr: "stern", look: "partner" }, { id: "k", role: "knight", x: 0.8, z: 0.1, expr: "nervous", expr2: "grin", at2: 0.6, look: "partner" }], caption: "Until a farmer's kid grinned." },
     { dur: 2.8, shot: "low", target: "kid", move: "push", light: "golden", cast: [{ id: "kid", role: "kid", x: 0, z: 0, expr: "grin", expr2: "laugh", at2: 0.5 }, { id: "farm", role: "farmer", x: 1.3, z: -0.4, expr: "smile_closed" }], caption: "He was wearing it as a hat." },
     { dur: 3.4, shot: "wide", move: "push", light: "golden", extras: 12, cast: [{ id: "king", role: "king", x: -1.2, z: 0, expr: "laugh" }, { id: "kid", role: "kid", x: 0.2, z: 0.4, expr: "laugh" }, { id: "k", role: "knight", x: 1.5, z: 0, expr: "relief" }], caption: "The kingdom laughed all night." },
+    { dur: 4.2, shot: "high", move: "descend", light: "golden", extras: 14, caption: "From the sky, the village looked tiny.", cast: [{ id: "king", role: "king", x: -1.2, z: 0, expr: "smile" }, { id: "kid", role: "kid", x: 0.2, z: 0.4, expr: "grin" }, { id: "k", role: "knight", x: 1.5, z: 0, expr: "smile_closed" }] },
   ],
 };

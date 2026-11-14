@@ -1,7 +1,7 @@
 import type { Expr } from "../bridge/toon";
 export type { Expr };
-export type Shot = "wide" | "medium" | "close" | "low" | "over";
-export type Move = "push" | "pull" | "orbit" | "hold";
+export type Shot = "wide" | "medium" | "close" | "low" | "over" | "high";
+export type Move = "push" | "pull" | "orbit" | "hold" | "reveal" | "pan" | "descend";
 export type CastDef = {
   id: string;
   role: string;            // king, knight, peasant, kid, merchant, soldier, wizard, girl ...

@@ -16,26 +16,54 @@ export const focusOf = (s: SceneDef): { x: number; z: number; spread: number; tg
   const spread = Math.max(...xs) - Math.min(...xs);
   return t ? { x: t.x, z: t.z, spread, tgt: t } : { x: cx, z: cz, spread };
 };
-export const camAt = (s: SceneDef, i: number, u: number, t: number): Cam => {
-  const P = SH[s.shot], F = focusOf(s);
-  let d = P.d * (s.shot === "medium" || s.shot === "wide" ? Math.max(1, (F.spread + 1.2) / (s.shot === "wide" ? 7 : 2.4)) : 1);
-  let az = s.az ?? ((i % 2 ? 1 : -1) * (14 + (i * 23) % 40));
-  const mv = s.move ?? (s.shot === "wide" ? "pull" : "push");
-  const k = ease(Math.min(1, Math.max(0, u)));
-  if (mv === "push") d *= 1 - 0.2 * k;
-  else if (mv === "pull") d *= 0.82 + 0.18 * k;
-  else if (mv === "orbit") az += 16 * (k - 0.5);
+type Seg = { u0: number; u1: number; shot: SceneDef["shot"]; target?: string; az: number; move: "push" | "pull" | "orbit" | "hold" };
+// Cut a scene into beats so something new happens every ~2.4 s: opening shot, then push-ins on faces, and a hard punch-in on the reaction.
+export const segsOf = (s: SceneDef, i: number, dur: number): Seg[] => {
+  const base = s.az ?? ((i % 2 ? 1 : -1) * (14 + (i * 23) % 40));
+  const react = s.cast.find((c) => c.at2 != null && c.expr2);
+  const tgt = s.target ?? s.cast[0].id;
+  const two = s.cast.length > 1;
+  if (react && dur > 1.8) {
+    const cut = Math.min(0.75, Math.max(0.3, react.at2!));
+    const first: Seg = { u0: 0, u1: cut, shot: s.shot === "close" ? "medium" : s.shot, target: s.target, az: base, move: s.move ?? "push" };
+    const second: Seg = { u0: cut, u1: 1, shot: "close", target: react.id, az: base * -0.5, move: "push" };
+    return [first, second];
+  }
+  const n = Math.max(1, Math.round(dur / 2.4));
+  if (n === 1) return [{ u0: 0, u1: 1, shot: s.shot, target: s.target, az: base, move: s.move ?? (s.shot === "wide" ? "pull" : "push") }];
+  const seq: SceneDef["shot"][] = s.shot === "wide" ? ["wide", "medium", "close", "low", "close"]
+    : s.shot === "close" ? ["close", "medium", "close", "low", "close"] : [s.shot, "close", "medium", "close", "low"];
+  return Array.from({ length: n }, (_, k) => {
+    let sh = seq[k % seq.length]; if (sh === "over" && !two) sh = "medium";
+    const t = k % 2 && two ? (s.cast.find((c) => c.id !== tgt)?.id ?? tgt) : tgt;
+    return { u0: k / n, u1: (k + 1) / n, shot: sh, target: t, az: base + (k % 2 ? -1 : 1) * 12 * k, move: sh === "wide" && k === 0 ? "pull" : "push" } as Seg;
+  });
+};
+export const camAt = (s: SceneDef, i: number, u: number, t: number, dur = 3): Cam => {
+  const segs = segsOf(s, i, dur);
+  const g = segs.find((x) => u < x.u1) ?? segs[segs.length - 1];
+  const lu = Math.min(1, Math.max(0, (u - g.u0) / Math.max(1e-4, g.u1 - g.u0)));
+  const P = SH[g.shot], F = focusOf({ ...s, target: g.target });
+  const sp = Math.max(1, (F.spread + 1.2) / (g.shot === "wide" ? 7 : 2.4));
+  let d = P.d * (g.shot === "medium" || g.shot === "wide" ? sp : 1);
+  let az = g.az;
+  const k = ease(lu);
+  const amt = g.shot === "close" ? 0.42 : g.shot === "wide" ? 0.18 : 0.3;
+  if (g.move === "push") d *= 1 - amt * k;
+  else if (g.move === "pull") d *= 0.8 + 0.2 * k;
+  else if (g.move === "orbit") az += 16 * (k - 0.5);
+  if (g.move === "push" && g.shot !== "wide") az += 7 * (k - 0.5); // slight drift while pushing, not a flat zoom
   const a = (az * Math.PI) / 180;
   const scale = F.tgt?.scale ?? 1;
   const look = new THREE.Vector3(F.x, P.ly * scale, F.z);
   const pos = new THREE.Vector3(F.x + Math.sin(a) * d, P.h * scale, F.z + Math.cos(a) * d);
-  if (s.shot === "over" && s.cast.length > 1) { // behind the nearer shoulder, looking at the target
-    const other = s.cast.find((c) => c.id !== s.target) ?? s.cast[0];
+  if (g.shot === "over" && s.cast.length > 1) {
+    const other = s.cast.find((c) => c.id !== g.target) ?? s.cast[0];
     const dx = F.x - other.x, dz = F.z - other.z, l = Math.hypot(dx, dz) || 1;
     pos.set(other.x - (dx / l) * 1.3 + (dz / l) * 0.45, P.h, other.z - (dz / l) * 1.3 - (dx / l) * 0.45);
     pos.addScaledVector(new THREE.Vector3(-dx / l, 0, -dz / l), -d * 0.1 * k);
   }
-  pos.x += Math.sin(t * 1.3 + i) * 0.025; pos.y += Math.sin(t * 1.7 + i * 2) * 0.015; // handheld life
+  pos.x += Math.sin(t * 1.3 + i) * 0.03; pos.y += Math.sin(t * 1.7 + i * 2) * 0.02;
   const roll = ((s.roll ?? 0) * Math.PI) / 180 * k;
   return { pos, look, fov: P.fov, roll, cInf: P.cInf };
 };

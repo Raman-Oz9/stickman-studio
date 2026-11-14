@@ -77,14 +77,14 @@ export class StoryWorld {
   update(s: SceneDef, i: number, lf: number, n: number, cam: THREE.PerspectiveCamera, scene: THREE.Scene, absT: number) {
     const light = s.light ?? "day", L = LIGHTS[light], K = LOOK[light];
     const u = n > 1 ? lf / (n - 1) : 0, t = lf / FPS;
-    const c = camAt(s, i, u, absT);
+    const c = camAt(s, i, u, absT, n / FPS);
     cam.position.copy(c.pos); cam.up.set(0, 1, 0); cam.lookAt(c.look); cam.rotateZ(c.roll);
     cam.fov = c.fov; cam.near = 0.15; cam.far = 1500; cam.updateProjectionMatrix(); cam.updateMatrixWorld();
     cam.layers.enable(NOINK);
     // sun: camera-relative, frozen per scene (from the start of the move)
     let sd = this.sunCache.get(i * 10 + (light === "day" ? 0 : 1));
     if (!sd) {
-      const c0 = camAt(s, i, 0, 0);
+      const c0 = camAt(s, i, 0, 0, n / FPS);
       let fx = c0.look.x - c0.pos.x, fz = c0.look.z - c0.pos.z; const l = Math.hypot(fx, fz) || 1; fx /= l; fz /= l;
       const az = THREE.MathUtils.degToRad(L.az), el = THREE.MathUtils.degToRad(L.el);
       const hx = fx * Math.cos(az) - fz * Math.sin(az), hz = fz * Math.cos(az) + fx * Math.sin(az);

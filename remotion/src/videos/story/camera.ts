@@ -95,7 +95,7 @@ const segsOld = (s: SceneDef, i: number, dur: number): Seg[] => {
     const dx = walker.to!.x - walker.x, dz = walker.to!.z - walker.z, l = Math.hypot(dx, dz) || 1;
     const az = (Math.atan2(-dz / l, dx / l) * 180) / Math.PI + (s.az ?? 0) * 0.3;
     return [{ u0: 0, u1: 0.55, kfs: [{ u: 0, lv: "char", who: walker.id, az }, { u: 1, lv: "upper", who: walker.id, az: az + 10 }] },
-            { u0: 0.55, u1: 1, ease: "out", kfs: [{ u: 0, lv: "upper", who: walker.id, az: az + 10 }, { u: 1, lv: "low", who: walker.id, az: az - 38 }] }];
+            { u0: 0.55, u1: 1, ease: "out", kfs: [{ u: 0, lv: "upper", who: walker.id, az: az + 10 }, { u: 1, lv: "low", who: walker.id, az: az + 75 }] }];
   }
   if (mv === "crane") return [{ u0: 0, u1: 1, kfs: [{ u: 0, lv: "low", who: tgt, az: base }, { u: 0.5, lv: "char", who: tgt, az: base * 0.5 }, { u: 1, lv: "high", who: tgt, az: base * 0.2 }] }];
   if (mv === "tiltup") return [{ u0: 0, u1: 1, kfs: [{ u: 0, lv: "feet", who: tgt, az: base }, { u: 1, lv: "face", who: tgt, az: base * 0.7 }] }];

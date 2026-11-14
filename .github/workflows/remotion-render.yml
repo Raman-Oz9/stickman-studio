@@ -78,7 +78,7 @@ jobs:
           sudo apt-get install -y -qq ffmpeg >/dev/null
           ls parts | sort -V | sed 's/^/file parts\//' > list.txt
           ffmpeg -loglevel error -y -f concat -safe 0 -i list.txt -c copy video_540.mp4
-          ffmpeg -loglevel error -y -i video_540.mp4 -vf "scale=1080:1920:flags=lanczos,unsharp=5:5:0.6:5:5:0.0" -c:v libx264 -crf 17 -preset medium -pix_fmt yuv420p video.mp4
+          ffmpeg -loglevel error -y -i video_540.mp4 -vf "scale=1080:1920:flags=lanczos,unsharp=5:5:0.6:5:5:0.0" -c:v libx264 -crf 24 -preset medium -pix_fmt yuv420p video.mp4
           ffprobe -v error -show_entries format=duration -of csv=p=0 video.mp4
       - uses: actions/upload-artifact@v4
         with: { name: video, path: video.mp4 }

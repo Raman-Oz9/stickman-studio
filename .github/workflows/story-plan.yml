@@ -1,0 +1,24 @@
+name: Story plan
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Plan storyboard
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: |
+          mkdir -p out
+          python3 remotion/scripts/plan_story.py remotion/story_example.txt out/board.json 2>&1 | tee out/log.txt
+      - name: Publish
+        run: |
+          rm -rf /tmp/pub && mkdir /tmp/pub && cp out/* /tmp/pub/
+          cd /tmp/pub && git init -q && git checkout -q -b story-plan
+          git config user.name bot && git config user.email bot@users.noreply.github.com
+          git add -A && git commit -qm plan
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" story-plan

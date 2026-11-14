@@ -1,0 +1,34 @@
+name: Voice check
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  v:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - name: Install
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg espeak-ng
+          pip install requests soundfile numpy edge-tts
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install kokoro huggingface_hub
+          for i in 1 2 3 4 5; do pip install "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl" && break; sleep 20; done
+      - name: Generate and measure
+        run: |
+          echo '{"title":"t","scenes":[{"dur":3,"shot":"wide","cast":[{"id":"a","role":"king","x":0,"z":0}],"narration":"A farmer found a strange glowing seed in his field."},{"dur":3,"shot":"close","cast":[{"id":"a","role":"king","x":0,"z":0}],"narration":"The king laughed when he saw it."}]}' > b.json
+          PYTHONPATH=. python3 remotion/scripts/make_voice.py b.json prep 2>&1 | grep -v WARNING
+          for f in prep/s0.wav prep/raw.wav prep/narration.wav; do echo $f; ffprobe -v error -show_entries stream=codec_name,sample_rate,channels,duration -of compact $f; ffmpeg -hide_banner -i $f -af volumedetect -f null - 2>&1 | grep -E "mean_volume|max_volume"; done
+          python3 -c "
+          import soundfile as sf,numpy as np
+          for f in ('prep/s0.wav','prep/raw.wav','prep/narration.wav'):
+              a,sr=sf.read(f); print(f,a.dtype,a.shape,sr,float(np.abs(a).max()))" 
+      - name: Publish
+        run: |
+          mkdir /tmp/pub && cp prep/*.wav /tmp/pub/ && cd /tmp/pub && git init -q && git checkout -q -b voice-check
+          git config user.name bot && git config user.email bot@users.noreply.github.com
+          git add -A && git commit -qm v && git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" voice-check

@@ -14,7 +14,7 @@ const LV: Record<string, Lvl> = {
   eyes: { d: 2.0, h: 1.74, ly: 1.76, fov: 33, c: 18 },
   low: { d: 6.0, h: 0.5, ly: 1.75, fov: 46, c: 10 },
   lowface: { d: 3.6, h: 0.7, ly: 1.75, fov: 42, c: 14 },
-  high: { d: 8.5, h: 7.5, ly: 0.4, fov: 46, c: 5 },
+  high: { d: 10, h: 10.5, ly: 0.3, fov: 48, c: 5 },
   over: { d: 4.0, h: 1.75, ly: 1.45, fov: 38, c: 14 },
 };
 export type Cam = { pos: THREE.Vector3; look: THREE.Vector3; fov: number; roll: number; cInf: number };

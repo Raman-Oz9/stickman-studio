@@ -10,7 +10,7 @@ import { Pool, Actor, Fx, person, blob, lidAt, setLight, Who, Stage, CamInfo, FP
 import { FrontOpts, SideOpts, Expr } from "../bridge/toon";
 import { SceneDef, CastDef, PropDef } from "./types";
 import { STICKERS } from "../bridge/stickers";
-import { Props3D, canon, DEFAULT_H } from "./props3d";
+import { Props3D, canon, DEFAULT_H, ORIENT, SADDLE } from "./props3d";
 import { outfitFor } from "./outfits";
 import { camAt, focusOf } from "./camera";
 import { Effects } from "./effects";
@@ -91,7 +91,8 @@ export class StoryWorld {
       const L = Math.hypot(d.to.x - d.x, d.to.z - d.z);
       return { x: d.x + (d.to.x - d.x) * e, z: d.z + (d.to.z - d.z) * e, moving: k > 0.001 && k < 0.999, dist: L * e, dx: d.to.x - d.x, dz: d.to.z - d.z };
     };
-    const cur: SceneDef = { ...s, cast: s.cast.map((d) => { const p = posOf(d); return { ...d, x: p.x, z: p.z }; }) };
+    const propAt = (pd: PropDef) => { if (!pd.to) return { x: pd.x, z: pd.z }; const a0 = pd.at ?? 0, k = Math.min(1, Math.max(0, (u - a0) / Math.max(0.05, Math.min(pd.until ?? 1, 1) - a0))); return { x: pd.x + (pd.to.x - pd.x) * k, z: pd.z + (pd.to.z - pd.z) * k }; };
+    const cur: SceneDef = { ...s, cast: s.cast.map((d) => { const p = posOf(d); return { ...d, x: p.x, z: p.z }; }), props: (s.props ?? []).map((pd) => ({ ...pd, ...propAt(pd), to: undefined })) };
     const c = camAt(cur, i, u, absT, dur);
     const E = this.fxe.update(cur, u, dur, c.pos, c.look, absT);
     if (E.shake > 0.01) { const k = E.shake * 0.28; c.pos.x += Math.sin(absT * 61) * k; c.pos.y += Math.sin(absT * 73 + 1) * k; c.look.x += Math.sin(absT * 53 + 2) * k * 0.6; }
@@ -137,7 +138,7 @@ export class StoryWorld {
     const st: Stage = { places: [], fx: [] };
     this.p3.begin();
     const put = (d: CastDef, idx: number, extra: boolean) => {
-      const o = outfitFor(d.role, d.v ?? idx), who: Who = { i: idx + (extra ? 300 : 0), o, okey: `${d.role}${d.v ?? idx}` };
+      const o = outfitFor(d.role, d.v ?? idx, s.era), who: Who = { i: idx + (extra ? 300 : 0), o, okey: `${d.role}${d.v ?? idx}${s.era ?? ""}` };
       const sc2 = d.scale ?? ROLE_SCALE[d.role] ?? 1;
       const swapT = d.at2 != null ? d.at2 * n / FPS : 1e9;
       const expr: Expr = (d.expr2 && t >= swapT ? d.expr2 : d.expr) ?? "neutral";
@@ -160,7 +161,14 @@ export class StoryWorld {
       if (d.act === "point") fo.point = (look >= 0 ? 1 : -1) as 1 | -1;
       if (d.act === "nod") fo.headTilt = Math.round(7 * Math.sin(absT * 5));
       const so: SideOpts = { mode: pp.moving ? "march" : "stand", phase: pp.moving && d.act === "run" ? pp.dist / 1.25 : phase, expr, stomp: d.act === "run" ? 1.6 : 0.4, stride: d.act === "run" ? 1.3 : 0.9, held: holdOn ? { name: d.hold!, s: 150 } : undefined };
-      st.places.push(person(ci, who, pp.x, bob, pp.z, { side, mirror }, fo, so, sc2));
+      let rx = pp.x, ry = bob, rz = pp.z;
+      if (d.mount && this.p3.has(d.mount)) {   // riding: a real 3D mount under the rider, moving with them; the rider card sits just behind the mount's flank so its body hides the legs
+        const mc = canon(d.mount), hm = (DEFAULT_H[mc] ?? 2) * Math.max(0.8, sc2), ang = pp.moving ? Math.atan2(pp.dx, pp.dz) : Math.atan2(right.x, right.z);
+        this.p3.put(d.mount, pp.x, 0, pp.z, hm, 1, ang, 0, false, { dist: pp.dist, t: absT, mv: pp.moving });
+        const fx2 = cam.position.x - pp.x, fz2 = cam.position.z - pp.z, fl = Math.hypot(fx2, fz2) || 1;
+        rx = pp.x - (fx2 / fl) * 0.22; rz = pp.z - (fz2 / fl) * 0.22; ry = bob + (SADDLE[mc] ?? 0.55) * hm - 0.92 * sc2;
+      }
+      st.places.push(person(ci, who, rx, ry, rz, { side, mirror }, fo, so, sc2));
       if (holdOn && has3) {   // the carried item is a real 3D object riding at the carrying hand, swinging with the stride
         const hc = canon(d.hold!), hh2 = Math.min(0.4, d.holdH ?? DEFAULT_H[hc] ?? 0.3) * Math.max(0.8, sc2), sgn = side ? (mirror ? -1 : 1) : 1, ph = pp.moving ? Math.sin(phase * 3.1) * 0.05 : 0;
         const off = side ? 0.42 : 0.3;
@@ -200,8 +208,11 @@ export class StoryWorld {
         }
         if (sc3 <= 0.001) continue;
         if (has3p) {
-          const h3 = pd.h ?? DEFAULT_H[canon(pd.name, pile)] ?? 1, X = px + ox, Z = pz + oz;
-          this.p3.put(pd.name, X, yy, Z, h3, sc3, Math.atan2(cam.position.x - X, cam.position.z - Z) * 0.8 + (pd.anim === "spin" ? rot : 0), pd.anim === "fall" ? rot : 0, pile);
+          const cn = canon(pd.name, pile), h3 = pd.h ?? DEFAULT_H[cn] ?? 1, orient = ORIENT.has(cn);
+          let X = px + ox, Z = pz + oz, yawv = Math.atan2(cam.position.x - X, cam.position.z - Z) * 0.8 + (pd.anim === "spin" ? rot : 0), dist = 0, mv = false;
+          if (pd.to) { const p2 = propAt(pd); X = p2.x + ox; Z = p2.z + oz; mv = Math.hypot(X - px - ox, Z - pz - oz) > 0.01 && u > a0 && u < Math.min(a1, 0.999); dist = Math.hypot(X - px - ox, Z - pz - oz); if (mv) yawv = Math.atan2(pd.to.x - pd.x, pd.to.z - pd.z); else if (orient) yawv = Math.atan2(right.x, right.z) + (pd.flip ? Math.PI : 0); }
+          else if (orient) yawv = Math.atan2(right.x, right.z) + (pd.flip ? Math.PI : 0);
+          this.p3.put(pd.name, X, yy, Z, h3, sc3, yawv, pd.anim === "fall" ? rot : 0, pile, { dist, t: absT, mv: mv || pd.anim === "bounce" || (pd.anim === "float" && orient) });
           if (!pd.anim || pd.anim === "static" || pd.anim === "pop" || pd.anim === "grow") blob(st, X, 0, Z, Math.max(0.3, h3 * sc3 * 0.5));
           continue;
         }

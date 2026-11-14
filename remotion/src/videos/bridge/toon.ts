@@ -434,6 +434,55 @@ const hatOn = (p: Pen, o: Outfit, hp: P2[], H: Blob, cx: number, hc: number, lig
     p.poly(body, null, ow);
     const [bx, by] = R([[cx, yb + 1 * u]])[0];
     p.ell(bx, by, 0.62 * W, 0.055 * HH, shade(col, 0.95), ow, 0, 360, (a * 180) / Math.PI);
+  } else if (o.hat === "cowboy") {
+    const yb = crown + 0.3 * HH, ht = 0.5 * HH, wb = 0.3 * W, col = o.cap ?? "#9a6a3a";
+    const body = R([...sag(yb, wb).reverse(), [cx - wb * 0.8, yb - ht * 0.92], [cx - wb * 0.25, yb - ht * 1.05], [cx, yb - ht * 0.88], [cx + wb * 0.25, yb - ht * 1.05], [cx + wb * 0.8, yb - ht * 0.92]]);
+    p.shadedFill(body, col, mul(col, SH_FELT), light, wb, 0.4);
+    p.clip(body, () => p.band(R([[cx - wb - 4 * u, yb - 0.1 * HH], [cx + wb + 4 * u, yb - 0.1 * HH]]), shade(col, 0.6), 0.08 * HH, 0.8 * u));
+    p.poly(body, null, ow);
+    const [bx, by] = R([[cx, yb + 1 * u]])[0];
+    p.ell(bx, by, 0.66 * W, 0.07 * HH, shade(col, 0.92), ow, 0, 360, (a * 180) / Math.PI);
+  } else if (o.hat === "sombrero") {
+    const yb = crown + 0.3 * HH, ht = 0.55 * HH, wb = 0.2 * W, col = o.cap ?? "#d9a441";
+    const body = R([...sag(yb, wb).reverse(), [cx - wb * 0.35, yb - ht], [cx + wb * 0.35, yb - ht]]);
+    p.shadedFill(body, col, mul(col, SH_FELT), light, wb, 0.4); p.poly(body, null, ow);
+    const [bx, by] = R([[cx, yb + 1 * u]])[0];
+    p.ell(bx, by, 0.85 * W, 0.08 * HH, shade(col, 0.95), ow, 0, 360, (a * 180) / Math.PI);
+  } else if (o.hat === "fedora") {
+    const yb = crown + 0.26 * HH, ht = 0.4 * HH, wb = 0.28 * W, col = o.cap ?? "#4a4540";
+    const body = R([...sag(yb, wb).reverse(), [cx - wb * 0.8, yb - ht], [cx, yb - ht * 0.85], [cx + wb * 0.8, yb - ht]]);
+    p.shadedFill(body, col, mul(col, SH_FELT), light, wb, 0.4);
+    p.clip(body, () => p.band(R([[cx - wb - 4 * u, yb - 0.08 * HH], [cx + wb + 4 * u, yb - 0.08 * HH]]), "#c0353a", 0.08 * HH, 0.8 * u));
+    p.poly(body, null, ow);
+    const [bx, by] = R([[cx, yb + 1 * u]])[0];
+    p.ell(bx, by, 0.5 * W, 0.06 * HH, shade(col, 0.9), ow, 0, 360, (a * 180) / Math.PI);
+  } else if (o.hat === "roman" || o.hat === "viking" || o.hat === "samurai") {
+    const dome = R(Array.from({ length: 15 }, (_, i) => { const t = Math.PI * (i / 14); return [cx - Math.cos(t) * 0.5 * W, crown + 0.42 * HH - Math.sin(t) * 0.5 * HH] as P2; }));
+    const col = o.cap ?? (o.hat === "roman" ? "#b8863a" : "#aeb6c2");
+    p.shadedFill(dome, col, mul(col, SH_CLOTH), light, W * 0.5, 0.4); p.poly(dome, null, ow);
+    if (o.hat === "roman") { const cr = R([[cx - 5 * u, crown - 0.06 * HH], [cx - 8 * u, crown - 0.34 * HH], [cx + 8 * u, crown - 0.34 * HH], [cx + 5 * u, crown - 0.06 * HH]]); p.shadedFill(cr, "#c0353a", "#8a2226", light, 8 * u, 0.4); p.poly(cr, null, ow); }
+    if (o.hat === "viking") for (const sg of [-1, 1]) { const hn = R([[cx + sg * 0.46 * W, crown + 0.22 * HH], [cx + sg * 0.62 * W, crown + 0.12 * HH], [cx + sg * 0.72 * W, crown - 0.2 * HH], [cx + sg * 0.55 * W, crown + 0.0 * HH], [cx + sg * 0.44 * W, crown + 0.05 * HH]]); p.shadedFill(hn, "#efe6c8", "#c9bf9c", light, 8 * u, 0.4); p.poly(hn, null, ow); }
+    if (o.hat === "samurai") { const cr = R([[cx - 0.4 * W, crown - 0.02 * HH], [cx, crown - 0.4 * HH], [cx + 0.4 * W, crown - 0.02 * HH], [cx, crown - 0.16 * HH]]); p.shadedFill(cr, "#f0c84a", "#b8902a", light, 8 * u, 0.4); p.poly(cr, null, ow); }
+  } else if (o.hat === "laurel") {
+    for (let i = 0; i < 9; i++) { const t = Math.PI * (0.08 + 0.84 * (i / 8)), lx = cx - Math.cos(t) * 0.5 * W, ly = crown + 0.3 * HH - Math.sin(t) * 0.42 * HH; p.ell(lx, ly, 5.5 * u, 3.2 * u, "#4f9a3f", 1.4 * u, 0, 360, (t * 180) / Math.PI + 60); }
+  } else if (o.hat === "nemes" || o.hat === "turban") {
+    const col = o.cap ?? (o.hat === "nemes" ? "#2f6fb5" : "#efe6d0");
+    const hd = o.hat === "nemes" ? R([[cx - 0.62 * W, hc + 0.55 * HH], [cx - 0.55 * W, crown + 0.05 * HH], [cx, crown - 0.12 * HH], [cx + 0.55 * W, crown + 0.05 * HH], [cx + 0.62 * W, hc + 0.55 * HH], [cx + 0.4 * W, hc + 0.1 * HH], [cx - 0.4 * W, hc + 0.1 * HH]]) : R(Array.from({ length: 16 }, (_, i) => { const t = Math.PI * 2 * (i / 16); return [cx + Math.cos(t) * 0.58 * W, crown + 0.12 * HH + Math.sin(t) * 0.34 * HH] as P2; }));
+    p.shadedFill(hd, col, mul(col, SH_CLOTH), light, W * 0.5, 0.4);
+    if (o.hat === "nemes") p.clip(hd, () => { for (let k = 0; k < 5; k++) p.band(R([[cx - W, crown + (0.05 + k * 0.1) * HH], [cx + W, crown + (0.05 + k * 0.1) * HH]]), "#f0c84a", 0.035 * HH, 0.6 * u); });
+    p.poly(hd, null, ow);
+  } else if (o.hat === "tricorn") {
+    const col = "#1d1b22", tri = R([[cx - 0.62 * W, crown + 0.3 * HH], [cx, crown - 0.22 * HH], [cx + 0.62 * W, crown + 0.3 * HH], [cx, crown + 0.2 * HH]]);
+    p.shadedFill(tri, col, "#0e0d12", light, W * 0.6, 0.4); p.poly(tri, null, ow); p.ell(cx, crown + 0.02 * HH, 5 * u, 5 * u, "#f1efe8", 1.2 * u);
+  } else if (o.hat === "bandana") {
+    const bd = R([[cx - 0.5 * W, crown + 0.36 * HH], [cx - 0.38 * W, crown + 0.08 * HH], [cx + 0.38 * W, crown + 0.08 * HH], [cx + 0.5 * W, crown + 0.36 * HH], [cx, crown + 0.46 * HH]]);
+    p.shadedFill(bd, o.cap ?? "#c0353a", "#8a2226", light, W * 0.5, 0.4); p.poly(bd, null, ow);
+  } else if (o.hat === "astro") {
+    p.ell(cx, hc, 0.66 * W, 0.62 * HH, "rgba(210,235,255,0.28)", 4.5 * u); p.arc(cx - 0.16 * W, hc - 0.2 * HH, 0.3 * W, 0.28 * HH, 200, 280, 3 * u, "rgba(255,255,255,0.8)");
+  } else if (o.hat === "chef") {
+    const yb = crown + 0.2 * HH, wb = 0.3 * W;
+    for (const [dx, dy, r] of [[-0.6, -0.5, 0.26], [0, -0.7, 0.3], [0.6, -0.5, 0.26]] as [number, number, number][]) p.ell(cx + dx * wb, yb + dy * 0.5 * HH, r * W, r * HH * 0.8, "#f4f2ec", ow);
+    p.band(R([[cx - wb, yb], [cx + wb, yb]]), "#f4f2ec", 0.16 * HH, ow);
   } else if (o.hat === "bonnet") {
     const [bx, by] = R([[cx + (side ? 6 * u : 0), crown + 0.16 * HH]])[0];
     p.arc(bx, by, 0.5 * W, 0.2 * HH, 200, 340, 7 * u, BONNET_BRIM);
@@ -634,7 +683,7 @@ export const bodyFront = (p: Pen, o: Outfit, opts: FrontOpts) => {
   p.shadedFill(hp, skin, mul(skin, SH_SKIN), light, H.a);
   p.inkRing(hp, ow, thick);
   hatOn(p, o, hp, H, 300, hc, light, seed, facing, false);
-  const brim = !!o.hat && o.hat !== "hair" && o.hat !== "bonnet" && o.hat !== "cap" && o.hat !== "crown" && o.hat !== "helmet" && o.hat !== "straw";
+  const brim = !!o.hat && o.hat !== "hair" && o.hat !== "bonnet" && o.hat !== "cap" && o.hat !== "crown" && o.hat !== "helmet" && !["straw","roman","viking","samurai","laurel","nemes","turban","bandana","astro","chef","tricorn"].includes(o.hat!);
   faceFront(p, 300, hc, W, expr, facing, look, lid, brim, skin, o.moustache, o.build === "stout");
   p.rot = null;
 };
@@ -767,7 +816,7 @@ export const bodySide = (p: Pen, o: Outfit, opts: SideOpts) => {
   p.shadedFill(hp, skin, mul(skin, SH_SKIN), light, H.a);
   p.inkRing(hp, ow, thick);
   hatOn(p, o, hp, H, hx, hc, light, seed, 1, true);
-  const brim = !!o.hat && o.hat !== "hair" && o.hat !== "bonnet" && o.hat !== "cap" && o.hat !== "crown" && o.hat !== "helmet" && o.hat !== "straw";
+  const brim = !!o.hat && o.hat !== "hair" && o.hat !== "bonnet" && o.hat !== "cap" && o.hat !== "crown" && o.hat !== "helmet" && !["straw","roman","viking","samurai","laurel","nemes","turban","bandana","astro","chef","tricorn"].includes(o.hat!);
   faceSide(p, hx, hc, W, expr, lid, brim, skin, o.moustache, o.build === "stout");
   p.rot = null;
 };

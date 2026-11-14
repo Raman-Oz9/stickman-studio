@@ -11,6 +11,7 @@ export type CastDef = {
   look?: "partner" | "left" | "right" | "cam";
   scale?: number; v?: number;
   holdH?: number;
+  mount?: string;                    // rides this 3D animal or vehicle (horse, camel, car, motorbike, chariot...) which moves with them
   hold?: string; holdAt?: number;   // sticker name held in the hand (from this fraction of the scene)
   act?: "wave" | "cheer" | "point" | "nod" | "run";
   to?: { x: number; z: number };     // walk here during the scene
@@ -24,8 +25,12 @@ export type PropDef = {
   at?: number; until?: number;       // visible window as fractions of the scene
   count?: number; spread?: number;   // scatter copies (a pile of coins, a flock of chickens, falling rain)
   from?: { x: number; z: number };   // glide from here to x,z
+  to?: { x: number; z: number };     // drive / fly / swim / walk from x,z to here at constant speed between `at` and `until` (vehicles and animals)
+  flip?: boolean;                    // face the other way when static
 };
 export type SceneDef = {
+  era?: string;                   // costume set for generic roles: roman|greek|wildwest|viking|egypt|samurai|pirate|space|ww2|1920s|victorian|arabian|india|prehistoric|china
+
   env?: ("rain" | "storm" | "snow" | "night" | "space" | "fog" | "wind")[];   // ambient weather / sky for the whole scene
   fx?: { type: "lightning" | "explosion" | "fire" | "smoke" | "sparkle"; at: number; until?: number; x?: number; z?: number; h?: number }[];  // timed effects (fractions of the scene)
   dur: number;                    // seconds

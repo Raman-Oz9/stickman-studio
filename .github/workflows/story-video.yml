@@ -1,0 +1,103 @@
+name: Story video (script to mp4)
+on:
+  workflow_dispatch:
+    inputs:
+      script:
+        description: "Script text file in the repo"
+        default: "remotion/story_example.txt"
+      voice:
+        default: "am_michael"
+      shards:
+        default: "16"
+permissions:
+  contents: write
+jobs:
+  prep:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.m.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - name: Install voice deps
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg espeak-ng
+          pip install requests soundfile numpy edge-tts
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install kokoro huggingface_hub
+          for i in 1 2 3 4 5; do pip install "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl" && break; sleep 20; done
+      - name: Plan storyboard
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: python3 remotion/scripts/plan_story.py "${{ inputs.script }}" board_plan.json
+      - name: Narration and timing
+        env:
+          NARRATOR_VOICE: ${{ inputs.voice }}
+        run: PYTHONPATH=. python3 remotion/scripts/make_voice.py board_plan.json prep
+      - name: Build props and shard matrix
+        id: m
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          b=json.load(open("prep/board.json"))
+          json.dump({"board":b,"post":{"dpr":0.5}},open("prep/props.json","w"))
+          total=sum(max(1,round(s["dur"]*30)) for s in b["scenes"]); n=int("${{ inputs.shards }}"); per=-(-total//n); rows=[]
+          for i in range(n):
+              a=i*per; e=min(total-1,a+per-1)
+              if a<=total-1: rows.append({"i":i,"a":a,"b":e})
+          print("matrix="+json.dumps({"include":rows}))
+          PY
+      - uses: actions/upload-artifact@v4
+        with: { name: prep, path: prep/ }
+  shard:
+    needs: prep
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.prep.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - uses: actions/download-artifact@v4
+        with: { name: prep, path: remotion/prep }
+      - run: npm install --no-audit --no-fund
+        working-directory: remotion
+      - run: python3 scripts/fetch_kenney.py
+        working-directory: remotion
+      - name: Render frames ${{ matrix.a }}-${{ matrix.b }}
+        working-directory: remotion
+        run: |
+          mkdir -p out
+          npx remotion render src/index.ts StoryShort out/part_${{ matrix.i }}.mp4 --frames=${{ matrix.a }}-${{ matrix.b }} --gl=swangle --codec=h264 --crf=17 --pixel-format=yuv420p --concurrency=1 --props=./prep/props.json --timeout=900000 --log=warn
+      - uses: actions/upload-artifact@v4
+        with:
+          name: part-${{ matrix.i }}
+          path: remotion/out/part_${{ matrix.i }}.mp4
+  join:
+    needs: shard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: parts
+          pattern: part-*
+          merge-multiple: true
+      - uses: actions/download-artifact@v4
+        with: { name: prep, path: prep }
+      - name: Assemble with narration
+        run: |
+          sudo apt-get install -y -qq ffmpeg >/dev/null
+          ls parts | sort -V | sed 's/^/file parts\//' > list.txt
+          ffmpeg -loglevel error -y -f concat -safe 0 -i list.txt -c copy video_540.mp4
+          ffmpeg -loglevel error -y -i video_540.mp4 -i prep/narration.wav -vf "scale=1080:1920:flags=lanczos,unsharp=5:5:0.6:5:5:0.0" -c:v libx264 -crf 24 -preset medium -pix_fmt yuv420p -c:a aac -b:a 160k -shortest video.mp4
+          ffprobe -v error -show_entries format=duration -of csv=p=0 video.mp4
+      - name: Publish to branch story-out
+        run: |
+          mkdir /tmp/pub && cp video.mp4 prep/board.json /tmp/pub/ && cd /tmp/pub && git init -q && git checkout -q -b story-out
+          git config user.name bot && git config user.email bot@users.noreply.github.com
+          git add -A && git commit -qm story && git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" story-out

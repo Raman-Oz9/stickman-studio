@@ -754,9 +754,10 @@ export const bodySide = (p: Pen, o: Outfit, opts: SideOpts) => {
     p.band([lerp2(B0, B1, 0.6), B1], "#8d949c", 2.4 * u, 1.2 * u, "round");
   }
   p.stroke(curve(near[0], near[1], near[2]), 5.2 * u, armCol); p.dot(near[2][0], near[2][1], 5.5 * u);
-  if (heldIm && opts.held) {
-    const sz = opts.held.s * u / 1.2, r = heldIm.naturalHeight / heldIm.naturalWidth, [px, py] = p.P(near[2][0], near[2][1]);
-    p.g.drawImage(heldIm, px - sz * 0.5, py - sz * r * 0.78, sz, sz * r);
+  const heldImg = opts.held ? STICKERS.get(opts.held.name) : undefined;
+  if (heldImg && opts.held) {
+    const sz = opts.held.s * u / 1.2, r = heldImg.naturalHeight / heldImg.naturalWidth, [px, py] = p.P(near[2][0], near[2][1]);
+    p.g.drawImage(heldImg, px - sz * 0.5, py - sz * r * 0.78, sz, sz * r);
     p.dot(near[2][0], near[2][1], 5.5 * u);
   }
   // ---- head ----

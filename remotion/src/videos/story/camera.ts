@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { SceneDef, CastDef } from "./types";
 const SH = {
-  wide: { d: 15, h: 2.7, fov: 42, ly: 1.1, cInf: 4 },
+  wide: { d: 11.5, h: 2.7, fov: 42, ly: 1.1, cInf: 4 },
   medium: { d: 6.4, h: 1.5, fov: 40, ly: 1.2, cInf: 11 },
   close: { d: 2.9, h: 1.7, fov: 36, ly: 1.72, cInf: 16 },
   low: { d: 6.0, h: 0.5, fov: 46, ly: 1.75, cInf: 10 },

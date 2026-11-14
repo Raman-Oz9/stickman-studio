@@ -135,6 +135,7 @@ export class StoryWorld {
     for (let k = 0; k < nx; k++) { // townsfolk watching from the edge of the plaza, away from the main group
       const a = hh(k, 20) * Math.PI * 2, r = 8 + hh(k, 21) * 3.5;
       const ex = F.x * 0.3 + Math.sin(a) * r, ez = F.z * 0.3 + Math.cos(a) * r;
+      if (Math.hypot(ex - cam.position.x, ez - cam.position.z) < 6.5) continue; // never let a bystander block the lens
       put({ id: `x${k}`, role: "townsfolk", x: ex, z: ez, expr: (["smile", "grin", "neutral", "smile_closed"] as Expr[])[k % 4], v: k }, k, true);
     }
 

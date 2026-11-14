@@ -9,6 +9,8 @@ on:
         default: "100,400,900,1500"
       scale:
         default: "0.5"
+      props:
+        default: '{"post":{"dpr":0.5}}'
 permissions:
   contents: write
 jobs:
@@ -34,7 +36,7 @@ jobs:
         run: |
           mkdir -p out
           for f in $(echo "${{ inputs.frames }}" | tr ',' ' '); do
-            /usr/bin/time -f "frame $f: %es" npx remotion still src/index.ts "${{ inputs.composition }}" out/f$f.jpg --frame=$f --scale=${{ inputs.scale }} --gl=swangle --image-format=jpeg --jpeg-quality=88 --timeout=300000 --log=warn
+            /usr/bin/time -f "frame $f: %es" npx remotion still src/index.ts "${{ inputs.composition }}" out/f$f.jpg --frame=$f --scale=${{ inputs.scale }} --gl=swangle --image-format=jpeg --jpeg-quality=88 --props='${{ inputs.props }}' --timeout=300000 --log=warn
           done
       - name: Publish stills
         if: always()

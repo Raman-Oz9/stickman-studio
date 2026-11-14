@@ -131,7 +131,8 @@ const tier = (d: number): [number, number, number] =>
   d < 3.2 ? [1800, 3000, 3.0] : d < 6.5 ? [1080, 1800, 1.8] : d < 16 ? [480, 800, 0.8] : [240, 400, 0.4];
 
 // ---------------- light ----------------
-const SUN = new THREE.Vector3(0.5, 0.75, -0.4).normalize();
+export const SUN = new THREE.Vector3(0.5, 0.75, -0.4).normalize();
+export const setLight = (name: "day" | "golden", sun: THREE.Vector3) => { LNAME = name; SUN.copy(sun).normalize(); };
 const tmp = new THREE.Vector3();
 let LNAME: "day" | "golden" = "day";
 const sunOf = (root: THREE.Object3D) => {
@@ -153,7 +154,7 @@ const findSun = (cam: CamInfo, out: THREE.Vector3) => {
   return best ? out.copy(best.position).sub(best.target.position).normalize() : out;
 };
 /** canvas angle the sun comes FROM on an upright card facing the camera, in 45-degree steps (small texture cache) */
-const light2D = (cam: CamInfo, mirror: boolean) => {
+export const light2D = (cam: CamInfo, mirror: boolean) => {
   const sx = SUN.dot(cam.right) * (mirror ? -1 : 1), sy = -SUN.y;
   return Math.round(Math.atan2(sy, sx) / (Math.PI / 4)) * (Math.PI / 4);
 };
@@ -172,7 +173,7 @@ const LEAD = 2 / FPS;
  *  every expression swap (the shut frames hide the swap) */
 const LID = [0.5, 1, 1, 0.5];
 const SWAPS: Record<number, number[]> = { 4: [16.17, 17.3], 5: [19.48, 20.6], 6: [21.9, 23.7], 7: [29.4, 30.6], 8: [SNAP] };
-const lidAt = (t: number, i: number, swaps: number[] = []) => {
+export const lidAt = (t: number, i: number, swaps: number[] = []) => {
   const f = Math.round(t * FPS);
   for (const ts of swaps) { const k = f - Math.round((ts - LEAD) * FPS) + 1; if (k >= 0 && k < 4) return LID[k]; }
   let s = Math.round(-60 * hh(i, 9));
@@ -185,9 +186,9 @@ const lidAt = (t: number, i: number, swaps: number[] = []) => {
 };
 const fkey = (o: object) => JSON.stringify(o, (_k, v) => (typeof v === "number" ? q(v) : v));
 
-type Who = { i: number; o: Outfit; okey: string };
+export type Who = { i: number; o: Outfit; okey: string };
 /** one character drawing in the 600 x 1000 design space, sized by distance, lit from the scene's sun */
-const person = (cam: CamInfo, who: Who, x: number, y: number, z: number, view: { side: boolean; mirror: boolean }, fo: FrontOpts, so: SideOpts, scale = 1): Place & { tierKey: string } => {
+export const person = (cam: CamInfo, who: Who, x: number, y: number, z: number, view: { side: boolean; mirror: boolean }, fo: FrontOpts, so: SideOpts, scale = 1): Place & { tierKey: string } => {
   const d = cam.pos.distanceTo(tmp.set(x, y + 1.2, z)) / scale;
   const [w, h, k] = tier(d);
   const mirror = view.side && view.mirror, light = light2D(cam, mirror), seed = seedOf(who.i);
@@ -206,8 +207,8 @@ const person = (cam: CamInfo, who: Who, x: number, y: number, z: number, view: {
 const CONTACT: Record<"day" | "golden", [number, number, number]> = { day: [0.2, 0.21, 0.33], golden: [0.24, 0.2, 0.33] };
 const TAIL: [number, number, number] = [0.42, 0.44, 0.62];
 const toSrgb = (v: number) => { const c = clamp01(v); return c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055; };
-const hexOf = (c: [number, number, number], k: number) => "#" + c.map((v) => Math.round(255 * toSrgb(1 - (1 - v) * k)).toString(16).padStart(2, "0")).join("");
-const blob = (out: Stage, x: number, y: number, z: number, sc = 1, k = 1) => {
+export const hexOf = (c: [number, number, number], k: number) => "#" + c.map((v) => Math.round(255 * toSrgb(1 - (1 - v) * k)).toString(16).padStart(2, "0")).join("");
+export const blob = (out: Stage, x: number, y: number, z: number, sc = 1, k = 1) => {
   const hl = Math.hypot(SUN.x, SUN.z) || 1, ox = -SUN.x / hl, oz = -SUN.z / hl, rot = Math.atan2(-ox, -oz);
   if (LNAME === "day") {
     const el = Math.asin(Math.min(0.99, Math.max(0.1, SUN.y)));

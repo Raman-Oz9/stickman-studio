@@ -144,7 +144,7 @@ export class StoryWorld {
       if (d.act === "cheer") { fo.wave = Math.sin(absT * 8); fo.cheer = Math.sin(absT * 8 + 1.5); }
       if (d.act === "point") fo.point = (look >= 0 ? 1 : -1) as 1 | -1;
       if (d.act === "nod") fo.headTilt = Math.round(7 * Math.sin(absT * 5));
-      const so: SideOpts = { mode: pp.moving ? "march" : "stand", phase, expr, stomp: 0.4, stride: 0.9 };
+      const so: SideOpts = { mode: pp.moving ? "march" : "stand", phase: pp.moving && d.act === "run" ? pp.dist / 2.2 : phase, expr, stomp: d.act === "run" ? 1.6 : 0.4, stride: d.act === "run" ? 1.3 : 0.9, held: holdOn ? { name: d.hold!, s: 150 } : undefined };
       st.places.push(person(ci, who, pp.x, bob, pp.z, { side, mirror }, fo, so, sc2));
       blob(st, pp.x, 0, pp.z, sc2);
     };

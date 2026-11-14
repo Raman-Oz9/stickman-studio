@@ -1,7 +1,7 @@
 import type { Expr } from "../bridge/toon";
 export type { Expr };
 export type Shot = "wide" | "medium" | "close" | "low" | "over" | "high";
-export type Move = "push" | "pull" | "orbit" | "hold" | "reveal" | "pan" | "descend";
+export type Move = "push" | "pull" | "orbit" | "hold" | "reveal" | "pan" | "descend" | "track" | "crane" | "tiltup" | "tiltdown";
 export type CastDef = {
   id: string;
   role: string;            // king, knight, peasant, kid, merchant, soldier, wizard, girl ...
@@ -11,7 +11,7 @@ export type CastDef = {
   look?: "partner" | "left" | "right" | "cam";
   scale?: number; v?: number;
   hold?: string; holdAt?: number;   // sticker name held in the hand (from this fraction of the scene)
-  act?: "wave" | "cheer" | "point" | "nod";
+  act?: "wave" | "cheer" | "point" | "nod" | "run";
   to?: { x: number; z: number };     // walk here during the scene
   walkAt?: number;                   // fraction of the scene when the walk starts (default 0)
 };
@@ -31,6 +31,7 @@ export type SceneDef = {
   shot: Shot; target?: string;    // the cast id the camera favours (default: centre of the group)
   az?: number;                    // camera azimuth in degrees around the group (0 = looking toward -z)
   move?: Move; roll?: number;
+  focus?: string;                 // name of a prop the camera glides onto (e.g. the stolen purse)
   props?: PropDef[];              // the things the narration talks about
   extras?: number;                // background townsfolk
   caption?: string;

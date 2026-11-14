@@ -18,7 +18,7 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          pip install pillow numpy
+          true
           mkdir -p remotion/public/prep/stickers
           cp remotion/story_props_test.json remotion/public/prep/board.json
           python3 remotion/scripts/make_stickers.py remotion/public/prep/board.json remotion/public/prep/stickers

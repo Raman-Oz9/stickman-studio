@@ -643,6 +643,8 @@ export type SideOpts = {
   phase?: number; expr?: Expr; mode?: "march" | "stand" | "swing" | "push"; blink?: boolean | number; stomp?: number; pose?: number;
   /** step length as a multiple of 0.8 m (370 units): matches 1.6 m/s at 2 steps/s; scale by the view's foreshortening */
   stride?: number; light?: number; seed?: number;
+  /** carried object (sticker name + size) */
+  held?: { name: string; s: number };
   /** push mode: where the hands land at pose 1, in final canvas units (e.g. the swing kid's back) */
   hand?: [number, number];
 };
@@ -737,6 +739,8 @@ export const bodySide = (p: Pen, o: Outfit, opts: SideOpts) => {
     far = [S, [(S[0] + hN[0]) / 2 - 4 * u, (S[1] + hN[1]) / 2 - 0.02 * HH], [hN[0] - 6 * u, hN[1] - 0.08 * HH]];
   } else if (rifle) { near = [S, [S[0] - 4 * u, S[1] + 0.42 * HH], B0]; far = mode === "march" ? swingArm(rad(30) * nearFwd) : swingArm(0); }
   else { near = swingArm(rad(-30) * nearFwd); far = mode === "march" ? swingArm(rad(30) * nearFwd) : null; }
+  const heldIm = opts.held ? STICKERS.get(opts.held.name) : undefined;
+  if (heldIm) near = [S, [S[0] + 12 * u, S[1] + 0.4 * HH], [S[0] + 0.42 * HH, S[1] + 0.36 * HH]];
   if (far) { p.stroke(curve(far[0], far[1], far[2]), 5.2 * u, farArm); p.dot(far[2][0], far[2][1], 5.5 * u); }
   p.gradFill(tp, o.jacket, mul(o.jacket, SH_CLOTH), light);
   p.clip(tp, () => {
@@ -750,6 +754,11 @@ export const bodySide = (p: Pen, o: Outfit, opts: SideOpts) => {
     p.band([lerp2(B0, B1, 0.6), B1], "#8d949c", 2.4 * u, 1.2 * u, "round");
   }
   p.stroke(curve(near[0], near[1], near[2]), 5.2 * u, armCol); p.dot(near[2][0], near[2][1], 5.5 * u);
+  if (heldIm && opts.held) {
+    const sz = opts.held.s * u / 1.2, r = heldIm.naturalHeight / heldIm.naturalWidth, [px, py] = p.P(near[2][0], near[2][1]);
+    p.g.drawImage(heldIm, px - sz * 0.5, py - sz * r * 0.78, sz, sz * r);
+    p.dot(near[2][0], near[2][1], 5.5 * u);
+  }
   // ---- head ----
   const hx = 300 + 4 * u;
   hatBehind(p, o, H, hx, hc, light, thick, ow, true);

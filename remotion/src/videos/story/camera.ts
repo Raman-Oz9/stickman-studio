@@ -16,16 +16,22 @@ const LV: Record<string, Lvl> = {
   lowface: { d: 3.6, h: 0.7, ly: 1.75, fov: 42, c: 14 },
   high: { d: 10, h: 10.5, ly: 0.3, fov: 48, c: 5 },
   over: { d: 4.0, h: 1.75, ly: 1.45, fov: 38, c: 14 },
+  feet: { d: 3.8, h: 0.8, ly: 0.35, fov: 42, c: 12 },
+  prop: { d: 3.2, h: 1.3, ly: 0.5, fov: 36, c: 15 },
 };
 export type Cam = { pos: THREE.Vector3; look: THREE.Vector3; fov: number; roll: number; cInf: number };
-type KF = { u: number; lv: string; who?: string; az: number; pull?: number };   // who = cast id, undefined = group centre
+type KF = { u: number; lv: string; who?: string; az: number; lead?: number };   // who = cast id, undefined = group centre
 type Seg = { u0: number; u1: number; kfs: KF[]; ease?: "io" | "out" };
 
 const sm = (t: number) => t * t * (3 - 2 * t);                    // ease in/out
 const out = (t: number) => 1 - (1 - t) * (1 - t) * (1 - t);        // fast start, gentle settle (reaction push-in)
 const clamp = (x: number, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 
-export const focusOf = (s: SceneDef, who?: string): { x: number; z: number; spread: number; tgt?: CastDef } => {
+export const focusOf = (s: SceneDef, who?: string): { x: number; z: number; spread: number; tgt?: CastDef; y?: number; size?: number } => {
+  if (who && who.startsWith("@")) {   // a prop: the camera points at the object itself
+    const pd = (s.props ?? []).find((q) => q.name === who.slice(1));
+    if (pd) return { x: pd.x, z: pd.z, spread: 0, y: (pd.y ?? 0) + (pd.h ?? 1) * 0.5, size: pd.h ?? 1 };
+  }
   const t = s.cast.find((c) => c.id === who);
   const xs = s.cast.map((c) => c.x), zs = s.cast.map((c) => c.z);
   const cx = (Math.min(...xs) + Math.max(...xs)) / 2, cz = (Math.min(...zs) + Math.max(...zs)) / 2;
@@ -49,6 +55,20 @@ export const segsOf = (s: SceneDef, i: number, dur: number): Seg[] => {
     ];
   }
   const mv = s.move;
+  const walker = s.cast.find((q) => q.to && q.id === tgt) ?? s.cast.find((q) => q.to);
+  const prop = s.focus ? "@" + s.focus : undefined;
+  if (mv === "track" && walker) {       // side-on tracking shot that rides with the walker, leading the way he is heading
+    const dx = walker.to!.x - walker.x, dz = walker.to!.z - walker.z, l = Math.hypot(dx, dz) || 1;
+    const az = (Math.atan2(-dz / l, dx / l) * 180) / Math.PI + (s.az ?? 0) * 0.3;
+    return [{ u0: 0, u1: 1, kfs: [{ u: 0, lv: "char", who: walker.id, az }, { u: 1, lv: "upper", who: walker.id, az: az + 14 }] }];
+  }
+  if (mv === "crane") return [{ u0: 0, u1: 1, kfs: [{ u: 0, lv: "low", who: tgt, az: base }, { u: 0.5, lv: "char", who: tgt, az: base * 0.5 }, { u: 1, lv: "high", who: tgt, az: base * 0.2 }] }];
+  if (mv === "tiltup") return [{ u0: 0, u1: 1, kfs: [{ u: 0, lv: "feet", who: tgt, az: base }, { u: 1, lv: "face", who: tgt, az: base * 0.7 }] }];
+  if (mv === "tiltdown") return [{ u0: 0, u1: 1, kfs: [{ u: 0, lv: "face", who: tgt, az: base }, { u: 1, lv: "feet", who: tgt, az: base * 0.7 }] }];
+  if (prop && !mv) {                      // the narration is about an object: show who, then glide onto the object itself
+    return [{ u0: 0, u1: 0.42, kfs: [{ u: 0, lv: "char", who: tgt, az: base }, { u: 1, lv: "upper", who: tgt, az: base * 0.6 }] },
+            { u0: 0.42, u1: 1, ease: "out", kfs: [{ u: 0, lv: "upper", who: tgt, az: base * 0.6 }, { u: 0.55, lv: "prop", who: prop, az: base * -0.3 }, { u: 1, lv: "prop", who: prop, az: base * -0.5 }] }];
+  }
   const one = (kfs: KF[]): Seg[] => (dur > 4.6 && !mv
     ? [{ u0: 0, u1: 0.56, kfs }, { u0: 0.56, u1: 1, kfs: [{ u: 0, lv: "upper", who: alt, az: base + 20 }, { u: 1, lv: s.shot === "close" ? "eyes" : "face", who: alt, az: base + 8 }] }]
     : [{ u0: 0, u1: 1, kfs }]);
@@ -76,7 +96,9 @@ const pose = (s: SceneDef, kf: KF) => {
   const sp = Math.max(1, (F.spread + 1.2) / (kf.lv === "env" ? 7 : 2.4));
   const wide = kf.lv === "env" || kf.lv === "char" || kf.lv === "high";
   const sc = F.tgt?.scale ?? 1;
-  return { d: L.d * (wide && !kf.who ? sp : 1), h: L.h * (kf.lv === "high" ? 1 : sc), ly: L.ly * sc, fov: L.fov, c: L.c, az: kf.az, x: F.x, z: F.z, high: kf.lv === "high" };
+  const onProp = F.y !== undefined;
+  const d0 = onProp ? Math.max(2.2, (F.size ?? 1) * 2.4) : L.d * (wide && !kf.who ? sp : 1);
+  return { d: d0, h: onProp ? Math.max(0.7, F.y! * 0.9 + 0.4) : L.h * (kf.lv === "high" ? 1 : sc), ly: onProp ? F.y! : L.ly * sc, fov: L.fov, c: L.c, az: kf.az, x: F.x + (kf.lead ?? 0) * Math.sin(kf.az * 0), z: F.z, high: kf.lv === "high" };
 };
 
 export const camAt = (s: SceneDef, i: number, u: number, t: number, dur = 3): Cam => {

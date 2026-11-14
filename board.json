@@ -1,0 +1,151 @@
+{
+ "title": "The Magic Apple Seed",
+ "scenes": [
+  {
+   "dur": 4.0,
+   "shot": "wide",
+   "target": "farmer_john",
+   "move": "push",
+   "light": "day",
+   "extras": 0,
+   "caption": "A farmer found a glowing seed in his field.",
+   "narration": "A farmer found a strange glowing seed in his field.",
+   "cast": [
+    {
+     "id": "farmer_john",
+     "role": "farmer",
+     "x": 0.0,
+     "z": 0.0,
+     "expr": "dazed",
+     "look": "cam"
+    }
+   ]
+  },
+  {
+   "dur": 4.0,
+   "shot": "medium",
+   "target": "king_arthur",
+   "move": "hold",
+   "light": "day",
+   "extras": 3,
+   "caption": "He showed the seed to the laughing king.",
+   "narration": "He showed it to the king, who laughed at him.",
+   "cast": [
+    {
+     "id": "farmer_john",
+     "role": "farmer",
+     "x": -1.0,
+     "z": 0.0,
+     "expr": "neutral",
+     "look": "partner"
+    },
+    {
+     "id": "king_arthur",
+     "role": "king",
+     "x": 0.8,
+     "z": 0.0,
+     "expr": "laugh",
+     "look": "partner"
+    }
+   ]
+  },
+  {
+   "dur": 4.0,
+   "shot": "close",
+   "target": "knight_lance",
+   "move": "push",
+   "light": "day",
+   "extras": 2,
+   "caption": "The nervous knight begged him to discard it.",
+   "narration": "The king's knight was nervous and begged him to throw it away!",
+   "cast": [
+    {
+     "id": "knight_lance",
+     "role": "knight",
+     "x": -0.8,
+     "z": 0.0,
+     "expr": "nervous",
+     "expr2": "pained",
+     "at2": 0.5,
+     "look": "partner"
+    },
+    {
+     "id": "king_arthur",
+     "role": "king",
+     "x": 0.8,
+     "z": 0.0,
+     "expr": "stern",
+     "look": "partner"
+    }
+   ]
+  },
+  {
+   "dur": 5.0,
+   "shot": "low",
+   "target": "farmer_john",
+   "move": "pull",
+   "light": "golden",
+   "extras": 0,
+   "caption": "A giant tree lifted the castle skyward.",
+   "narration": "That night the seed grew into a giant tree that lifted the whole castle into the sky.",
+   "cast": [
+    {
+     "id": "farmer_john",
+     "role": "farmer",
+     "x": 0.0,
+     "z": -0.5,
+     "expr": "shock",
+     "look": "cam"
+    }
+   ]
+  },
+  {
+   "dur": 3.0,
+   "shot": "close",
+   "target": "king_arthur",
+   "move": "orbit",
+   "light": "golden",
+   "extras": 0,
+   "caption": "The king was completely shocked.",
+   "narration": "The king was shocked.",
+   "cast": [
+    {
+     "id": "king_arthur",
+     "role": "king",
+     "x": 0.0,
+     "z": 0.0,
+     "expr": "shock",
+     "look": "cam"
+    }
+   ]
+  },
+  {
+   "dur": 5.0,
+   "shot": "medium",
+   "target": "farmer_john",
+   "move": "push",
+   "light": "golden",
+   "extras": 5,
+   "caption": "The kingdom enjoyed fresh apples forever.",
+   "narration": "In the end the farmer smiled and the kingdom finally had fresh apples forever.",
+   "cast": [
+    {
+     "id": "farmer_john",
+     "role": "farmer",
+     "x": -0.8,
+     "z": 0.0,
+     "expr": "smile",
+     "look": "cam"
+    },
+    {
+     "id": "king_arthur",
+     "role": "king",
+     "x": 0.8,
+     "z": 0.0,
+     "expr": "smile_closed",
+     "look": "partner"
+    }
+   ]
+  }
+ ]
+}

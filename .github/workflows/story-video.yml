@@ -37,6 +37,10 @@ jobs:
         env:
           NARRATOR_VOICE: ${{ inputs.voice }}
         run: PYTHONPATH=. python3 remotion/scripts/make_voice.py board_plan.json prep
+      - name: Props (stickers)
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python3 remotion/scripts/make_stickers.py prep/board.json prep/stickers
       - name: Music and sound effects
         run: python3 remotion/scripts/story_audio.py prep/board.json prep/narration.wav prep/mix.wav
       - name: Build props and shard matrix
@@ -66,7 +70,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
       - uses: actions/download-artifact@v4
-        with: { name: prep, path: remotion/prep }
+        with: { name: prep, path: remotion/public/prep }
       - run: npm install --no-audit --no-fund
         working-directory: remotion
       - run: python3 scripts/fetch_kenney.py
@@ -75,7 +79,7 @@ jobs:
         working-directory: remotion
         run: |
           mkdir -p out
-          npx remotion render src/index.ts StoryShort out/part_${{ matrix.i }}.mp4 --frames=${{ matrix.a }}-${{ matrix.b }} --gl=swangle --codec=h264 --crf=17 --pixel-format=yuv420p --concurrency=1 --props=./prep/props.json --timeout=900000 --log=warn
+          npx remotion render src/index.ts StoryShort out/part_${{ matrix.i }}.mp4 --frames=${{ matrix.a }}-${{ matrix.b }} --gl=swangle --codec=h264 --crf=17 --pixel-format=yuv420p --concurrency=1 --props=./public/prep/props.json --timeout=900000 --log=warn
       - uses: actions/upload-artifact@v4
         with:
           name: part-${{ matrix.i }}

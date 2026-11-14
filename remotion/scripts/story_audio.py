@@ -35,7 +35,7 @@ def kick(vel=1.0):
 def shaker(vel=1.0):
     n = int(SR * 0.07); x = rng.standard_normal(n)
     x = np.diff(x, prepend=0) * env(n, 0.001, 0.03)
-    return x * vel * 0.5
+    return x * vel * 0.4
 
 def put(buf, x, t):
     i = int(t * SR)
@@ -43,28 +43,27 @@ def put(buf, x, t):
     j = min(len(buf), i + len(x)); buf[i:j] += x[: j - i]
 
 # ---------------- music ----------------
-PROG_DAY = [([60, 64, 67], 36), ([57, 60, 64], 33), ([53, 57, 60], 29), ([55, 59, 62], 31)]   # C Am F G
-PROG_GOLD = [([53, 57, 60], 29), ([55, 59, 62], 31), ([57, 60, 64], 33), ([60, 64, 67], 36)]  # F G Am C
-SCALE = [0, 2, 4, 7, 9]
+PROG_DAY = [([57, 60, 64], 33), ([53, 57, 60], 29), ([60, 64, 67], 36), ([55, 59, 62], 31)]   # Am F C G: warm, cinematic, all-ages
+PROG_GOLD = [([53, 57, 60], 29), ([60, 64, 67], 36), ([55, 59, 62], 31), ([57, 60, 64], 33)]  # F C G Am
+
+def lowpass(x, fc=1800):
+    a = np.exp(-2 * np.pi * fc / SR); y = np.empty_like(x); z = 0.0
+    from scipy.signal import lfilter
+    return lfilter([1 - a], [1, -a], x)
 
 def music(total, golden_from):
-    buf = np.zeros(int(total * SR)); bpm = 96; beat = 60 / bpm; bar = beat * 4
+    """calm lo-fi cinematic bed: slow warm pads + soft low pluck arpeggio + muted heartbeat kick; no bright top line, no shaker"""
+    buf = np.zeros(int(total * SR)); bpm = 84; beat = 60 / bpm; bar = beat * 4
     nb = int(total / bar) + 1
     for b in range(nb):
         t0 = b * bar
         prog = PROG_GOLD if golden_from is not None and t0 >= golden_from else PROG_DAY
         ch, root = prog[b % 4]
-        put(buf, pad(ch, bar + 0.3, 0.55), t0)
-        for k in range(4):                                     # soft kick on 1 and 3, shaker off-beats
-            if k in (0, 2): put(buf, kick(0.5), t0 + k * beat)
-            put(buf, shaker(0.5), t0 + k * beat + beat / 2)
-        for k, off in enumerate([0, 7, 12, 7, 0, 7, 12, 16]):  # plucked bass arpeggio, eighth notes
-            put(buf, pluck(root + off - 12 + 12, beat * 0.9, 0.5), t0 + k * beat / 2)
-        r2 = np.random.default_rng(b)                          # a sparse pentatonic top line
-        for k in range(8):
-            if r2.random() < 0.45:
-                put(buf, pluck(72 + int(r2.choice(SCALE)) + 12 * int(r2.random() < 0.3), beat * 1.2, 0.35), t0 + k * beat / 2)
-    return buf[: int(total * SR)]
+        put(buf, pad([m - 12 for m in ch] + [ch[0]], bar + 0.6, 0.9), t0)
+        put(buf, kick(0.28), t0); put(buf, kick(0.18), t0 + 2.5 * beat)       # soft heartbeat
+        for k, off in enumerate([0, 7, 12, 7, 0, 7, 12, 7]):                    # mellow low arpeggio
+            put(buf, pluck(root + off - 12, beat * 0.95, 0.32 if k % 2 == 0 else 0.2), t0 + k * beat / 2)
+    return lowpass(buf[: int(total * SR)], 1500)
 
 # ---------------- sfx ----------------
 def whoosh(dur=0.45, peak=1.0):
@@ -83,7 +82,7 @@ def hit(vel=1.0):          # low impact for shocks
 
 def ting(vel=1.0):         # bright reveal
     n = int(SR * 0.9); t = np.arange(n) / SR
-    return sum(np.sin(2 * np.pi * f * t) * a for f, a in ((1568, 1), (2349, .5), (3136, .3))) * np.exp(-t * 6) * vel * 0.5
+    return sum(np.sin(2 * np.pi * f * t) * a for f, a in ((784, 1), (1175, .35))) * np.exp(-t * 6) * vel * 0.4
 
 def pop(vel=1.0):          # punch-in / laugh accent
     n = int(SR * 0.18); t = np.arange(n) / SR
@@ -129,10 +128,10 @@ def main(board_p, voice_p, out_p):
         elif kind == "pop": put(s, pop(0.6), t)
     vv = np.zeros(n); vv[: len(v)] = v[:n]
     vr, vp = gated_rms(vv), np.abs(vv).max()
-    m *= 0.5 * vr / gated_rms(m)                      # music = 50 % of the voice level (-6 dB, gated RMS)
+    m *= 0.25 * vr / gated_rms(m)                     # music = 25 % of the voice level (about -12 dB, gated RMS): a bed, never competes
     nz = s[np.abs(s) > 1e-4]; sr_ = float(np.sqrt((nz ** 2).mean())) if len(nz) else 1.0
-    s *= 0.5 * vr / sr_                                # sfx rms = 50 % of voice; peaks capped below
-    cap = 0.7 * vp
+    s *= 0.35 * vr / sr_                                # sfx rms = 50 % of voice; peaks capped below
+    cap = 0.5 * vp
     if np.abs(s).max() > cap: s *= cap / np.abs(s).max()
     fade = np.minimum(1, (total - np.arange(n) / SR) / 1.0)
     m *= fade

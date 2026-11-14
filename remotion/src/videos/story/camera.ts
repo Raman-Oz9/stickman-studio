@@ -29,7 +29,8 @@ const clamp = (x: number, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 
 export const focusOf = (s: SceneDef, who?: string): { x: number; z: number; spread: number; tgt?: CastDef; y?: number; size?: number } => {
   if (who && who.startsWith("@")) {   // a prop: the camera points at the object itself
-    const pd = (s.props ?? []).find((q) => q.name === who.slice(1));
+    const nm = who.slice(1).toLowerCase(), ps = s.props ?? [];   // exact, then fuzzy (planner may write "tree1" or "coins"), then the first prop
+    const pd = ps.find((q) => q.name === nm) ?? ps.find((q) => q.name.includes(nm) || nm.includes(q.name)) ?? ps.find((q) => nm.replace(/[0-9]/g, "") && q.name.includes(nm.replace(/[0-9]/g, ""))) ?? ps[0];
     if (pd) return { x: pd.x, z: pd.z, spread: 0, y: (pd.y ?? 0) + (pd.h ?? 1) * 0.5, size: pd.h ?? 1 };
   }
   const t = s.cast.find((c) => c.id === who);

@@ -15,7 +15,7 @@ MOVES = ["push", "pull", "reveal", "pan", "descend", "orbit", "hold", "track", "
 SPEC = f"""Return ONLY JSON: {{"title": str, "scenes": [scene,...]}}. You are the DIRECTOR of a cartoon story video: every noun in the script must be SEEN and every verb ACTED.
 One scene per sentence or clause (2.5-5 s each). scene = {{"dur": seconds, "shot": one of {SHOTS}, "target": cast id the camera favours,
 "move": one of {MOVES}, "focus": optional "@propname" or cast id the camera must point at, "light": "day"|"golden", "extras": 0-10 background townsfolk,
-"caption": spoken words (max 9), "narration": full sentence spoken,
+"caption": the spoken words verbatim (max 12), "narration": full sentence spoken,
 "cast": [{{"id": str, "role": one of {ROLES}, "x": -3..3, "z": -1..1, "expr": one of {EXPR}, "expr2": optional reaction, "at2": 0.3-0.8,
   "look": "partner"|"left"|"right"|"cam", "hold": optional item name the character carries in hand, "to": optional {{"x":..,"z":..}} destination the character walks/runs to during the scene,
   "act": optional "wave"|"cheer"|"point"|"nod"|"run" ("run" = sprint to "to"), "walkAt": 0-0.5 when moving starts}}],
@@ -110,11 +110,14 @@ def clean(b):
             cast.append(c)
         if not cast: continue
         s["cast"] = cast
+        nar = str(s.get("narration") or "").strip()
+        if nar and len(nar.split()) <= 12: s["caption"] = nar            # captions are the spoken words, none dropped
         pr = []
         for p in (s.get("props") or [])[:6]:
             if not isinstance(p, dict) or not p.get("name"): continue
             p["name"] = str(p["name"]).strip().lower(); p["x"] = max(-3.0, min(3.0, float(p.get("x", 0)))); p["z"] = max(-1.5, min(1.5, float(p.get("z", 0.4))))
             p["h"] = max(0.15, min(7.0, float(p.get("h", 0.7))))
+            if p["h"] >= 3: p["z"] = min(p["z"], -1.0); p["x"] = max(-1.8, min(1.8, p["x"]))      # big things (trees, castle) stand behind the actors
             if p.get("anim") not in ("pop", "grow", "bounce", "float", "fall", "spin", "static"): p["anim"] = "pop"
             pr.append(p)
         s["props"] = pr

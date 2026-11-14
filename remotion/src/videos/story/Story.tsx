@@ -1,7 +1,8 @@
 // Storyboard-driven story short: one ThreeCanvas, one StoryWorld, scenes selected by frame. Same post chain as the Bridge.
 import React, { useEffect, useMemo, useState } from "react";
 import * as THREE from "three";
-import { AbsoluteFill, continueRender, delayRender, getInputProps, useCurrentFrame } from "remotion";
+import { AbsoluteFill, continueRender, delayRender, getInputProps, staticFile, useCurrentFrame } from "remotion";
+import { loadStickers } from "../bridge/stickers";
 import { ThreeCanvas } from "@remotion/three";
 import { useThree } from "@react-three/fiber";
 import { EffectComposer } from "@react-three/postprocessing";
@@ -63,7 +64,11 @@ export const StoryShort: React.FC = () => {
   const board = useMemo(getBoard, []);
   const [kit, setKit] = useState<Kit | null>(null);
   const [handle] = useState(() => delayRender("story kit"));
-  useEffect(() => { loadKit().then((k) => { setKit(k); continueRender(handle); }); }, [handle]);
+  useEffect(() => {
+    const urls: Record<string, string> = {};
+    Object.entries(board.stickers ?? {}).forEach(([n, u]) => { urls[n] = staticFile(u); });
+    Promise.all([loadKit(), loadStickers(urls)]).then(([k]) => { setKit(k); continueRender(handle); });
+  }, [handle, board]);
   const { i } = sceneAt(board, f);
   const cap = board.scenes[i].caption;
   if (!kit) return null;

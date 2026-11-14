@@ -69,6 +69,7 @@ export const townsfolk = (v = 0): Outfit => {
   return v % 2 ? { ...o, hat: "bonnet", dress: ["#d9a441", "#c25a7a", "#5a8fc2"][v % 3] } : { ...o, hat: "tophat" };
 };
 
+import { STICKERS } from "./stickers";
 export class Pen {
   g: CanvasRenderingContext2D;
   ol = 12;
@@ -445,7 +446,7 @@ const hatOn = (p: Pen, o: Outfit, hp: P2[], H: Blob, cx: number, hc: number, lig
 // ---------------- bodies ----------------
 export type Arms = [P2[], P2[]];
 /** held prop; for the hammer the number is the strike 0 (raised) .. 1 (struck) */
-export type Prop = null | "icecream" | "shako" | ["hammer", number];
+export type Prop = null | "icecream" | "shako" | ["hammer", number] | { held: string; s?: number };
 
 const BUILD: Record<Build, { a: number; torso: number; legs: number; tw: number }> = {
   adult: { a: 118, torso: 1.1, legs: 1.4, tw: 0.8 },
@@ -455,7 +456,7 @@ const BUILD: Record<Build, { a: number; torso: number; legs: number; tw: number 
 
 export type FrontOpts = {
   phase?: number; expr?: Expr; mode?: "march" | "stroll" | "stand" | "sit" | "fall"; look?: number; blink?: boolean | number; lift?: number;
-  prop?: Prop; tilt?: number; headTilt?: number; wave?: number;
+  prop?: Prop; tilt?: number; headTilt?: number; wave?: number; cheer?: number; point?: -1 | 1;
   /** canvas angle the key light comes FROM (painted crescent + thick outline side) */
   light?: number; facing?: -1 | 0 | 1; seed?: number;
 };
@@ -466,7 +467,7 @@ const footStroke = (p: Pen, a: P2, b: P2, w: number, col: string) => {
 };
 
 export const bodyFront = (p: Pen, o: Outfit, opts: FrontOpts) => {
-  const { phase = 0, expr = "neutral", mode = "march", look = 0, blink = false, lift = 60, prop = null, tilt = 0, headTilt = 0, wave,
+  const { phase = 0, expr = "neutral", mode = "march", look = 0, blink = false, lift = 60, prop = null, tilt = 0, headTilt = 0, wave, cheer, point,
     light = DEF_LIGHT, facing = 0, seed = 1 } = opts;
   const Bd = BUILD[o.build ?? "adult"], skin = o.skin ?? SKIN, two = Math.PI * 2, lid = lidOf(blink);
   const H = headBlob(seed, Bd.a, facing), W = 2 * H.a, HH = 2 * H.b, u = W / 100;
@@ -534,13 +535,22 @@ export const bodyFront = (p: Pen, o: Outfit, opts: FrontOpts) => {
   if (mode === "sit") for (const side of [-1, 1]) arms.push({ pts: [sh(side), [tcx + side * (1.1 * T.a + 6 * u), sh(side)[1] + 0.4 * HH], [tcx + side * (1.2 * T.a + 10 * u), torsoBot + 0.04 * HH]], front: false });
   else if (mode === "fall") for (const side of [-1, 1]) arms.push({ pts: [sh(side), [tcx + side * (1.15 * T.a + 12 * u), sh(side)[1] - 0.25 * HH], [tcx + side * (1.3 * T.a + 24 * u), sh(side)[1] - 0.68 * HH]], front: false });
   else {
-    arms.push({ pts: prop === "shako" ? hang(-1, 0) : hang(-1, -sw), front: false });
+    if (cheer !== undefined) {
+      const S0 = sh(-1);
+      arms.push({ pts: [S0, [tcx - (1.1 * T.a + 10 * u + 3 * u * cheer), S0[1] - 0.22 * HH], [tcx - (1.18 * T.a + 16 * u + 12 * u * cheer), S0[1] - 0.6 * HH]], front: false });
+    } else arms.push({ pts: prop === "shako" ? hang(-1, 0) : hang(-1, -sw), front: false });
     if (rifle) {
       const G = lerp2(R0, R1, 0.1);
       arms.push({ pts: [sh(1), [tcx + 1.12 * T.a + 5 * u, sh(1)[1] + 0.45 * HH], G], front: false });
     } else if (wave !== undefined) {
       const S = sh(1);
       arms.push({ pts: [S, [tcx + 1.1 * T.a + 10 * u + 3 * u * wave, S[1] - 0.22 * HH], [tcx + 1.18 * T.a + 16 * u + 12 * u * wave, S[1] - 0.6 * HH]], front: false });
+    } else if (point) {
+      const S = sh(point), ex = tcx + point * (1.25 * T.a + 12 * u);
+      arms.push({ pts: [S, [ex, S[1] + 0.12 * HH], [tcx + point * (1.25 * T.a + 70 * u), S[1] - 0.02 * HH]], front: false });
+    } else if (prop && typeof prop === "object" && !Array.isArray(prop)) {
+      const S = sh(1);
+      arms.push({ pts: [S, [tcx + 1.08 * T.a + 6 * u, S[1] + 0.42 * HH], [tcx + 0.62 * T.a, S[1] + 0.3 * HH]], front: true });
     } else if (prop === "icecream") {
       const S = sh(1);
       arms.push({ pts: [S, [tcx + 1.05 * T.a + 4 * u, S[1] + 0.45 * HH], [tcx + 0.5 * T.a, S[1] + 0.4 * HH]], front: true });
@@ -594,7 +604,11 @@ export const bodyFront = (p: Pen, o: Outfit, opts: FrontOpts) => {
   for (const a of arms) if (a.front) {
     drawArm(a);
     const [hx, hy] = a.pts[2];
-    if (prop === "icecream") {
+    if (prop && typeof prop === "object" && !Array.isArray(prop)) {
+      const im = STICKERS.get(prop.held), sz = (prop.s ?? 150) * u / 1.2;
+      if (im) { const r = im.naturalHeight / im.naturalWidth, [px, py] = p.P(hx, hy); p.g.drawImage(im, px - sz / 2, py - sz * r * 0.78, sz, sz * r); }
+      p.dot(hx, hy, 5.5 * u);
+    } else if (prop === "icecream") {
       p.poly([[hx - 8 * u, hy - 12 * u], [hx + 8 * u, hy - 12 * u], [hx, hy + 7 * u]], "#e0a35a", 1.8 * u);
       p.ell(hx, hy - 19 * u, 11 * u, 10 * u, "#f7c6d9", 2.2 * u);
       p.dot(hx, hy, 5.5 * u);

@@ -8,7 +8,8 @@ import { TONE, CHAR, untone } from "../bridge/shade";
 import { NOINK } from "../bridge/ink";
 import { Pool, Actor, Fx, person, blob, lidAt, setLight, Who, Stage, CamInfo, FPS } from "../bridge/cast";
 import { FrontOpts, SideOpts, Expr } from "../bridge/toon";
-import { SceneDef, CastDef } from "./types";
+import { SceneDef, CastDef, PropDef } from "./types";
+import { STICKERS } from "../bridge/stickers";
 import { outfitFor } from "./outfits";
 import { camAt, focusOf } from "./camera";
 
@@ -77,7 +78,15 @@ export class StoryWorld {
   update(s: SceneDef, i: number, lf: number, n: number, cam: THREE.PerspectiveCamera, scene: THREE.Scene, absT: number) {
     const light = s.light ?? "day", L = LIGHTS[light], K = LOOK[light];
     const u = n > 1 ? lf / (n - 1) : 0, t = lf / FPS;
-    const c = camAt(s, i, u, absT, n / FPS);
+    const dur = n / FPS;
+    const posOf = (d: CastDef) => {
+      if (!d.to) return { x: d.x, z: d.z, moving: false, dist: 0, dx: 0, dz: 0 };
+      const w0 = d.walkAt ?? 0, k = Math.min(1, Math.max(0, (u - w0) / Math.max(0.05, 0.92 - w0))), e = k * k * (3 - 2 * k);
+      const L = Math.hypot(d.to.x - d.x, d.to.z - d.z);
+      return { x: d.x + (d.to.x - d.x) * e, z: d.z + (d.to.z - d.z) * e, moving: k > 0.001 && k < 0.999, dist: L * e, dx: d.to.x - d.x, dz: d.to.z - d.z };
+    };
+    const cur: SceneDef = { ...s, cast: s.cast.map((d) => { const p = posOf(d); return { ...d, x: p.x, z: p.z }; }) };
+    const c = camAt(cur, i, u, absT, dur);
     cam.position.copy(c.pos); cam.up.set(0, 1, 0); cam.lookAt(c.look); cam.rotateZ(c.roll);
     cam.fov = c.fov; cam.near = 0.15; cam.far = 1500; cam.updateProjectionMatrix(); cam.updateMatrixWorld();
     cam.layers.enable(NOINK);
@@ -120,15 +129,24 @@ export class StoryWorld {
       let look = 0;
       if (d.look === "left") look = -1; else if (d.look === "right") look = 1;
       else if (d.look === "partner") {
-        const o2 = s.cast.find((q) => q.id !== d.id);
+        const o2 = s.cast.find((q2) => q2.id !== d.id);
         if (o2) look = (o2.x - d.x) * right.x + (o2.z - d.z) * right.z > 0 ? 1 : -1;
       }
-      const mode = d.mode === "sit" ? "sit" : "stand";
+      const pp = posOf(d), mode = d.mode === "sit" ? "sit" : "stand";
       const bob = extra ? 0 : 0.012 * Math.sin(absT * 2.1 + idx);
-      const fo: FrontOpts = { mode, expr, look, blink: lidAt(t, idx + (extra ? 300 : 0), d.at2 != null ? [swapT] : []), headTilt: extra ? 0 : Math.round(4 * Math.sin(absT * 0.9 + idx)) };
-      const so: SideOpts = {};
-      st.places.push(person(ci, who, d.x, bob, d.z, { side: false, mirror: false }, fo, so, sc2));
-      blob(st, d.x, 0, d.z, sc2);
+      const holdOn = d.hold && u >= (d.holdAt ?? 0) && STICKERS.has(d.hold);
+      const lat = pp.moving ? (pp.dx * right.x + pp.dz * right.z) / (Math.hypot(pp.dx, pp.dz) || 1) : 0;
+      const side = pp.moving && Math.abs(lat) > 0.5, mirror = lat < 0;
+      const phase = pp.dist / 1.5;
+      const fo: FrontOpts = { mode: pp.moving ? "stroll" : mode, phase: pp.moving ? phase : 0, expr, look: side ? 0 : look, blink: lidAt(t, idx + (extra ? 300 : 0), d.at2 != null ? [swapT] : []),
+        headTilt: extra ? 0 : Math.round(4 * Math.sin(absT * 0.9 + idx)), prop: holdOn ? { held: d.hold!, s: 150 } : null };
+      if (d.act === "wave" && !holdOn) fo.wave = Math.sin(absT * 7);
+      if (d.act === "cheer") { fo.wave = Math.sin(absT * 8); fo.cheer = Math.sin(absT * 8 + 1.5); }
+      if (d.act === "point") fo.point = (look >= 0 ? 1 : -1) as 1 | -1;
+      if (d.act === "nod") fo.headTilt = Math.round(7 * Math.sin(absT * 5));
+      const so: SideOpts = { mode: pp.moving ? "march" : "stand", phase, expr, stomp: 0.4, stride: 0.9 };
+      st.places.push(person(ci, who, pp.x, bob, pp.z, { side, mirror }, fo, so, sc2));
+      blob(st, pp.x, 0, pp.z, sc2);
     };
     s.cast.forEach((d, k) => put(d, k, false));
     const nx = s.extras ?? 6, F = focusOf(s);
@@ -138,6 +156,35 @@ export class StoryWorld {
       if (Math.hypot(ex - cam.position.x, ez - cam.position.z) < 6.5) continue; // never let a bystander block the lens
       put({ id: `x${k}`, role: "townsfolk", x: ex, z: ez, expr: (["smile", "grin", "neutral", "smile_closed"] as Expr[])[k % 4], v: k }, k, true);
     }
+
+    // ---- props: the things the narration is about (stickers) ----
+    const eo = (x: number) => 1 - Math.pow(1 - Math.min(1, Math.max(0, x)), 3);
+    (s.props ?? []).forEach((pd: PropDef, pi: number) => {
+      const im = STICKERS.get(pd.name);
+      if (!im) return;
+      const a0 = pd.at ?? 0, a1 = pd.until ?? 1.01;
+      if (u < a0 || u > a1) return;
+      const ts = (u - a0) * dur, cnt = Math.max(1, pd.count ?? 1), spr = pd.spread ?? 1.2;
+      for (let k = 0; k < cnt; k++) {
+        const j = k + pi * 31, ox = cnt > 1 ? (hh(j, 3) - 0.5) * 2 * spr : 0, oz = cnt > 1 ? (hh(j, 4) - 0.5) * 2 * spr * 0.6 : 0;
+        const delay = pd.anim === "fall" || pd.anim === "pop" || pd.anim === "grow" ? (cnt > 1 ? hh(j, 5) * 0.8 : 0) : 0, tt = Math.max(0, ts - delay);
+        let sc3 = 1, yy = pd.y ?? 0, rot = 0, px = pd.x, pz = pd.z;
+        if (pd.from) { const g = eo(ts / Math.max(0.3, dur * 0.7)); px = pd.from.x + (pd.x - pd.from.x) * g; pz = pd.from.z + (pd.z - pd.from.z) * g; }
+        switch (pd.anim) {
+          case "pop": { const g = Math.min(1, tt / 0.35); sc3 = g <= 0 ? 0 : (1 + 0.18 * Math.sin(g * Math.PI)) * eo(g); break; }
+          case "grow": sc3 = 0.04 + 0.96 * eo(tt / Math.max(0.6, dur * 0.8)); break;
+          case "bounce": yy += Math.abs(Math.sin(tt * 4 + k)) * 0.25 * (pd.h ?? 1); break;
+          case "float": yy += 0.12 * Math.sin(tt * 2.2 + k) + 0.15; rot = 0.06 * Math.sin(tt * 1.6 + k); break;
+          case "fall": { const g = tt * tt * 6; yy += Math.max(0, 5.5 - g) * (pd.h ? 1 : 1); sc3 = tt > 0 ? 1 : 0; rot = tt * (1.5 + hh(j, 6)); break; }
+          case "spin": rot = tt * 3; break;
+        }
+        if (sc3 <= 0.001) continue;
+        const hgt = (pd.h ?? 1) * sc3, wid = hgt * (im.naturalWidth / im.naturalHeight);
+        st.fx.push({ key: `stk|${pd.name}`, cw: 512, ch: 512, draw: (pn) => { const r2 = im.naturalHeight / im.naturalWidth, W = r2 > 1 ? 512 / r2 : 512, H = r2 > 1 ? 512 : 512 * r2; pn.g.drawImage(im, (512 - W) / 2, 512 - H, W, H); },
+          x: px + ox, y: yy + Math.max(wid, hgt) / 2, z: pz + oz, w: Math.max(wid, hgt), h: Math.max(wid, hgt), rot });
+        if (!pd.anim || pd.anim === "static" || pd.anim === "pop" || pd.anim === "grow") blob(st, px + ox, 0, pz + oz, Math.max(0.3, hgt * 0.5));
+      }
+    });
 
     this.frustum.setFromProjectionMatrix(this.m4.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse));
     let ai = 0; const used: Actor[] = [];

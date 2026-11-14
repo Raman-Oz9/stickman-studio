@@ -33,16 +33,19 @@ def clean_svg(txt):
     if not re.search(r"<svg[^>]*width=", svg): svg = svg.replace("<svg", '<svg width="512" height="512"', 1)
     return svg
 
+T0 = time.time(); BUDGET = float(os.environ.get('STICKER_BUDGET', '240'))
+
 def gen(name):
     key = os.environ.get("GEMINI_API_KEY", "").strip()
     if not key: return None
     for m in SVG_MODELS:
         for attempt in range(2):
+            if time.time() - T0 > BUDGET: return None
             try:
                 body = {"contents": [{"parts": [{"text": SVG_PROMPT.format(name=name)}]}], "generationConfig": {"temperature": 0.7}}
                 r = urllib.request.Request(f"https://generativelanguage.googleapis.com/v1beta/models/{m.strip()}:generateContent", json.dumps(body).encode(),
                                            {"Content-Type": "application/json", "x-goog-api-key": key})
-                j = json.load(urllib.request.urlopen(r, timeout=120))
+                j = json.load(urllib.request.urlopen(r, timeout=40))
                 svg = clean_svg(j["candidates"][0]["content"]["parts"][0]["text"])
                 if svg: return svg
                 print(f"  {name} [{m}]: invalid svg, retry", file=sys.stderr)
@@ -82,16 +85,20 @@ def names_of(b):
 def main(board_p, outdir):
     b = json.load(open(board_p)); os.makedirs(outdir, exist_ok=True)
     st = {}
-    for n in names_of(b):
+    from concurrent.futures import ThreadPoolExecutor
+    def one(n):
         path = os.path.join(outdir, slug(n) + ".svg"); lib = os.path.join(LIB, slug(n) + ".svg")
-        if os.path.exists(lib): open(path, "w").write(open(lib).read())
+        if os.path.exists(lib): svg = open(lib).read()
         else:
             svg = gen(n)
             if svg is None: print("  fallback for", n); svg = fallback(n)
             else: os.makedirs(LIB, exist_ok=True); open(lib, "w").write(svg)       # learned once, reused forever
-            open(path, "w").write(svg)
-        st[n] = "prep/stickers/" + slug(n) + ".svg"
-        print("sticker", n, "->", path)
+        open(path, "w").write(svg)
+        print("sticker", n, "->", path, flush=True)
+        return n
+    names = names_of(b)
+    with ThreadPoolExecutor(6) as ex: list(ex.map(one, names))
+    for n in names: st[n] = "prep/stickers/" + slug(n) + ".svg"
     for s in b["scenes"]:                                   # normalise names used on the board
         for p in s.get("props", []) or []: p["name"] = p["name"].strip().lower()
         for c in s["cast"]:

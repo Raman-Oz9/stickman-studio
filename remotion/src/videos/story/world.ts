@@ -151,9 +151,9 @@ export class StoryWorld {
       const so: SideOpts = { mode: pp.moving ? "march" : "stand", phase: pp.moving && d.act === "run" ? pp.dist / 2.2 : phase, expr, stomp: d.act === "run" ? 1.6 : 0.4, stride: d.act === "run" ? 1.3 : 0.9, held: holdOn ? { name: d.hold!, s: 150 } : undefined };
       st.places.push(person(ci, who, pp.x, bob, pp.z, { side, mirror }, fo, so, sc2));
       if (holdOn && has3) {   // the carried item is a real 3D object riding at the carrying hand, swinging with the stride
-        const hc = canon(d.hold!), hh2 = Math.min(0.55, d.holdH ?? DEFAULT_H[hc] ?? 0.35) * Math.max(0.8, sc2), sgn = side ? (mirror ? -1 : 1) : 1, ph = pp.moving ? Math.sin(phase * 3.1) * 0.05 : 0;
+        const hc = canon(d.hold!), hh2 = Math.min(0.4, d.holdH ?? DEFAULT_H[hc] ?? 0.3) * Math.max(0.8, sc2), sgn = side ? (mirror ? -1 : 1) : 1, ph = pp.moving ? Math.sin(phase * 3.1) * 0.05 : 0;
         const off = side ? 0.42 : 0.3;
-        this.p3.put(d.hold!, pp.x + right.x * off * sgn, bob + 0.98 * sc2 + ph, pp.z + right.z * off * sgn + 0.12, hh2, 1, Math.atan2(cam.position.x - pp.x, cam.position.z - pp.z), 0);
+        this.p3.put(d.hold!, pp.x + right.x * off * sgn, bob + 0.8 * sc2 + ph, pp.z + right.z * off * sgn + 0.12, hh2, 1, Math.atan2(cam.position.x - pp.x, cam.position.z - pp.z), 0);
       }
       blob(st, pp.x, 0, pp.z, sc2);
     };

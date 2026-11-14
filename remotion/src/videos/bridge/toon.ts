@@ -739,7 +739,7 @@ export const bodySide = (p: Pen, o: Outfit, opts: SideOpts) => {
     far = [S, [(S[0] + hN[0]) / 2 - 4 * u, (S[1] + hN[1]) / 2 - 0.02 * HH], [hN[0] - 6 * u, hN[1] - 0.08 * HH]];
   } else if (rifle) { near = [S, [S[0] - 4 * u, S[1] + 0.42 * HH], B0]; far = mode === "march" ? swingArm(rad(30) * nearFwd) : swingArm(0); }
   else { near = swingArm(rad(-30) * nearFwd); far = mode === "march" ? swingArm(rad(30) * nearFwd) : null; }
-  const heldIm = opts.held ? STICKERS.get(opts.held.name) : undefined;
+  const heldIm = opts.held ? true : undefined;   // carry pose for any held item (drawn as a 3D prop by the world)
   if (heldIm) near = [S, [S[0] + 12 * u, S[1] + 0.4 * HH], [S[0] + 0.42 * HH, S[1] + 0.36 * HH]];
   if (far) { p.stroke(curve(far[0], far[1], far[2]), 5.2 * u, farArm); p.dot(far[2][0], far[2][1], 5.5 * u); }
   p.gradFill(tp, o.jacket, mul(o.jacket, SH_CLOTH), light);

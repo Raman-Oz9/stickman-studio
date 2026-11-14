@@ -16,7 +16,8 @@ import { FPS, D0, SHOTS, PARK, ANCHOR, SNAP, camAt, bridgeState, deckY, dropW, s
 // ---------------- assets ----------------
 const KENNEY = ["tree_oak", "tree_default", "tree_detailed", "tree_fat", "tree_cone", "tree-high-round", "tree", "plant_bushLarge", "plant_bushDetailed",
   "plant_bush", "hedge", "flower_redA", "flower_yellowA", "flower_purpleA", "grass_large", "grass", "lily_large", "lantern", "cart", "stall-red",
-  "stall-green", "stall-bench", "banner-red", "banner-green", "windmill", "canoe"];
+  "stall-green", "stall-bench", "banner-red", "banner-green", "windmill", "canoe",
+  "chest", "barrel", "crate", "cannon", "cart", "ship-medium", "ship-pirate-medium", "boat-row-large", "fountain-round", "tent_detailedClosed", "campfire_logs", "statue_head", "rock_largeA", "crop_pumpkin", "crop_carrot", "crop_melon", "bottle", "sign", "bear", "fence", "pillar-stone", "log", "bench", "stump_old", "mushroom_redTall", "bridge_stone", "stairs-stone", "castle-wall", "castle-gate", "tower-b", "bookcaseClosed", "table", "chair", "bed", "lampRoundFloor", "televisionModern", "laptop"];
 let kitP: Promise<Kit> | null = null;
 export const loadKit = () => {
   if (!kitP) {

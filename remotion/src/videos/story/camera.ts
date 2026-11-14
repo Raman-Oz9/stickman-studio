@@ -30,6 +30,8 @@ const clamp = (x: number, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 export const focusOf = (s: SceneDef, who?: string): { x: number; z: number; spread: number; tgt?: CastDef; y?: number; size?: number } => {
   if (who && who.startsWith("@")) {   // a prop: the camera points at the object itself
     const nm = who.slice(1).toLowerCase(), ps = s.props ?? [];   // exact, then fuzzy (planner may write "tree1" or "coins"), then the first prop
+    const hd = s.cast.find((q) => q.hold && q.hold.toLowerCase() === nm);   // an item someone is carrying: follow the carrier live
+    if (hd && !ps.find((q) => q.name === nm)) return { x: hd.x, z: hd.z, spread: 0, y: 0.95, size: 0.5 };
     const pd = ps.find((q) => q.name === nm) ?? ps.find((q) => q.name.includes(nm) || nm.includes(q.name)) ?? ps.find((q) => nm.replace(/[0-9]/g, "") && q.name.includes(nm.replace(/[0-9]/g, ""))) ?? ps[0];
     if (pd) return { x: pd.x, z: pd.z, spread: 0, y: (pd.y ?? 0) + (pd.h ?? 1) * 0.5, size: pd.h ?? 1 };
   }
@@ -43,7 +45,37 @@ export const focusOf = (s: SceneDef, who?: string): { x: number; z: number; spre
 const other = (s: SceneDef, id?: string) => s.cast.find((c) => c.id !== id)?.id ?? id;
 
 /** Plan the camera for a scene. Mirrored in remotion/scripts/story_audio.py (cut times) - keep in sync. */
+/** how many ~2 s sub-shots a scene is cut into by the action camera (mirrored in story_audio.py) */
+export const nSub = (dur: number) => Math.max(1, Math.min(6, Math.round(dur / 2.0)));
+const GENERIC = new Set(["push", "pull", "reveal", "pan", "descend", "orbit", "hold", undefined]);
+/** Action camera: a new subject and a fast, strong move every ~2 s (reference-video pacing). Subjects cycle through the speaker, every prop
+ *  named in the scene (the camera points at it), the other characters. Moves alternate push-in / orbit / pull-back / prop close-up. */
+const actionSegs = (s: SceneDef, i: number, dur: number): Seg[] => {
+  const n = nSub(dur), base = s.az ?? ((i % 2 ? 1 : -1) * (16 + (i * 23) % 36));
+  const tgt = s.target ?? s.cast[0].id, props = (s.props ?? []).filter((p, k, a) => a.findIndex((q) => q.name === p.name) === k);
+  const subj: (string | undefined)[] = [tgt, ...props.map((p) => "@" + p.name), ...s.cast.filter((c) => c.id !== tgt).map((c) => c.id), tgt];
+  const segs: Seg[] = [];
+  for (let k = 0; k < n; k++) {
+    const who = i === 0 && k === 0 && s.shot === "wide" ? undefined : subj[(k + (i % 2)) % subj.length], pr = who?.startsWith("@");
+    const sw = (k % 2 ? -1 : 1) * (22 + 10 * ((i + k) % 3)), a0 = base + (k % 2 ? 30 : -30), u0 = k / n, u1 = (k + 1) / n;
+    let kfs: KF[];
+    if (pr) kfs = [{ u: 0, lv: "char", who: tgt, az: a0 }, { u: 0.45, lv: "prop", who, az: a0 + sw * 0.5 }, { u: 1, lv: "prop", who, az: a0 + sw }];
+    else switch ((k + i) % 4) {
+      case 0: kfs = [{ u: 0, lv: "char", who, az: a0 }, { u: 1, lv: "face", who, az: a0 + sw * 0.4 }]; break;               // fast push-in
+      case 1: kfs = [{ u: 0, lv: "upper", who, az: a0 - sw }, { u: 1, lv: "upper", who, az: a0 + sw }]; break;               // orbit
+      case 2: kfs = [{ u: 0, lv: "face", who, az: a0 }, { u: 1, lv: "env", az: a0 + sw * 0.5 }]; break;                       // pull-back reveal
+      default: kfs = [{ u: 0, lv: "low", who, az: a0 }, { u: 1, lv: "upper", who, az: a0 - sw * 0.4 }];                        // hero low-angle rise
+    }
+    segs.push({ u0, u1, ease: "out", kfs });
+  }
+  return segs;
+};
+
 export const segsOf = (s: SceneDef, i: number, dur: number): Seg[] => {
+  if (GENERIC.has(s.move) && !(s.cast.find((c) => c.at2 != null && c.expr2) && dur > 1.8) && !s.cast.some((c) => c.to)) return actionSegs(s, i, dur);
+  return segsOld(s, i, dur);
+};
+const segsOld = (s: SceneDef, i: number, dur: number): Seg[] => {
   const base = s.az ?? ((i % 2 ? 1 : -1) * (14 + (i * 23) % 40));
   const tgt = s.target ?? s.cast[0].id, two = s.cast.length > 1, alt = two ? other(s, tgt) : tgt;
   const react = s.cast.find((c) => c.at2 != null && c.expr2);

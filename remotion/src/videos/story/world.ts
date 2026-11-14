@@ -10,6 +10,7 @@ import { Pool, Actor, Fx, person, blob, lidAt, setLight, Who, Stage, CamInfo, FP
 import { FrontOpts, SideOpts, Expr } from "../bridge/toon";
 import { SceneDef, CastDef, PropDef } from "./types";
 import { STICKERS } from "../bridge/stickers";
+import { Props3D, canon, DEFAULT_H } from "./props3d";
 import { outfitFor } from "./outfits";
 import { camAt, focusOf } from "./camera";
 
@@ -19,6 +20,7 @@ const ROLE_SCALE: Record<string, number> = { kid: 0.72, girl: 0.74 };
 export class StoryWorld {
   root = new THREE.Group();
   private pool = new Pool();
+  private p3: Props3D;
   private actors: Actor[] = [];
   private fxs: Fx[] = [];
   private hemi = new THREE.HemisphereLight("#cfe6ff", "#6c5c8c", 1.1);
@@ -30,6 +32,7 @@ export class StoryWorld {
 
   constructor(kit: Kit) {
     const R = this.root;
+    this.p3 = new Props3D(R, kit);
     this.skyMat = new THREE.ShaderMaterial({
       uniforms: { c0: { value: new THREE.Color() }, c1: { value: new THREE.Color() }, c2: { value: new THREE.Color() }, c3: { value: new THREE.Color() }, c4: { value: new THREE.Color() }, e: { value: new THREE.Vector4() } },
       vertexShader: "varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
@@ -121,6 +124,7 @@ export class StoryWorld {
     const right = new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld, 0);
     const ci: CamInfo = { pos: cam.position, right, sun: sd };
     const st: Stage = { places: [], fx: [] };
+    this.p3.begin();
     const put = (d: CastDef, idx: number, extra: boolean) => {
       const o = outfitFor(d.role, d.v ?? idx), who: Who = { i: idx + (extra ? 300 : 0), o, okey: `${d.role}${d.v ?? idx}` };
       const sc2 = d.scale ?? ROLE_SCALE[d.role] ?? 1;
@@ -134,7 +138,7 @@ export class StoryWorld {
       }
       const pp = posOf(d), mode = d.mode === "sit" ? "sit" : "stand";
       const bob = extra ? 0 : 0.012 * Math.sin(absT * 2.1 + idx);
-      const holdOn = d.hold && u >= (d.holdAt ?? 0) && STICKERS.has(d.hold);
+      const has3 = !!d.hold && this.p3.has(d.hold), holdOn = d.hold && u >= (d.holdAt ?? 0) && (has3 || STICKERS.has(d.hold));
       const lat = pp.moving ? (pp.dx * right.x + pp.dz * right.z) / (Math.hypot(pp.dx, pp.dz) || 1) : 0;
       const side = pp.moving && Math.abs(lat) > 0.5, mirror = lat < 0;
       const phase = pp.dist / 1.5;
@@ -146,6 +150,11 @@ export class StoryWorld {
       if (d.act === "nod") fo.headTilt = Math.round(7 * Math.sin(absT * 5));
       const so: SideOpts = { mode: pp.moving ? "march" : "stand", phase: pp.moving && d.act === "run" ? pp.dist / 2.2 : phase, expr, stomp: d.act === "run" ? 1.6 : 0.4, stride: d.act === "run" ? 1.3 : 0.9, held: holdOn ? { name: d.hold!, s: 150 } : undefined };
       st.places.push(person(ci, who, pp.x, bob, pp.z, { side, mirror }, fo, so, sc2));
+      if (holdOn && has3) {   // the carried item is a real 3D object riding at the carrying hand, swinging with the stride
+        const hc = canon(d.hold!), hh2 = Math.min(0.55, d.holdH ?? DEFAULT_H[hc] ?? 0.35) * Math.max(0.8, sc2), sgn = side ? (mirror ? -1 : 1) : 1, ph = pp.moving ? Math.sin(phase * 3.1) * 0.05 : 0;
+        const off = side ? 0.42 : 0.3;
+        this.p3.put(d.hold!, pp.x + right.x * off * sgn, bob + 0.98 * sc2 + ph, pp.z + right.z * off * sgn + 0.12, hh2, 1, Math.atan2(cam.position.x - pp.x, cam.position.z - pp.z), 0);
+      }
       blob(st, pp.x, 0, pp.z, sc2);
     };
     s.cast.forEach((d, k) => put(d, k, false));
@@ -160,8 +169,8 @@ export class StoryWorld {
     // ---- props: the things the narration is about (stickers) ----
     const eo = (x: number) => 1 - Math.pow(1 - Math.min(1, Math.max(0, x)), 3);
     (s.props ?? []).forEach((pd: PropDef, pi: number) => {
-      const im = STICKERS.get(pd.name);
-      if (!im) return;
+      const pile = (pd.count ?? 1) === 1 && pd.anim !== "fall" && /coins|money|gold/i.test(pd.name), has3p = this.p3.has(pd.name, pile), im = STICKERS.get(pd.name);
+      if (!im && !has3p) return;
       const a0 = pd.at ?? 0, a1 = pd.until ?? 1.01;
       if (u < a0 || u > a1) return;
       const ts = (u - a0) * dur, cnt = Math.max(1, pd.count ?? 1), spr = pd.spread ?? 1.2;
@@ -179,13 +188,20 @@ export class StoryWorld {
           case "spin": rot = tt * 3; break;
         }
         if (sc3 <= 0.001) continue;
-        const hgt = (pd.h ?? 1) * sc3, wid = hgt * (im.naturalWidth / im.naturalHeight);
-        st.fx.push({ key: `stk|${pd.name}`, cw: 512, ch: 512, draw: (pn) => { const r2 = im.naturalHeight / im.naturalWidth, W = r2 > 1 ? 512 / r2 : 512, H = r2 > 1 ? 512 : 512 * r2; pn.g.drawImage(im, (512 - W) / 2, 512 - H, W, H); },
+        if (has3p) {
+          const h3 = pd.h ?? DEFAULT_H[canon(pd.name, pile)] ?? 1, X = px + ox, Z = pz + oz;
+          this.p3.put(pd.name, X, yy, Z, h3, sc3, Math.atan2(cam.position.x - X, cam.position.z - Z) * 0.8 + (pd.anim === "spin" ? rot : 0), pd.anim === "fall" ? rot : 0, pile);
+          if (!pd.anim || pd.anim === "static" || pd.anim === "pop" || pd.anim === "grow") blob(st, X, 0, Z, Math.max(0.3, h3 * sc3 * 0.5));
+          continue;
+        }
+        const hgt = (pd.h ?? 1) * sc3, wid = hgt * (im!.naturalWidth / im!.naturalHeight);
+        st.fx.push({ key: `stk|${pd.name}`, cw: 512, ch: 512, draw: (pn) => { const r2 = im!.naturalHeight / im!.naturalWidth, W = r2 > 1 ? 512 / r2 : 512, H = r2 > 1 ? 512 : 512 * r2; pn.g.drawImage(im!, (512 - W) / 2, 512 - H, W, H); },
           x: px + ox, y: yy + Math.max(wid, hgt) / 2, z: pz + oz, w: Math.max(wid, hgt), h: Math.max(wid, hgt), rot });
         if (!pd.anim || pd.anim === "static" || pd.anim === "pop" || pd.anim === "grow") blob(st, px + ox, 0, pz + oz, Math.max(0.3, hgt * 0.5));
       }
     });
 
+    this.p3.end();
     this.frustum.setFromProjectionMatrix(this.m4.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse));
     let ai = 0; const used: Actor[] = [];
     for (const p of st.places) {

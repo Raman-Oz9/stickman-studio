@@ -10,6 +10,7 @@ export type CastDef = {
   mode?: "stand" | "stroll" | "sit";
   look?: "partner" | "left" | "right" | "cam";
   scale?: number; v?: number;
+  holdH?: number;
   hold?: string; holdAt?: number;   // sticker name held in the hand (from this fraction of the scene)
   act?: "wave" | "cheer" | "point" | "nod" | "run";
   to?: { x: number; z: number };     // walk here during the scene

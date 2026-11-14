@@ -1,0 +1,42 @@
+name: Voice samples
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  v:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - name: Install
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg espeak-ng
+          pip install requests soundfile numpy
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install kokoro huggingface_hub
+          for i in 1 2 3 4 5; do pip install "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl" && break; sleep 20; done
+      - name: Synthesize
+        run: |
+          mkdir -p out
+          python3 - <<'PY'
+          import numpy as np, soundfile as sf
+          from kokoro import KPipeline
+          p = KPipeline(lang_code="a")
+          T = "You won't believe what happened next! A poor farmer planted one tiny seed, and a giant apple tree shot up into the sky! Then, a sneaky thief grabbed his purse and ran!"
+          for name, v, sp in [("1_puck_fast","am_puck",1.18),("2_eric_fast","am_eric",1.18),("3_liam_fast","am_liam",1.18),("4_michael_fast","am_michael",1.18),("5_puck_eric_mix","am_puck,am_eric",1.15),("6_fenrir_fast","am_fenrir",1.15)]:
+              vv = v
+              if "," in v:
+                  import torch
+                  vs = [p.load_voice(x) for x in v.split(",")]; vv = torch.mean(torch.stack(vs), dim=0)
+              a = np.concatenate([np.asarray(r.audio) for r in p(T, voice=vv, speed=sp, split_pattern=None)])
+              sf.write(f"out/{name}.wav", a, 24000); print(name, len(a)/24000)
+          PY
+          for f in out/*.wav; do ffmpeg -loglevel error -y -i $f -af "loudnorm=I=-16" -c:a libmp3lame -b:a 128k ${f%.wav}.mp3; done; rm out/*.wav
+      - name: Publish
+        run: |
+          cd out && git init -q && git checkout -q -b voice-samples
+          git config user.name bot && git config user.email bot@users.noreply.github.com
+          git add -A && git commit -qm v && git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" voice-samples

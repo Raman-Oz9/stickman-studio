@@ -21,7 +21,15 @@ One scene per sentence or clause (2.5-5 s each). scene = {{"dur": seconds, "shot
   "act": optional "wave"|"cheer"|"point"|"nod"|"run" ("run" = sprint to "to"), "walkAt": 0-0.5 when moving starts}}],
 "props": [{{"name": item (prefer: {", ".join(LIB)}; any other noun is fine, it gets drawn), "x": -3..3, "z": -1..1, "h": height in metres (0.3 coin, 0.9 chicken, 4 tree, 5 castle),
   "anim": "pop"|"grow"|"bounce"|"float"|"fall"|"spin"|"static", "at": 0-0.8 when it appears (fraction of scene), "until": optional when it vanishes, "count": copies, "spread": width of the group}}]}}.
-RULES. (1) Every concrete noun in the narration becomes a prop or a held item in that scene (seed, mango, coins, chicken, tree, castle, purse...). Animals are props. Many coins: anim "fall", count 12-20, spread 2.5.
+"env": optional list of "rain"|"storm"|"snow"|"night"|"space"|"fog"|"wind" (weather/sky for the scene; use whenever the narration mentions it),
+"fx": optional timed effects [{{"type":"lightning"|"explosion"|"fire"|"smoke"|"sparkle","at":0-0.9,"x":..,"z":..,"h":size m}}] (thunder/lightning strike = lightning; blast/bomb/crash = explosion; burning = fire).
+WORKED EXAMPLE (follow this staging style, every action is a visible SEQUENCE inside the scene):
+ "He planted the seed, and a giant apple tree grew." -> ONE scene, 5 s: cast farmer (act "point", look at the spot), props [{{"name":"seed","x":0.6,"z":0.1,"h":0.2,"anim":"pop","at":0.05,"until":0.35}},
+   {{"name":"apple tree","x":0.6,"z":-0.9,"h":5,"anim":"grow","at":0.3}}], fx [{{"type":"sparkle","at":0.3,"x":0.6,"z":-0.2}}], focus "@apple tree", move "tiltup".
+ "A thief stole the purse and ran, the police chased him." -> scene A (3 s): farmer at x -0.5 holds "purse" (holdAt 0, ends when stolen), thief walks in from x -3 to x 0 (walkAt 0), at 0.5 the purse prop vanishes from farmer: use farmer.hold "purse" and thief.hold "purse" with holdAt 0.55, farmer expr2 "shock" at2 0.55.
+   scene B (4 s): thief x -8 -> to x 10, act "run", hold "purse"; police x -12 -> to x 8, act "run", walkAt 0.12; move "track", focus the thief.
+RULES. (0) Plan like a film director: each sentence = 1-2 scenes that SHOW the process step by step (cause -> effect -> reaction), never just people standing. Use fx/env for every storm, rain, thunder, lightning, explosion, fire, snow, night, space mention.
+(1) Every concrete noun in the narration becomes a prop or a held item in that scene (seed, mango, coins, chicken, tree, castle, purse...). Animals are props. Many coins: anim "fall", count 12-20, spread 2.5.
 (2) Characters ACT: carrying = "hold" + "to"; stealing = thief with "hold":"<stolen item>"; running away = act "run" with "to" far away (x +-4), move "track", focus "@<item>"; pointing = act "point" with look toward the prop; a prop must be placed within x -2.5..2.5 and near the character so it is IN FRAME.
 (3) Use the right role for the person named: police, thief, doctor, nurse, chef, teacher, king, queen, pirate, grandma, businessman... Use different roles for different people; give a recurring person the same id/role. Max 3 characters per scene, >=1.2 m apart. Use "v" 0-5 (optional) to vary two people of the same role.
 (4) Camera language: "reveal" = push-in from environment to a character (opening, introductions); "push" = approach a face for emotion; "pull" = start on a face/object and widen; "pan" = two-person exchange; "descend" with shot "high" = overhead establishing;
@@ -82,12 +90,21 @@ def heuristic(script):
             if re.search(r"\b" + k + r"(s|es)?\b", low) and nm not in [p["name"] for p in props]:
                 props.append({"name": nm, "x": 1.4 if len(props) % 2 else -1.4, "z": 0.5, "h": 4 if nm in ("tree", "castle") else 0.7, "anim": "pop", "at": 0.15, **({"anim": "fall", "count": 14, "spread": 2.5, "h": 0.35} if nm == "gold coin" else {})})
         props = props[:3]
+        env, fxs = [], []
+        if re.search(r"\b(storm|thunder|lightning)", low): env.append("storm")
+        elif re.search(r"\brain", low): env.append("rain")
+        if re.search(r"\b(snow|blizzard)", low): env.append("snow")
+        if re.search(r"\b(night|moon|dark)", low): env.append("night")
+        if re.search(r"\b(space|planet|galaxy|astronaut|stars?)\b", low): env.append("space")
+        if re.search(r"\b(thunder|lightning)", low): fxs.append({"type": "lightning", "at": 0.35})
+        if re.search(r"\b(explo|blast|bomb|crash|boom)", low): fxs.append({"type": "explosion", "at": 0.4, "h": 3})
+        if re.search(r"\b(fire|burn|flame)", low): fxs.append({"type": "fire", "at": 0.1, "x": 0.5, "z": -0.5})
         if props: roles = roles[:2]
         words = len(s.split())
         scenes.append({"dur": round(max(2.4, words / 2.7 + 0.5), 1), "shot": shot, "target": roles[0], "light": "golden" if i >= n - 2 and n > 3 else "day",
                        "extras": 10 if i == 0 else 4, "caption": " ".join(s.split()[:9]), "narration": s,
                        "cast": [{"id": r, "role": r, "x": x, "z": 0.2 * (j % 2), "expr": expr, "look": "partner" if len(roles) > 1 else "cam"} for j, (r, x) in enumerate(zip(roles, xs))],
-                       "props": props, **({"focus": "@" + props[0]["name"], "move": "tiltdown" if props[0]["name"] in ("seed", "purse") else "push"} if props and i % 2 else {})})
+                       "props": props, **({"env": env} if env else {}), **({"fx": fxs} if fxs else {}), **({"focus": "@" + props[0]["name"], "move": "tiltdown" if props[0]["name"] in ("seed", "purse") else "push"} if props and i % 2 else {})})
     return {"title": (sents[0][:48] if sents else "Story"), "scenes": scenes}
 
 def clean(b):
@@ -102,7 +119,7 @@ def clean(b):
             if c.get("act") not in ("wave", "cheer", "point", "nod", "run"): c.pop("act", None)
             if c.get("hold"): c["hold"] = str(c["hold"]).strip().lower()
             to = c.get("to")
-            if isinstance(to, dict) and "x" in to: c["to"] = {"x": max(-6, min(6, float(to["x"]))), "z": max(-2, min(2, float(to.get("z", 0))))}
+            if isinstance(to, dict) and "x" in to: c["to"] = {"x": max(-14, min(14, float(to["x"]))), "z": max(-2, min(2, float(to.get("z", 0))))}
             else: c.pop("to", None)
             for k in ("expr", "expr2"):
                 if c.get(k) not in EXPR: c.pop(k, None)
@@ -121,6 +138,26 @@ def clean(b):
             if p.get("anim") not in ("pop", "grow", "bounce", "float", "fall", "spin", "static"): p["anim"] = "pop"
             pr.append(p)
         s["props"] = pr
+        ENVS = ("rain", "storm", "snow", "night", "space", "fog", "wind"); FXS = ("lightning", "explosion", "fire", "smoke", "sparkle")
+        env = [e for e in (s.get("env") or []) if e in ENVS]
+        if env: s["env"] = env
+        else: s.pop("env", None)
+        fx = []
+        for e in (s.get("fx") or [])[:6]:
+            if isinstance(e, dict) and e.get("type") in FXS:
+                e["at"] = max(0.0, min(0.95, float(e.get("at", 0.3))))
+                for k in ("x", "z", "h"):
+                    if k in e:
+                        try: e[k] = float(e[k])
+                        except Exception: e.pop(k)
+                fx.append(e)
+        if fx: s["fx"] = fx
+        else: s.pop("fx", None)
+        for c in cast:       # sprinters really sprint: ~5.5 m/s over the scene so the chase reads as fast
+            if c.get("act") == "run" and c.get("to"):
+                dirx = 1 if c["to"]["x"] >= c["x"] else -1
+                dist = min(22.0, 5.5 * float(s.get("dur", 3)) * 0.9)
+                c["to"] = {"x": max(-14, min(14, c["x"] + dirx * dist)), "z": c["to"]["z"]}
         if s.get("move") not in MOVES: s.pop("move", None)
         if s.get("focus") and not (str(s["focus"]).startswith("@") or s["focus"] in [c["id"] for c in cast]): s.pop("focus", None)
         if s.get("target") not in [c["id"] for c in cast]: s["target"] = cast[0]["id"]

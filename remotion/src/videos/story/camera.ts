@@ -87,13 +87,15 @@ const segsOld = (s: SceneDef, i: number, dur: number): Seg[] => {
       { u0: cut, u1: 1, ease: "out", kfs: [{ u: 0, lv: "upper", who: react.id, az: base * -0.4 }, { u: qd, lv: "face", who: react.id, az: base * -0.4 }, { u: 1, lv: "eyes", who: react.id, az: base * -0.3 }] },
     ];
   }
-  const mv = s.move;
+  const walker0 = s.cast.find((q) => q.to && q.act === "run") ?? s.cast.find((q) => q.to);
+  const mv = s.move ?? (walker0 ? "track" : undefined);
   const walker = s.cast.find((q) => q.to && q.id === tgt) ?? s.cast.find((q) => q.to);
   const prop = s.focus ? "@" + s.focus : undefined;
   if (mv === "track" && walker) {       // side-on tracking shot that rides with the walker, leading the way he is heading
     const dx = walker.to!.x - walker.x, dz = walker.to!.z - walker.z, l = Math.hypot(dx, dz) || 1;
     const az = (Math.atan2(-dz / l, dx / l) * 180) / Math.PI + (s.az ?? 0) * 0.3;
-    return [{ u0: 0, u1: 1, kfs: [{ u: 0, lv: "char", who: walker.id, az }, { u: 1, lv: "upper", who: walker.id, az: az + 14 }] }];
+    return [{ u0: 0, u1: 0.55, kfs: [{ u: 0, lv: "char", who: walker.id, az }, { u: 1, lv: "upper", who: walker.id, az: az + 10 }] },
+            { u0: 0.55, u1: 1, ease: "out", kfs: [{ u: 0, lv: "upper", who: walker.id, az: az + 10 }, { u: 1, lv: "low", who: walker.id, az: az - 38 }] }];
   }
   if (mv === "crane") return [{ u0: 0, u1: 1, kfs: [{ u: 0, lv: "low", who: tgt, az: base }, { u: 0.5, lv: "char", who: tgt, az: base * 0.5 }, { u: 1, lv: "high", who: tgt, az: base * 0.2 }] }];
   if (mv === "tiltup") return [{ u0: 0, u1: 1, kfs: [{ u: 0, lv: "feet", who: tgt, az: base }, { u: 1, lv: "face", who: tgt, az: base * 0.7 }] }];

@@ -13,6 +13,7 @@ import { STICKERS } from "../bridge/stickers";
 import { Props3D, canon, DEFAULT_H } from "./props3d";
 import { outfitFor } from "./outfits";
 import { camAt, focusOf } from "./camera";
+import { Effects } from "./effects";
 
 const hh = (i: number, s = 0) => { const v = Math.sin(i * 127.1 + s * 311.7) * 43758.5453; return v - Math.floor(v); };
 const ROLE_SCALE: Record<string, number> = { kid: 0.72, girl: 0.74 };
@@ -21,6 +22,7 @@ export class StoryWorld {
   root = new THREE.Group();
   private pool = new Pool();
   private p3: Props3D;
+  private fxe: Effects; private town: THREE.Object3D[] = []; private plat: THREE.Mesh;
   private actors: Actor[] = [];
   private fxs: Fx[] = [];
   private hemi = new THREE.HemisphereLight("#cfe6ff", "#6c5c8c", 1.1);
@@ -32,7 +34,8 @@ export class StoryWorld {
 
   constructor(kit: Kit) {
     const R = this.root;
-    this.p3 = new Props3D(R, kit);
+    this.p3 = new Props3D(R, kit); this.fxe = new Effects(R);
+    this.plat = new THREE.Mesh(new THREE.CircleGeometry(15, 40), new THREE.MeshLambertMaterial({ color: "#6d5d86" })); this.plat.rotation.x = -Math.PI / 2; this.plat.position.y = 0.01; this.plat.receiveShadow = true; this.plat.visible = false; R.add(this.plat);
     this.skyMat = new THREE.ShaderMaterial({
       uniforms: { c0: { value: new THREE.Color() }, c1: { value: new THREE.Color() }, c2: { value: new THREE.Color() }, c3: { value: new THREE.Color() }, c4: { value: new THREE.Color() }, e: { value: new THREE.Vector4() } },
       vertexShader: "varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
@@ -71,7 +74,7 @@ export class StoryWorld {
       prop(b, kit, k % 3 === 0 ? "lantern" : k % 3 === 1 ? "plant_bushLarge" : "stall-red", Math.sin(a) * r, 0, Math.cos(a) * r, k % 3 === 0 ? 3.0 : k % 3 === 1 ? 1.1 : 2.6, a + Math.PI);
     }
     prop(b, kit, "windmill", 40, 0, -60, 22, 0.4);
-    b.build(R);
+    const n0 = R.children.length; b.build(R); this.town = R.children.slice(n0);
   }
 
   private actor(i: number) { while (this.actors.length <= i) this.actors.push(new Actor(this.root)); return this.actors[i]; }
@@ -84,12 +87,15 @@ export class StoryWorld {
     const dur = n / FPS;
     const posOf = (d: CastDef) => {
       if (!d.to) return { x: d.x, z: d.z, moving: false, dist: 0, dx: 0, dz: 0 };
-      const w0 = d.walkAt ?? 0, k = Math.min(1, Math.max(0, (u - w0) / Math.max(0.05, 0.92 - w0))), e = k * k * (3 - 2 * k);
+      const w0 = d.walkAt ?? 0, k = Math.min(1, Math.max(0, (u - w0) / Math.max(0.05, 0.96 - w0))), e = d.act === "run" ? (k < 0.08 ? k * k / 0.16 : k - 0.04) / 0.96 : k * k * (3 - 2 * k);   // sprints keep full speed (no slow ease)
       const L = Math.hypot(d.to.x - d.x, d.to.z - d.z);
       return { x: d.x + (d.to.x - d.x) * e, z: d.z + (d.to.z - d.z) * e, moving: k > 0.001 && k < 0.999, dist: L * e, dx: d.to.x - d.x, dz: d.to.z - d.z };
     };
     const cur: SceneDef = { ...s, cast: s.cast.map((d) => { const p = posOf(d); return { ...d, x: p.x, z: p.z }; }) };
     const c = camAt(cur, i, u, absT, dur);
+    const E = this.fxe.update(cur, u, dur, c.pos, c.look, absT);
+    if (E.shake > 0.01) { const k = E.shake * 0.28; c.pos.x += Math.sin(absT * 61) * k; c.pos.y += Math.sin(absT * 73 + 1) * k; c.look.x += Math.sin(absT * 53 + 2) * k * 0.6; }
+    this.town.forEach((o) => { o.visible = !E.space; }); this.plat.visible = E.space;
     cam.position.copy(c.pos); cam.up.set(0, 1, 0); cam.lookAt(c.look); cam.rotateZ(c.roll);
     cam.fov = c.fov; cam.near = 0.15; cam.far = 1500; cam.updateProjectionMatrix(); cam.updateMatrixWorld();
     cam.layers.enable(NOINK);
@@ -107,18 +113,23 @@ export class StoryWorld {
     const focus = c.look.clone(), dist = cam.position.distanceTo(focus);
     this.hemi.color.set(L.sky); this.hemi.groundColor.set(L.ground); this.hemi.intensity = L.hemiI;
     this.sun.color.set(L.sunCol); this.sun.intensity = L.sunI;
+    this.hemi.intensity = L.hemiI * E.dim + E.flash * 3.2; this.sun.intensity = L.sunI * E.dim + E.flash * 9;
+    if (E.night) { this.hemi.color.set("#7a8cff"); this.hemi.groundColor.set("#2a2f5a"); this.sun.color.set("#a8b8ff"); }
     const Rr = THREE.MathUtils.clamp(dist * 1.15 + 7, 12, 60);
     this.sun.position.copy(focus).addScaledVector(sd, 220); this.sun.target.position.copy(focus);
     const sc = this.sun.shadow.camera; sc.left = -Rr; sc.right = Rr; sc.top = Rr; sc.bottom = -Rr; sc.near = 20; sc.far = 480; sc.updateProjectionMatrix();
     this.sun.shadow.bias = L.bias; this.sun.shadow.normalBias = L.normalBias * (Rr / 12);
     TONE.uLitCol.value.set(...L.lit); TONE.uShadeCol.value.set(...L.shade); TONE.uShadeLift.value.set(...L.lift);
     TONE.uLambert.value = L.lambert; TONE.uSideK.value = L.sideK; TONE.uTerm.value = L.term; TONE.uBounce.value.set(...K.bounce); TONE.uSat.value = K.sat;
+    TONE.uLitCol.value.multiplyScalar(Math.max(0.5, E.dim)); TONE.uShadeCol.value.multiplyScalar(Math.max(0.55, E.dim));
     CHAR.uCharTint.value.set(...L.charTint); CHAR.uCharShade.value = L.charShade; CHAR.uGrad.value = L.charGrad; CHAR.uBodyGrad.value = L.bodyGrad; CHAR.uSideTint.value.set(...L.sideTint);
     const su = this.skyMat.uniforms;
     K.sky.c.forEach((h, k) => untone(h, su["c" + k].value));
     const e = K.sky.e.map((d) => THREE.MathUtils.degToRad(d)); su.e.value.set(e[1], e[2], e[3], e[4]);
+    if (E.night) { for (let k = 0; k < 5; k++) { const cv = su["c" + k].value as THREE.Color; cv.multiplyScalar(E.space ? 0.02 : 0.16).lerp(new THREE.Color(E.space ? "#020410" : "#0b1236"), 0.55); } }
+    else if (E.dim < 0.95) for (let k = 0; k < 5; k++) (su["c" + k].value as THREE.Color).multiplyScalar(E.dim * 0.8).lerp(new THREE.Color("#4a5468"), 0.35);
     this.sky.position.copy(cam.position);
-    untone(L.fog, this.fog.color); this.fog.near = L.fogNear; this.fog.far = L.fogFar; scene.fog = this.fog; scene.background = null;
+    untone(L.fog, this.fog.color); this.fog.near = L.fogNear; this.fog.far = L.fogFar; if (E.night) this.fog.color.set(E.space ? "#020410" : "#0b1236"); else if (E.dim < 0.95) this.fog.color.lerp(new THREE.Color("#4a5468"), 0.5); this.fog.near *= E.fogK; this.fog.far *= E.fogK; scene.fog = this.fog; scene.background = null;
 
     // ---- cast ----
     const right = new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld, 0);
@@ -148,7 +159,7 @@ export class StoryWorld {
       if (d.act === "cheer") { fo.wave = Math.sin(absT * 8); fo.cheer = Math.sin(absT * 8 + 1.5); }
       if (d.act === "point") fo.point = (look >= 0 ? 1 : -1) as 1 | -1;
       if (d.act === "nod") fo.headTilt = Math.round(7 * Math.sin(absT * 5));
-      const so: SideOpts = { mode: pp.moving ? "march" : "stand", phase: pp.moving && d.act === "run" ? pp.dist / 2.2 : phase, expr, stomp: d.act === "run" ? 1.6 : 0.4, stride: d.act === "run" ? 1.3 : 0.9, held: holdOn ? { name: d.hold!, s: 150 } : undefined };
+      const so: SideOpts = { mode: pp.moving ? "march" : "stand", phase: pp.moving && d.act === "run" ? pp.dist / 1.25 : phase, expr, stomp: d.act === "run" ? 1.6 : 0.4, stride: d.act === "run" ? 1.3 : 0.9, held: holdOn ? { name: d.hold!, s: 150 } : undefined };
       st.places.push(person(ci, who, pp.x, bob, pp.z, { side, mirror }, fo, so, sc2));
       if (holdOn && has3) {   // the carried item is a real 3D object riding at the carrying hand, swinging with the stride
         const hc = canon(d.hold!), hh2 = Math.min(0.4, d.holdH ?? DEFAULT_H[hc] ?? 0.3) * Math.max(0.8, sc2), sgn = side ? (mirror ? -1 : 1) : 1, ph = pp.moving ? Math.sin(phase * 3.1) * 0.05 : 0;

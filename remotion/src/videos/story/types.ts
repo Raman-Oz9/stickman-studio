@@ -26,6 +26,8 @@ export type PropDef = {
   from?: { x: number; z: number };   // glide from here to x,z
 };
 export type SceneDef = {
+  env?: ("rain" | "storm" | "snow" | "night" | "space" | "fog" | "wind")[];   // ambient weather / sky for the whole scene
+  fx?: { type: "lightning" | "explosion" | "fire" | "smoke" | "sparkle"; at: number; until?: number; x?: number; z?: number; h?: number }[];  // timed effects (fractions of the scene)
   dur: number;                    // seconds
   light?: "day" | "golden";
   cast: CastDef[];

@@ -87,6 +87,25 @@ def pop(vel=1.0):          # punch-in / laugh accent
     n = int(SR * 0.18); t = np.arange(n) / SR
     return np.sin(2 * np.pi * np.cumsum(500 * np.exp(-t * 30) + 180) / SR) * np.exp(-t * 22) * vel
 
+def _lp(x, fc):
+    X = np.fft.rfft(x); f = np.fft.rfftfreq(len(x), 1 / SR); return np.fft.irfft(X / np.sqrt(1 + (f / fc) ** 4), len(x))
+
+def thunder(vel=1.0):      # crack then long low rumble
+    n = int(SR * 3.2); t = np.arange(n) / SR; x = rng.standard_normal(n)
+    crack = x * np.exp(-t * 28) * 0.9
+    rumble = _lp(x, 110) * (np.exp(-t * 0.9) * (1 + 0.5 * np.sin(2 * np.pi * 3.1 * t)).clip(0.4, 1.5)) * 5
+    return (crack + rumble) * vel * 0.55
+
+def boom(vel=1.0):         # explosion: sub drop + noise burst
+    n = int(SR * 2.4); t = np.arange(n) / SR
+    sub = np.sin(2 * np.pi * np.cumsum(120 * np.exp(-t * 3.2) + 28) / SR) * np.exp(-t * 1.7)
+    burst = _lp(rng.standard_normal(n), 900) * np.exp(-t * 4.5) * 2.2
+    return (sub * 1.4 + burst) * vel * 0.6
+
+def rain_bed(dur):         # soft hiss, no melody
+    n = int(SR * dur); x = rng.standard_normal(n); x = x - _lp(x, 700)
+    return _lp(x, 6500) * 0.16 * np.minimum(1, np.minimum(np.arange(n) / (SR * 0.4), (n - np.arange(n)) / (SR * 0.4)))
+
 def beats(board):
     """(time, kind) events from the board: cuts, reaction punch-ins, shock hits. Mirrors camera.ts segsOf."""
     ev, t = [], 0.0
@@ -103,6 +122,10 @@ def beats(board):
                 n = max(1, min(6, round(d / 2.0)))                                  # mirrors camera.ts actionSegs / nSub
                 for k in range(1, n): ev.append((t + d * k / n, "cut"))
             elif d > 4.6 and not s.get("move"): ev.append((t + d * 0.56, "cut"))
+        for e in s.get("fx") or []:
+            if e.get("type") == "lightning": ev.append((t + float(e.get("at", 0.3)) * d + 0.25, "thunder"))
+            if e.get("type") == "explosion": ev.append((t + float(e.get("at", 0.3)) * d, "boom"))
+        if set(s.get("env") or []) & {"rain", "storm"}: ev.append((t, "rain:%.2f" % d))
         if any(c.get("expr") == "shock" for c in s["cast"]) and not react: ev.append((t + 0.15, "hit"))
         if any(c.get("expr") in ("laugh", "grin") for c in s["cast"]) and not react: ev.append((t + 0.3, "pop"))
         t += d
@@ -128,6 +151,9 @@ def main(board_p, voice_p, out_p):
         elif kind == "punch": put(s, whoosh(0.35, 0.7), max(0, t - 0.15)); put(s, ting(0.4), t)
         elif kind == "hit": put(s, hit(0.9), t)
         elif kind == "pop": put(s, pop(0.6), t)
+        elif kind == "thunder": put(s, thunder(1.0), t)
+        elif kind == "boom": put(s, boom(1.0), t)
+        elif kind.startswith("rain:"): put(s, rain_bed(float(kind[5:])), t)
     vv = np.zeros(n); vv[: len(v)] = v[:n]
     vr, vp = gated_rms(vv), np.abs(vv).max()
     m *= 0.25 * vr / gated_rms(m)                     # music = 25 % of the voice level (about -12 dB, gated RMS): a bed, never competes

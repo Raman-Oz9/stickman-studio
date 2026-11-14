@@ -47,9 +47,8 @@ PROG_DAY = [([57, 60, 64], 33), ([53, 57, 60], 29), ([60, 64, 67], 36), ([55, 59
 PROG_GOLD = [([53, 57, 60], 29), ([60, 64, 67], 36), ([55, 59, 62], 31), ([57, 60, 64], 33)]  # F C G Am
 
 def lowpass(x, fc=1800):
-    a = np.exp(-2 * np.pi * fc / SR); y = np.empty_like(x); z = 0.0
-    from scipy.signal import lfilter
-    return lfilter([1 - a], [1, -a], x)
+    X = np.fft.rfft(x); f = np.fft.rfftfreq(len(x), 1 / SR)
+    return np.fft.irfft(X / np.sqrt(1 + (f / fc) ** 4), len(x))      # smooth 2nd-order roll-off
 
 def music(total, golden_from):
     """calm lo-fi cinematic bed: slow warm pads + soft low pluck arpeggio + muted heartbeat kick; no bright top line, no shaker"""

@@ -344,7 +344,8 @@ const GEAR: Record<string, [string, number]> = {
   broccoli: ["broccoli", 0.25], cabbage: ["cabbage", 0.25], grapes: ["grapes", 0.2], cherries: ["cherries", 0.18], honey: ["honey", 0.25], cookie: ["cookie", 0.12], egg: ["egg", 0.1], watermelon: ["crop_melon", 0.3],
 };
 for (const [c, [f, h, sd]] of Object.entries(VEH)) { KEN[c] = f; KFIX[c] = Math.PI / 2; DEFAULT_H[c] = h; SADDLE[c] = sd; }
-for (const [c, [f, h]] of Object.entries(ANI)) { KEN[c] = f; KFIX[c] = Math.PI / 2; DEFAULT_H[c] = h; }
+for (const [c, [f, h]] of Object.entries(ANI)) { KEN[c] = f; KFIX[c] = Math.PI / 2; DEFAULT_H[c] = h; if (h >= 0.8) SADDLE[c] = 0.66; }
+for (const c of ["sedan", "suv", "van", "racecar", "sportscar", "monstertruck", "garbagetruck", "delivery", "tram", "spaceship", "spacecar", "miner", "ghostship", "ship", "galleon", "pirateship"]) CLOSED.add(c);
 for (const [c, [f, h]] of Object.entries(GEAR)) { KEN[c] = f; DEFAULT_H[c] = h; }
 Object.assign(ALIAS, { limousine: "sedan", automobile: "car", vehicle: "car", jeep: "suv", pickup: "truck", lorry: "truck", cab: "taxi", "police car": "policecar", cop: "policecar", "fire truck": "firetruck", racingcar: "racecar", "race car": "racecar", "sports car": "sportscar", locomotive: "train", subway: "tram", streetcar: "tram", steamship: "ship", vessel: "ship", sailboat: "boat", rowboat: "boat", "pirate ship": "pirateship",
   cattle: "cow", ox: "cow", bull: "cow", hound: "dog", puppy: "dog", kitten: "cat", hen: "chicken", rooster: "chicken", pigeon: "parrot", puppy3: "dog", hare: "rabbit", skyscrapers: "skyscraper", tower2: "skyscraper", highrise: "skyscraper", coins: "coin", sovereign: "coin", swords: "sword", axes: "axe" });

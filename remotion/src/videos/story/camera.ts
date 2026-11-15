@@ -132,8 +132,9 @@ const pose = (s: SceneDef, kf: KF) => {
   const wide = kf.lv === "env" || kf.lv === "char" || kf.lv === "high";
   const sc = F.tgt?.scale ?? 1;
   const onProp = F.y !== undefined;
-  const d0 = onProp ? Math.max(2.8, (F.size ?? 1) * 2.4) : L.d * (wide && !kf.who ? sp : 1);
-  return { d: d0, h: onProp ? Math.max(0.7, F.y! * 0.9 + 0.4) : L.h * (kf.lv === "high" ? 1 : sc), ly: onProp ? F.y! : L.ly * sc, fov: L.fov, c: L.c, az: kf.az, x: F.x + (kf.lead ?? 0) * Math.sin(kf.az * 0), z: F.z, high: kf.lv === "high" };
+  const mm = (F.tgt ? !!F.tgt.mount : s.cast.some((q) => q.mount)) ? 2.1 : 1;   // riders on horses/vehicles are big: pull back
+  const d0 = onProp ? Math.max(2.8, (F.size ?? 1) * 2.4) : L.d * mm * (wide && !kf.who ? sp : 1);
+  return { d: d0, h: onProp ? Math.max(0.7, F.y! * 0.9 + 0.4) : L.h * (kf.lv === "high" ? 1 : sc) * (mm > 1 ? 1.5 : 1), ly: onProp ? F.y! : L.ly * sc * (mm > 1 ? 1.7 : 1), fov: L.fov, c: L.c, az: kf.az, x: F.x + (kf.lead ?? 0) * Math.sin(kf.az * 0), z: F.z, high: kf.lv === "high" };
 };
 
 export const camAt = (s: SceneDef, i: number, u: number, t: number, dur = 3): Cam => {

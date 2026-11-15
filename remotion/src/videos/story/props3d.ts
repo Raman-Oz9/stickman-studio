@@ -235,7 +235,7 @@ export const ORIENT = new Set(["cannon3", "horse", "horsewhite", "donkey", "came
 /** where a rider's hips sit, as a fraction of the mount's height */
 export const SADDLE: Record<string, number> = { horse: 0.6, horsewhite: 0.6, donkey: 0.62, camel: 0.74, elephant: 0.72, car: 0.5, oldcar: 0.52, policecar: 0.5, taxi: 0.5, truck: 0.5, bus: 0.5, tractor: 0.6, motorbike: 0.55, bicycle: 0.58, plane: 0.42, jet: 0.45, helicopter: 0.4, chariot: 0.42, wagon: 0.5, dragon: 0.62, tank: 0.7, scooter: 0.3, firetruck: 0.5, ambulance: 0.5, sailboat: 0.45, steamship: 0.55, submarine: 0.6, canoe: 0.35, rocket: 0.5, ufo: 0.5, balloon: 0.3, train: 0.55, lion: 0.62, tiger: 0.62, bear3: 0.65, wolf: 0.6, cow: 0.62, deer: 0.62, goat: 0.6, pig: 0.55, shark: 0.5, whale: 0.55, eagle: 0.5 };
 /** cruising altitude (m) for flying mounts: they lift off when ridden */
-export const FLY: Record<string, number> = { plane: 4, jet: 5, helicopter: 3, rocket: 6, ufo: 3.5, balloon: 4, dragon: 2.5, eagle: 3 };
+export const FLY: Record<string, number> = { plane: 2.2, jet: 2.6, helicopter: 1.5, rocket: 3, ufo: 2, balloon: 2, dragon: 1.4, eagle: 1.5 };
 const norm = (n: string) => n.trim().toLowerCase().replace(/[^a-z ]+/g, "").replace(/\s+/g, " ");
 export const canon = (name: string, pile = false): string => {
   const n0 = norm(name); if (ALIAS[n0] && (ALIAS[n0] in PROC || ALIAS[n0] in KEN)) return ALIAS[n0];

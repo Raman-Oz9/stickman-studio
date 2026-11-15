@@ -247,6 +247,7 @@ export const canon = (name: string, pile = false): string => {
   return "";
 };
 
+const KFIX: Record<string, number> = {};
 export class Props3D {
   private tpl = new Map<string, THREE.Object3D | null>(); private pool = new Map<string, THREE.Object3D[]>(); private used = new Map<string, number>();
   constructor(private root: THREE.Object3D, private kit: Kit) {}
@@ -256,8 +257,9 @@ export class Props3D {
       const t = kitClone(this.kit, "tree_oak", 5);
       if (t) { o = new THREE.Group(); o.add(t); const R = [[0.9, 3.4, 0.7], [-1.0, 3.9, 0.5], [0.3, 4.4, 1.0], [-0.5, 3.1, -1.0], [1.3, 3.8, -0.4], [-1.3, 3.3, 0.9], [0.1, 3.6, 1.3]]; for (const [x, y, z] of R) o.add(mk(S(0.22, 12, 10), RED, x, y, z)); }
     } else if (c in KEN) o = kitClone(this.kit, KEN[c], 1);
-    else if (c in PROC) o = PROC[c]();
+    if (!o && c in PROC) o = PROC[c]();
     if (!o) return null;
+    if (c in KEN && c in KFIX && o) { const g = new THREE.Group(); o.rotation.y = KFIX[c]; g.add(o); o = g; }
     const box = new THREE.Box3().setFromObject(o), sz = box.getSize(new THREE.Vector3()), ctr = box.getCenter(new THREE.Vector3());
     const w = new THREE.Group(), inner = new THREE.Group();
     inner.add(o); inner.position.set(-ctr.x, -ctr.y, -ctr.z); inner.scale.setScalar(1);
@@ -321,3 +323,28 @@ const dollar = () => note("#3d6b3a", "#b9dfb0");
 Object.assign(PROC, { banknote, dollar, cash: cashstack, cashstack });
 Object.assign(DEFAULT_H, { banknote: 0.5, dollar: 0.5, cash: 0.3, cashstack: 0.3 });
 Object.assign(ALIAS, { note: "banknote", notes: "banknote", bill: "banknote", bills: "banknote", money: "cashstack", papermoney: "cashstack", currency: "cashstack", naira: "banknote", dollars: "cashstack", cashbag: "moneybag", stackofcash: "cashstack" });
+
+// ---- real (Kenney CC0) models override the hand-built ones whenever the kit is loaded; hand-built stay as fallback ----
+const VEH: Record<string, [string, number, number]> = {   // canon: [kenney file, height m, saddle]
+  car: ["sedan", 1.5, 0.5], sedan: ["sedan", 1.5, 0.5], oldcar: ["vehicle-vintage-racer", 1.3, 0.5], taxi: ["taxi", 1.5, 0.5], policecar: ["police", 1.6, 0.5], suv: ["suv", 1.9, 0.5], van: ["van", 2.1, 0.5],
+  truck: ["truck", 2.8, 0.5], firetruck: ["firetruck", 3.1, 0.5], ambulance: ["ambulance", 2.3, 0.5], tractor: ["tractor", 2.4, 0.6], racecar: ["race", 1.1, 0.4], sportscar: ["sedan-sports", 1.2, 0.4], monstertruck: ["vehicle-monster-truck", 2.6, 0.5],
+  kart: ["kart-oodi", 0.9, 0.3], train: ["train-locomotive-a", 3.6, 0.6], tram: ["train-tram-modern", 3.6, 0.6], garbagetruck: ["garbage-truck", 3, 0.5], delivery: ["delivery", 2.4, 0.5],
+  galleon: ["ship-pirate-large", 7, 0.3], ship: ["ship-large", 7, 0.3], boat: ["boat-row-large", 1.2, 0.3], canoe: ["canoe", 0.7, 0.3], ghostship: ["ship-ghost", 7, 0.3], wreck: ["ship-wreck", 5, 0.3], pirateship: ["ship-pirate-large", 7, 0.3],
+  spaceship: ["craft_racer", 2.2, 0.4], spacecar: ["craft_speederA", 1.4, 0.4], ufo: ["craft_speederB", 1.6, 0.4], cargoship: ["craft_cargoA", 3, 0.4], miner: ["craft_miner", 2.4, 0.4],
+};
+const ANI: Record<string, [string, number]> = {
+  cow: ["animal-cow", 1.5], deer: ["animal-deer", 1.9], dog: ["animal-dog", 0.8], elephant: ["animal-elephant", 3.2], giraffe: ["animal-giraffe", 5], lion: ["animal-lion", 1.3], tiger: ["animal-tiger", 1.3], monkey: ["animal-monkey", 0.9],
+  pig: ["animal-pig", 0.8], penguin: ["animal-penguin", 0.8], fox: ["animal-fox", 0.7], rabbit: ["animal-bunny", 0.5], bunny: ["animal-bunny", 0.5], cat: ["animal-cat", 0.5], panda: ["animal-panda", 1.2], polarbear: ["animal-polar", 1.6],
+  parrot: ["animal-parrot", 0.5], bee: ["animal-bee", 0.3], crab: ["animal-crab", 0.4], fish: ["animal-fish", 0.5], hog: ["animal-hog", 0.9], koala: ["animal-koala", 0.7], chicken: ["animal-chick", 0.5], beaver: ["animal-beaver", 0.6],
+};
+const GEAR: Record<string, [string, number]> = {
+  coin: ["item-coin-gold", 0.22], goldcoin: ["item-coin-gold", 0.22], silvercoin: ["item-coin-silver", 0.22], sword: ["weapon-sword", 1.0], spear: ["weapon-spear", 1.9], shield: ["shield-round", 0.9], axe: ["tool-axe", 0.9], pickaxe: ["tool-pickaxe", 0.9], shovel: ["tool-shovel", 1.1],
+  anvil: ["workbench-anvil", 0.9], skyscraper: ["building-skyscraper-a", 60], skyscrapera: ["building-skyscraper-b", 70], skyscraperb: ["building-skyscraper-c", 55], skyscraperc: ["building-skyscraper-d", 65], skyscraperd: ["building-skyscraper-e", 80],
+  taxistand: ["sign", 2], apple: ["apple", 0.18], banana: ["banana", 0.2], bread: ["bread", 0.25], cheese: ["cheese", 0.2], burger: ["burger", 0.2], cake: ["cake", 0.3], donut: ["donut-sprinkles", 0.15], fish3: ["fish-large", 0.4], corn: ["corn", 0.3],
+  broccoli: ["broccoli", 0.25], cabbage: ["cabbage", 0.25], grapes: ["grapes", 0.2], cherries: ["cherries", 0.18], honey: ["honey", 0.25], cookie: ["cookie", 0.12], egg: ["egg", 0.1], watermelon: ["crop_melon", 0.3],
+};
+for (const [c, [f, h, sd]] of Object.entries(VEH)) { KEN[c] = f; KFIX[c] = Math.PI / 2; DEFAULT_H[c] = h; SADDLE[c] = sd; }
+for (const [c, [f, h]] of Object.entries(ANI)) { KEN[c] = f; KFIX[c] = Math.PI / 2; DEFAULT_H[c] = h; }
+for (const [c, [f, h]] of Object.entries(GEAR)) { KEN[c] = f; DEFAULT_H[c] = h; }
+Object.assign(ALIAS, { limousine: "sedan", automobile: "car", vehicle: "car", jeep: "suv", pickup: "truck", lorry: "truck", cab: "taxi", "police car": "policecar", cop: "policecar", "fire truck": "firetruck", racingcar: "racecar", "race car": "racecar", "sports car": "sportscar", locomotive: "train", subway: "tram", streetcar: "tram", steamship: "ship", vessel: "ship", sailboat: "boat", rowboat: "boat", "pirate ship": "pirateship",
+  cattle: "cow", ox: "cow", bull: "cow", hound: "dog", puppy: "dog", kitten: "cat", hen: "chicken", rooster: "chicken", pigeon: "parrot", puppy3: "dog", hare: "rabbit", skyscrapers: "skyscraper", tower2: "skyscraper", highrise: "skyscraper", coins: "coin", sovereign: "coin", swords: "sword", axes: "axe" });

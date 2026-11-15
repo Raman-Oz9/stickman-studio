@@ -2,7 +2,7 @@
 """Generate cartoon object stickers for every noun a storyboard uses (props + held items).
 usage: make_stickers.py board.json out_dir   -> out_dir/<slug>.png (transparent) and board['stickers'] = {name: 'prep/stickers/<slug>.png'}
 Gemini text model writes each object as a bold cartoon SVG (free tier). Learned objects are cached in remotion/stickers/."""
-import base64, io, json, os, re, sys, time, urllib.request
+import re, base64, io, json, os, re, sys, time, urllib.request
 
 STYLE = ("A single cartoon {name}, drawn as a clean game sticker: thick dark plum-black outline, flat bright saturated colours with simple "
          "soft shading, charming and readable, centered, full object visible with small margin. Plain solid pure green (#00FF00) background, "
@@ -74,13 +74,32 @@ def fallback(name):
     return ('<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512"><circle cx="256" cy="256" r="220" fill="#ffd45a" stroke="#2a1830" stroke-width="14"/>'
             f'<text x="256" y="276" font-size="48" text-anchor="middle" font-family="Arial" font-weight="bold" fill="#2a1830">{t}</text></svg>')
 
+def _known3d():
+    """every noun the 3D engine can already build (procedural models, Kenney GLBs, aliases, saved recipes): no sticker needed for those"""
+    import re
+    base = os.path.dirname(os.path.abspath(__file__)); toks = set()
+    try:
+        for ln in open(os.path.join(base, "..", "src", "videos", "story", "props3d.ts")).read().split("\n"):
+            if re.match(r"\s*(const PROC\b|const ALIAS\b|const KEN\b|const DEFAULT_H|export const DEFAULT_H|Object\.assign\((PROC|ALIAS|DEFAULT_H))", ln) or ln.startswith("const PROC"):
+                toks |= {t.lower() for t in re.findall(r"[A-Za-z][A-Za-z0-9]*", ln)}
+                toks |= {t.lower() for t in re.findall(r"\"([a-z ]+)\"\s*:", ln)}
+    except Exception: pass
+    try: toks |= {k.replace(" ", "") for k in json.load(open(os.path.join(base, "..", "library", "models.json")))}
+    except Exception: pass
+    return toks
+
+def has3d(n, toks):
+    n = n.lower().strip(); w = re.sub(r"[^a-z ]", "", n).split(); last = w[-1] if w else n
+    return any(c in toks for c in (n.replace(" ", ""), last, last.rstrip("s")))
+
 def names_of(b):
     out = []
     for s in b["scenes"]:
         for p in s.get("props", []) or []: out.append(p["name"])
         for c in s["cast"]:
             if c.get("hold"): out.append(c["hold"])
-    return list(dict.fromkeys(n.strip().lower() for n in out if n))
+    toks = _known3d()
+    return [n for n in dict.fromkeys(n.strip().lower() for n in out if n) if not has3d(n, toks)]
 
 def main(board_p, outdir):
     b = json.load(open(board_p)); os.makedirs(outdir, exist_ok=True)

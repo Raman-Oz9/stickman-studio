@@ -193,6 +193,37 @@ def heuristic(script):
         scenes.append(sc)
     return {"title": (sents[0][:48] if sents else "Story"), "scenes": scenes}
 
+
+PLACES = [("mine", r"gold mine|\bmine\b|mineshaft"), ("palace", r"palace|throne room|royal hall|great hall"), ("cave", r"\bcave\b|cavern"), ("jail", r"\bjail\b|prison|dungeon|\bcell\b")]
+INSIDE = r"inside|into|entered|enter|walked in|crept in|deep in|\bin (his|her|the|a|their)\b|opened|stood in|sat in|\bat (his|her|the)\b"
+SHOPKW = r"(?:(\w+) )?(?:seller|shop|store|stall|barber|blacksmith|baker|bakery|market|tailor|butcher|grocer)"
+STOCK = {"mango": ["mango"], "fruit": ["mango", "apple"], "apple": ["apple"], "sword": ["sword", "dagger", "shield"], "weapon": ["sword", "dagger", "shield", "axe"], "blacksmith": ["sword", "axe", "hammer", "shield"], "baker": ["bread", "cake"], "bakery": ["bread", "cake"], "cake": ["cake", "bread"], "book": ["book"], "gem": ["gem", "crown"], "jewel": ["gem", "crown", "gold coin"], "key": ["key"], "padlock": ["key"], "flower": ["flower"], "barber": ["book", "gem"], "butcher": ["pig", "chicken"], "grocer": ["apple", "mango", "bread"]}
+def enrich(b):
+    """Director's pass over the LLM storyboard: make sure each sentence really gets its interior, shop goods, vehicle/animal ride, so the weak planner can't skip them."""
+    for s in b.get("scenes", []):
+        t = (s.get("caption") or "").lower(); cast = s.get("cast") or []
+        if not s.get("interior") and re.search(INSIDE, t):
+            for k, rx in PLACES:
+                if re.search(rx, t): s["interior"] = k; break
+        if not s.get("interior") and re.search(r"seller|shop|stall|barber|blacksmith|bakery|market|tailor|butcher|grocer", t) and re.search(r"inside|into|entered|opened|in his|in the|crept|behind the counter|counter", t):
+            m = re.search(SHOPKW, t); kind = (m.group(1) or m.group(0)).strip() if m else "shop"
+            s["interior"] = "shop"; s["shop"] = kind
+            st = next((v for k, v in STOCK.items() if k in t), ["bread", "gem"]); s["stock"] = st[:4]
+        if s.get("interior") in ("palace", "cave", "mine", "jail", "house", "shop"):
+            s.pop("env", None) if s["interior"] != "cave" else None
+            s["props"] = [p for p in (s.get("props") or []) if p["name"] not in ("castle", "house", "tree", "apple tree", "mountain")]
+        if cast and not any(c.get("mount") for c in cast) and re.search(r"\b(rode|ride|riding|galloped|gallop|jumped on|hopped on|drove|driving|flew|flying|sailed|piloted|raced|roaring)\b", t):
+            m = max(((t.find(v), v) for v in VEHICLES + ANIMALS if re.search(r"\b" + v + r"s?\b", t)), default=None, key=lambda x: (len(x[1]) if x[0] >= 0 else -1))
+            if m and m[0] >= 0:
+                v = {"airplane": "plane", "spaceship": "rocket", "motorcycle": "motorbike", "fire truck": "firetruck", "police car": "policecar", "old car": "oldcar", "pirate ship": "steamship", "ship": "steamship", "boat": "sailboat", "yacht": "sailboat", "carriage": "wagon", "bear": "bear3", "hen": "chicken"}.get(m[1], m[1])
+                who = next((c for c in cast if c.get("role") in t.split() or c.get("id") in t.split()), None) or next((c for c in cast if c.get("role") not in ("police", "guard")), cast[0])
+                who["mount"] = v
+                if not who.get("to"):
+                    d = 1 if who.get("x", 0) <= 0 else -1; who["to"] = {"x": max(-14, min(14, who.get("x", 0) + d * 12)), "z": who.get("z", 0.3)}
+                who["act"] = who.get("act") or "run"
+                if s.get("move") not in ("track",): s["move"] = "track"
+    return b
+
 def clean(b):
     ok = []
     for s in b.get("scenes", []):
@@ -283,6 +314,6 @@ if __name__ == "__main__":
     src = "llm"
     if not b or not b.get("scenes"):
         b, src = heuristic(script), "heuristic"
-    b = clean(b)
+    b = clean(enrich(b))
     json.dump(b, open(sys.argv[2], "w"), indent=1)
     print(f"{src}: {len(b['scenes'])} scenes, {sum(s['dur'] for s in b['scenes']):.0f}s -> {sys.argv[2]}")

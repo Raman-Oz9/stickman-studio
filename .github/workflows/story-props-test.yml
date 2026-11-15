@@ -45,6 +45,7 @@ jobs:
         if: always()
         run: |
           rm -rf /tmp/pub && mkdir /tmp/pub && cp remotion/out/* /tmp/pub/ 2>/dev/null || true
+          (cd remotion && python3 scripts/glbinfo.py character-a character-human character-orc sedan animal-tiger > /tmp/pub/glbinfo.txt 2>&1) || true
           ls remotion/public/bridge/kenney > /tmp/pub/kenney.txt 2>/dev/null || true
           mkdir -p /tmp/pub/stickers && cp remotion/public/prep/stickers/* /tmp/pub/stickers/ 2>/dev/null || true
           cd /tmp/pub && git init -q && git checkout -q -b props-test

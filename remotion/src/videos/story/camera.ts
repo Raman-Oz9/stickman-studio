@@ -140,6 +140,10 @@ const pose = (s: SceneDef, kf: KF) => {
 };
 
 export const camAt = (s: SceneDef, i: number, u: number, t: number, dur = 3): Cam => {
+  if (s.est || s.front) {   // establishing shot: a steady, slowly pushing frame that shows the whole building (shop front with its sign, palace gate, mine / cave mouth)
+    const k = u * u * (3 - 2 * u), shop = !!s.front;
+    return { pos: new THREE.Vector3(Math.sin(t * 0.6) * 0.3, (shop ? 3.4 : 4.6) - 0.6 * k, (shop ? 12 : 17) - (shop ? 3 : 4) * k), look: new THREE.Vector3(0, shop ? 4.2 : 7, shop ? -14 : -28), fov: shop ? 52 : 54, roll: 0, cInf: 0 };
+  }
   if (s.fly) {   // sky flight between two places of the realm: the world slides under a high camera looking along the route
     const A = LOCS[s.fly.from] ?? LOCS.town, Bq = LOCS[s.fly.to] ?? A, dx = Bq[0] - A[0], dz = Bq[1] - A[1], l = Math.hypot(dx, dz) || 1, ux = dx / l, uz = dz / l, k = u * u * (3 - 2 * u);
     return { pos: new THREE.Vector3(-ux * 60 + uz * 25 * (1 - k), 95 - 55 * k, -uz * 60 - ux * 25 * (1 - k)), look: new THREE.Vector3(ux * 260, 8 + 20 * k, uz * 260), fov: 62 - 14 * k, roll: 0, cInf: 0 };

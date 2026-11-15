@@ -327,7 +327,7 @@ def establish(b):
             if rest and first: s["narration"] = s["caption"] = nar[m.end():]
             e = copy.deepcopy(s); e.pop("interior", None); e.pop("stock", None); e.pop("shop", None); e["loc"] = EXT.get(k, "town"); e["narration"] = e["caption"] = first
             e["dur"] = 2.4 if first else 1.8; e["shot"] = "wide"; e["move"] = "reveal"; e.pop("props", None); e.pop("fx", None); e.pop("focus", None)
-            who = copy.deepcopy(s["cast"][0]); who["x"] = 0; who["z"] = (-1.5 if k == "shop" else 2.0); who.pop("to", None); who["act"] = "wave"; who.pop("hold", None); who.pop("do", None); who.pop("mount", None); e["cast"] = [who]; e["target"] = who["id"]
+            who = copy.deepcopy(s["cast"][0]); who["x"] = (-3.5 if k == "shop" else 0); who["z"] = (-3.5 if k == "shop" else 2.0); e["est"] = True; who.pop("to", None); who["act"] = "wave"; who.pop("hold", None); who.pop("do", None); who.pop("mount", None); e["cast"] = [who]; e["target"] = who["id"]
             if k == "shop":
                 kind = (s.get("shop") or "shop").strip(); e["front"] = kind.upper() if re.search(r"shop|store|seller|stall|barber|smith|bakery|market", kind) else (kind + " shop").upper()
             out.append(e)

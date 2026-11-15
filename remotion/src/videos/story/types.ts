@@ -34,6 +34,7 @@ export type PropDef = {
 export type SceneDef = {
   era?: string;                   // costume set for generic roles: roman|greek|wildwest|viking|egypt|samurai|pirate|space|ww2|1920s|victorian|arabian|india|prehistoric|china
 
+  est?: boolean;   // establishing shot of a building from outside
   loc?: string; fly?: { from: string; to: string }; front?: string;   // loc: which place of the realm this scene is in; fly: glide between two places; front: shop front sign text
   biome?: string; season?: string; tod?: string;   // terrain (desert|ice|forest|ocean|swamp|savanna|mountain|jungle|farm), season (spring|summer|autumn|winter), time of day (dawn|noon|dusk|night)
   shop?: string; stock?: string[];  // interior "shop": what kind of shop, and the goods on its shelves/counter

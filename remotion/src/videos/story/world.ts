@@ -11,7 +11,7 @@ import { FrontOpts, SideOpts, Expr } from "../bridge/toon";
 import { SceneDef, CastDef, PropDef } from "./types";
 import { STICKERS } from "../bridge/stickers";
 import { buildInterior, flicker, INTERIOR_ALIAS, DIM, FOG, InteriorKind } from "./interiors";
-import { Props3D, canon, DEFAULT_H, ORIENT, SADDLE, FLY, GUNS, registerRecipes, Recipe, MELEE } from "./props3d";
+import { Props3D, canon, DEFAULT_H, ORIENT, SADDLE, FLY, GUNS, registerRecipes, Recipe, CLOSED, MELEE } from "./props3d";
 import { outfitFor } from "./outfits";
 import { camAt, focusOf } from "./camera";
 import { Effects } from "./effects";
@@ -186,7 +186,7 @@ export class StoryWorld {
         const lift = (FLY[mc] ?? 0) * Math.min(1, (u * dur) / 1.6) ** 2 * (3 - 2 * Math.min(1, (u * dur) / 1.6));
         this.p3.put(d.mount, pp.x, lift, pp.z, hm, 1, ang, 0, false, { dist: pp.dist, t: absT, mv: pp.moving || !!FLY[mc] });
         const fx2 = cam.position.x - pp.x, fz2 = cam.position.z - pp.z, fl = Math.hypot(fx2, fz2) || 1;
-        rx = pp.x - (fx2 / fl) * 0.22; rz = pp.z - (fz2 / fl) * 0.22; ry = bob + lift + (SADDLE[mc] ?? 0.55) * hm - 0.92 * sc2;
+        rx = pp.x - (fx2 / fl) * 0.22; rz = pp.z - (fz2 / fl) * 0.22; ry = bob + lift + ((SADDLE[mc] ?? 0.55) + (CLOSED.has(mc) ? 0.26 : 0)) * hm - 0.92 * sc2;
       }
       st.places.push(person(ci, who, rx, ry, rz, { side, mirror }, fo, so, sc2));
       if (holdOn && has3) {   // the carried item is a real 3D object at the hand; weapons are USED: swings, stabs, aimed shots with recoil, flash and tracer

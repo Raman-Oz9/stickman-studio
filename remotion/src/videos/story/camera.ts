@@ -4,6 +4,7 @@
 // from detail to context, pans between characters, descends from an elevated view, and a quick reaction push-in + hold.
 import * as THREE from "three";
 import { SceneDef, CastDef } from "./types";
+import { DEFAULT_H, canon } from "./props3d";
 
 type Lvl = { d: number; h: number; ly: number; fov: number; c: number };
 const LV: Record<string, Lvl> = {

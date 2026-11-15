@@ -106,6 +106,11 @@ def rain_bed(dur):         # soft hiss, no melody
     n = int(SR * dur); x = rng.standard_normal(n); x = x - _lp(x, 700)
     return _lp(x, 6500) * 0.16 * np.minimum(1, np.minimum(np.arange(n) / (SR * 0.4), (n - np.arange(n)) / (SR * 0.4)))
 
+def gun(vel=1.0):          # crack + thump
+    n = int(SR * 0.5); t = np.arange(n) / SR
+    crack = rng.standard_normal(n) * np.exp(-t * 55); thump = np.sin(2 * np.pi * np.cumsum(180 * np.exp(-t * 18) + 45) / SR) * np.exp(-t * 14)
+    return (crack * 0.9 + thump * 1.1) * vel * 0.7
+
 def beats(board):
     """(time, kind) events from the board: cuts, reaction punch-ins, shock hits. Mirrors camera.ts segsOf."""
     ev, t = [], 0.0
@@ -125,6 +130,13 @@ def beats(board):
         for e in s.get("fx") or []:
             if e.get("type") == "lightning": ev.append((t + float(e.get("at", 0.3)) * d + 0.25, "thunder"))
             if e.get("type") == "explosion": ev.append((t + float(e.get("at", 0.3)) * d, "boom"))
+        for c in s["cast"]:
+            if c.get("act") == "shoot":
+                tt = 0.1 * d
+                while tt < d - 0.3: ev.append((t + tt, "gun")); tt += 0.4
+            elif c.get("act") in ("swing", "stab"):
+                per = 0.9 if c["act"] == "swing" else 0.7; tt = 0.1 * d
+                while tt < d - 0.4: ev.append((t + tt, "swish")); tt += per
         if set(s.get("env") or []) & {"rain", "storm"}: ev.append((t, "rain:%.2f" % d))
         if any(c.get("expr") == "shock" for c in s["cast"]) and not react: ev.append((t + 0.15, "hit"))
         if any(c.get("expr") in ("laugh", "grin") for c in s["cast"]) and not react: ev.append((t + 0.3, "pop"))
@@ -151,6 +163,8 @@ def main(board_p, voice_p, out_p):
         elif kind == "punch": put(s, whoosh(0.35, 0.7), max(0, t - 0.15)); put(s, ting(0.4), t)
         elif kind == "hit": put(s, hit(0.9), t)
         elif kind == "pop": put(s, pop(0.6), t)
+        elif kind == "gun": put(s, gun(1.0), t)
+        elif kind == "swish": put(s, whoosh(0.28, 0.5), t)
         elif kind == "thunder": put(s, thunder(1.0), t)
         elif kind == "boom": put(s, boom(1.0), t)
         elif kind.startswith("rain:"): put(s, rain_bed(float(kind[5:])), t)

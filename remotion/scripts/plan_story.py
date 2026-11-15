@@ -2,11 +2,21 @@
 """Script -> storyboard JSON for the StoryShort composition.
 usage: plan_story.py script.txt board.json
 Uses Gemini (GEMINI_API_KEY) or Groq (GROQ_API_KEY) when available; otherwise a keyword heuristic, so it always works."""
-import json, os, re, sys, urllib.request
+import json, time, os, re, sys, urllib.request
 
-ROLES = ["king","queen","prince","princess","knight","wizard","witch","police","policewoman","detective","thief","judge","doctor","nurse","scientist","chef","teacher",
+_ROLES_OLD = ["king","queen","prince","princess","knight","wizard","witch","police","policewoman","detective","thief","judge","doctor","nurse","scientist","chef","teacher",
          "businessman","businesswoman","worker","farmer","peasant","merchant","pirate","sailor","athlete","musician","student","man","woman","grandpa","grandma",
          "mother","father","kid","girl","boy","baby","guard","soldier","townsfolk"]
+def _roles():
+    try:
+        txt = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../src/videos/story/outfits.ts")).read()
+        base = txt.split("const BASE")[1].split("const ALIAS")[0]
+        names = re.findall(r"^\s{2}([a-z0-9_]+): ", base, re.M)
+        alias = dict(re.findall(r"\b([a-z_0-9]+): \"([a-z_0-9]+)\"", txt.split("const ALIAS")[1].split("};")[0]))
+        return names + ["soldier", "townsfolk"], alias
+    except Exception:
+        return _ROLES_OLD, {}
+ROLES, ROLE_ALIAS = _roles()
 LIB = ["gold coin","coins","money bag","purse","mango","apple","apple tree","tree","seed","chicken","egg","crown","sword","key","treasure chest","castle","house","bread","cow",
        "dog","cat","car","book","gem","heart","sun","flower","phone","boat","rock","fire","bone","fish","cake","flag"]
 EXPR = ["neutral", "stern", "grin", "laugh", "whistle", "nervous", "shock", "relief", "dazed", "pained", "smile", "smile_closed"]
@@ -44,67 +54,142 @@ def llm(script):
     prompt = SPEC + "\n\nSCRIPT:\n" + script
     k = os.environ.get("GEMINI_API_KEY", "").strip()
     if k:
-        for m in os.environ.get("PLAN_GEMINI_MODELS", "gemini-flash-latest,gemini-3.5-flash,gemini-2.5-flash").split(","):
-            try:
-                j = post(f"https://generativelanguage.googleapis.com/v1beta/models/{m}:generateContent", {"x-goog-api-key": k},
-                         {"contents": [{"parts": [{"text": prompt}]}], "generationConfig": {"responseMimeType": "application/json"}})
-                return json.loads(j["candidates"][0]["content"]["parts"][0]["text"])
-            except Exception as e:
-                print("gemini", m, ":", e, getattr(e, "read", lambda: b"")()[:200], file=sys.stderr)
+        models = os.environ.get("PLAN_GEMINI_MODELS", "gemini-flash-latest,gemini-flash-lite-latest,gemini-3.5-flash,gemini-3-flash-preview").split(",")
+        for attempt in range(4):                      # the free tier throws 503/429 under load: keep trying, backing off
+            for m in models:
+                try:
+                    j = post(f"https://generativelanguage.googleapis.com/v1beta/models/{m}:generateContent", {"x-goog-api-key": k},
+                             {"contents": [{"parts": [{"text": prompt}]}], "generationConfig": {"responseMimeType": "application/json", "temperature": 0.6}})
+                    return json.loads(j["candidates"][0]["content"]["parts"][0]["text"])
+                except Exception as e:
+                    print("gemini", m, "try", attempt, ":", str(e)[:80], file=sys.stderr)
+            time.sleep(10 * (attempt + 1))
     k = os.environ.get("GROQ_API_KEY", "").strip()
     if k:
-        try:
-            j = post("https://api.groq.com/openai/v1/chat/completions", {"Authorization": "Bearer " + k},
-                     {"model": "llama-3.3-70b-versatile", "response_format": {"type": "json_object"}, "messages": [{"role": "user", "content": prompt}]})
-            return json.loads(j["choices"][0]["message"]["content"])
-        except Exception as e:
-            print("groq:", e, file=sys.stderr)
+        for attempt in range(3):
+            try:
+                j = post("https://api.groq.com/openai/v1/chat/completions", {"Authorization": "Bearer " + k},
+                         {"model": "llama-3.3-70b-versatile", "response_format": {"type": "json_object"}, "messages": [{"role": "user", "content": prompt}]})
+                return json.loads(j["choices"][0]["message"]["content"])
+            except Exception as e:
+                print("groq:", str(e)[:100], file=sys.stderr); time.sleep(6)
     return None
 
-KW = {"king": "king", "queen": "queen", "knight": "knight", "soldier": "knight", "guard": "guard", "farmer": "farmer", "peasant": "peasant",
+KW = {"king": "king", "queen": "queen", "knight": "knight", "soldier": "soldier", "guard": "guard", "farmer": "farmer", "peasant": "peasant",
       "wizard": "wizard", "merchant": "merchant", "trader": "merchant", "boy": "kid", "kid": "kid", "child": "kid", "girl": "girl",
       "mother": "mother", "father": "father", "man": "man", "woman": "woman", "police": "police", "cop": "police", "thief": "thief", "robber": "thief",
       "doctor": "doctor", "nurse": "nurse", "chef": "chef", "teacher": "teacher", "pirate": "pirate", "grandma": "grandma", "grandmother": "grandma", "grandpa": "grandpa",
-      "prince": "prince", "princess": "princess", "witch": "witch", "judge": "judge", "student": "student", "sailor": "sailor"}
+      "prince": "prince", "gladiator": "gladiator", "centurion": "centurion", "legionary": "legionary", "cowboy": "cowboy", "sheriff": "sheriff", "outlaw": "outlaw", "viking": "viking", "pharaoh": "pharaoh", "samurai": "samurai", "ninja": "ninja", "caveman": "caveman", "astronaut": "astronaut", "gangster": "gangster", "sultan": "sultan", "emperor": "king", "captain": "pirate_captain", "detective": "detective", "scientist": "scientist", "monk": "monk", "pilot": "pilot", "worker": "worker", "queen_": "queen", "princess": "princess", "witch": "witch", "judge": "judge", "student": "student", "sailor": "sailor"}
 PROPKW = {w: w for w in ["coin","mango","apple","tree","seed","chicken","egg","crown","sword","key","castle","house","bread","cow","dog","cat","car","book","heart","flower","phone","boat","fish","cake"]}
 PROPKW.update({"coins":"gold coin","gold":"gold coin","treasure":"treasure chest","purse":"purse","wallet":"purse","bag":"purse","money":"coins","hen":"chicken","jewel":"gem","diamond":"gem"})
 MOOD = [("shock|gone|suddenly|impossible|disappear", "shock"), ("laugh|joke|funny|hilarious", "laugh"), ("angry|furious|demand|shout", "stern"),
         ("afraid|scared|nervous|trembl|worried", "nervous"), ("sad|cry|lost|died|pain|hurt", "pained"), ("smile|happy|joy|celebrat|grin", "grin"),
         ("relief|safe|saved|finally", "relief"), ("dizzy|confus|strange", "dazed")]
 
+VEHICLES = ["pirate ship","sailboat","steamship","submarine","helicopter","motorcycle","bicycle","fire truck","police car","old car","car","truck","bus","tractor","train","plane","airplane","jet","rocket","spaceship","ufo","balloon","chariot","wagon","carriage","tank","canoe","ship","boat","yacht","taxi","scooter","ambulance"]
+ANIMALS = ["horse","camel","elephant","lion","wolf","sheep","deer","rabbit","goat","tiger","bear","parrot","eagle","duck","owl","penguin","shark","whale","snake","frog","dragon","donkey","cow","pig","dog","cat","chicken","hen","fish"]
+WEAPONS = ["sword","knife","dagger","axe","spear","bow","arrow","pistol","gun","rifle","shotgun","cannon","shield","mace","club","hammer","bomb","grenade","torch","trident","katana"]
+THINGS = ["coins","coin","gold","money","purse","wallet","bag","mango","apple","tree","seed","egg","crown","key","castle","house","bread","book","heart","flower","phone","cake","treasure","chest","gem","diamond","jewel","barrel","crate","fire","pumpkin","carrot","fountain","tent","statue","bridge","windmill","well","ring"]
+ERAKW = [("roman|rome|caesar|gladiator|legion", "roman"), ("greek|greece|athens|sparta|zeus", "greek"), ("cowboy|wild west|sheriff|saloon|outlaw", "wildwest"), ("viking", "viking"), ("pharaoh|egypt|pyramid", "egypt"),
+         ("samurai|shogun|ninja|feudal japan", "samurai"), ("pirate", "pirate"), ("astronaut", "space"), ("world war|ww2|wwii", "ww2"), ("1920|prohibition|gangster|speakeasy", "1920s"), ("victorian", "victorian"),
+         ("sultan|arabian|caravan", "arabian"), ("maharaja", "india"), ("caveman|stone age|prehistoric", "prehistoric"), ("dynasty|ancient china|emperor of china", "china")]
+ALIASW = {"airplane": "plane", "spaceship": "rocket", "motorcycle": "motorcycle", "hen": "chicken", "wallet": "purse", "bag": "purse", "money": "coins", "gold": "coins", "jewel": "gem", "diamond": "gem", "treasure": "treasure chest", "chest": "treasure chest", "coin": "coins", "gun": "pistol", "katana": "sword", "carriage": "wagon", "yacht": "sailboat"}
+FAR = 9.0
+
+def _find(words, low):
+    out = []
+    for w in words:
+        m = re.search(r"\b" + w + r"(s|es)?\b", low)
+        if m: out.append((m.start(), ALIASW.get(w, w)))
+    return [n for _, n in sorted(out) if n]
+
 def heuristic(script):
     sents = [s.strip() for s in re.split(r"(?<=[.!?])\s+", script.strip()) if s.strip()]
+    low_all = script.lower()
+    era0 = next((e for p, e in ERAKW if re.search(p, low_all)), None); era = era0
     scenes, cast_seen, n = [], [], len(sents)
     for i, s in enumerate(sents):
         low = s.lower()
-        roles = [r for k, r in KW.items() if re.search(r"\b" + k, low)]
-        roles = list(dict.fromkeys(roles))[:3] or (cast_seen[:2] or ["peasant"])
+        era = next((e for p, e in ERAKW if re.search(p, low)), era)      # the era follows the sentence that names it
+        pos = sorted((m.start(), r) for k, r in KW.items() for m in [re.search(r"\b" + k, low)] if m)
+        roles = list(dict.fromkeys(r for _, r in pos))[:3] or (cast_seen[:2] or ["man"])
         cast_seen = list(dict.fromkeys(roles + cast_seen))[:3]
         expr = next((e for p, e in MOOD if re.search(p, low)), "neutral" if i % 2 else "smile")
-        prev = scenes[-1]["shot"] if scenes else ""
-        cyc = ["medium", "over", "low", "medium", "high"]
-        shot = "wide" if i == 0 else ("close" if expr in ("shock", "pained", "laugh") and prev != "close" else cyc[i % 5])
-        xs = [0] if len(roles) == 1 else [-0.9, 0.9] if len(roles) == 2 else [-1.6, 0, 1.6]
-        props = []
-        for k, nm in PROPKW.items():
-            if re.search(r"\b" + k + r"(s|es)?\b", low) and nm not in [p["name"] for p in props]:
-                props.append({"name": nm, "x": 1.4 if len(props) % 2 else -1.4, "z": 0.5, "h": 4 if nm in ("tree", "castle") else 0.7, "anim": "pop", "at": 0.15, **({"anim": "fall", "count": 14, "spread": 2.5, "h": 0.35} if nm == "gold coin" else {})})
-        props = props[:3]
+        veh, ani, wpn, thg = _find(VEHICLES, low), _find(ANIMALS, low), _find(WEAPONS, low), _find(THINGS, low)
         env, fxs = [], []
         if re.search(r"\b(storm|thunder|lightning)", low): env.append("storm")
         elif re.search(r"\brain", low): env.append("rain")
         if re.search(r"\b(snow|blizzard)", low): env.append("snow")
         if re.search(r"\b(night|moon|dark)", low): env.append("night")
         if re.search(r"\b(space|planet|galaxy|astronaut|stars?)\b", low): env.append("space")
-        if re.search(r"\b(thunder|lightning)", low): fxs.append({"type": "lightning", "at": 0.35})
-        if re.search(r"\b(explo|blast|bomb|crash|boom)", low): fxs.append({"type": "explosion", "at": 0.4, "h": 3})
+        if re.search(r"\b(thunder|lightning|bolt)", low): fxs.append({"type": "lightning", "at": 0.35})
+        if re.search(r"\b(explo|blast|bomb|crash|boom|blew)", low): fxs.append({"type": "explosion", "at": 0.4, "h": 3})
         if re.search(r"\b(fire|burn|flame)", low): fxs.append({"type": "fire", "at": 0.1, "x": 0.5, "z": -0.5})
-        if props: roles = roles[:2]
+        verb = lambda p: re.search(p, low)
+        cast, props, extra, dur_min = [], [], {}, 0
+        CS = lambda id_, role, x, **k: {"id": id_, "role": role, "x": x, "z": k.pop("z", 0.2), "expr": k.pop("expr", expr), **k}
+        loot = next((t for t in thg if t not in ("tree", "castle", "house", "seed", "fire", "fountain", "statue", "bridge", "windmill", "well", "tent")), "purse")
+        thief = "thief" if "thief" in roles else None
+        others = [r for r in roles if r != "thief"]
+        police = [r for r in others if r in ("police", "policewoman", "sheriff", "guard", "knight", "soldier", "detective")]
+        if verb(r"\b(stole|steal|stolen|snatch|grab|robb|pickpocket|swipe)") and (thief or len(roles) > 1 or True):
+            victim = (others[0] if others else (next((r for r in cast_seen if r != "thief"), "man")))
+            if victim in police and len(others) > 1: victim = others[1]
+            cast = [CS("v", victim, -0.8, expr2="shock", at2=0.42, hold=loot, holdUntil=0.42, look="left"),
+                    CS("t", "thief", -5.5, to={"x": FAR, "z": 0.2}, act="run", hold=loot, holdAt=0.42, expr="grin")]
+            if verb(r"\b(chas|pursu|after him|behind him)") and police: cast.append(CS("p", police[0], -9, to={"x": FAR, "z": 0.4}, act="run", walkAt=0.32, expr="stern", z=0.4))
+            dur_min = 4.2
+        elif verb(r"\b(chas|pursu|hunt)") or (verb(r"\b(ran|run|fled|flee|escap|sprint|race)") and len(roles) > 1):
+            runner = thief or roles[0]; chasers = [r for r in roles if r != runner][:2] or ["police"]
+            cast = [CS("r", runner, -6, to={"x": FAR, "z": 0.2}, act="run", expr="nervous")] + [CS("c%d" % k, c, -10 - 2 * k, to={"x": FAR, "z": 0.4}, act="run", walkAt=0.1 + 0.05 * k, expr="stern", z=0.4) for k, c in enumerate(chasers)]
+            dur_min = 4.2
+        elif verb(r"\b(ran|run|runs|running|fled|flee|escap|sprint|rushed|raced|dash)"):
+            cast = [CS(roles[0], roles[0], -6, to={"x": FAR, "z": 0.2}, act="run", expr="nervous")] + [CS("o%d" % k, r, -2 + 2 * k, expr=expr) for k, r in enumerate(roles[1:])]
+            dur_min = 3.6
+        elif verb(r"\b(rode|ride|riding|galloped)") or (ani and verb(r"\bon (a|an|his|her|the|their) (horse|camel|elephant|donkey|dragon)")):
+            mount = next((a for a in ani if a in ("horse", "camel", "elephant", "donkey", "dragon")), "horse")
+            cast = [CS(roles[0], roles[0], -6, to={"x": FAR, "z": 0.2}, mount=mount, expr="grin")] + [CS("o%d" % k, r, 2 + k, expr=expr) for k, r in enumerate(roles[1:2])]
+            ani = [a for a in ani if a != mount]; dur_min = 4.0
+        elif veh and verb(r"\b(drove|drive|driving|flew|fly|flying|sailed|sail|sailing|steered|raced|rode)"):
+            vname = veh[0]; riding_roles = roles[:1]
+            cast = [CS(riding_roles[0], riding_roles[0], -6, to={"x": FAR, "z": -0.4}, mount=vname, expr="grin")]
+            veh = veh[1:]; dur_min = 4.2
+        elif wpn and verb(r"\b(fought|fight|fighting|battle|duel|attack|slash|stab|swung|swing|struck|killed|charge|cut)"):
+            w0 = next((w for w in wpn if w in ("sword", "knife", "dagger", "axe", "spear", "mace", "club", "hammer", "katana")), wpn[0])
+            att = roles[0]; dfd = roles[1] if len(roles) > 1 else "townsfolk"
+            cast = [CS("a", att, -1.1, hold=w0, act="stab" if w0 in ("knife", "dagger", "spear") else "swing", aim="d", look="right"), CS("d", dfd, 1.1, expr="shock", expr2="pained", at2=0.5, hold=w0 if w0 in ("sword", "shield") else None, look="left")]
+            cast[1] = {k: v for k, v in cast[1].items() if v is not None}; wpn = []; dur_min = 3.6
+        elif wpn and verb(r"\b(shot|shoot|fired|fire|firing|aimed|aim)"):
+            g0 = next((w for w in wpn if w in ("pistol", "rifle", "shotgun", "bow", "gun")), wpn[0])
+            cast = [CS("a", roles[0], -1.3, hold=g0, act="shoot", aim="d", look="right"), CS("d", roles[1] if len(roles) > 1 else "townsfolk", 1.4, expr="shock", look="left")]
+            wpn = []; dur_min = 3.6
+        elif verb(r"\b(plant|planted|sow|sowed)") and ("seed" in thg or "tree" in thg):
+            cast = [CS("f", roles[0], -1.2, act="point", look="right", expr="smile")]
+            props = [{"name": "seed", "x": 0.6, "z": 0.3, "h": 0.25, "anim": "pop", "at": 0.05, "until": 0.35}, {"name": "tree", "x": 0.9, "z": -0.9, "h": 5, "anim": "grow", "at": 0.3}]
+            extra = {"fx": [{"type": "sparkle", "at": 0.3, "x": 0.8, "z": -0.2}], "focus": "@tree", "move": "tiltup"}; thg = [t for t in thg if t not in ("seed", "tree")]; dur_min = 4.5
+        elif verb(r"\b(walk|walked|went|marched|travel|journey|arrived|came|wandered|strolled)"):
+            cast = [CS(roles[0], roles[0], -3, to={"x": 3, "z": 0.2}, expr=expr)] + [CS("o%d" % k, r, 1.5 + k, expr=expr) for k, r in enumerate(roles[1:])]
+        if not cast:
+            xs = [0] if len(roles) == 1 else [-0.9, 0.9] if len(roles) == 2 else [-1.6, 0, 1.6]
+            cast = [CS(r, r, x, z=0.2 * (j % 2), look="partner" if len(roles) > 1 else "cam") for j, (r, x) in enumerate(zip(roles, xs))]
+        used = {c.get("hold") for c in cast} | {c.get("mount") for c in cast}
+        k = 0
+        for nm in (veh + ani):                                 # vehicles and animals present in the sentence
+            if nm in used: continue
+            moving = nm in veh and verb(r"\b(drove|drive|flew|fly|sailed|sail|raced|roared|rolled|steamed|chugged|passed|zoomed|landed)")
+            props.append({"name": nm, "x": -FAR if moving else (-1.8 if k % 2 == 0 else 1.8), "z": -0.8, "to": {"x": FAR, "z": -0.8}, "at": 0.0, "until": 1.0, "anim": "static"} if moving else {"name": nm, "x": -1.8 if k % 2 == 0 else 1.8, "z": -0.2, "anim": "pop", "at": 0.1})
+            k += 1
+        for nm in thg + wpn:
+            if nm in used or nm in [p["name"] for p in props] or len(props) >= 4: continue
+            if nm == "coins": props.append({"name": "gold coin", "x": 0, "z": 0.5, "h": 0.35, "anim": "fall", "count": 14, "spread": 2.5, "at": 0.15})
+            else: props.append({"name": nm, "x": 1.4 if len(props) % 2 else -1.4, "z": 0.5, "h": 4 if nm in ("castle", "tree", "house") else None, "anim": "pop", "at": 0.15})
+            props[-1] = {a: b for a, b in props[-1].items() if b is not None}
         words = len(s.split())
-        scenes.append({"dur": round(max(2.4, words / 2.7 + 0.5), 1), "shot": shot, "target": roles[0], "light": "golden" if i >= n - 2 and n > 3 else "day",
-                       "extras": 10 if i == 0 else 4, "caption": " ".join(s.split()[:9]), "narration": s,
-                       "cast": [{"id": r, "role": r, "x": x, "z": 0.2 * (j % 2), "expr": expr, "look": "partner" if len(roles) > 1 else "cam"} for j, (r, x) in enumerate(zip(roles, xs))],
-                       "props": props, **({"env": env} if env else {}), **({"fx": fxs} if fxs else {}), **({"focus": "@" + props[0]["name"], "move": "tiltdown" if props[0]["name"] in ("seed", "purse") else "push"} if props and i % 2 else {})})
+        sc = {"dur": round(max(2.4, dur_min, words / 2.7 + 0.5), 1), "shot": "wide" if i == 0 else ("close" if expr in ("shock", "pained", "laugh") and (not scenes or scenes[-1]["shot"] != "close") else ["medium", "over", "low", "medium", "high"][i % 5]),
+              "target": cast[0]["id"], "light": "golden" if i >= n - 2 and n > 3 else "day", "extras": 10 if i == 0 else 3, "caption": s, "narration": s,
+              "cast": cast, "props": props, **({"env": env} if env else {}), **({"fx": fxs} if fxs else {}), **({"era": era} if era else {}), **extra}
+        if props and "focus" not in sc and not any(c.get("to") for c in cast) and i % 2: sc["focus"] = "@" + props[0]["name"]
+        scenes.append(sc)
     return {"title": (sents[0][:48] if sents else "Story"), "scenes": scenes}
 
 def clean(b):
@@ -115,8 +200,10 @@ def clean(b):
         s["extras"] = int(min(12, max(0, s.get("extras", 5))))
         cast = []
         for c in s.get("cast", [])[:3]:
+            c["role"] = ROLE_ALIAS.get(c.get("role"), c.get("role"))
             if c.get("role") not in ROLES: c["role"] = "man"
-            if c.get("act") not in ("wave", "cheer", "point", "nod", "run"): c.pop("act", None)
+            if c.get("act") not in ("wave", "cheer", "point", "nod", "run", "swing", "stab", "shoot", "aim"): c.pop("act", None)
+            if c.get("mount"): c["mount"] = str(c["mount"]).strip().lower()
             if c.get("hold"): c["hold"] = str(c["hold"]).strip().lower()
             to = c.get("to")
             if isinstance(to, dict) and "x" in to: c["to"] = {"x": max(-14, min(14, float(to["x"]))), "z": max(-2, min(2, float(to.get("z", 0))))}
@@ -138,6 +225,11 @@ def clean(b):
             if p.get("anim") not in ("pop", "grow", "bounce", "float", "fall", "spin", "static"): p["anim"] = "pop"
             pr.append(p)
         s["props"] = pr
+        if s.get("era") not in ("roman","greek","wildwest","viking","egypt","samurai","pirate","space","ww2","1920s","victorian","arabian","india","prehistoric","china"): s.pop("era", None)
+        for p in s["props"]:
+            to = p.get("to")
+            if isinstance(to, dict) and "x" in to: p["to"] = {"x": max(-16, min(16, float(to["x"]))), "z": max(-3, min(3, float(to.get("z", 0))))}
+            else: p.pop("to", None)
         ENVS = ("rain", "storm", "snow", "night", "space", "fog", "wind"); FXS = ("lightning", "explosion", "fire", "smoke", "sparkle")
         env = [e for e in (s.get("env") or []) if e in ENVS]
         if env: s["env"] = env

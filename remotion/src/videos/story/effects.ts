@@ -31,6 +31,7 @@ export class Effects {
   private flames = tag(new THREE.InstancedMesh(new THREE.ConeGeometry(0.28, 1, 8), basic(new THREE.Color(3, 1.2, 0.2)), 14));
   private spark = tag(new THREE.InstancedMesh(new THREE.OctahedronGeometry(0.1, 0), basic(new THREE.Color(3, 2.4, 0.6)), 28));
   private pl: THREE.Mesh[] = [];
+  private mz = Array.from({ length: 4 }, () => ({ f: tag(new THREE.Mesh(new THREE.SphereGeometry(1, 10, 8), basic(new THREE.Color(6, 4, 1.2)))), s: tag(new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), basic(new THREE.Color(5, 4, 1.5)))) }));
 
   constructor(root: THREE.Object3D) {
     const sp = new Float32Array(900 * 3);
@@ -44,10 +45,18 @@ export class Effects {
     this.g.add(this.rain, this.snow, this.stars, this.moon, this.planets, this.clouds, this.bolt, this.ball, this.core, this.ring, this.debris, this.smoke, this.flames, this.spark);
     for (const o of [this.rain, this.snow, this.debris, this.smoke, this.flames, this.spark]) o.visible = false;
     this.stars.visible = this.moon.visible = this.planets.visible = this.clouds.visible = this.bolt.visible = this.ball.visible = this.core.visible = this.ring.visible = false;
+    for (const m of this.mz) { m.f.visible = m.s.visible = false; this.g.add(m.f, m.s); }
     root.add(this.g);
+  }
+  /** gun muzzle flash + bullet tracer for slot k (call after update() each frame it is firing) */
+  muzzle(k: number, x: number, y: number, z: number, dx: number, dz: number, flash: number, trace: number) {
+    const m = this.mz[k]; if (!m) return; const l = Math.hypot(dx, dz) || 1, ux = dx / l, uz = dz / l;
+    m.f.visible = flash > 0.01; m.f.position.set(x + ux * 0.06, y, z + uz * 0.06); m.f.scale.setScalar(0.07 + 0.17 * flash);
+    m.s.visible = trace > 0.01; const L = 9 * trace; m.s.scale.set(0.022, 0.022, Math.max(0.01, L)); m.s.position.set(x + ux * (L / 2 + 0.3), y, z + uz * (L / 2 + 0.3)); m.s.rotation.y = Math.atan2(ux, uz);
   }
 
   update(s: SceneDef, u: number, dur: number, camPos: THREE.Vector3, look: THREE.Vector3, absT: number): FxOut {
+    for (const m of this.mz) m.f.visible = m.s.visible = false;
     const env = new Set<string>((s.env ?? []) as string[]), ev = (s.fx ?? []) as FxEv[], t = u * dur;
     const out: FxOut = { dim: 1, flash: 0, shake: 0, space: env.has("space"), night: env.has("night") || env.has("space"), fogK: 1 };
     const storm = env.has("storm"), rain = env.has("rain") || storm;

@@ -33,7 +33,7 @@ export const focusOf = (s: SceneDef, who?: string): { x: number; z: number; spre
     const hd = s.cast.find((q) => q.hold && q.hold.toLowerCase() === nm);   // an item someone is carrying: follow the carrier live
     if (hd && !ps.find((q) => q.name === nm)) return { x: hd.x, z: hd.z, spread: 0, y: 0.95, size: 0.5 };
     const pd = ps.find((q) => q.name === nm) ?? ps.find((q) => q.name.includes(nm) || nm.includes(q.name)) ?? ps.find((q) => nm.replace(/[0-9]/g, "") && q.name.includes(nm.replace(/[0-9]/g, ""))) ?? ps[0];
-    if (pd) return { x: pd.x, z: pd.z, spread: 0, y: (pd.y ?? 0) + (pd.h ?? 1) * 0.5, size: pd.h ?? 1 };
+    if (pd) { const hh = pd.h ?? DEFAULT_H[canon(pd.name)] ?? 1; return { x: pd.x, z: pd.z, spread: 0, y: (pd.y ?? 0) + hh * 0.5, size: hh }; }
   }
   const t = s.cast.find((c) => c.id === who);
   const xs = s.cast.map((c) => c.x), zs = s.cast.map((c) => c.z);
@@ -90,7 +90,7 @@ const segsOld = (s: SceneDef, i: number, dur: number): Seg[] => {
   const walker0 = s.cast.find((q) => q.to && q.act === "run") ?? s.cast.find((q) => q.to);
   const mv = s.move ?? (walker0 ? "track" : undefined);
   const walker = s.cast.find((q) => q.to && q.id === tgt) ?? s.cast.find((q) => q.to);
-  const prop = s.focus ? "@" + s.focus : undefined;
+  const prop = s.focus ? (s.focus.startsWith("@") ? s.focus : "@" + s.focus) : undefined;
   if (mv === "track" && walker) {       // side-on tracking shot that rides with the walker, leading the way he is heading
     const dx = walker.to!.x - walker.x, dz = walker.to!.z - walker.z, l = Math.hypot(dx, dz) || 1;
     const az = (Math.atan2(-dz / l, dx / l) * 180) / Math.PI + (s.az ?? 0) * 0.3;
@@ -132,7 +132,7 @@ const pose = (s: SceneDef, kf: KF) => {
   const wide = kf.lv === "env" || kf.lv === "char" || kf.lv === "high";
   const sc = F.tgt?.scale ?? 1;
   const onProp = F.y !== undefined;
-  const d0 = onProp ? Math.max(2.2, (F.size ?? 1) * 2.4) : L.d * (wide && !kf.who ? sp : 1);
+  const d0 = onProp ? Math.max(2.8, (F.size ?? 1) * 2.4) : L.d * (wide && !kf.who ? sp : 1);
   return { d: d0, h: onProp ? Math.max(0.7, F.y! * 0.9 + 0.4) : L.h * (kf.lv === "high" ? 1 : sc), ly: onProp ? F.y! : L.ly * sc, fov: L.fov, c: L.c, az: kf.az, x: F.x + (kf.lead ?? 0) * Math.sin(kf.az * 0), z: F.z, high: kf.lv === "high" };
 };
 

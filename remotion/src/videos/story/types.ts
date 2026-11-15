@@ -13,7 +13,9 @@ export type CastDef = {
   holdH?: number;
   mount?: string;                    // rides this 3D animal or vehicle (horse, camel, car, motorbike, chariot...) which moves with them
   hold?: string; holdAt?: number;   // sticker name held in the hand (from this fraction of the scene)
-  act?: "wave" | "cheer" | "point" | "nod" | "run";
+  act?: "wave" | "cheer" | "point" | "nod" | "run" | "swing" | "stab" | "shoot" | "aim";   // swing/stab/shoot/aim: use the held weapon
+  holdUntil?: number;                // drop the held item at this fraction (it was stolen, thrown...)
+  aim?: string;                      // cast id or "@prop" the weapon points at
   to?: { x: number; z: number };     // walk here during the scene
   walkAt?: number;                   // fraction of the scene when the walk starts (default 0)
 };

@@ -10,7 +10,7 @@ import { Pool, Actor, Fx, person, blob, lidAt, setLight, Who, Stage, CamInfo, FP
 import { FrontOpts, SideOpts, Expr } from "../bridge/toon";
 import { SceneDef, CastDef, PropDef } from "./types";
 import { STICKERS } from "../bridge/stickers";
-import { Props3D, canon, DEFAULT_H, ORIENT, SADDLE } from "./props3d";
+import { Props3D, canon, DEFAULT_H, ORIENT, SADDLE, GUNS, MELEE } from "./props3d";
 import { outfitFor } from "./outfits";
 import { camAt, focusOf } from "./camera";
 import { Effects } from "./effects";
@@ -150,7 +150,7 @@ export class StoryWorld {
       }
       const pp = posOf(d), mode = d.mode === "sit" ? "sit" : "stand";
       const bob = extra ? 0 : 0.012 * Math.sin(absT * 2.1 + idx);
-      const has3 = !!d.hold && this.p3.has(d.hold), holdOn = d.hold && u >= (d.holdAt ?? 0) && (has3 || STICKERS.has(d.hold));
+      const has3 = !!d.hold && this.p3.has(d.hold), holdOn = d.hold && u >= (d.holdAt ?? 0) && u < (d.holdUntil ?? 2) && (has3 || STICKERS.has(d.hold));
       const lat = pp.moving ? (pp.dx * right.x + pp.dz * right.z) / (Math.hypot(pp.dx, pp.dz) || 1) : 0;
       const side = pp.moving && Math.abs(lat) > 0.5, mirror = lat < 0;
       const phase = pp.dist / 1.5;
@@ -158,6 +158,13 @@ export class StoryWorld {
         headTilt: extra ? 0 : Math.round(4 * Math.sin(absT * 0.9 + idx)), prop: holdOn ? { held: d.hold!, s: 150 } : null };
       if (d.act === "wave" && !holdOn) fo.wave = Math.sin(absT * 7);
       if (d.act === "cheer") { fo.wave = Math.sin(absT * 8); fo.cheer = Math.sin(absT * 8 + 1.5); }
+      // weapon use: aim direction toward the target (a cast id or @prop), the arm reaches out that way
+      let aimX = 1, aimZ = 0, usingW = false;
+      if (d.act === "swing" || d.act === "stab" || d.act === "shoot" || d.act === "aim") {
+        const tg = d.aim ? (d.aim.startsWith("@") ? (cur.props ?? []).find((q) => q.name === d.aim!.slice(1).toLowerCase()) : cur.cast.find((q) => q.id === d.aim)) : cur.cast.find((q) => q.id !== d.id);
+        const tx = tg ? tg.x - pp.x : 1, tz = tg ? tg.z - pp.z : 0, tl = Math.hypot(tx, tz) || 1; aimX = tx / tl; aimZ = tz / tl; usingW = true;
+        fo.point = ((aimX * right.x + aimZ * right.z) >= 0 ? 1 : -1) as 1 | -1;
+      }
       if (d.act === "point") fo.point = (look >= 0 ? 1 : -1) as 1 | -1;
       if (d.act === "nod") fo.headTilt = Math.round(7 * Math.sin(absT * 5));
       const so: SideOpts = { mode: pp.moving ? "march" : "stand", phase: pp.moving && d.act === "run" ? pp.dist / 1.25 : phase, expr, stomp: d.act === "run" ? 1.6 : 0.4, stride: d.act === "run" ? 1.3 : 0.9, held: holdOn ? { name: d.hold!, s: 150 } : undefined };
@@ -169,10 +176,27 @@ export class StoryWorld {
         rx = pp.x - (fx2 / fl) * 0.22; rz = pp.z - (fz2 / fl) * 0.22; ry = bob + (SADDLE[mc] ?? 0.55) * hm - 0.92 * sc2;
       }
       st.places.push(person(ci, who, rx, ry, rz, { side, mirror }, fo, so, sc2));
-      if (holdOn && has3) {   // the carried item is a real 3D object riding at the carrying hand, swinging with the stride
-        const hc = canon(d.hold!), hh2 = Math.min(0.4, d.holdH ?? DEFAULT_H[hc] ?? 0.3) * Math.max(0.8, sc2), sgn = side ? (mirror ? -1 : 1) : 1, ph = pp.moving ? Math.sin(phase * 3.1) * 0.05 : 0;
-        const off = side ? 0.42 : 0.3;
-        this.p3.put(d.hold!, pp.x + right.x * off * sgn, bob + 0.8 * sc2 + ph, pp.z + right.z * off * sgn + 0.12, hh2, 1, Math.atan2(cam.position.x - pp.x, cam.position.z - pp.z), 0);
+      if (holdOn && has3) {   // the carried item is a real 3D object at the hand; weapons are USED: swings, stabs, aimed shots with recoil, flash and tracer
+        const hc = canon(d.hold!), wh = Math.min(hc === "spear" || hc === "trident" ? 1.9 : 1.2, d.holdH ?? DEFAULT_H[hc] ?? 0.3), isW = usingW, hh2 = (isW ? wh : Math.min(0.4, wh)) * Math.max(0.8, sc2);
+        const sgn = side ? (mirror ? -1 : 1) : 1, ph = pp.moving ? Math.sin(phase * 3.1) * 0.05 : 0, ts = u * dur, face = Math.atan2(cam.position.x - pp.x, cam.position.z - pp.z);
+        if (isW) {
+          const s2 = (aimX * right.x + aimZ * right.z) >= 0 ? 1 : -1, hx = pp.x + right.x * 0.5 * s2, hz = pp.z + right.z * 0.5 * s2, hy = bob + 1.22 * sc2;
+          if (GUNS.has(hc) || hc === "bow") {   // barrel along the aim direction; a shot every 0.4 s: kick back, bright flash, a streak down-range
+            const t0 = Math.max(0, ts - 0.1 * dur), per = 0.4, fr = (t0 % per) / per, firing = d.act === "shoot" && ts > 0.1 * dur, kick = firing ? Math.max(0, 1 - fr / 0.18) : 0;
+            const len = hh2 * 0.5, gx = hx + aimX * (0.18 - 0.07 * kick), gz = hz + aimZ * (0.18 - 0.07 * kick);
+            this.p3.put(d.hold!, gx + aimX * len * 0.4, hy, gz + aimZ * len * 0.4, hh2, 1, Math.atan2(aimX, aimZ), 0, false, { dist: 0, t: absT, mv: false, rx: hc === "bow" ? 0 : Math.PI / 2 - 0.25 * kick, rz: 0 });
+            if (firing) this.fxe.muzzle(Math.min(3, idx), gx + aimX * (len + 0.2), hy + 0.02, gz + aimZ * (len + 0.2), aimX, aimZ, fr < 0.14 ? 1 - fr / 0.14 : 0, fr < 0.3 ? fr / 0.3 : 0);
+          } else if (d.act === "stab") {        // thrust along the aim direction and pull back
+            const th = Math.abs(Math.sin((ts * Math.PI) / 0.7)) ** 0.6;
+            this.p3.put(d.hold!, hx + aimX * (0.05 + 0.5 * th), hy, hz + aimZ * (0.05 + 0.5 * th), hh2, 1, Math.atan2(aimX, aimZ), 0, false, { dist: 0, t: absT, mv: false, rx: Math.PI / 2, rz: 0 });
+          } else {                              // swing: wind up high behind, cut down through the target, recover
+            const p = ((ts * 1.1) % 1), sw = p < 0.25 ? -(p / 0.25) * 0.6 : (-0.6 + ((p - 0.25) / 0.75) ** 0.7 * 3.1);   // -0.6 (back) .. 2.5 (down through)
+            this.p3.put(d.hold!, hx, hy + 0.05, hz, hh2, 1, face, 0, false, { dist: 0, t: absT, mv: false, rx: 0, rz: -s2 * (sw - 0.9) });
+          }
+        } else {
+          const off = side ? 0.42 : 0.3;
+          this.p3.put(d.hold!, pp.x + right.x * off * sgn, bob + 0.8 * sc2 + ph, pp.z + right.z * off * sgn + 0.12, hh2, 1, face, 0);
+        }
       }
       blob(st, pp.x, 0, pp.z, sc2);
     };

@@ -16,6 +16,7 @@ import { buildRealm, realmWaves, anchorAt, resolveLoc, LOCS } from "./realm";
 const KINDB: Record<string, Biome> = { forest: "forest", desert: "desert", savanna: "savanna", swamp: "swamp", jungle: "jungle", ice: "ice", ocean: "ocean", farm: "farm", mountain: "mountain", palace: "farm", city: "farm", mine: "mountain", cave: "mountain" };
 import { buildShopFront } from "./interiors";
 import { buildInterior, flicker, INTERIOR_ALIAS, DIM, FOG, InteriorKind } from "./interiors";
+import { Rigs } from "./rig3d";
 import { Props3D, canon, DEFAULT_H, ORIENT, SADDLE, FLY, GUNS, registerRecipes, Recipe, CLOSED, MELEE } from "./props3d";
 import { outfitFor } from "./outfits";
 import { camAt, focusOf } from "./camera";
@@ -27,7 +28,7 @@ const ROLE_SCALE: Record<string, number> = { kid: 0.72, girl: 0.74 };
 export class StoryWorld {
   root = new THREE.Group();
   private pool = new Pool();
-  private p3: Props3D;
+  private p3: Props3D; private rigs!: Rigs; private hv = new THREE.Vector3();
   private ints = new Map<string, THREE.Group>(); private acts = new Map<string, Action>(); private realms = new Map<string, THREE.Group>(); private fronts = new Map<string, THREE.Group>(); private holder = new THREE.Group(); private fxe: Effects; private town: THREE.Object3D[] = []; private plat: THREE.Mesh;
   private actors: Actor[] = [];
   private fxs: Fx[] = [];
@@ -40,7 +41,7 @@ export class StoryWorld {
 
   constructor(kit: Kit, models?: Record<string, Recipe>) {
     const R = this.root;
-    registerRecipes(models); this.p3 = new Props3D(R, kit); this.fxe = new Effects(R);
+    registerRecipes(models); this.p3 = new Props3D(R, kit); this.rigs = new Rigs(R, kit); this.fxe = new Effects(R);
     this.plat = new THREE.Mesh(new THREE.CircleGeometry(15, 40), new THREE.MeshLambertMaterial({ color: "#6d5d86" })); this.plat.rotation.x = -Math.PI / 2; this.plat.position.y = 0.01; this.plat.receiveShadow = true; this.plat.visible = false; R.add(this.plat);
     this.skyMat = new THREE.ShaderMaterial({
       uniforms: { c0: { value: new THREE.Color() }, c1: { value: new THREE.Color() }, c2: { value: new THREE.Color() }, c3: { value: new THREE.Color() }, c4: { value: new THREE.Color() }, e: { value: new THREE.Vector4() } },
@@ -158,7 +159,7 @@ export class StoryWorld {
     const right = new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld, 0);
     const ci: CamInfo = { pos: cam.position, right, sun: sd };
     const st: Stage = { places: [], fx: [] };
-    this.p3.begin();
+    this.p3.begin(); this.rigs.begin();
     if (ik === "shop" && ikey) {   // the shop's goods: real 3D items filling the shelves and counter
       const slots = (this.ints.get(ikey)!.userData.slots ?? []) as number[][], stock = (s.stock ?? []).filter((n) => this.p3.has(n));
       if (stock.length) slots.forEach((q, j) => { const nm = stock[(j * 7 + Math.floor(j / 3)) % stock.length], hc = canon(nm), hh = Math.min(0.9, (DEFAULT_H[hc] ?? 0.4) * 0.9); this.p3.put(nm, q[0], q[1], q[2], Math.max(0.25, hh), 1, 0.4 * Math.sin(j), 0); });
@@ -225,12 +226,25 @@ export class StoryWorld {
         const fx2 = cam.position.x - pp.x, fz2 = cam.position.z - pp.z, fl = Math.hypot(fx2, fz2) || 1;
         rx = pp.x - (fx2 / fl) * 0.22; rz = pp.z - (fz2 / fl) * 0.22; ry = bob + lift + ((SADDLE[mc] ?? 0.55) + (CLOSED.has(mc) ? 0.3 : 0)) * hm - 0.92 * sc2; crop = CLOSED.has(mc) ? 0.4 : 0.3;
       }
-      st.places.push(person(ci, who, rx, ry, rz, { side, mirror }, fo, so, sc2, crop));
+      let rg: ReturnType<Rigs["put"]> = null;
+      if (this.rigs.ready) {   // real 3D skeletal character: stateless clip sampling, walk time = distance travelled
+        const mc3 = d.mount ? canon(d.mount) : "", SHIPS = ["galleon", "ship", "pirateship", "ghostship", "wreck"], onShip = SHIPS.includes(mc3), vehicle = !!mc3 && CLOSED.has(mc3) && !onShip, mounted = !!d.mount && this.p3.has(d.mount);
+        const hmm = mounted ? (DEFAULT_H[mc3] ?? 2) * Math.max(0.8, sc2) : 0, lf = mounted ? (FLY[mc3] ?? 0) * Math.min(1, (u * dur) / 1.6) ** 2 * (3 - 2 * Math.min(1, (u * dur) / 1.6)) : 0;
+        const ch = 1.75 * sc2 * (vehicle ? 0.82 : 1);
+        const facing = Math.atan2(cam.position.x - pp.x, cam.position.z - pp.z) + 0.45 * look;
+        let yaw = pp.moving ? Math.atan2(pp.dx, pp.dz) : usingW ? Math.atan2(aimX, aimZ) : facing;
+        let gx = pp.x, gy = bob, gz = pp.z;
+        if (mounted) { yaw = pp.moving ? Math.atan2(pp.dx, pp.dz) : Math.atan2(right.x, right.z); gy = lf + (vehicle ? 0.1 * hmm : onShip ? 0.34 * hmm : 0.85 * hmm - 0.5 * ch); }
+        const dd = d.do, dT = dd ? Math.max(0, u - (dd.at ?? 0)) * dur : undefined;
+        rg = this.rigs.put({ key: `${i}:${d.id}`, role: d.role, v: d.v, x: gx, y: gy, z: gz, yaw, h: ch, dist: pp.dist, moving: pp.moving && !mounted, run: d.act === "run", sit: d.mode === "sit" || (mounted && !vehicle && !onShip), drive: vehicle,
+          act: d.act, doType: dd?.type, doT: dT, hold: !!holdOn, absT: absT, idx });
+      }
+      if (!rg) st.places.push(person(ci, who, rx, ry, rz, { side, mirror }, fo, so, sc2, crop));
       if (holdOn && has3) {   // the carried item is a real 3D object at the hand; weapons are USED: swings, stabs, aimed shots with recoil, flash and tracer
         const hc = canon(d.hold!), wh = Math.min(hc === "spear" || hc === "trident" ? 1.9 : 1.2, d.holdH ?? DEFAULT_H[hc] ?? 0.3), isW = usingW, hh2 = (isW ? wh : Math.min(0.4, wh)) * Math.max(0.8, sc2);
         const sgn = side ? (mirror ? -1 : 1) : 1, ph = pp.moving ? Math.sin(phase * 3.1) * 0.05 : 0, ts = u * dur, face = Math.atan2(cam.position.x - pp.x, cam.position.z - pp.z);
         if (isW) {
-          const s2 = (aimX * right.x + aimZ * right.z) >= 0 ? 1 : -1, hx = pp.x + right.x * 0.5 * s2, hz = pp.z + right.z * 0.5 * s2, hy = bob + 1.22 * sc2;
+          const s2 = (aimX * right.x + aimZ * right.z) >= 0 ? 1 : -1, hp = rg ? rg.hand(1, this.hv) : null, hx = hp ? hp.x : pp.x + right.x * 0.5 * s2, hz = hp ? hp.z : pp.z + right.z * 0.5 * s2, hy = hp ? hp.y : bob + 1.22 * sc2;
           if (GUNS.has(hc) || hc === "bow") {   // barrel along the aim direction; a shot every 0.4 s: kick back, bright flash, a streak down-range
             const t0 = Math.max(0, ts - 0.1 * dur), per = 0.4, fr = (t0 % per) / per, firing = d.act === "shoot" && ts > 0.1 * dur, kick = firing ? Math.max(0, 1 - fr / 0.18) : 0;
             const len = hh2 * 0.5, gx = hx + aimX * (0.18 - 0.07 * kick), gz = hz + aimZ * (0.18 - 0.07 * kick);
@@ -245,7 +259,7 @@ export class StoryWorld {
           }
         } else {
           const off = side ? 0.42 : 0.3;
-          this.p3.put(d.hold!, pp.x + right.x * off * sgn, bob + 0.8 * sc2 + ph, pp.z + right.z * off * sgn + 0.12, hh2, 1, face, 0);
+          { const hp2 = rg ? rg.hand(1, this.hv) : null; this.p3.put(d.hold!, hp2 ? hp2.x : pp.x + right.x * off * sgn, hp2 ? hp2.y - hh2 * 0.35 : bob + 0.8 * sc2 + ph, hp2 ? hp2.z : pp.z + right.z * off * sgn + 0.12, hh2, 1, face, 0); }
         }
       }
       blob(st, pp.x, 0, pp.z, sc2);
@@ -297,7 +311,7 @@ export class StoryWorld {
       }
     });
 
-    this.p3.end();
+    this.p3.end(); this.rigs.end();
     this.frustum.setFromProjectionMatrix(this.m4.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse));
     let ai = 0; const used: Actor[] = [];
     for (const p of st.places) {

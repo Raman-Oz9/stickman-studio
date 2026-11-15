@@ -217,15 +217,15 @@ export class StoryWorld {
         if (A.extra?.paper && this.p3.has("pad")) { const c0 = A.contactCurve[0]; { const sg = Math.sign((c0.x - pp.x) * right.x + (c0.z - pp.z) * right.z) || 1; this.p3.put("pad", c0.x + right.x * sg * 0.32, c0.y - 0.42, c0.z + right.z * sg * 0.32, 0.4, 1, Math.atan2(cam.position.x - pp.x, cam.position.z - pp.z), 0, false, { dist: 0, t: absT, mv: false, rx: -0.5, rz: 0 }); } }
         if (A.extra?.dirt && this.p3.has("hill")) { const k = Math.max(0, (tk.progress - 0.35) / 0.65); if (k > 0.02) this.p3.put("hill", (tgp?.x ?? pp.x + 0.8) + 0.7, 0, tgp?.z ?? pp.z, 0.12 + 0.45 * k, 1, 0, 0); }
       }
-      let rx = pp.x, ry = bob, rz = pp.z;
+      let rx = pp.x, ry = bob, rz = pp.z, crop = 0;
       if (d.mount && this.p3.has(d.mount)) {   // riding: a real 3D mount under the rider, moving with them; the rider card sits just behind the mount's flank so its body hides the legs
         const mc = canon(d.mount), hm = (DEFAULT_H[mc] ?? 2) * Math.max(0.8, sc2), ang = pp.moving ? Math.atan2(pp.dx, pp.dz) : Math.atan2(right.x, right.z);
         const lift = (FLY[mc] ?? 0) * Math.min(1, (u * dur) / 1.6) ** 2 * (3 - 2 * Math.min(1, (u * dur) / 1.6));
         this.p3.put(d.mount, pp.x, lift, pp.z, hm, 1, ang, 0, false, { dist: pp.dist, t: absT, mv: pp.moving || !!FLY[mc] });
         const fx2 = cam.position.x - pp.x, fz2 = cam.position.z - pp.z, fl = Math.hypot(fx2, fz2) || 1;
-        rx = pp.x - (fx2 / fl) * 0.22; rz = pp.z - (fz2 / fl) * 0.22; ry = bob + lift + ((SADDLE[mc] ?? 0.55) + (CLOSED.has(mc) ? 0.26 : 0)) * hm - 0.92 * sc2;
+        rx = pp.x - (fx2 / fl) * 0.22; rz = pp.z - (fz2 / fl) * 0.22; ry = bob + lift + ((SADDLE[mc] ?? 0.55) + (CLOSED.has(mc) ? 0.26 : 0)) * hm - 0.92 * sc2; crop = CLOSED.has(mc) ? 0.4 : 0.3;
       }
-      st.places.push(person(ci, who, rx, ry, rz, { side, mirror }, fo, so, sc2));
+      st.places.push(person(ci, who, rx, ry, rz, { side, mirror }, fo, so, sc2, crop));
       if (holdOn && has3) {   // the carried item is a real 3D object at the hand; weapons are USED: swings, stabs, aimed shots with recoil, flash and tracer
         const hc = canon(d.hold!), wh = Math.min(hc === "spear" || hc === "trident" ? 1.9 : 1.2, d.holdH ?? DEFAULT_H[hc] ?? 0.3), isW = usingW, hh2 = (isW ? wh : Math.min(0.4, wh)) * Math.max(0.8, sc2);
         const sgn = side ? (mirror ? -1 : 1) : 1, ph = pp.moving ? Math.sin(phase * 3.1) * 0.05 : 0, ts = u * dur, face = Math.atan2(cam.position.x - pp.x, cam.position.z - pp.z);

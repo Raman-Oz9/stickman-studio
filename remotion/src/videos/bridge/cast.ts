@@ -188,15 +188,15 @@ const fkey = (o: object) => JSON.stringify(o, (_k, v) => (typeof v === "number" 
 
 export type Who = { i: number; o: Outfit; okey: string };
 /** one character drawing in the 600 x 1000 design space, sized by distance, lit from the scene's sun */
-export const person = (cam: CamInfo, who: Who, x: number, y: number, z: number, view: { side: boolean; mirror: boolean }, fo: FrontOpts, so: SideOpts, scale = 1): Place & { tierKey: string } => {
+export const person = (cam: CamInfo, who: Who, x: number, y: number, z: number, view: { side: boolean; mirror: boolean }, fo: FrontOpts, so: SideOpts, scale = 1, crop = 0): Place & { tierKey: string } => {
   const d = cam.pos.distanceTo(tmp.set(x, y + 1.2, z)) / scale;
   const [w, h, k] = tier(d);
   const mirror = view.side && view.mirror, light = light2D(cam, mirror), seed = seedOf(who.i);
   const f2: FrontOpts = { ...fo, light, seed }, s2: SideOpts = { ...so, light, seed };
-  const key = view.side ? `S|${who.okey}|${fkey(s2)}` : `F|${who.okey}|${fkey(f2)}`;
+  const key = (view.side ? `S|${who.okey}|${fkey(s2)}` : `F|${who.okey}|${fkey(f2)}`) + (crop ? `|c${crop}` : "");
   return {
     key, x, y, z, scale, mirror, tierKey: `${w}`,
-    draw: (p) => (view.side ? bodySide(p, who.o, s2) : bodyFront(p, who.o, f2)),
+    draw: (p) => { const g = (p as unknown as { g: CanvasRenderingContext2D }).g; if (crop) { g.save(); g.beginPath(); g.rect(0, 0, g.canvas.width, g.canvas.height * (1 - crop)); g.clip(); } (view.side ? bodySide(p, who.o, s2) : bodyFront(p, who.o, f2)); if (crop) g.restore(); },
     size: [w, h, k],
   };
 };

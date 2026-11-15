@@ -236,7 +236,7 @@ def enrich(b):
                 if not who.get("to"):
                     d = 1 if who.get("x", 0) <= 0 else -1; who["to"] = {"x": max(-14, min(14, who.get("x", 0) + d * 12)), "z": who.get("z", 0.3)}
                 who["act"] = who.get("act") or "run"
-                if v in ("galleon", "sailboat", "steamship", "canoe", "submarine"): who["z"] = -40; who["x"] = -20; who["to"] = {"x": 20, "z": -40}; s["loc"] = "ocean"
+                if v in ("galleon", "sailboat", "steamship", "canoe", "submarine"): who["z"] = -78; who["x"] = -24; who["to"] = {"x": 24, "z": -78}; s["loc"] = "ocean"
                 if s.get("move") not in ("track",): s["move"] = "track"
     return b
 
@@ -265,7 +265,7 @@ LOCKW = [("mine", r"gold mine|\bmine\b|mineshaft"), ("cave", r"\bcave\b|cavern")
 SEASONKW = [("winter", r"winter|snowy|snowing|blizzard|frozen|christmas"), ("autumn", r"autumn|\bfall\b|falling leaves"), ("spring", r"spring|blossom|\bbloom")]
 TODKW = [("night", r"midnight|at night|\bnight\b|moonlit|moonlight|dark sky|\bstars\b"), ("dusk", r"dusk|sunset|evening|twilight"), ("dawn", r"dawn|sunrise|daybreak|early morning")]
 URBAN = r"town|village|city|market|street|square|shop|store"
-SCENERY = ("castle", "palace", "mountain", "mountains", "volcano", "pyramid", "cave", "hill", "hills", "mine")
+SCENERY = ("shop", "store", "stall", "market", "building", "house", "palace", "castle", "mountain", "mountains", "volcano", "pyramid", "cave", "hill", "hills", "mine")
 LOCS = ("town", "palace", "farm", "forest", "desert", "savanna", "swamp", "jungle", "ice", "ocean", "mountain", "mine", "cave")
 def enrich_world(b):
     """Place every scene at its own location of the realm (carried forward until the story moves), plus season / time of day."""
@@ -273,7 +273,7 @@ def enrich_world(b):
     for s in b.get("scenes", []):
         t = ((s.get("narration") or "") + " " + (s.get("caption") or "")).lower()
         if s.get("interior"): s["loc"] = "town"; cur = None; continue
-        hit = s.get("loc") if s.get("loc") in LOCS else next((k for k, rx in LOCKW if re.search(rx, t)), None)
+        hit = next((k for k, rx in LOCKW if re.search(rx, t)), None) or (s.get("loc") if s.get("loc") in LOCS and s.get("loc") != "town" else None)
         if hit: cur = hit
         elif re.search(URBAN, t): cur = None
         s["loc"] = cur or "town"
@@ -287,7 +287,7 @@ def enrich_world(b):
         if s.get("season") not in (None, "spring", "summer", "autumn", "winter"): s.pop("season")
         if s.get("tod") not in (None, "dawn", "noon", "dusk", "night"): s.pop("tod")
         # scenery lives at its own place of the realm, never as a prop in the wrong place; drop tiny unmentioned decorations
-        s["props"] = [p for p in (s.get("props") or []) if p["name"] not in SCENERY and (p.get("h", 1) >= 1.0 or p["name"].rstrip("s") in t or p["name"] in t)]
+        s["props"] = [] if s.get("interior") else [p for p in (s.get("props") or []) if p["name"] not in SCENERY and (p.get("h", 1) >= 1.0 or p["name"].rstrip("s") in t or p["name"] in t)]
         seen = []; keep = []
         for p in s["props"]:
             if any(p["name"] == q["name"] and abs(p.get("x", 0) - q.get("x", 0)) < 4 and abs(p.get("z", 0) - q.get("z", 0)) < 4 for q in seen) and not p.get("count"): continue

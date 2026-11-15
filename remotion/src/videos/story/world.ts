@@ -13,7 +13,7 @@ import { STICKERS } from "../bridge/stickers";
 import { createAction, updateAction, handTarget, propBase, ballistic, Action, ActionType } from "./actions";
 import { FOGB, Biome, Season } from "./terrain";
 import { buildRealm, realmWaves, anchorAt, resolveLoc, LOCS } from "./realm";
-const KINDB: Record<string, Biome> = { forest: "forest", desert: "desert", savanna: "savanna", swamp: "swamp", jungle: "jungle", ice: "ice", ocean: "ocean", farm: "farm", mountain: "mountain", palace: "farm", mine: "mountain", cave: "mountain" };
+const KINDB: Record<string, Biome> = { forest: "forest", desert: "desert", savanna: "savanna", swamp: "swamp", jungle: "jungle", ice: "ice", ocean: "ocean", farm: "farm", mountain: "mountain", palace: "farm", city: "farm", mine: "mountain", cave: "mountain" };
 import { buildShopFront } from "./interiors";
 import { buildInterior, flicker, INTERIOR_ALIAS, DIM, FOG, InteriorKind } from "./interiors";
 import { Props3D, canon, DEFAULT_H, ORIENT, SADDLE, FLY, GUNS, registerRecipes, Recipe, CLOSED, MELEE } from "./props3d";

@@ -8,12 +8,12 @@ import { buildBiome, GROUNDC, Biome, Season } from "./terrain";
 
 export const LOCS: Record<string, [number, number]> = {
   town: [0, 0], palace: [0, -430], farm: [-300, 90], forest: [-380, -250], desert: [0, 620], savanna: [420, 470], swamp: [-430, 390], jungle: [-660, 140],
-  ice: [-700, -720], ocean: [640, 40], mountain: [0, -950], mine: [230, -900], cave: [-230, -900],
+  ice: [-700, -720], ocean: [640, 40], city: [380, -420], mountain: [0, -950], mine: [230, -900], cave: [-230, -900],
 };
-export const LOCALIAS: Record<string, string> = { harbor: "ocean", harbour: "ocean", sea: "ocean", coast: "ocean", dock: "ocean", lake: "ocean", beach: "ocean", castle: "palace", kingdom: "palace", mountains: "mountain", hills: "mountain", peak: "mountain", arctic: "ice", polar: "ice", glacier: "ice", tundra: "ice", sahara: "desert", dunes: "desert", woods: "forest", forest: "forest", marsh: "swamp", wetland: "swamp", plains: "savanna", steppe: "savanna", plain: "savanna", rainforest: "jungle", field: "farm", fields: "farm", village: "town", city: "town", market: "town", street: "town" };
+export const LOCALIAS: Record<string, string> = { metropolis: "city", downtown: "city", skyline: "city", skyscraper: "city", skyscrapers: "city", urban: "city", cityscape: "city", harbor: "ocean", harbour: "ocean", sea: "ocean", coast: "ocean", dock: "ocean", lake: "ocean", beach: "ocean", castle: "palace", kingdom: "palace", mountains: "mountain", hills: "mountain", peak: "mountain", arctic: "ice", polar: "ice", glacier: "ice", tundra: "ice", sahara: "desert", dunes: "desert", woods: "forest", forest: "forest", marsh: "swamp", wetland: "swamp", plains: "savanna", steppe: "savanna", plain: "savanna", rainforest: "jungle", field: "farm", fields: "farm", village: "town", city: "town", market: "town", street: "town" };
 export const resolveLoc = (s: { loc?: string; biome?: string }): string => { const k = String(s.loc ?? s.biome ?? "town").toLowerCase().replace(/[^a-z]/g, ""); const a = LOCALIAS[k] ?? k; return LOCS[a] ? a : "town"; };
 const KIND: Record<string, Biome | undefined> = { forest: "forest", desert: "desert", savanna: "savanna", swamp: "swamp", jungle: "jungle", ice: "ice", ocean: "ocean", farm: "farm", mountain: "mountain" };
-const ROADS: [string, string][] = [["town", "palace"], ["town", "farm"], ["farm", "forest"], ["farm", "swamp"], ["farm", "jungle"], ["town", "desert"], ["desert", "savanna"], ["town", "ocean"], ["palace", "mountain"], ["mountain", "mine"], ["mountain", "cave"], ["forest", "ice"]];
+const ROADS: [string, string][] = [["town", "palace"], ["town", "farm"], ["farm", "forest"], ["farm", "swamp"], ["farm", "jungle"], ["town", "desert"], ["desert", "savanna"], ["town", "ocean"], ["town", "city"], ["city", "ocean"], ["palace", "mountain"], ["mountain", "mine"], ["mountain", "cave"], ["forest", "ice"]];
 const sm = (a: number, b: number, x: number) => { const k = Math.min(1, Math.max(0, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
 const segDist = (px: number, pz: number, a: number[], b: number[]) => { const dx = b[0] - a[0], dz = b[1] - a[1], k = Math.min(1, Math.max(0, ((px - a[0]) * dx + (pz - a[1]) * dz) / (dx * dx + dz * dz))); return Math.hypot(px - a[0] - dx * k, pz - a[1] - dz * k); };
 const roadD = (x: number, z: number) => { let d = 1e9; for (const [p, q] of ROADS) d = Math.min(d, segDist(x, z, LOCS[p], LOCS[q])); return d; };
@@ -65,6 +65,28 @@ const castle = () => {
 const mineMouth = () => grp(mk(new THREE.DodecahedronGeometry(1, 0), "#6a6070", 0, 12, -18, 34, 24, 12), mk(B(9, 9, 6), "#14100c", 0, 4.5, 2), mk(B(1, 10, 1.4), "#7a4b24", -5, 5, 2.4), mk(B(1, 10, 1.4), "#7a4b24", 5, 5, 2.4), mk(B(12, 1.2, 1.4), "#8a5a2b", 0, 10, 2.4),
   ...[0, 1, 2, 3, 4, 5, 6].map((i) => mk(B(2.4, 0.12, 0.35), "#6b4630", 0, 0.08, 6 + i * 1.6)), mk(B(0.14, 0.14, 24), "#6b6b75", -0.9, 0.12, 12), mk(B(0.14, 0.14, 24), "#6b6b75", 0.9, 0.12, 12), mk(S(1.2, 10, 8), "#f5c32c", 8, 0.6, 5, 1.4, 0.7, 1));
 const caveMouth = () => { const g = grp(mk(new THREE.DodecahedronGeometry(1, 0), "#5a526a", 0, 12, -18, 34, 24, 12), mk(C(6, 6, 0.3, 20), "#0c0a10", 0, 5, 2, 1, 1, 1, Math.PI / 2), mk(S(6, 14, 10), "#0c0a10", 0, 5, 1.2, 1, 1.15, 0.35)); for (let i = 0; i < 9; i++) g.add(mk(cone(0.5, 2.4, 6), "#4a4256", -5 + i * 1.25, 9.6, 2.3, 1, 1, 1, Math.PI)); for (let i = 0; i < 6; i++) g.add(mk(cone(0.5, 2 + (i % 3), 6), ["#6ee7ff", "#c77dff", "#ffd166"][i % 3], -8 + i * 3.2, 1, 6)); return g; };
+
+const winTex = (seed: number) => { const c = document.createElement("canvas"); c.width = 64; c.height = 128; const g = c.getContext("2d")!; g.fillStyle = "#2b3a52"; g.fillRect(0, 0, 64, 128); let r = seed; const rn = () => ((r = (r * 16807) % 2147483647) / 2147483647);
+  for (let y = 0; y < 16; y++) for (let x = 0; x < 8; x++) { g.fillStyle = rn() < 0.45 ? "#ffe9a8" : rn() < 0.5 ? "#9fd3f2" : "#41536f"; g.fillRect(x * 8 + 1, y * 8 + 1, 6, 5); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.magFilter = THREE.NearestFilter; t.colorSpace = THREE.SRGBColorSpace; return t; };
+export const buildCity = () => {
+  const g = new THREE.Group(); const tex = [1, 2, 3, 4].map((i) => winTex(i * 7919)); let sd = 31; const rnd = () => ((sd = (sd * 16807) % 2147483647) / 2147483647);
+  g.add(mk(B(300, 0.3, 300), "#4a4d57", 0, 0.02, 0));                                                                          // asphalt
+  for (const o of [-50, 0, 50]) { g.add(mk(B(300, 0.05, 1.2), "#e8e0b0", 0, 0.2, o + 25), mk(B(1.2, 0.05, 300), "#e8e0b0", o + 25, 0.2, 0)); }   // lane marks
+  for (let i = 0; i < 6; i++) for (let j = 0; j < 6; j++) {
+    const cx = -125 + i * 50 + (i > 2 ? 0 : 0), cz = -125 + j * 50; if (Math.hypot(cx, cz) < 10) continue;
+    const h = 24 + rnd() * 70 * (1 - Math.hypot(cx, cz) / 260) + (i === 2 && j === 2 ? 50 : 0), w = 14 + rnd() * 8, d = 14 + rnd() * 8, k = Math.floor(rnd() * 4);
+    const t = tex[k].clone(); t.needsUpdate = true; t.repeat.set(Math.max(1, Math.round(w / 6)), Math.max(1, Math.round(h / 8)));
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshLambertMaterial({ map: t })); m.position.set(cx, h / 2, cz); m.castShadow = m.receiveShadow = true; g.add(m);
+    g.add(mk(B(w + 0.6, 0.8, d + 0.6), ["#8d93a1", "#a9a39a", "#6f7a8c"][k % 3], cx, h + 0.4, cz), mk(B(w * 0.4, 3, d * 0.4), "#7b8190", cx, h + 2.3, cz));   // roof slab + plant
+    if (rnd() < 0.4) g.add(mk(C(0.15, 0.15, 9, 6), "#c9ccd4", cx + w * 0.25, h + 5, cz), mk(S(0.5, 8, 6), "#ff3b30", cx + w * 0.25, h + 9.5, cz));        // antenna + light
+    g.add(mk(B(w * 0.3, 3.2, 0.5), "#1b2434", cx, 1.6, cz + d / 2 + 0.2));                                                                         // entrance
+  }
+  for (let i = 0; i < 40; i++) { const lane = rnd() < 0.5, o = [-25, 25, 75, -75][Math.floor(rnd() * 4)] + (rnd() - 0.5) * 3, a = (rnd() - 0.5) * 270, col = ["#e63946", "#f1c40f", "#3a86ff", "#ffffff", "#2a9d8f"][Math.floor(rnd() * 5)];
+    g.add(grp(mk(B(2.2, 0.9, 4.4), col, 0, 0.65, 0), mk(B(1.8, 0.7, 2.2), "#cfe8f7", 0, 1.35, -0.2)).translateX(lane ? o : a).translateZ(lane ? a : o).rotateY(lane ? 0 : Math.PI / 2)); }                      // parked / traffic cars
+  for (let i = 0; i < 24; i++) { const x = -135 + (i % 6) * 54, z = -135 + Math.floor(i / 6) * 54 + 25; g.add(mk(C(0.12, 0.12, 6, 6), "#3b3f48", x, 3, z), mk(S(0.45, 8, 6), "#ffe9a8", x, 6.1, z)); }       // street lights
+  return g;
+};
 const dockStuff = () => grp(mk(B(14, 0.3, 40), "#8a5a2b", 0, -0.12, -22), ...Array.from({ length: 30 }, (_, i) => mk(B(14, 0.02, 0.1), "#6b3f1c", 0, 0.05, -2 - i * 1.3)), ...Array.from({ length: 8 }, (_, i) => mk(C(0.25, 0.25, 3, 8), "#5a3b1e", i % 2 ? 7 : -7, -1, -4 - Math.floor(i / 2) * 9)));
 
 export const buildRealm = (se: Season) => {
@@ -76,6 +98,7 @@ export const buildRealm = (se: Season) => {
   for (const k in KIND) { const b = KIND[k]!; if (k === "mountain" || k === "ocean") continue; const d = buildBiome(b, se, false); d.position.set(LOCS[k][0], 0, LOCS[k][1]); R.add(d); }
   const mt = buildBiome("mountain", se, false); mt.position.set(LOCS.mountain[0], 0, LOCS.mountain[1] + 40); mt.scale.set(1.5, 1.5, 1.5); R.add(mt);
   const oc = buildBiome("ocean", se, false); oc.position.set(LOCS.ocean[0], 0, LOCS.ocean[1]); R.add(oc);
+  const ct = buildCity(); ct.position.set(LOCS.city[0], 0, LOCS.city[1]); R.add(ct);
   const pc = castle(); pc.position.set(LOCS.palace[0], 0, LOCS.palace[1] - 28); R.add(pc);
   const mm = mineMouth(); mm.position.set(LOCS.mine[0], 0, LOCS.mine[1] - 14); R.add(mm);
   const cm = caveMouth(); cm.position.set(LOCS.cave[0], 0, LOCS.cave[1] - 14); R.add(cm);

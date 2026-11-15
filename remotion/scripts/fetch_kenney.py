@@ -10,7 +10,7 @@ def get(u, ref=None):
     h = dict(UA)
     if ref: h.update({"Referer": ref, "Accept": "application/json, text/plain, */*", "Sec-Fetch-Mode": "cors", "Sec-Fetch-Site": "same-origin"})
     return OP.open(urllib.request.Request(u, headers=h), timeout=180).read()
-for slug in ["nature-kit", "fantasy-town-kit", "pirate-kit", "city-kit-suburban", "furniture-kit"]:
+for slug in ["nature-kit", "fantasy-town-kit", "pirate-kit", "city-kit-suburban", "furniture-kit", "car-kit", "city-kit-commercial", "city-kit-roads", "city-kit-industrial", "watercraft-pack", "space-kit", "train-kit", "blaster-kit", "cube-pets", "survival-kit", "castle-kit", "mini-dungeon", "food-kit", "weapon-pack", "toy-car-kit", "blocky-characters"]:
     try:
         html = get(f"https://kenney.nl/assets/{slug}").decode("utf8", "ignore")
         m = re.search(r"data-download-id='([0-9a-f]+)'", html)

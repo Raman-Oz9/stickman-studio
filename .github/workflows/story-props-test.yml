@@ -33,7 +33,7 @@ jobs:
       - name: Typecheck
         working-directory: remotion
         continue-on-error: true
-        run: npx tsc --noEmit 2>&1 | head -40
+        run: npx tsc --noEmit > out-tsc.txt 2>&1; mkdir -p out; cp out-tsc.txt out/tsc.txt; head -40 out-tsc.txt
       - name: Stills
         working-directory: remotion
         run: |
@@ -45,6 +45,7 @@ jobs:
         if: always()
         run: |
           rm -rf /tmp/pub && mkdir /tmp/pub && cp remotion/out/* /tmp/pub/ 2>/dev/null || true
+          ls remotion/public/bridge/kenney > /tmp/pub/kenney.txt 2>/dev/null || true
           mkdir -p /tmp/pub/stickers && cp remotion/public/prep/stickers/* /tmp/pub/stickers/ 2>/dev/null || true
           cd /tmp/pub && git init -q && git checkout -q -b props-test
           git config user.name bot && git config user.email bot@users.noreply.github.com

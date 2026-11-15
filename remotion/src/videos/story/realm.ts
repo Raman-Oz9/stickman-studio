@@ -67,14 +67,14 @@ const mineMouth = () => grp(mk(new THREE.DodecahedronGeometry(1, 0), "#6a6070", 
 const caveMouth = () => { const g = grp(mk(new THREE.DodecahedronGeometry(1, 0), "#5a526a", 0, 12, -18, 34, 24, 12), mk(C(6, 6, 0.3, 20), "#0c0a10", 0, 5, 2, 1, 1, 1, Math.PI / 2), mk(S(6, 14, 10), "#0c0a10", 0, 5, 1.2, 1, 1.15, 0.35)); for (let i = 0; i < 9; i++) g.add(mk(cone(0.5, 2.4, 6), "#4a4256", -5 + i * 1.25, 9.6, 2.3, 1, 1, 1, Math.PI)); for (let i = 0; i < 6; i++) g.add(mk(cone(0.5, 2 + (i % 3), 6), ["#6ee7ff", "#c77dff", "#ffd166"][i % 3], -8 + i * 3.2, 1, 6)); return g; };
 
 const winTex = (seed: number) => { const c = document.createElement("canvas"); c.width = 64; c.height = 128; const g = c.getContext("2d")!; g.fillStyle = "#3a4660"; g.fillRect(0, 0, 64, 128); let r = seed; const rn = () => ((r = (r * 16807) % 2147483647) / 2147483647);
-  for (let y = 0; y < 16; y++) for (let x = 0; x < 8; x++) { g.fillStyle = rn() < 0.3 ? "#fff1b8" : rn() < 0.5 ? "#7fb8e6" : "#26334a"; g.fillRect(x * 8 + 1, y * 8 + 1, 6, 5); }
+  for (let y = 0; y < 16; y++) for (let x = 0; x < 8; x++) { g.fillStyle = rn() < 0.14 ? "#fff1b8" : rn() < 0.6 ? "#8fc4ee" : "#4a6fa0"; g.fillRect(x * 8 + 1, y * 8 + 1, 6, 5); }
   const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.magFilter = THREE.NearestFilter; t.colorSpace = THREE.SRGBColorSpace; return t; };
 export const buildCity = () => {
   const g = new THREE.Group(); const tex = [1, 2, 3, 4].map((i) => winTex(i * 7919)); let sd = 31; const rnd = () => ((sd = (sd * 16807) % 2147483647) / 2147483647);
   g.add(mk(B(300, 0.3, 300), "#4a4d57", 0, 0.02, 0));                                                                          // asphalt
   for (const o of [-50, 0, 50]) { g.add(mk(B(300, 0.05, 1.2), "#e8e0b0", 0, 0.2, o + 25), mk(B(1.2, 0.05, 300), "#e8e0b0", o + 25, 0.2, 0)); }   // lane marks
   for (let i = 0; i < 6; i++) for (let j = 0; j < 6; j++) {
-    const cx = -125 + i * 50 + (i > 2 ? 0 : 0), cz = -125 + j * 50; if (Math.hypot(cx, cz) < 10) continue;
+    const cx = -125 + i * 50 + (i > 2 ? 0 : 0), cz = -125 + j * 50; if (Math.hypot(cx, cz) < 48) continue;
     const h = 24 + rnd() * 70 * (1 - Math.hypot(cx, cz) / 260) + (i === 2 && j === 2 ? 50 : 0), w = 14 + rnd() * 8, d = 14 + rnd() * 8, k = Math.floor(rnd() * 4);
     const t = tex[k].clone(); t.needsUpdate = true; t.repeat.set(Math.max(1, Math.round(w / 6)), Math.max(1, Math.round(h / 8)));
     const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshLambertMaterial({ map: t, color: ["#ffffff", "#cfe0ff", "#ffe6cf", "#dfe6ee"][k] })); m.position.set(cx, h / 2, cz); m.castShadow = m.receiveShadow = true; g.add(m);

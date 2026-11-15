@@ -201,7 +201,7 @@ STOCK = {"mango": ["mango"], "fruit": ["mango", "apple"], "apple": ["apple"], "s
 def enrich(b):
     """Director's pass over the LLM storyboard: make sure each sentence really gets its interior, shop goods, vehicle/animal ride, so the weak planner can't skip them."""
     for s in b.get("scenes", []):
-        t = (s.get("caption") or "").lower(); cast = s.get("cast") or []
+        t = ((s.get("narration") or "") + " " + (s.get("caption") or "")).lower(); cast = s.get("cast") or []
         if not s.get("interior") and re.search(INSIDE, t):
             for k, rx in PLACES:
                 if re.search(rx, t): s["interior"] = k; break
@@ -227,7 +227,7 @@ def enrich(b):
 ACTV = [("dig", r"\b(dug|dig|digging)\b", "shovel"), ("write", r"\b(wrote|write|writing|signed)\b", "pen"), ("drink", r"\b(drank|drink|drinking|sipped)\b", "cup"), ("throw", r"\b(threw|throw|throwing|tossed|hurled)\b", None), ("handOver", r"\b(handed|gave|passed him|passed her)\b", None), ("place", r"\b(placed|set down|put down|laid|put the)\b", None), ("open", r"\bopened the (door|gate|chest|box)\b", None), ("push", r"\bpushed\b", None), ("pull", r"\bpulled\b", None), ("lean", r"\bleaned\b", None), ("climb", r"\bclimbed\b", None)]
 def enrich_actions(b):
     for s in b.get("scenes", []):
-        t = (s.get("caption") or "").lower(); cast = s.get("cast") or []
+        t = ((s.get("narration") or "") + " " + (s.get("caption") or "")).lower(); cast = s.get("cast") or []
         if not cast or any(c.get("do") or c.get("mount") or c.get("act") == "run" for c in cast): continue
         for typ, rx, prop in ACTV:
             if not re.search(rx, t): continue
@@ -240,6 +240,7 @@ def enrich_actions(b):
             elif typ in ("push", "pull", "open", "lean", "climb", "place", "throw") and props: do["to"] = "@" + (props[-1]["name"] if typ in ("push", "pull", "open", "lean", "climb") else props[0]["name"])
             elif typ == "throw" and others: do["to"] = others[0]["id"]
             if typ == "dig" and not do.get("to"): do["x"] = who.get("x", 0) + 0.9; do["z"] = who.get("z", 0.3)
+            if typ in ("open", "push", "pull", "lean", "climb") and not do.get("to"): continue
             who["do"] = do; break
     return b
 

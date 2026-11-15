@@ -2,7 +2,7 @@
 """Script -> storyboard JSON for the StoryShort composition.
 usage: plan_story.py script.txt board.json
 Uses Gemini (GEMINI_API_KEY) or Groq (GROQ_API_KEY) when available; otherwise a keyword heuristic, so it always works."""
-import json, time, os, re, sys, urllib.request
+import copy, json, time, os, re, sys, urllib.request
 
 _ROLES_OLD = ["king","queen","prince","princess","knight","wizard","witch","police","policewoman","detective","thief","judge","doctor","nurse","scientist","chef","teacher",
          "businessman","businesswoman","worker","farmer","peasant","merchant","pirate","sailor","athlete","musician","student","man","woman","grandpa","grandma",
@@ -45,7 +45,7 @@ RULES. (0) Plan like a film director: each sentence = 1-2 scenes that SHOW the p
 (3) Use the right role for the person named: police, thief, doctor, nurse, chef, teacher, king, queen, pirate, grandma, businessman... Use different roles for different people; give a recurring person the same id/role. Max 3 characters per scene, >=1.2 m apart. Use "v" 0-5 (optional) to vary two people of the same role.
 (4) Camera language: "reveal" = push-in from environment to a character (opening, introductions); "push" = approach a face for emotion; "pull" = start on a face/object and widen; "pan" = two-person exchange; "descend" with shot "high" = overhead establishing;
 "track" = follow a walking/running character sideways (use with act run/walk); "crane" = rise up and over a scene; "tiltup" = look up (tall tree, castle, falling coins); "tiltdown" = look down at the object; when the story is about an object set "focus":"@object".
-(5) SIZES: scale things to the world (a person is 1.7 m): castle/palace "h" 12-14, house 7-8, tower 8, mountain 14-18, volcano 12, pyramid 9, windmill 7, ship 6-9, tree 4-6. Big things stand behind the actors. (6) INTERIORS: only when the narration is INSIDE a place (inside the palace / throne room, in a cave, in a gold mine, inside a house or kitchen or bedroom, in jail / dungeon) set the scene field "interior" to one of palace|cave|mine|house|jail|shop: the plaza is replaced by an enclosed set with the right furniture, torches, gold, crystals. Outside shots keep the plaza and the castle/house as a big 3D prop. For a SHOP (barber shop, mango seller, blacksmith, padlock seller, bakery, weapon shop, any seller) use interior "shop" plus "shop":"<kind>" and "stock":[3-6 prop names the shop sells: mango, sword, padlock, bread...] so the shelves and counter are full of those real 3D items; when the shop is seen from outside, show the shop as a house prop with a sign. Never use an interior for outdoor sentences. (7) NEW THINGS: if a noun, vehicle, building, animal or weapon is NOT in the known list (the library), design it in the top-level "models" object: {{"models": {{"lighthouse keeper hut": {{"h": 3, "parts": [{{"s": "box|sphere|cyl|cone|torus|pyramid", "c": "#hex", "p": [x,y,z], "z": [sx,sy,sz], "r": [rx,ry,rz]}}, ...8-30 parts]}}}}}}. Unit shapes of size 1 centred at p (y up, +z front), scaled by z; build a recognisable toon model with correct colours; add "saddle" (0-1, rider hip height fraction) if it can be ridden/driven and "fly" (metres) if it flies. Then use its name as a prop/hold/mount like any other. (8) PHYSICAL ACTIONS: when a character writes, digs, drinks, throws, places/sets down, hands over, pushes, pulls, opens, leans on or climbs something, set on that cast member "do":{{"type":"write|dig|drink|throw|place|handOver|push|pull|open|lean|climb","at":0.1-0.5,"dur":seconds,"prop":"<tool or item: pen, shovel, cup, ball...>","to":"@<prop name>|<cast id>"}} (the hand really touches the surface/object and the prop is shown). Do not combine with act run or mount. (9) WORLD: set per scene "biome" (desert|ice|forest|ocean|swamp|savanna|mountain|jungle|farm) when the story is outdoors in that landscape (keep it across following scenes of the same place), "season" (spring|summer|autumn|winter) and "tod" (dawn|noon|dusk|night) when the narration says so; omit them for the default town plaza. Reaction (expr2+at2) triggers a quick push-in and hold: use it for surprise, fear, joke, discovery. Never repeat the same shot type or move twice in a row. Open with a wide shot, use close shots on emotional beats, golden light only for the ending or warm/sad beats."""
+(5) SIZES: scale things to the world (a person is 1.7 m): castle/palace "h" 12-14, house 7-8, tower 8, mountain 14-18, volcano 12, pyramid 9, windmill 7, ship 6-9, tree 4-6. Big things stand behind the actors. (6) INTERIORS: only when the narration is INSIDE a place (inside the palace / throne room, in a cave, in a gold mine, inside a house or kitchen or bedroom, in jail / dungeon) set the scene field "interior" to one of palace|cave|mine|house|jail|shop: the plaza is replaced by an enclosed set with the right furniture, torches, gold, crystals. Outside shots keep the plaza and the castle/house as a big 3D prop. For a SHOP (barber shop, mango seller, blacksmith, padlock seller, bakery, weapon shop, any seller) use interior "shop" plus "shop":"<kind>" and "stock":[3-6 prop names the shop sells: mango, sword, padlock, bread...] so the shelves and counter are full of those real 3D items; when the shop is seen from outside, show the shop as a house prop with a sign. Never use an interior for outdoor sentences. (7) NEW THINGS: if a noun, vehicle, building, animal or weapon is NOT in the known list (the library), design it in the top-level "models" object: {{"models": {{"lighthouse keeper hut": {{"h": 3, "parts": [{{"s": "box|sphere|cyl|cone|torus|pyramid", "c": "#hex", "p": [x,y,z], "z": [sx,sy,sz], "r": [rx,ry,rz]}}, ...8-30 parts]}}}}}}. Unit shapes of size 1 centred at p (y up, +z front), scaled by z; build a recognisable toon model with correct colours; add "saddle" (0-1, rider hip height fraction) if it can be ridden/driven and "fly" (metres) if it flies. Then use its name as a prop/hold/mount like any other. (8) PHYSICAL ACTIONS: when a character writes, digs, drinks, throws, places/sets down, hands over, pushes, pulls, opens, leans on or climbs something, set on that cast member "do":{{"type":"write|dig|drink|throw|place|handOver|push|pull|open|lean|climb","at":0.1-0.5,"dur":seconds,"prop":"<tool or item: pen, shovel, cup, ball...>","to":"@<prop name>|<cast id>"}} (the hand really touches the surface/object and the prop is shown). Do not combine with act run or mount. (9) WORLD: the realm is one big connected world; each scene happens at ONE location: set "loc" to town|palace|farm|forest|desert|savanna|swamp|jungle|ice|ocean|mountain|mine|cave (default town). Mountains, castles, volcanoes, pyramids, ships at sea and caves are LOCATIONS, never props placed in town. Set "season" (spring|summer|autumn|winter) and "tod" (dawn|noon|dusk|night) when the narration says so. Use many short scenes: one per verb/clause. Reaction (expr2+at2) triggers a quick push-in and hold: use it for surprise, fear, joke, discovery. Never repeat the same shot type or move twice in a row. Open with a wide shot, use close shots on emotional beats, golden light only for the ending or warm/sad beats."""
 
 def post(url, headers, body):
     r = urllib.request.Request(url, json.dumps(body).encode(), {"Content-Type": "application/json", **headers})
@@ -200,20 +200,32 @@ SHOPKW = r"(?:(\w+) )?(?:seller|shop|store|stall|barber|blacksmith|baker|bakery|
 STOCK = {"mango": ["mango"], "fruit": ["mango", "apple"], "apple": ["apple"], "sword": ["sword", "dagger", "shield"], "weapon": ["sword", "dagger", "shield", "axe"], "blacksmith": ["sword", "axe", "hammer", "shield"], "baker": ["bread", "cake"], "bakery": ["bread", "cake"], "cake": ["cake", "bread"], "book": ["book"], "gem": ["gem", "crown"], "jewel": ["gem", "crown", "gold coin"], "key": ["key"], "padlock": ["key"], "flower": ["flower"], "barber": ["book", "gem"], "butcher": ["pig", "chicken"], "grocer": ["apple", "mango", "bread"]}
 def enrich(b):
     """Director's pass over the LLM storyboard: make sure each sentence really gets its interior, shop goods, vehicle/animal ride, so the weak planner can't skip them."""
+    prev = None; shopctx = None
+    LEAVE = r"outside|ran out|fled|escaped|jumped on|hopped on|rode|galloped|drove|street|road|outdoors|left the|exited|chased"
+    INS2 = r"inside|into|entered|crept in|crept into|shelves|counter|behind the|walked in|stepped in|stepped inside"
+    SHOPW = r"seller|shop|stall|barber|blacksmith|bakery|baker|market|tailor|butcher|grocer|store"
     for s in b.get("scenes", []):
         t = ((s.get("narration") or "") + " " + (s.get("caption") or "")).lower(); cast = s.get("cast") or []
-        if not s.get("interior") and re.search(INSIDE, t):
-            for k, rx in PLACES:
-                if re.search(rx, t): s["interior"] = k; break
-        if not s.get("interior") and re.search(r"seller|shop|stall|barber|blacksmith|bakery|market|tailor|butcher|grocer", t) and re.search(r"inside|into|entered|opened|in his|in the|crept|behind the counter|counter", t):
-            m = re.search(SHOPKW, t); kind = (m.group(1) or m.group(0)).strip() if m else "shop"
-            s["interior"] = "shop"; s["shop"] = kind
-            st = next((v for k, v in STOCK.items() if k in t), ["bread", "gem"]); s["stock"] = st[:4]
+        leave = re.search(LEAVE, t)
+        if not s.get("interior"):
+            place = next((k for k, rx in PLACES if re.search(rx, t)), None)
+            if place and re.search(INSIDE, t): s["interior"] = place
+            elif re.search(SHOPW, t):
+                m = re.search(SHOPKW, t); kind = (m.group(1) or m.group(0)).strip() if m else "shop"
+                st = next((v for k, v in STOCK.items() if k in t), ["bread", "gem"])
+                shopctx = (kind, st[:4])
+                if re.search(INS2, t) and not leave: s["interior"] = "shop"; s["shop"] = kind; s["stock"] = shopctx[1]
+                else: s["front"] = (kind.upper() if re.search(r"shop|store|seller|stall|barber|smith|bakery|market", kind) else kind.upper() + " SHOP")
+            elif shopctx and re.search(INS2, t) and not leave: s["interior"] = "shop"; s["shop"] = shopctx[0]; s["stock"] = shopctx[1]
+            elif prev and prev != "shop" and not leave and not re.search(r"\b(ran|fled|sailed|flew)\b", t) and prev in ("palace", "cave", "mine", "jail", "house"): s["interior"] = prev
+            elif prev == "shop" and shopctx and not leave and re.search(INS2 + r"|grabbed|stole|took|bought|sold|paid", t): s["interior"] = "shop"; s["shop"] = shopctx[0]; s["stock"] = shopctx[1]
+        if leave: shopctx = None
+        prev = s.get("interior")
         if s.get("interior") in ("palace", "cave", "mine", "jail", "house", "shop"):
             s.pop("env", None) if s["interior"] != "cave" else None
             s.pop("focus", None)
             s["props"] = [p for p in (s.get("props") or []) if p["name"] not in ("castle", "house", "tree", "apple tree", "mountain")]
-        if cast and not any(c.get("mount") for c in cast) and re.search(r"\b(rode|ride|riding|galloped|gallop|jumped on|hopped on|drove|driving|flew|flying|sailed|piloted|raced|roaring)\b", t):
+        if cast and not any(c.get("mount") for c in cast) and (re.search(r"\b(in|on|aboard|inside)\s+(?:a|an|the|his|her)\s+(?:\w+\s+){0,2}(?:" + "|".join(VEHICLES) + r")\b", t) or re.search(r"\b(rode|ride|riding|galloped|gallop|jumped on|hopped on|drove|driving|flew|flying|sailed|piloted|raced|roaring)\b", t)):
             m = max(((t.find(v), v) for v in VEHICLES + ANIMALS if re.search(r"\b" + v + r"s?\b", t)), default=None, key=lambda x: (len(x[1]) if x[0] >= 0 else -1))
             if m and m[0] >= 0:
                 v = {"airplane": "plane", "spaceship": "rocket", "motorcycle": "motorbike", "fire truck": "firetruck", "police car": "policecar", "old car": "oldcar", "pirate ship": "galleon", "ship": "galleon", "boat": "sailboat", "yacht": "sailboat", "carriage": "wagon", "bear": "bear3", "hen": "chicken"}.get(m[1], m[1])
@@ -248,33 +260,94 @@ def enrich_actions(b):
     return b
 
 
-BIOMEKW = [("desert", r"desert|sahara|dunes?|oasis|caravan"), ("ice", r"arctic|iceberg|polar|north pole|glacier|tundra|igloo|snowfield"), ("ocean", r"ocean|\bsea\b|harbou?r|\bdock\b|\bport\b|shore|beach|voyage|sailed|lake"), ("swamp", r"swamp|marsh|bog|wetland"), ("jungle", r"jungle|rainforest"), ("forest", r"forest|woods|woodland"), ("savanna", r"savanna|grassland|plains|steppe"), ("mountain", r"mountain|alps|himalaya|peak|\bhills?\b|valley"), ("farm", r"\bfarm\b|\bfields?\b|harvest|barn|crops?")]
-SEASONKW = [("winter", r"winter|snowy|snowing|blizzard|frozen|christmas"), ("autumn", r"autumn|\bfall\b|harvest|falling leaves"), ("spring", r"spring|blossom|\bbloom")]
+LOCKW = [("mine", r"gold mine|\bmine\b|mineshaft"), ("cave", r"\bcave\b|cavern"), ("palace", r"palace|castle|throne|royal|kingdom"), ("ocean", r"ocean|\bsea\b|harbou?r|\bdock\b|\bport\b|shore|beach|voyage|sailed|\bship\b|\bboat\b|lighthouse|lake"), ("ice", r"arctic|iceberg|polar|north pole|glacier|tundra|igloo"), ("desert", r"desert|sahara|dunes?|oasis|caravan|camel|pyramid"), ("swamp", r"swamp|marsh|bog|wetland"), ("jungle", r"jungle|rainforest"), ("forest", r"forest|woods|woodland|lumberjack"), ("savanna", r"savanna|grassland|plains|steppe|safari|zebra|giraffe"), ("mountain", r"mountain|alps|himalaya|peak|\bhills?\b|volcano|cliff"), ("farm", r"\bfarm\b|\bfields?\b|harvest|barn|crops?|\bseed\b")]
+SEASONKW = [("winter", r"winter|snowy|snowing|blizzard|frozen|christmas"), ("autumn", r"autumn|\bfall\b|falling leaves"), ("spring", r"spring|blossom|\bbloom")]
 TODKW = [("night", r"midnight|at night|\bnight\b|moonlit|moonlight|dark sky|\bstars\b"), ("dusk", r"dusk|sunset|evening|twilight"), ("dawn", r"dawn|sunrise|daybreak|early morning")]
-URBAN = r"town|village|city|market|palace|castle|street|square|kingdom"
+URBAN = r"town|village|city|market|street|square|shop|store"
+SCENERY = ("castle", "palace", "mountain", "mountains", "volcano", "pyramid", "cave", "hill", "hills", "mine")
+LOCS = ("town", "palace", "farm", "forest", "desert", "savanna", "swamp", "jungle", "ice", "ocean", "mountain", "mine", "cave")
 def enrich_world(b):
-    """Biome / season / time of day from the narration, carried forward until the story moves to town or indoors."""
+    """Place every scene at its own location of the realm (carried forward until the story moves), plus season / time of day."""
     cur = None
     for s in b.get("scenes", []):
         t = ((s.get("narration") or "") + " " + (s.get("caption") or "")).lower()
-        if s.get("interior"): cur = None; continue
-        if s.get("biome"): cur = s["biome"]
-        else:
-            hit = next((k for k, rx in BIOMEKW if re.search(rx, t)), None)
-            if hit: cur = hit
-            elif re.search(URBAN, t): cur = None
-            if cur: s["biome"] = cur
+        if s.get("interior"): s["loc"] = "town"; cur = None; continue
+        hit = s.get("loc") if s.get("loc") in LOCS else next((k for k, rx in LOCKW if re.search(rx, t)), None)
+        if hit: cur = hit
+        elif re.search(URBAN, t): cur = None
+        s["loc"] = cur or "town"
+        for k in ("biome",): s.pop(k, None)
         if not s.get("season"):
-            hit = next((k for k, rx in SEASONKW if re.search(rx, t)), None)
-            if hit: s["season"] = hit
+            h = next((k for k, rx in SEASONKW if re.search(rx, t)), None)
+            if h: s["season"] = h
         if not s.get("tod"):
-            hit = next((k for k, rx in TODKW if re.search(rx, t)), None)
-            if hit: s["tod"] = hit
-        if s.get("biome") and s["biome"] not in ("desert", "ice", "forest", "ocean", "swamp", "savanna", "mountain", "jungle", "farm"): s.pop("biome")
+            h = next((k for k, rx in TODKW if re.search(rx, t)), None)
+            if h: s["tod"] = h
         if s.get("season") not in (None, "spring", "summer", "autumn", "winter"): s.pop("season")
         if s.get("tod") not in (None, "dawn", "noon", "dusk", "night"): s.pop("tod")
-        # decorative props nobody mentioned (e.g. flowers on a "cheered" line) distract: drop tiny unmentioned ones
-        s["props"] = [p for p in (s.get("props") or []) if p.get("h", 1) >= 1.0 or p["name"].rstrip("s") in t or p["name"] in t]
+        # scenery lives at its own place of the realm, never as a prop in the wrong place; drop tiny unmentioned decorations
+        s["props"] = [p for p in (s.get("props") or []) if p["name"] not in SCENERY and (p.get("h", 1) >= 1.0 or p["name"].rstrip("s") in t or p["name"] in t)]
+        seen = []; keep = []
+        for p in s["props"]:
+            if any(p["name"] == q["name"] and abs(p.get("x", 0) - q.get("x", 0)) < 4 and abs(p.get("z", 0) - q.get("z", 0)) < 4 for q in seen) and not p.get("count"): continue
+            seen.append(p); keep.append(p)
+        s["props"] = keep
+        if s.get("focus", "").lstrip("@") in SCENERY: s.pop("focus")
+    return b
+
+MOVEKW = r"\b(ran|run|running|chase|chased|chasing|fled|flee|flew|fly|flying|rode|ride|galloped|drove|sailed|walk|walked|jump|jumped|escape|escaped|raced|rushed|dashed|crept|sneaked)\b"
+def split_clauses(b):
+    """One scene per clause so every verb gets its own live beat (crept in / grabbed the coins / jumped on the horse)."""
+    out = []
+    for s in b.get("scenes", []):
+        nar = (s.get("narration") or s.get("caption") or "").strip()
+        parts = [p.strip(" ,;") for p in re.split(r",\s*(?:and |then |but )?|;\s*|\s+and then\s+|\s+then\s+|\s+and\s+(?=(?:he|she|they|the|a|then|[a-z]+ed)\b)", nar) if p and len(p.split()) >= 2]
+        if len(nar.split()) < 9 or len(parts) < 2 or s.get("interior"): out.append(s); continue
+        parts = parts[:4]; tot = sum(len(p.split()) for p in parts); d0 = float(s.get("dur", 3))
+        for k, p in enumerate(parts):
+            n = copy.deepcopy(s); n["narration"] = n["caption"] = p; n["dur"] = max(1.6, d0 * len(p.split()) / tot)
+            if k > 0: n.pop("fx", None); n.pop("env", None) if False else None
+            if not re.search(MOVEKW, p.lower()):
+                for c in n.get("cast", []):
+                    c.pop("to", None)
+                    if c.get("act") == "run": c.pop("act")
+            out.append(n)
+    b["scenes"] = out
+    return b
+
+EXT = {"shop": "town", "palace": "palace", "mine": "mine", "cave": "cave", "jail": "palace", "house": "town"}
+def establish(b):
+    """Before an interior, show the OUTSIDE of the place (shop front with its sign, palace gate, mine mouth, cave mouth)."""
+    out = []; prev = None
+    for s in b.get("scenes", []):
+        k = s.get("interior")
+        if k and prev != k and s.get("cast"):
+            nar = (s.get("narration") or "").strip(); m = re.search(r",\s*|\s+and\s+", nar); first, rest = (nar[:m.start()], nar[m.end():]) if m and len(nar[:m.start()].split()) >= 2 and len(rest := nar[m.end():].split()) >= 2 else ("", nar)
+            if rest and first: s["narration"] = s["caption"] = nar[m.end():]
+            e = copy.deepcopy(s); e.pop("interior", None); e.pop("stock", None); e.pop("shop", None); e["loc"] = EXT.get(k, "town"); e["narration"] = e["caption"] = first
+            e["dur"] = 2.2 if first else 1.8; e["shot"] = "wide"; e["move"] = "push"; e.pop("props", None); e.pop("fx", None); e.pop("focus", None)
+            who = copy.deepcopy(s["cast"][0]); who["x"] = 0; who["z"] = 3.0; who.pop("to", None); who["act"] = "wave"; who.pop("hold", None); who.pop("do", None); who.pop("mount", None); e["cast"] = [who]; e["target"] = who["id"]
+            if k == "shop":
+                kind = (s.get("shop") or "shop").strip(); e["front"] = kind.upper() if re.search(r"shop|store|seller|stall|barber|smith|bakery|market", kind) else (kind + " shop").upper()
+            out.append(e)
+        if k == "shop" and s.get("cast"):
+            sel = next((c for c in s["cast"] if re.search(r"seller|shop|baker|barber|smith|vendor|merchant|trader", (c.get("id", "") + c.get("role", "")))), s["cast"][0])
+            for c in s["cast"]:
+                if c is sel: c["z"] = -4.3; c["x"] = max(-3.0, min(3.0, c.get("x", 0)))
+                else: c["z"] = max(c.get("z", 0), 1.0)
+        out.append(s); prev = k or ("shop" if s.get("front") else None)
+    b["scenes"] = out
+    return b
+
+def fly_pass(b, limit=4):
+    """When two consecutive outdoor scenes are in different places, glide the camera through the sky from one to the other."""
+    out = []; n = 0
+    for i, s in enumerate(b.get("scenes", [])):
+        if out and not s.get("interior") and not out[-1].get("interior") and s.get("loc") and out[-1].get("loc") and s["loc"] != out[-1]["loc"] and n < limit and not s.get("front") and not out[-1].get("front"):
+            who = copy.deepcopy(s["cast"][0]); who["x"] = 5000; who["z"] = 5000; who.pop("to", None); who.pop("act", None); who.pop("mount", None); who.pop("hold", None); who.pop("do", None)
+            out.append({"dur": 2.2, "shot": "wide", "cast": [who], "target": who["id"], "loc": s["loc"], "light": s.get("light", "day"), "caption": "", "narration": "", "fly": {"from": out[-1]["loc"], "to": s["loc"]}, "extras": 0}); n += 1
+        out.append(s)
+    b["scenes"] = out
     return b
 
 def clean(b):
@@ -373,6 +446,6 @@ if __name__ == "__main__":
     src = "llm"
     if not b or not b.get("scenes"):
         b, src = heuristic(script), "heuristic"
-    b = clean(enrich_world(enrich_actions(enrich(b))))
+    b = fly_pass(clean(establish(enrich_world(enrich_actions(enrich(split_clauses(b)))))))
     json.dump(b, open(sys.argv[2], "w"), indent=1)
     print(f"{src}: {len(b['scenes'])} scenes, {sum(s['dur'] for s in b['scenes']):.0f}s -> {sys.argv[2]}")

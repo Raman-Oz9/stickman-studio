@@ -87,3 +87,20 @@ const shop = (kind: string) => {
 };
 export const buildInterior = (k: InteriorKind, kind = ""): THREE.Group => ({ palace, cave, mine, house, jail, shop: () => shop(kind) }[k])();
 export const flicker = (g: THREE.Object3D, t: number) => { (g.userData.flames as THREE.Mesh[] | undefined)?.forEach((f, i) => { f.scale.set(1 + 0.2 * Math.sin(t * 14 + i), 1 + 0.35 * Math.sin(t * 17 + i * 2), 1 + 0.2 * Math.sin(t * 11 + i)); }); };
+
+// ---- shop front: facade, striped awning, door, display windows and a painted sign with the shop's name ----
+const signTex = (text: string, bg: string) => {
+  const cv = document.createElement("canvas"); cv.width = 1024; cv.height = 256; const x = cv.getContext("2d")!;
+  x.fillStyle = bg; x.fillRect(0, 0, 1024, 256); x.strokeStyle = "#f6e7b4"; x.lineWidth = 14; x.strokeRect(14, 14, 996, 228);
+  x.fillStyle = "#fff6d6"; x.textAlign = "center"; x.textBaseline = "middle"; let fs = 120; x.font = `bold ${fs}px Georgia, serif`; while (x.measureText(text).width > 900 && fs > 40) { fs -= 6; x.font = `bold ${fs}px Georgia, serif`; }
+  x.fillText(text.toUpperCase(), 512, 135); const t = new THREE.CanvasTexture(cv); t.anisotropy = 4; return t;
+};
+export const buildShopFront = (label: string) => {
+  const hc = new THREE.Color().setHSL(hue(label.toLowerCase()) / 360, 0.5, 0.42), g = new THREE.Group(), css = "#" + hc.getHexString();
+  g.add(mk(B(14, 8, 6), "#e8d9b8", 0, 4, 0), mk(B(14.4, 0.6, 6.4), "#7a4b24", 0, 8.2, 0), mk(B(3, 5, 0.3), "#5a3b1e", 0, 2.5, 3.1), mk(B(0.3, 0.3, 0.3), "#e6c35a", 1.1, 2.5, 3.3));
+  for (const x of [-4.6, 4.6]) g.add(mk(B(4, 3.4, 0.2), "#cfe6f7", x, 3.1, 3.05), mk(B(4.4, 0.4, 0.5), "#7a4b24", x, 1.3, 3.2), mk(B(4.4, 0.3, 0.3), "#7a4b24", x, 4.9, 3.1));
+  for (let i = 0; i < 10; i++) g.add(mk(B(1.4, 0.2, 2.6), i % 2 ? "#f4efe4" : css, -6.3 + i * 1.4, 6.0, 4.2, 1, 1, 1, 0.42, 0, 0));
+  const sign = new THREE.Mesh(new THREE.PlaneGeometry(9, 2.25), new THREE.MeshBasicMaterial({ map: signTex(label, css), toneMapped: false })); sign.position.set(0, 7.1, 3.35); g.add(sign);
+  for (let i = 0; i < 4; i++) g.add(mk(B(1, 0.9, 1), "#a8743a", -6 + i * 1.5, 0.45, 4.6 + (i % 2) * 0.5, 1, 1, 1, 0, 0.2 * i), mk(S(0.35, 10, 8), "#f5a623", -6 + i * 1.5, 1.1, 4.6 + (i % 2) * 0.5));
+  return g;
+};

@@ -312,3 +312,12 @@ const galleon = () => {
 };
 Object.assign(PROC, { galleon }); Object.assign(DEFAULT_H, { galleon: 5.4 }); Object.assign(SADDLE, { galleon: 0.17, steamship: 0.2, sailboat: 0.3, canoe: 0.3 });
 Object.assign(ALIAS, { ship: "galleon", pirateship: "galleon", piratesship: "galleon", boat: "galleon", vessel: "galleon", frigate: "galleon", warship: "galleon" });
+
+// paper currency
+const note = (c1: string, c2: string) => grp(mk(B(1, 0.5, 0.02), c1, 0, 0.25, 0), mk(B(0.9, 0.4, 0.025), c2, 0, 0.25, 0), mk(C(0.15, 0.15, 0.03, 16), c1, 0, 0.25, 0, 1, 1, 1, Math.PI / 2), mk(B(0.12, 0.3, 0.03), c1, -0.34, 0.25, 0), mk(B(0.12, 0.3, 0.03), c1, 0.34, 0.25, 0));
+const cashstack = () => { const g = new THREE.Group(); for (let i = 0; i < 9; i++) g.add(mk(B(0.6, 0.04, 0.3), i % 2 ? "#4fa36a" : "#5bb577", 0.01 * (i % 3), 0.02 + i * 0.04, 0.01 * (i % 2), 1, 1, 1, 0, 0.05 * i)); g.add(mk(B(0.1, 0.4, 0.34), "#f4efe4", 0, 0.2, 0)); return g; };
+const banknote = () => note("#2f7a46", "#9fd8ae");
+const dollar = () => note("#3d6b3a", "#b9dfb0");
+Object.assign(PROC, { banknote, dollar, cash: cashstack, cashstack });
+Object.assign(DEFAULT_H, { banknote: 0.5, dollar: 0.5, cash: 0.3, cashstack: 0.3 });
+Object.assign(ALIAS, { note: "banknote", notes: "banknote", bill: "banknote", bills: "banknote", money: "cashstack", papermoney: "cashstack", currency: "cashstack", naira: "banknote", dollars: "cashstack", cashbag: "moneybag", stackofcash: "cashstack" });

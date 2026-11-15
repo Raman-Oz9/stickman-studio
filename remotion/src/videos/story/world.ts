@@ -11,7 +11,10 @@ import { FrontOpts, SideOpts, Expr } from "../bridge/toon";
 import { SceneDef, CastDef, PropDef } from "./types";
 import { STICKERS } from "../bridge/stickers";
 import { createAction, updateAction, handTarget, propBase, ballistic, Action, ActionType } from "./actions";
-import { buildBiome, waveBob, BIOMES, FOGB, Biome, Season } from "./terrain";
+import { FOGB, Biome, Season } from "./terrain";
+import { buildRealm, realmWaves, anchorAt, resolveLoc, LOCS } from "./realm";
+const KINDB: Record<string, Biome> = { forest: "forest", desert: "desert", savanna: "savanna", swamp: "swamp", jungle: "jungle", ice: "ice", ocean: "ocean", farm: "farm", mountain: "mountain", palace: "farm", mine: "mountain", cave: "mountain" };
+import { buildShopFront } from "./interiors";
 import { buildInterior, flicker, INTERIOR_ALIAS, DIM, FOG, InteriorKind } from "./interiors";
 import { Props3D, canon, DEFAULT_H, ORIENT, SADDLE, FLY, GUNS, registerRecipes, Recipe, CLOSED, MELEE } from "./props3d";
 import { outfitFor } from "./outfits";
@@ -25,7 +28,7 @@ export class StoryWorld {
   root = new THREE.Group();
   private pool = new Pool();
   private p3: Props3D;
-  private ints = new Map<string, THREE.Group>(); private acts = new Map<string, Action>(); private fxe: Effects; private town: THREE.Object3D[] = []; private plat: THREE.Mesh;
+  private ints = new Map<string, THREE.Group>(); private acts = new Map<string, Action>(); private realms = new Map<string, THREE.Group>(); private fronts = new Map<string, THREE.Group>(); private holder = new THREE.Group(); private fxe: Effects; private town: THREE.Object3D[] = []; private plat: THREE.Mesh;
   private actors: Actor[] = [];
   private fxs: Fx[] = [];
   private hemi = new THREE.HemisphereLight("#cfe6ff", "#6c5c8c", 1.1);
@@ -77,7 +80,7 @@ export class StoryWorld {
       prop(b, kit, k % 3 === 0 ? "lantern" : k % 3 === 1 ? "plant_bushLarge" : "stall-red", Math.sin(a) * r, 0, Math.cos(a) * r, k % 3 === 0 ? 3.0 : k % 3 === 1 ? 1.1 : 2.6, a + Math.PI);
     }
     prop(b, kit, "windmill", 40, 0, -60, 22, 0.4);
-    const n0 = R.children.length; b.build(R); this.town = R.children.slice(n0);
+    const n0 = R.children.length; b.build(R); this.town = R.children.slice(n0); R.add(this.holder); this.town.forEach((o) => this.holder.add(o));
   }
 
   private actor(i: number) { while (this.actors.length <= i) this.actors.push(new Actor(this.root)); return this.actors[i]; }
@@ -105,10 +108,15 @@ export class StoryWorld {
     if (ik && ikey && !this.ints.has(ikey)) { const g = buildInterior(ik, s.shop ?? "shop"); g.visible = false; this.root.add(g); this.ints.set(ikey, g); }
     this.ints.forEach((g, k) => { g.visible = k === ikey; if (k === ikey) flicker(g, absT); });
     if (ik) E.dim = Math.min(E.dim, DIM[ik]);
-    const bk = BIOMES[String(s.biome ?? "").toLowerCase().replace(/[^a-z]/g, "")] as Biome | undefined, bkey = bk ? bk + ":" + (s.season ?? "summer") : "";
-    if (bk && !this.ints.has(bkey)) { const g = buildBiome(bk, (s.season ?? "summer") as Season); g.visible = false; this.root.add(g); this.ints.set(bkey, g); }
-    this.ints.forEach((g, k) => { if (k.includes(":") && !k.startsWith("shop:")) { g.visible = k === bkey && !ik; if (g.visible) waveBob(g, absT); } });
-    this.town.forEach((o) => { o.visible = !E.space && !ik && !bk; }); this.plat.visible = E.space && !ik && !bk;
+    const loc = resolveLoc(s), se = ((s.season ?? "summer") as Season), fly = (s as SceneDef & { fly?: { from: string; to: string } }).fly;
+    if (!this.realms.has(se)) { const Rl = buildRealm(se); Rl.visible = false; this.holder.add(Rl); this.realms.set(se, Rl); }
+    this.realms.forEach((Rl, k) => { Rl.visible = k === se; if (k === se) realmWaves(Rl, absT); });
+    const [ax, az] = fly ? anchorAt(fly.from, fly.to, u) : (LOCS[loc] as [number, number]);
+    this.holder.position.set(-ax, 0, -az); this.holder.visible = !ik && !E.space;
+    const bk = loc !== "town" || !!fly ? (KINDB[loc] ?? "farm") : undefined;
+    this.plat.visible = E.space && !ik;
+    if (s.front && !this.fronts.has(s.front)) { const fg = buildShopFront(s.front); fg.position.set(0, 0, -6.5); this.root.add(fg); this.fronts.set(s.front, fg); }
+    this.fronts.forEach((fg, k) => { fg.visible = k === s.front && !ik; });
     cam.position.copy(c.pos); cam.up.set(0, 1, 0); cam.lookAt(c.look); cam.rotateZ(c.roll);
     cam.fov = c.fov; cam.near = 0.15; cam.far = 1500; cam.updateProjectionMatrix(); cam.updateMatrixWorld();
     cam.layers.enable(NOINK);
@@ -143,7 +151,7 @@ export class StoryWorld {
     else if (E.dim < 0.95) for (let k = 0; k < 5; k++) (su["c" + k].value as THREE.Color).multiplyScalar(E.dim * 0.8).lerp(new THREE.Color("#4a5468"), 0.35);
     this.sky.position.copy(cam.position);
     untone(L.fog, this.fog.color); this.fog.near = L.fogNear; this.fog.far = L.fogFar; if (E.night) this.fog.color.set(E.space ? "#020410" : "#0b1236"); else if (E.dim < 0.95) this.fog.color.lerp(new THREE.Color("#4a5468"), 0.5); this.fog.near *= E.fogK; this.fog.far *= E.fogK; scene.fog = this.fog; scene.background = null;
-    if (bk && !ik) { this.fog.color.set(FOGB[bk]); this.fog.near = bk === "swamp" ? 8 : 40; this.fog.far = bk === "swamp" ? 110 : 420; }
+    if (bk && !ik) { this.fog.color.set(FOGB[bk]); this.fog.near = bk === "swamp" ? 25 : 120; this.fog.far = bk === "swamp" ? 260 : 1700; }
     if (ik) { this.fog.color.set(FOG[ik]); this.fog.near = 18; this.fog.far = 80; }
 
     // ---- cast ----

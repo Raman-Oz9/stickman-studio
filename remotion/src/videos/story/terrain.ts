@@ -6,28 +6,29 @@ import { mk, S, B, C, cone, grp } from "./props3d";
 export type Biome = "desert" | "ice" | "forest" | "ocean" | "swamp" | "savanna" | "mountain" | "jungle" | "farm";
 export type Season = "spring" | "summer" | "autumn" | "winter";
 export const BIOMES: Record<string, Biome> = { desert: "desert", sahara: "desert", dunes: "desert", ice: "ice", arctic: "ice", polar: "ice", glacier: "ice", tundra: "ice", forest: "forest", woods: "forest", ocean: "ocean", sea: "ocean", coast: "ocean", harbor: "ocean", harbour: "ocean", dock: "ocean", lake: "ocean", swamp: "swamp", marsh: "swamp", wetland: "swamp", savanna: "savanna", plain: "savanna", plains: "savanna", steppe: "savanna", mountain: "mountain", mountains: "mountain", hills: "mountain", jungle: "jungle", rainforest: "jungle", farm: "farm", field: "farm", fields: "farm" };
+export const GROUNDC = GROUND0;
 export const FOGB: Record<Biome, string> = { desert: "#f1dcae", ice: "#dcebf8", forest: "#b9d5a8", ocean: "#bfdcf2", swamp: "#8a9a78", savanna: "#ecdcae", mountain: "#c9d6e6", jungle: "#a5c99a", farm: "#cfe6b8" };
-const GROUND: Record<Biome, string> = { desert: "#e9c887", ice: "#eaf5ff", forest: "#5fa84a", ocean: "#8a6a3f", swamp: "#4f5d3a", savanna: "#c9b86a", mountain: "#79866a", jungle: "#3f8f3a", farm: "#8fc45a" };
+const GROUND0: Record<Biome, string> = { desert: "#e9c887", ice: "#eaf5ff", forest: "#5fa84a", ocean: "#8a6a3f", swamp: "#4f5d3a", savanna: "#c9b86a", mountain: "#79866a", jungle: "#3f8f3a", farm: "#8fc45a" };
 let seed = 3; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
 const leaf = (se: Season) => ({ spring: "#f4a6c8", summer: "#3f9f3f", autumn: "#e0832a", winter: "#e8f1f7" }[se]);
-const grass = (se: Season, b: Biome) => (se === "winter" && b !== "desert" ? "#f2f7fb" : se === "autumn" && (b === "forest" || b === "farm" || b === "mountain") ? "#b59a45" : se === "spring" && b === "farm" ? "#9fd36a" : GROUND[b]);
+const grass = (se: Season, b: Biome) => (se === "winter" && b !== "desert" ? "#f2f7fb" : se === "autumn" && (b === "forest" || b === "farm" || b === "mountain") ? "#b59a45" : se === "spring" && b === "farm" ? "#9fd36a" : GROUND0[b]);
 const treeAt = (g: THREE.Group, x: number, z: number, s: number, se: Season, pine = false) => {
   if (pine) { for (let i = 0; i < 3; i++) g.add(mk(cone(1.3 - i * 0.3, 1.8, 9), se === "winter" ? "#e8f1f7" : "#2f7a46", x, 1.6 + i * 1.1, z, s, s, s)); g.add(mk(C(0.14, 0.18, 1.3, 8), "#6b3f1c", x, 0.65, z, s, s, s)); return; }
   g.add(mk(C(0.16, 0.22, 2.2, 8), "#7a4b24", x, 1.1 * s, z, s, s, s));
   if (se === "winter") { g.add(mk(S(0.1, 6, 5), "#7a4b24", x, 2.4 * s, z)); for (const a of [-1, 1]) g.add(mk(C(0.04, 0.07, 1.2, 6), "#7a4b24", x + a * 0.5 * s, 2.5 * s, z, 1, 1, 1, 0, 0, a * 0.8)); return; }
   g.add(mk(S(1.1, 12, 9), leaf(se), x, 3 * s, z, s, s, s), mk(S(0.75, 10, 8), leaf(se), x + 0.7 * s, 2.5 * s, z + 0.2, s, s, s));
 };
-export const buildBiome = (b: Biome, se: Season): THREE.Group => {
+export const buildBiome = (b: Biome, se: Season, ground = true): THREE.Group => {
   const g = new THREE.Group(); seed = 3 + b.length;
   const water = b === "ocean";
-  if (!water) g.add(mk(B(700, 0.3, 700), grass(se, b), 0, -0.16, 0)); else {
-    g.add(mk(B(700, 0.2, 700), "#2f86d6", 0, -0.7, 0));
-    const waves: THREE.Mesh[] = []; for (let i = 0; i < 46; i++) { const w = mk(B(5 + rnd() * 6, 0.16, 0.7), "#6fb7f0", -40 + rnd() * 80, -0.55, -40 + rnd() * 90); w.castShadow = false; waves.push(w); g.add(w); } g.userData.waves = waves;
-    g.add(mk(B(22, 0.3, 14), "#8a5a2b", 0, -0.15, 2));                                  // dock the characters stand on
+  if (!water) { if (ground) g.add(mk(B(700, 0.3, 700), grass(se, b), 0, -0.16, 0)); } else {
+    if (ground) g.add(mk(B(700, 0.2, 700), "#2f86d6", 0, -0.7, 0));
+    const waves: THREE.Mesh[] = []; if (ground) for (let i = 0; i < 46; i++) { const w = mk(B(5 + rnd() * 6, 0.16, 0.7), "#6fb7f0", -40 + rnd() * 80, -0.55, -40 + rnd() * 90); w.castShadow = false; waves.push(w); g.add(w); } g.userData.waves = waves;
+    g.add(mk(B(22, 0.3, 30), "#8a5a2b", 0, -0.15, -10));                                 // dock the characters stand on, reaching out over the water
     for (let i = 0; i < 12; i++) g.add(mk(B(22, 0.02, 0.1), "#6b3f1c", 0, 0.01, -4.5 + i * 1.2), ...[-10, 10].map((x) => mk(C(0.22, 0.22, 1.4, 8), "#5a3b1e", x, -0.6, -5 + (i % 6) * 2.4)));
     for (const x of [-9, 9]) g.add(mk(C(0.2, 0.2, 1.6, 8), "#5a3b1e", x, 0.7, -4.6), mk(S(0.28, 8, 6), "#e6c35a", x, 1.5, -4.6));
     for (let i = 0; i < 7; i++) g.add(mk(B(0.9, 0.9, 0.9), "#a8743a", -8 + i * 2.2 + rnd(), 0.45, -3 + rnd() * 1.5, 1, 1, 1, 0, rnd()));   // crates and barrels on the dock
-    for (let i = 0; i < 3; i++) g.add(mk(cone(0.5, 1.1, 5), "#d8c9a8", -60 + i * 40, 0.2, -90, 6, 9, 6));                                   // far islands
+    if (ground) for (let i = 0; i < 3; i++) g.add(mk(cone(0.5, 1.1, 5), "#d8c9a8", -60 + i * 40, 0.2, -90, 6, 9, 6));
     return g;
   }
   if (b === "desert") {

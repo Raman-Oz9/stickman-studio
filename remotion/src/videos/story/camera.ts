@@ -5,6 +5,7 @@
 import * as THREE from "three";
 import { SceneDef, CastDef } from "./types";
 import { DEFAULT_H, canon } from "./props3d";
+import { LOCS } from "./realm";
 
 type Lvl = { d: number; h: number; ly: number; fov: number; c: number };
 const LV: Record<string, Lvl> = {
@@ -139,6 +140,10 @@ const pose = (s: SceneDef, kf: KF) => {
 };
 
 export const camAt = (s: SceneDef, i: number, u: number, t: number, dur = 3): Cam => {
+  if (s.fly) {   // sky flight between two places of the realm: the world slides under a high camera looking along the route
+    const A = LOCS[s.fly.from] ?? LOCS.town, Bq = LOCS[s.fly.to] ?? A, dx = Bq[0] - A[0], dz = Bq[1] - A[1], l = Math.hypot(dx, dz) || 1, ux = dx / l, uz = dz / l, k = u * u * (3 - 2 * u);
+    return { pos: new THREE.Vector3(-ux * 60 + uz * 25 * (1 - k), 95 - 55 * k, -uz * 60 - ux * 25 * (1 - k)), look: new THREE.Vector3(ux * 260, 8 + 20 * k, uz * 260), fov: 62 - 14 * k, roll: 0, cInf: 0 };
+  }
   const segs = segsOf(s, i, dur);
   const g = segs.find((x) => u < x.u1) ?? segs[segs.length - 1];
   const lu = clamp((u - g.u0) / Math.max(1e-4, g.u1 - g.u0));

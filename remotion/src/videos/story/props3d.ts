@@ -7,13 +7,13 @@ import { kitClone, Kit } from "../bridge/build";
 const mats = new Map<string, THREE.Material>();
 const M = (c: string) => { let m = mats.get(c); if (!m) { m = twoTone(new THREE.MeshLambertMaterial({ color: c })); mats.set(c, m); } return m; };
 type G = THREE.BufferGeometry;
-const mk = (g: G, c: string, x = 0, y = 0, z = 0, sx = 1, sy = 1, sz = 1, rx = 0, ry = 0, rz = 0) => {
+export const mk = (g: G, c: string, x = 0, y = 0, z = 0, sx = 1, sy = 1, sz = 1, rx = 0, ry = 0, rz = 0) => {
   const m = new THREE.Mesh(g, M(c)); m.position.set(x, y, z); m.scale.set(sx, sy, sz); m.rotation.set(rx, ry, rz); m.castShadow = true; m.receiveShadow = true; return m;
 };
-const S = (r: number, w = 20, h = 14) => new THREE.SphereGeometry(r, w, h);
-const B = (x: number, y: number, z: number) => new THREE.BoxGeometry(x, y, z);
-const C = (rt: number, rb: number, h: number, n = 20) => new THREE.CylinderGeometry(rt, rb, h, n);
-const grp = (...c: THREE.Object3D[]) => { const g = new THREE.Group(); c.forEach((x) => g.add(x)); return g; };
+export const S = (r: number, w = 20, h = 14) => new THREE.SphereGeometry(r, w, h);
+export const B = (x: number, y: number, z: number) => new THREE.BoxGeometry(x, y, z);
+export const C = (rt: number, rb: number, h: number, n = 20) => new THREE.CylinderGeometry(rt, rb, h, n);
+export const grp = (...c: THREE.Object3D[]) => { const g = new THREE.Group(); c.forEach((x) => g.add(x)); return g; };
 
 const GOLD = "#f5c32c", GOLD2 = "#fbe27a", BROWN = "#8a5a2b", RED = "#e23b3b", GREEN = "#4aa84a", WHITE = "#fff6e6", ORANGE = "#f5a623";
 
@@ -180,6 +180,35 @@ const grenade = () => grp(mk(S(0.5), "#4a5a30", 0, 0.5, 0, 0.8, 1, 0.8), mk(B(0.
 const cannonball = () => grp(mk(S(0.5), "#2a2a30", 0, 0.5, 0));
 const cannon3 = () => withWheels(grp(mk(C(0.3, 0.22, 1.8, 14), "#2a2a30", 0, 0.8, 0, 1, 1, 1, Math.PI / 2), mk(B(0.7, 0.2, 1.1), "#6b3f1c", 0, 0.55, -0.1)), [[0.4, -0.1], [-0.4, -0.1]], 0.36, 0.1);
 const PROC: Record<string, () => THREE.Object3D> = { knife, dagger, katana, axe, spear, trident, mace, club, hammer, torch, bow, arrow, pistol, rifle, shotgun, shield, bomb, grenade, cannonball, cannon3, horse, horsewhite: horseWhite, donkey, camel, elephant, lion, wolf, sheep, deer, rabbit, goat, tiger, bear3, parrot, eagle, duck, owl, penguin, shark, whale, snake, frog, dragon, oldcar, policecar, taxi, truck, bus, tractor, motorbike, bicycle, train, plane, jet, helicopter, rocket, ufo, balloon, sailboat, steamship, submarine, chariot, wagon, tank, canoe, scooter, firetruck, ambulance, coin, coinPile, purse: () => purse(), moneybag: moneyBag, mango, apple, seed, egg, chicken, cow, dog, cat, pig, fish, crown, sword, key, heart, gem, bread, cake, book, phone, flower, fire, car, house, castle, sun, flag };
+
+// ---------------- terrain & buildings ----------------
+export const cone = (r: number, h: number, n = 24) => new THREE.ConeGeometry(r, h, n);
+const mountain = () => grp(mk(cone(3, 4, 7), "#7b7f8e", 0, 2, 0, 1, 1, 1, 0, 0.3), mk(cone(1.1, 1.4, 7), "#f4f7ff", 0, 3.3, 0, 1, 1, 1, 0, 0.3), mk(cone(1.6, 2.2, 6), "#6d7180", 1.7, 1.1, 0.6), mk(cone(1.3, 1.8, 6), "#8a8e9c", -1.8, 0.9, 0.5));
+const hill = () => grp(mk(S(1.6, 24, 12), "#6fbf4a", 0, 0, 0, 1.6, 0.7, 1.3), mk(S(0.35, 10, 8), "#3f8f3a", 0.9, 0.9, 0.5), mk(S(0.3, 10, 8), "#3f8f3a", -0.6, 1.0, 0.2));
+const volcano = () => grp(mk(C(0.7, 2.6, 3.2, 14), "#5a4a47", 0, 1.6, 0), mk(C(0.62, 0.7, 0.2, 14), "#ff6a1a", 0, 3.25, 0), mk(S(0.35, 10, 8), "#ff4a10", 0, 3.4, 0, 1, 0.6, 1), mk(C(0.1, 0.18, 2.4, 8), "#ff7a22", 0.45, 1.8, 1.6, 1, 1, 1, 0.5, 0, 0));
+const pyramid = () => grp(mk(cone(2.6, 3.4, 4), "#e3c27a", 0, 1.7, 0, 1, 1, 1, 0, Math.PI / 4), mk(B(0.5, 0.8, 0.1), "#3a2a1a", 0, 0.4, 1.85));
+const lighthouse = () => grp(mk(C(0.45, 0.7, 3.4, 18), "#f3f0ea", 0, 1.7, 0), mk(C(0.47, 0.6, 0.7, 18), "#d2362e", 0, 1.2, 0), mk(C(0.5, 0.5, 0.3, 18), "#333", 0, 3.5, 0), mk(C(0.32, 0.32, 0.5, 14), "#ffe78a", 0, 3.85, 0), mk(cone(0.5, 0.5, 16), "#d2362e", 0, 4.35, 0));
+const windmill = () => { const g = grp(mk(C(0.5, 0.85, 2.4, 14), "#e8dcc4", 0, 1.2, 0), mk(cone(0.7, 0.8, 14), "#a0522d", 0, 2.8, 0), mk(B(0.4, 0.7, 0.1), "#5a3b2a", 0, 0.4, 0.8)); const arm = new THREE.Group(); arm.position.set(0, 2.5, 0.62); arm.userData.spin = "z"; for (let i = 0; i < 4; i++) { const pv = new THREE.Group(); pv.rotation.z = (i * Math.PI) / 2; pv.add(mk(B(0.32, 1.5, 0.05), "#f2ede0", 0, 0.8, 0)); arm.add(pv); } g.add(arm); return g; };
+const tent = () => grp(mk(cone(1.3, 1.5, 4), "#d9a441", 0, 0.75, 0, 1, 1, 1, 0, Math.PI / 4), mk(B(0.5, 0.8, 0.05), "#3a2a1a", 0, 0.4, 0.92));
+const tower = () => grp(mk(C(0.7, 0.8, 3.6, 16), "#b8bfc9", 0, 1.8, 0), mk(C(0.9, 0.8, 0.4, 16), "#a2aab6", 0, 3.8, 0), mk(cone(1.0, 1.0, 16), "#c0353a", 0, 4.5, 0), mk(B(0.3, 0.5, 0.05), "#2a1830", 0, 2.4, 0.78));
+const temple = () => { const g = grp(mk(B(4, 0.25, 2.6), "#e9e2d2", 0, 0.12, 0), mk(B(3.8, 0.3, 2.4), "#f3eee2", 0, 2.35, 0), mk(cone(2.2, 0.9, 4), "#e9e2d2", 0, 3.0, 0, 1.0, 1, 0.5, 0, Math.PI / 4)); for (let i = -3; i <= 3; i++) for (const z of [-0.95, 0.95]) g.add(mk(C(0.14, 0.16, 2.1, 12), "#f6f1e6", i * 0.55, 1.3, z)); return g; };
+const colosseum = () => { const g = new THREE.Group(); for (let i = 0; i < 20; i++) { const a = (i / 20) * Math.PI * 2; for (let r = 0; r < 3; r++) g.add(mk(B(0.75, 0.9, 0.5), r % 2 ? "#d8c39a" : "#cdb78a", Math.cos(a) * 2.2, 0.45 + r * 0.9, Math.sin(a) * 2.2, 1, 1, 1, 0, -a + Math.PI / 2)); } g.add(mk(C(1.8, 1.8, 0.1, 24), "#d9b36a", 0, 0.05, 0)); return g; };
+const bridgeM = () => grp(mk(B(4, 0.2, 1), "#8a5a2b", 0, 0.7, 0), mk(B(4, 0.08, 0.06), "#6b3f1c", 0, 1.1, 0.45), mk(B(4, 0.08, 0.06), "#6b3f1c", 0, 1.1, -0.45), mk(B(0.3, 0.7, 0.9), "#9aa0ab", -1.7, 0.35, 0), mk(B(0.3, 0.7, 0.9), "#9aa0ab", 1.7, 0.35, 0));
+const piratesail = () => grp(mk(B(0.9, 0.5, 2.6), "#5a3b2a", 0, 0.35, 0, 1, 1, 1, 0, 0), mk(B(0.5, 0.5, 1.2), "#6b4630", 0, 0.8, -1.3), mk(C(0.05, 0.05, 2.6, 8), "#3a2a1a", 0, 1.8, 0.2), mk(B(0.04, 1.4, 1.3), "#f2ecd8", 0.02, 1.9, 0.2), mk(B(0.04, 0.3, 0.4), "#111", 0.05, 3.0, 0.2), mk(cone(0.45, 0.8, 8), "#5a3b2a", 0, 0.4, 1.6, 1, 1, 1, Math.PI / 2, 0, 0));
+const tree = () => grp(mk(C(0.14, 0.2, 1.6, 10), "#7a4b24", 0, 0.8, 0), mk(S(0.9, 14, 10), "#3f9f3f", 0, 2.0, 0), mk(S(0.6, 12, 8), "#52b552", 0.5, 1.6, 0.2), mk(S(0.55, 12, 8), "#52b552", -0.5, 1.7, -0.2));
+const rock = () => grp(mk(new THREE.DodecahedronGeometry(0.8, 0), "#8a8f9c", 0, 0.55, 0, 1.2, 0.8, 1), mk(new THREE.DodecahedronGeometry(0.4, 0), "#9aa0ab", 0.8, 0.25, 0.3));
+
+// ---------------- LLM-designed recipes: new things the planner invents, built from primitives ----------------
+export type Recipe = { h?: number; saddle?: number; fly?: number; parts: { s: string; c: string; p?: number[]; z?: number[]; r?: number[] }[] };
+const geoOf = (s: string): G => s === "sphere" ? S(0.5, 16, 12) : s === "cyl" ? C(0.5, 0.5, 1, 18) : s === "cone" ? cone(0.5, 1, 18) : s === "torus" ? new THREE.TorusGeometry(0.4, 0.1, 8, 20) : s === "pyramid" ? cone(0.7, 1, 4) : B(1, 1, 1);
+export const registerRecipes = (models?: Record<string, Recipe>) => {
+  for (const [name, r] of Object.entries(models ?? {})) {
+    const key = name.toLowerCase().replace(/[^a-z0-9]/g, ""); if (!key || !r?.parts?.length) continue;
+    PROC[key] = () => { const g = new THREE.Group(); for (const q of r.parts.slice(0, 60)) { const z = q.z ?? [1, 1, 1], p = q.p ?? [0, 0, 0], ro = q.r ?? [0, 0, 0]; g.add(mk(geoOf(q.s), /^#[0-9a-f]{3,8}$/i.test(q.c) ? q.c : "#999999", +p[0] || 0, +p[1] || 0, +p[2] || 0, +z[0] || 1, +z[1] || 1, +z[2] || 1, +ro[0] || 0, +ro[1] || 0, +ro[2] || 0)); } return g; };
+    DEFAULT_H[key] = r.h ?? 1; if (r.saddle !== undefined) SADDLE[key] = r.saddle; if (r.fly) FLY[key] = r.fly;
+    ALIAS[key] = key;
+  }
+};
 // Kenney models (the packs download in the workflow): noun -> glb
 const KEN: Record<string, string> = { chest: "chest", barrel: "barrel", crate: "crate", cart: "cart", ship: "ship-medium", pirateship: "ship-pirate-medium", boat: "boat-row-large", fountain: "fountain-round",
   tent: "tent_detailedClosed", campfire: "campfire_logs", statue: "statue_head", rock: "rock_largeA", pumpkin: "crop_pumpkin", carrot: "crop_carrot", melon: "crop_melon", bottle: "bottle", sign: "sign", lantern: "lantern",
@@ -195,7 +224,7 @@ const ALIAS: Record<string, string> = { gun: "pistol", revolver: "pistol", handg
 /** default real-world-ish heights (m) in cartoon proportions, used when the storyboard gives none and for held items */
 export const DEFAULT_H: Record<string, number> = { knife: 0.45, dagger: 0.55, katana: 1.1, axe: 0.9, spear: 1.8, trident: 1.8, mace: 0.8, club: 0.8, hammer: 0.8, torch: 0.7, bow: 1.0, arrow: 0.8, pistol: 0.4, rifle: 1.0, shotgun: 0.9, shield: 0.8, bomb: 0.4, grenade: 0.25, cannonball: 0.3, cannon3: 1.2, horse: 2.2, horsewhite: 2.2, donkey: 1.5, camel: 2.7, elephant: 3.2, lion: 1.3, wolf: 1.1, sheep: 0.9, deer: 1.9, rabbit: 0.5, goat: 1.0, tiger: 1.2, bear3: 1.6, parrot: 0.6, eagle: 0.9, duck: 0.5, owl: 0.6, penguin: 0.8, shark: 1.0, whale: 2.2, snake: 0.6, frog: 0.4, dragon: 3.6,
   oldcar: 1.8, policecar: 1.5, taxi: 1.5, truck: 2.3, bus: 2.5, tractor: 1.9, motorbike: 1.2, bicycle: 1.1, train: 2.7, plane: 2.2, jet: 1.8, helicopter: 2.4, rocket: 5, ufo: 1.4, balloon: 4, sailboat: 3.6, steamship: 3.4, submarine: 1.3, chariot: 1.5, wagon: 1.9, tank: 1.3, canoe: 0.6, scooter: 1.0, firetruck: 2.7, ambulance: 2.3, pirateship: 6, boat: 1.2, coin: 0.3, coinPile: 0.3, purse: 0.34, moneybag: 0.5, mango: 0.26, apple: 0.24, seed: 0.2, egg: 0.2, chicken: 0.7, cow: 1.6, dog: 0.8, cat: 0.5, pig: 0.9, fish: 0.4, crown: 0.4, sword: 1.0, key: 0.4,
-  heart: 0.5, gem: 0.35, bread: 0.3, cake: 0.5, book: 0.3, phone: 0.3, flower: 0.5, fire: 0.9, car: 1.5, house: 5, castle: 8, appletree: 5, tree: 5, chest: 0.7, barrel: 0.9, crate: 0.8, cannon: 1.0, ship: 4 };
+  heart: 0.5, gem: 0.35, bread: 0.3, cake: 0.5, book: 0.3, phone: 0.3, flower: 0.5, fire: 0.9, car: 1.5, house: 8, castle: 14, appletree: 5, tree: 5, chest: 0.7, barrel: 0.9, crate: 0.8, cannon: 1.0, ship: 4 };
 
 /** things that have a front: they face their direction of travel (or sit side-on to the lens) */
 export const GUNS = new Set(["pistol", "rifle", "shotgun"]);
@@ -204,7 +233,9 @@ export const WEAPONS = new Set([...GUNS, ...MELEE, "bow", "shield", "bomb", "gre
 export const ORIENT = new Set(["cannon3", "horse", "horsewhite", "donkey", "camel", "elephant", "lion", "wolf", "sheep", "deer", "rabbit", "goat", "tiger", "bear3", "cow", "dog", "cat", "pig", "chicken", "parrot", "eagle", "duck", "owl", "penguin", "shark", "whale", "snake", "frog", "dragon", "fish",
   "car", "oldcar", "policecar", "taxi", "truck", "bus", "tractor", "motorbike", "bicycle", "train", "plane", "jet", "helicopter", "rocket", "ufo", "sailboat", "steamship", "submarine", "chariot", "wagon", "tank", "canoe", "scooter", "firetruck", "ambulance", "pirateship", "ship", "boat", "cart", "bear"]);
 /** where a rider's hips sit, as a fraction of the mount's height */
-export const SADDLE: Record<string, number> = { horse: 0.6, horsewhite: 0.6, donkey: 0.62, camel: 0.74, elephant: 0.72, car: 0.5, oldcar: 0.52, policecar: 0.5, taxi: 0.5, truck: 0.5, bus: 0.5, tractor: 0.6, motorbike: 0.55, bicycle: 0.58, plane: 0.42, jet: 0.45, helicopter: 0.4, chariot: 0.42, wagon: 0.5, dragon: 0.62, tank: 0.7, scooter: 0.3 };
+export const SADDLE: Record<string, number> = { horse: 0.6, horsewhite: 0.6, donkey: 0.62, camel: 0.74, elephant: 0.72, car: 0.5, oldcar: 0.52, policecar: 0.5, taxi: 0.5, truck: 0.5, bus: 0.5, tractor: 0.6, motorbike: 0.55, bicycle: 0.58, plane: 0.42, jet: 0.45, helicopter: 0.4, chariot: 0.42, wagon: 0.5, dragon: 0.62, tank: 0.7, scooter: 0.3, firetruck: 0.5, ambulance: 0.5, sailboat: 0.45, steamship: 0.55, submarine: 0.6, canoe: 0.35, rocket: 0.5, ufo: 0.5, balloon: 0.3, train: 0.55, lion: 0.62, tiger: 0.62, bear3: 0.65, wolf: 0.6, cow: 0.62, deer: 0.62, goat: 0.6, pig: 0.55, shark: 0.5, whale: 0.55, eagle: 0.5 };
+/** cruising altitude (m) for flying mounts: they lift off when ridden */
+export const FLY: Record<string, number> = { plane: 4, jet: 5, helicopter: 3, rocket: 6, ufo: 3.5, balloon: 4, dragon: 2.5, eagle: 3 };
 const norm = (n: string) => n.trim().toLowerCase().replace(/[^a-z ]+/g, "").replace(/\s+/g, " ");
 export const canon = (name: string, pile = false): string => {
   const n0 = norm(name); if (ALIAS[n0] && (ALIAS[n0] in PROC || ALIAS[n0] in KEN)) return ALIAS[n0];
@@ -252,3 +283,7 @@ export class Props3D {
   }
   end() { for (const [c, list] of this.pool) for (let i = this.used.get(c) ?? 0; i < list.length; i++) list[i].visible = false; }
 }
+
+Object.assign(PROC, { mountain, hill, volcano, pyramid, lighthouse, windmill, tent, tower, temple, colosseum, bridge: bridgeM, piratehut: piratesail, rock, tree3: tree });
+Object.assign(DEFAULT_H, { mountain: 14, hill: 3, volcano: 12, pyramid: 9, lighthouse: 10, windmill: 7, tent: 2.6, tower: 8, temple: 6, colosseum: 7, bridge: 3, piratehut: 5, rock: 1.2, tree3: 4 });
+Object.assign(ALIAS, { mountains: "mountain", peak: "mountain", cliff: "mountain", hills: "hill", mound: "hill", dune: "hill", eruption: "volcano", pyramids: "pyramid", beacon: "lighthouse", mill: "windmill", camp: "tent", turret: "tower", watchtower: "tower", parthenon: "temple", shrine: "temple", arena: "colosseum", stadium: "colosseum", boulder: "rock", stone: "rock", rocks: "rock", bridges: "bridge" });

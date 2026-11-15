@@ -17,6 +17,7 @@ def _roles():
     except Exception:
         return _ROLES_OLD, {}
 ROLES, ROLE_ALIAS = _roles()
+LIBPATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "library", "models.json")
 LIB = ["gold coin","coins","money bag","purse","mango","apple","apple tree","tree","seed","chicken","egg","crown","sword","key","treasure chest","castle","house","bread","cow",
        "dog","cat","car","book","gem","heart","sun","flower","phone","boat","rock","fire","bone","fish","cake","flag"]
 EXPR = ["neutral", "stern", "grin", "laugh", "whistle", "nervous", "shock", "relief", "dazed", "pained", "smile", "smile_closed"]
@@ -44,7 +45,7 @@ RULES. (0) Plan like a film director: each sentence = 1-2 scenes that SHOW the p
 (3) Use the right role for the person named: police, thief, doctor, nurse, chef, teacher, king, queen, pirate, grandma, businessman... Use different roles for different people; give a recurring person the same id/role. Max 3 characters per scene, >=1.2 m apart. Use "v" 0-5 (optional) to vary two people of the same role.
 (4) Camera language: "reveal" = push-in from environment to a character (opening, introductions); "push" = approach a face for emotion; "pull" = start on a face/object and widen; "pan" = two-person exchange; "descend" with shot "high" = overhead establishing;
 "track" = follow a walking/running character sideways (use with act run/walk); "crane" = rise up and over a scene; "tiltup" = look up (tall tree, castle, falling coins); "tiltdown" = look down at the object; when the story is about an object set "focus":"@object".
-Reaction (expr2+at2) triggers a quick push-in and hold: use it for surprise, fear, joke, discovery. Never repeat the same shot type or move twice in a row. Open with a wide shot, use close shots on emotional beats, golden light only for the ending or warm/sad beats."""
+(5) SIZES: scale things to the world (a person is 1.7 m): castle/palace "h" 12-14, house 7-8, tower 8, mountain 14-18, volcano 12, pyramid 9, windmill 7, ship 6-9, tree 4-6. Big things stand behind the actors. (6) INTERIORS: only when the narration is INSIDE a place (inside the palace / throne room, in a cave, in a gold mine, inside a house or kitchen or bedroom, in jail / dungeon) set the scene field "interior" to one of palace|cave|mine|house|jail|shop: the plaza is replaced by an enclosed set with the right furniture, torches, gold, crystals. Outside shots keep the plaza and the castle/house as a big 3D prop. For a SHOP (barber shop, mango seller, blacksmith, padlock seller, bakery, weapon shop, any seller) use interior "shop" plus "shop":"<kind>" and "stock":[3-6 prop names the shop sells: mango, sword, padlock, bread...] so the shelves and counter are full of those real 3D items; when the shop is seen from outside, show the shop as a house prop with a sign. Never use an interior for outdoor sentences. (7) NEW THINGS: if a noun, vehicle, building, animal or weapon is NOT in the known list (the library), design it in the top-level "models" object: {{"models": {{"lighthouse keeper hut": {{"h": 3, "parts": [{{"s": "box|sphere|cyl|cone|torus|pyramid", "c": "#hex", "p": [x,y,z], "z": [sx,sy,sz], "r": [rx,ry,rz]}}, ...8-30 parts]}}}}}}. Unit shapes of size 1 centred at p (y up, +z front), scaled by z; build a recognisable toon model with correct colours; add "saddle" (0-1, rider hip height fraction) if it can be ridden/driven and "fly" (metres) if it flies. Then use its name as a prop/hold/mount like any other. Reaction (expr2+at2) triggers a quick push-in and hold: use it for surprise, fear, joke, discovery. Never repeat the same shot type or move twice in a row. Open with a wide shot, use close shots on emotional beats, golden light only for the ending or warm/sad beats."""
 
 def post(url, headers, body):
     r = urllib.request.Request(url, json.dumps(body).encode(), {"Content-Type": "application/json", **headers})
@@ -182,7 +183,7 @@ def heuristic(script):
         for nm in thg + wpn:
             if nm in used or nm in [p["name"] for p in props] or len(props) >= 4: continue
             if nm == "coins": props.append({"name": "gold coin", "x": 0, "z": 0.5, "h": 0.35, "anim": "fall", "count": 14, "spread": 2.5, "at": 0.15})
-            else: props.append({"name": nm, "x": 1.4 if len(props) % 2 else -1.4, "z": 0.5, "h": 4 if nm in ("castle", "tree", "house") else None, "anim": "pop", "at": 0.15})
+            else: props.append({"name": nm, "x": 1.4 if len(props) % 2 else -1.4, "z": 0.5, "h": {"castle": 13, "house": 7, "tree": 5}.get(nm), "anim": "pop", "at": 0.15})
             props[-1] = {a: b for a, b in props[-1].items() if b is not None}
         words = len(s.split())
         sc = {"dur": round(max(2.4, dur_min, words / 2.7 + 0.5), 1), "shot": "wide" if i == 0 else ("close" if expr in ("shock", "pained", "laugh") and (not scenes or scenes[-1]["shot"] != "close") else ["medium", "over", "low", "medium", "high"][i % 5]),
@@ -220,8 +221,8 @@ def clean(b):
         for p in (s.get("props") or [])[:6]:
             if not isinstance(p, dict) or not p.get("name"): continue
             p["name"] = str(p["name"]).strip().lower(); p["x"] = max(-3.0, min(3.0, float(p.get("x", 0)))); p["z"] = max(-1.5, min(1.5, float(p.get("z", 0.4))))
-            p["h"] = max(0.15, min(7.0, float(p.get("h", 0.7))))
-            if p["h"] >= 3: p["z"] = min(p["z"], -1.0); p["x"] = max(-1.8, min(1.8, p["x"]))      # big things (trees, castle) stand behind the actors
+            p["h"] = max(0.15, min(20.0, float(p.get("h", 0.7))))
+            if p["h"] >= 3: p["z"] = min(p["z"], -3.0 - p["h"] * 0.4); p["x"] = max(-6, min(6, p["x"])) if p["h"] >= 6 else max(-1.8, min(1.8, p["x"]))      # big things (trees, castle) stand behind the actors
             if p.get("anim") not in ("pop", "grow", "bounce", "float", "fall", "spin", "static"): p["anim"] = "pop"
             pr.append(p)
         s["props"] = pr
@@ -250,11 +251,30 @@ def clean(b):
                 dirx = 1 if c["to"]["x"] >= c["x"] else -1
                 dist = min(22.0, 5.5 * float(s.get("dur", 3)) * 0.9)
                 c["to"] = {"x": max(-14, min(14, c["x"] + dirx * dist)), "z": c["to"]["z"]}
+        if str(s.get("interior", "")).lower() not in ("palace", "cave", "mine", "house", "jail", "shop"): s.pop("interior", None)
+        else:
+            s["interior"] = str(s["interior"]).lower()
+            if s["interior"] == "shop":
+                s["shop"] = str(s.get("shop", "shop"))[:30].lower(); s["stock"] = [str(x).lower()[:30] for x in (s.get("stock") or ["bread"])][:6]
+            else: s.pop("shop", None); s.pop("stock", None)
         if s.get("move") not in MOVES: s.pop("move", None)
         if s.get("focus") and not (str(s["focus"]).startswith("@") or s["focus"] in [c["id"] for c in cast]): s.pop("focus", None)
         if s.get("target") not in [c["id"] for c in cast]: s["target"] = cast[0]["id"]
         ok.append(s)
     b["scenes"] = ok
+    lib = {}
+    try: lib = json.load(open(LIBPATH))
+    except Exception: pass
+    new = {}
+    for nm, r in (b.get("models") or {}).items():
+        try:
+            parts = [q for q in r["parts"][:40] if q.get("s") in ("box", "sphere", "cyl", "cone", "torus", "pyramid")]
+            if len(parts) >= 3: new[str(nm).lower()] = {"h": max(0.2, min(20.0, float(r.get("h", 1)))), "parts": parts, **{k: r[k] for k in ("saddle", "fly") if k in r}}
+        except Exception: pass
+    lib.update(new)                                   # the library grows with every video: designed things are reused forever
+    try: os.makedirs(os.path.dirname(LIBPATH), exist_ok=True); json.dump(lib, open(LIBPATH, "w"), indent=1)
+    except Exception: pass
+    b["models"] = lib
     return b
 
 if __name__ == "__main__":

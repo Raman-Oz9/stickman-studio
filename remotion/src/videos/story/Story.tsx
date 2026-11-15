@@ -30,7 +30,7 @@ const fwd = new THREE.Vector3();
 const Inner: React.FC<{ kit: Kit; board: Board }> = ({ kit, board }) => {
   const f = useCurrentFrame();
   const { camera, scene } = useThree();
-  const world = useMemo(() => new StoryWorld(kit), [kit]);
+  const world = useMemo(() => new StoryWorld(kit, board.models), [kit, board]);
   const fx = useMemo(() => ({
     ink: new InkPass(scene, camera as THREE.PerspectiveCamera), lens: new LensBlur({ maxCoC: 24, nearScale: 1.2 }), bloom: makeBloom(),
     tone: new ToneMappingEffect({ mode: ToneMappingMode.NEUTRAL }), grade: new GradeEffect(GRADES.day, GRADE_STRENGTH.day),

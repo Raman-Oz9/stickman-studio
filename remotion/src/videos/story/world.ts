@@ -10,7 +10,8 @@ import { Pool, Actor, Fx, person, blob, lidAt, setLight, Who, Stage, CamInfo, FP
 import { FrontOpts, SideOpts, Expr } from "../bridge/toon";
 import { SceneDef, CastDef, PropDef } from "./types";
 import { STICKERS } from "../bridge/stickers";
-import { Props3D, canon, DEFAULT_H, ORIENT, SADDLE, GUNS, MELEE } from "./props3d";
+import { buildInterior, flicker, INTERIOR_ALIAS, DIM, FOG, InteriorKind } from "./interiors";
+import { Props3D, canon, DEFAULT_H, ORIENT, SADDLE, FLY, GUNS, registerRecipes, Recipe, MELEE } from "./props3d";
 import { outfitFor } from "./outfits";
 import { camAt, focusOf } from "./camera";
 import { Effects } from "./effects";
@@ -22,7 +23,7 @@ export class StoryWorld {
   root = new THREE.Group();
   private pool = new Pool();
   private p3: Props3D;
-  private fxe: Effects; private town: THREE.Object3D[] = []; private plat: THREE.Mesh;
+  private ints = new Map<string, THREE.Group>(); private fxe: Effects; private town: THREE.Object3D[] = []; private plat: THREE.Mesh;
   private actors: Actor[] = [];
   private fxs: Fx[] = [];
   private hemi = new THREE.HemisphereLight("#cfe6ff", "#6c5c8c", 1.1);
@@ -32,9 +33,9 @@ export class StoryWorld {
   private sunCache = new Map<number, THREE.Vector3>();
   private frustum = new THREE.Frustum(); private m4 = new THREE.Matrix4(); private sph = new THREE.Sphere(); private v = new THREE.Vector3();
 
-  constructor(kit: Kit) {
+  constructor(kit: Kit, models?: Record<string, Recipe>) {
     const R = this.root;
-    this.p3 = new Props3D(R, kit); this.fxe = new Effects(R);
+    registerRecipes(models); this.p3 = new Props3D(R, kit); this.fxe = new Effects(R);
     this.plat = new THREE.Mesh(new THREE.CircleGeometry(15, 40), new THREE.MeshLambertMaterial({ color: "#6d5d86" })); this.plat.rotation.x = -Math.PI / 2; this.plat.position.y = 0.01; this.plat.receiveShadow = true; this.plat.visible = false; R.add(this.plat);
     this.skyMat = new THREE.ShaderMaterial({
       uniforms: { c0: { value: new THREE.Color() }, c1: { value: new THREE.Color() }, c2: { value: new THREE.Color() }, c3: { value: new THREE.Color() }, c4: { value: new THREE.Color() }, e: { value: new THREE.Vector4() } },
@@ -96,7 +97,12 @@ export class StoryWorld {
     const c = camAt(cur, i, u, absT, dur);
     const E = this.fxe.update(cur, u, dur, c.pos, c.look, absT);
     if (E.shake > 0.01) { const k = E.shake * 0.28; c.pos.x += Math.sin(absT * 61) * k; c.pos.y += Math.sin(absT * 73 + 1) * k; c.look.x += Math.sin(absT * 53 + 2) * k * 0.6; }
-    this.town.forEach((o) => { o.visible = !E.space; }); this.plat.visible = E.space;
+    const ik = INTERIOR_ALIAS[String(s.interior ?? "").toLowerCase().replace(/[^a-z]/g, "")] as InteriorKind | undefined;
+    const ikey = ik === "shop" ? "shop:" + (s.shop ?? "shop") : ik;
+    if (ik && ikey && !this.ints.has(ikey)) { const g = buildInterior(ik, s.shop ?? "shop"); g.visible = false; this.root.add(g); this.ints.set(ikey, g); }
+    this.ints.forEach((g, k) => { g.visible = k === ikey; if (k === ikey) flicker(g, absT); });
+    if (ik) E.dim = Math.min(E.dim, DIM[ik]);
+    this.town.forEach((o) => { o.visible = !E.space && !ik; }); this.plat.visible = E.space && !ik;
     cam.position.copy(c.pos); cam.up.set(0, 1, 0); cam.lookAt(c.look); cam.rotateZ(c.roll);
     cam.fov = c.fov; cam.near = 0.15; cam.far = 1500; cam.updateProjectionMatrix(); cam.updateMatrixWorld();
     cam.layers.enable(NOINK);
@@ -131,12 +137,18 @@ export class StoryWorld {
     else if (E.dim < 0.95) for (let k = 0; k < 5; k++) (su["c" + k].value as THREE.Color).multiplyScalar(E.dim * 0.8).lerp(new THREE.Color("#4a5468"), 0.35);
     this.sky.position.copy(cam.position);
     untone(L.fog, this.fog.color); this.fog.near = L.fogNear; this.fog.far = L.fogFar; if (E.night) this.fog.color.set(E.space ? "#020410" : "#0b1236"); else if (E.dim < 0.95) this.fog.color.lerp(new THREE.Color("#4a5468"), 0.5); this.fog.near *= E.fogK; this.fog.far *= E.fogK; scene.fog = this.fog; scene.background = null;
+    if (ik) { this.fog.color.set(FOG[ik]); this.fog.near = 18; this.fog.far = 80; }
 
     // ---- cast ----
     const right = new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld, 0);
     const ci: CamInfo = { pos: cam.position, right, sun: sd };
     const st: Stage = { places: [], fx: [] };
     this.p3.begin();
+    if (ik === "shop" && ikey) {   // the shop's goods: real 3D items filling the shelves and counter
+      const slots = (this.ints.get(ikey)!.userData.slots ?? []) as number[][], stock = (s.stock ?? []).filter((n) => this.p3.has(n));
+      if (stock.length) slots.forEach((q, j) => { const nm = stock[(j * 7 + Math.floor(j / 3)) % stock.length], hc = canon(nm), hh = Math.min(0.9, (DEFAULT_H[hc] ?? 0.4) * 0.9); this.p3.put(nm, q[0], q[1], q[2], Math.max(0.25, hh), 1, 0.4 * Math.sin(j), 0); });
+    }
+
     const put = (d: CastDef, idx: number, extra: boolean) => {
       const o = outfitFor(d.role, d.v ?? idx, s.era), who: Who = { i: idx + (extra ? 300 : 0), o, okey: `${d.role}${d.v ?? idx}${s.era ?? ""}` };
       const sc2 = d.scale ?? ROLE_SCALE[d.role] ?? 1;
@@ -171,9 +183,10 @@ export class StoryWorld {
       let rx = pp.x, ry = bob, rz = pp.z;
       if (d.mount && this.p3.has(d.mount)) {   // riding: a real 3D mount under the rider, moving with them; the rider card sits just behind the mount's flank so its body hides the legs
         const mc = canon(d.mount), hm = (DEFAULT_H[mc] ?? 2) * Math.max(0.8, sc2), ang = pp.moving ? Math.atan2(pp.dx, pp.dz) : Math.atan2(right.x, right.z);
-        this.p3.put(d.mount, pp.x, 0, pp.z, hm, 1, ang, 0, false, { dist: pp.dist, t: absT, mv: pp.moving });
+        const lift = (FLY[mc] ?? 0) * Math.min(1, (u * dur) / 1.6) ** 2 * (3 - 2 * Math.min(1, (u * dur) / 1.6));
+        this.p3.put(d.mount, pp.x, lift, pp.z, hm, 1, ang, 0, false, { dist: pp.dist, t: absT, mv: pp.moving || !!FLY[mc] });
         const fx2 = cam.position.x - pp.x, fz2 = cam.position.z - pp.z, fl = Math.hypot(fx2, fz2) || 1;
-        rx = pp.x - (fx2 / fl) * 0.22; rz = pp.z - (fz2 / fl) * 0.22; ry = bob + (SADDLE[mc] ?? 0.55) * hm - 0.92 * sc2;
+        rx = pp.x - (fx2 / fl) * 0.22; rz = pp.z - (fz2 / fl) * 0.22; ry = bob + lift + (SADDLE[mc] ?? 0.55) * hm - 0.92 * sc2;
       }
       st.places.push(person(ci, who, rx, ry, rz, { side, mirror }, fo, so, sc2));
       if (holdOn && has3) {   // the carried item is a real 3D object at the hand; weapons are USED: swings, stabs, aimed shots with recoil, flash and tracer

@@ -33,6 +33,8 @@ export type PropDef = {
 export type SceneDef = {
   era?: string;                   // costume set for generic roles: roman|greek|wildwest|viking|egypt|samurai|pirate|space|ww2|1920s|victorian|arabian|india|prehistoric|china
 
+  shop?: string; stock?: string[];  // interior "shop": what kind of shop, and the goods on its shelves/counter
+  interior?: string;               // palace|cave|mine|house|jail: replaces the plaza with an enclosed interior set (only when the script is inside one)
   env?: ("rain" | "storm" | "snow" | "night" | "space" | "fog" | "wind")[];   // ambient weather / sky for the whole scene
   fx?: { type: "lightning" | "explosion" | "fire" | "smoke" | "sparkle"; at: number; until?: number; x?: number; z?: number; h?: number }[];  // timed effects (fractions of the scene)
   dur: number;                    // seconds
@@ -47,7 +49,7 @@ export type SceneDef = {
   caption?: string;
   narration?: string;
 };
-export type Board = { title: string; scenes: SceneDef[]; stickers?: Record<string, string> };
+export type Board = { title: string; scenes: SceneDef[]; stickers?: Record<string, string>; models?: Record<string, import("./props3d").Recipe> };
 export const FPS = 30;
 export const framesOf = (b: Board) => b.scenes.map((s) => Math.max(1, Math.round(s.dur * FPS)));
 export const totalFrames = (b: Board) => framesOf(b).reduce((a, c) => a + c, 0);

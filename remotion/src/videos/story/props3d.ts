@@ -302,3 +302,13 @@ Object.assign(ALIAS, { spade: "shovel", mug: "cup", glass: "cup", pail: "bucket"
 const pad = () => grp(mk(B(0.72, 1, 0.06), "#f4efe4", 0, 0.5, 0), mk(B(0.72, 0.08, 0.07), "#2b5cb8", 0, 1.0, 0), ...[0.25, 0.4, 0.55, 0.7].map((y) => mk(B(0.5, 0.012, 0.065), "#9ab", 0, y, 0.001)));
 Object.assign(PROC, { pad }); Object.assign(DEFAULT_H, { pad: 0.4 }); Object.assign(ALIAS, { notebook: "pad", paper: "pad", letter: "pad", scroll: "pad" });
 Object.assign(ALIAS, { cave: "mountain", caves: "mountain", mine: "mountain", ravine: "mountain", canyon: "mountain" });
+// pirate galleon: curved hull, three masts with square sails, skull flag, cannons, bowsprit (long axis +z = bow)
+const galleon = () => {
+  const g = grp(mk(B(1.5, 0.7, 4.6), "#6b4630", 0, 0.45, 0), mk(B(1.3, 0.2, 4.4), "#8a5a2b", 0, 0.88, 0), mk(B(1.2, 0.8, 1.1), "#5a3b2a", 0, 1.2, -1.8), mk(B(1.0, 0.5, 0.9), "#6b4630", 0, 0.95, 1.8), mk(cone(0.6, 1.1, 6), "#6b4630", 0, 0.4, 2.8, 1, 1, 1, Math.PI / 2), mk(C(0.04, 0.04, 1.6, 6), "#3a2a1a", 0, 1.1, 3.4, 1, 1, 1, 1.2, 0, 0));
+  for (const [z, h] of [[1.2, 3.6], [-0.2, 4.2], [-1.4, 3.2]] as [number, number][]) g.add(mk(C(0.05, 0.06, h, 7), "#3a2a1a", 0, h / 2 + 0.8, z), mk(B(1.5, 1.0, 0.05), "#f4ecd2", 0, h * 0.62 + 0.8, z + 0.08), mk(B(1.2, 0.8, 0.05), "#eadfbd", 0, h * 0.9 + 0.5, z + 0.08), mk(B(1.6, 0.06, 0.06), "#3a2a1a", 0, h * 0.62 + 1.3, z));
+  g.add(mk(B(0.04, 0.5, 0.7), "#161616", 0.03, 5.15, -0.2), mk(S(0.12, 8, 6), "#f4f4f4", 0.06, 5.2, -0.2));
+  for (const x of [-0.78, 0.78]) for (const z of [-1, 0, 1]) g.add(mk(C(0.1, 0.12, 0.5, 8), "#222", x, 0.75, z, 1, 1, 1, 0, 0, Math.PI / 2));
+  return g;
+};
+Object.assign(PROC, { galleon }); Object.assign(DEFAULT_H, { galleon: 5.4 }); Object.assign(SADDLE, { galleon: 0.17, steamship: 0.2, sailboat: 0.3, canoe: 0.3 });
+Object.assign(ALIAS, { ship: "galleon", pirateship: "galleon", piratesship: "galleon", boat: "galleon", vessel: "galleon", frigate: "galleon", warship: "galleon" });

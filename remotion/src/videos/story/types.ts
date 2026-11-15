@@ -34,6 +34,7 @@ export type PropDef = {
 export type SceneDef = {
   era?: string;                   // costume set for generic roles: roman|greek|wildwest|viking|egypt|samurai|pirate|space|ww2|1920s|victorian|arabian|india|prehistoric|china
 
+  biome?: string; season?: string; tod?: string;   // terrain (desert|ice|forest|ocean|swamp|savanna|mountain|jungle|farm), season (spring|summer|autumn|winter), time of day (dawn|noon|dusk|night)
   shop?: string; stock?: string[];  // interior "shop": what kind of shop, and the goods on its shelves/counter
   interior?: string;               // palace|cave|mine|house|jail: replaces the plaza with an enclosed interior set (only when the script is inside one)
   env?: ("rain" | "storm" | "snow" | "night" | "space" | "fog" | "wind")[];   // ambient weather / sky for the whole scene

@@ -11,6 +11,7 @@ import { FrontOpts, SideOpts, Expr } from "../bridge/toon";
 import { SceneDef, CastDef, PropDef } from "./types";
 import { STICKERS } from "../bridge/stickers";
 import { createAction, updateAction, handTarget, propBase, ballistic, Action, ActionType } from "./actions";
+import { buildBiome, waveBob, BIOMES, FOGB, Biome, Season } from "./terrain";
 import { buildInterior, flicker, INTERIOR_ALIAS, DIM, FOG, InteriorKind } from "./interiors";
 import { Props3D, canon, DEFAULT_H, ORIENT, SADDLE, FLY, GUNS, registerRecipes, Recipe, CLOSED, MELEE } from "./props3d";
 import { outfitFor } from "./outfits";
@@ -84,7 +85,7 @@ export class StoryWorld {
 
   /** pose everything for scene `s` (index i) at local frame lf of n; returns the camera focus point */
   update(s: SceneDef, i: number, lf: number, n: number, cam: THREE.PerspectiveCamera, scene: THREE.Scene, absT: number) {
-    const light = s.light ?? "day", L = LIGHTS[light], K = LOOK[light];
+    const light = s.light ?? (s.tod === "dawn" || s.tod === "dusk" ? "golden" : "day"), L = LIGHTS[light], K = LOOK[light];
     const u = n > 1 ? lf / (n - 1) : 0, t = lf / FPS;
     const dur = n / FPS;
     const posOf = (d: CastDef) => {
@@ -96,6 +97,7 @@ export class StoryWorld {
     const propAt = (pd: PropDef) => { if (!pd.to) return { x: pd.x, z: pd.z }; const a0 = pd.at ?? 0, k = Math.min(1, Math.max(0, (u - a0) / Math.max(0.05, Math.min(pd.until ?? 1, 1) - a0))); return { x: pd.x + (pd.to.x - pd.x) * k, z: pd.z + (pd.to.z - pd.z) * k }; };
     const cur: SceneDef = { ...s, cast: s.cast.map((d) => { const p = posOf(d); return { ...d, x: p.x, z: p.z }; }), props: (s.props ?? []).map((pd) => ({ ...pd, ...propAt(pd), to: undefined })) };
     const c = camAt(cur, i, u, absT, dur);
+    { const ev = new Set<string>(((cur as SceneDef).env ?? []) as string[]); if (s.tod === "night") ev.add("night"); if (s.season === "winter" && BIOMES[String(s.biome ?? "").toLowerCase()] !== "desert") ev.add("snow"); (cur as SceneDef).env = [...ev] as SceneDef["env"]; }
     const E = this.fxe.update(cur, u, dur, c.pos, c.look, absT);
     if (E.shake > 0.01) { const k = E.shake * 0.28; c.pos.x += Math.sin(absT * 61) * k; c.pos.y += Math.sin(absT * 73 + 1) * k; c.look.x += Math.sin(absT * 53 + 2) * k * 0.6; }
     const ik = INTERIOR_ALIAS[String(s.interior ?? "").toLowerCase().replace(/[^a-z]/g, "")] as InteriorKind | undefined;
@@ -103,7 +105,10 @@ export class StoryWorld {
     if (ik && ikey && !this.ints.has(ikey)) { const g = buildInterior(ik, s.shop ?? "shop"); g.visible = false; this.root.add(g); this.ints.set(ikey, g); }
     this.ints.forEach((g, k) => { g.visible = k === ikey; if (k === ikey) flicker(g, absT); });
     if (ik) E.dim = Math.min(E.dim, DIM[ik]);
-    this.town.forEach((o) => { o.visible = !E.space && !ik; }); this.plat.visible = E.space && !ik;
+    const bk = BIOMES[String(s.biome ?? "").toLowerCase().replace(/[^a-z]/g, "")] as Biome | undefined, bkey = bk ? bk + ":" + (s.season ?? "summer") : "";
+    if (bk && !this.ints.has(bkey)) { const g = buildBiome(bk, (s.season ?? "summer") as Season); g.visible = false; this.root.add(g); this.ints.set(bkey, g); }
+    this.ints.forEach((g, k) => { if (k.includes(":") && !k.startsWith("shop:")) { g.visible = k === bkey && !ik; if (g.visible) waveBob(g, absT); } });
+    this.town.forEach((o) => { o.visible = !E.space && !ik && !bk; }); this.plat.visible = E.space && !ik && !bk;
     cam.position.copy(c.pos); cam.up.set(0, 1, 0); cam.lookAt(c.look); cam.rotateZ(c.roll);
     cam.fov = c.fov; cam.near = 0.15; cam.far = 1500; cam.updateProjectionMatrix(); cam.updateMatrixWorld();
     cam.layers.enable(NOINK);
@@ -138,6 +143,7 @@ export class StoryWorld {
     else if (E.dim < 0.95) for (let k = 0; k < 5; k++) (su["c" + k].value as THREE.Color).multiplyScalar(E.dim * 0.8).lerp(new THREE.Color("#4a5468"), 0.35);
     this.sky.position.copy(cam.position);
     untone(L.fog, this.fog.color); this.fog.near = L.fogNear; this.fog.far = L.fogFar; if (E.night) this.fog.color.set(E.space ? "#020410" : "#0b1236"); else if (E.dim < 0.95) this.fog.color.lerp(new THREE.Color("#4a5468"), 0.5); this.fog.near *= E.fogK; this.fog.far *= E.fogK; scene.fog = this.fog; scene.background = null;
+    if (bk && !ik) { this.fog.color.set(FOGB[bk]); this.fog.near = bk === "swamp" ? 8 : 40; this.fog.far = bk === "swamp" ? 110 : 420; }
     if (ik) { this.fog.color.set(FOG[ik]); this.fog.near = 18; this.fog.far = 80; }
 
     // ---- cast ----
@@ -200,7 +206,7 @@ export class StoryWorld {
             this.p3.put(A.prop, bp.x, Math.max(0, bp.y), bp.z, A.propSize, 1, face, t0 * 9, false, { dist: 0, t: absT, mv: false });
           } else this.p3.put(A.prop, pb.x, pb.y, pb.z, A.propSize, 1, face, 0, false, { dist: 0, t: absT, mv: false, rx: 0, rz: -dsd * A.propTilt(tk.progress) });
         }
-        if (A.extra?.paper && this.p3.has("pad")) { const c0 = A.contactCurve[0]; this.p3.put("pad", c0.x, c0.y - 0.3, c0.z + 0.05, 0.4, 1, Math.atan2(cam.position.x - pp.x, cam.position.z - pp.z), 0, false, { dist: 0, t: absT, mv: false, rx: -0.5, rz: 0 }); }
+        if (A.extra?.paper && this.p3.has("pad")) { const c0 = A.contactCurve[0]; { const sg = Math.sign((c0.x - pp.x) * right.x + (c0.z - pp.z) * right.z) || 1; this.p3.put("pad", c0.x + right.x * sg * 0.32, c0.y - 0.42, c0.z + right.z * sg * 0.32, 0.4, 1, Math.atan2(cam.position.x - pp.x, cam.position.z - pp.z), 0, false, { dist: 0, t: absT, mv: false, rx: -0.5, rz: 0 }); } }
         if (A.extra?.dirt && this.p3.has("hill")) { const k = Math.max(0, (tk.progress - 0.35) / 0.65); if (k > 0.02) this.p3.put("hill", (tgp?.x ?? pp.x + 0.8) + 0.7, 0, tgp?.z ?? pp.z, 0.12 + 0.45 * k, 1, 0, 0); }
       }
       let rx = pp.x, ry = bob, rz = pp.z;

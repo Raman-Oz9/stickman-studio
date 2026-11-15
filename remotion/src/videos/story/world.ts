@@ -200,7 +200,7 @@ export class StoryWorld {
             this.p3.put(A.prop, bp.x, Math.max(0, bp.y), bp.z, A.propSize, 1, face, t0 * 9, false, { dist: 0, t: absT, mv: false });
           } else this.p3.put(A.prop, pb.x, pb.y, pb.z, A.propSize, 1, face, 0, false, { dist: 0, t: absT, mv: false, rx: 0, rz: -dsd * A.propTilt(tk.progress) });
         }
-        if (A.extra?.paper && this.p3.has("book")) { const c0 = A.contactCurve[0]; this.p3.put("book", c0.x, c0.y - 0.12, c0.z + 0.05, 0.3, 1, Math.atan2(cam.position.x - pp.x, cam.position.z - pp.z), 0, false, { dist: 0, t: absT, mv: false, rx: -0.5, rz: 0 }); }
+        if (A.extra?.paper && this.p3.has("pad")) { const c0 = A.contactCurve[0]; this.p3.put("pad", c0.x, c0.y - 0.3, c0.z + 0.05, 0.4, 1, Math.atan2(cam.position.x - pp.x, cam.position.z - pp.z), 0, false, { dist: 0, t: absT, mv: false, rx: -0.5, rz: 0 }); }
         if (A.extra?.dirt && this.p3.has("hill")) { const k = Math.max(0, (tk.progress - 0.35) / 0.65); if (k > 0.02) this.p3.put("hill", (tgp?.x ?? pp.x + 0.8) + 0.7, 0, tgp?.z ?? pp.z, 0.12 + 0.45 * k, 1, 0, 0); }
       }
       let rx = pp.x, ry = bob, rz = pp.z;

@@ -299,3 +299,5 @@ const pickaxe = () => grp(mk(C(0.04, 0.04, 1.2, 8), "#8a5a2b", 0, 0.6, 0), mk(B(
 Object.assign(PROC, { shovel, spade: shovel, pen, cup, mug: cup, ball, bucket, pickaxe });
 Object.assign(DEFAULT_H, { shovel: 1.3, pen: 0.25, cup: 0.25, ball: 0.3, bucket: 0.4, pickaxe: 1.2 });
 Object.assign(ALIAS, { spade: "shovel", mug: "cup", glass: "cup", pail: "bucket", football: "ball" });
+const pad = () => grp(mk(B(0.72, 1, 0.06), "#f4efe4", 0, 0.5, 0), mk(B(0.72, 0.08, 0.07), "#2b5cb8", 0, 1.0, 0), ...[0.25, 0.4, 0.55, 0.7].map((y) => mk(B(0.5, 0.012, 0.065), "#9ab", 0, y, 0.001)));
+Object.assign(PROC, { pad }); Object.assign(DEFAULT_H, { pad: 0.4 }); Object.assign(ALIAS, { notebook: "pad", paper: "pad", letter: "pad", scroll: "pad" });

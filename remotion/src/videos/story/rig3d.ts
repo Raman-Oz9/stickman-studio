@@ -77,7 +77,7 @@ void HAT; void flat;
 
 const MAP: [RegExp, string][] = [
   [/police|sheriff|cop|officer|guard|detective|marshal|ranger/, "j"], [/pirate|captain|sailor|buccaneer/, "p"], [/ninja|assassin|spy/, "r"], [/thief|robber|bandit|burglar|criminal|outlaw|crook|smuggler/, "r"],
-  [/businessman|banker|boss|manager|lawyer|politician|president|mayor|agent|accountant|ceo|judge|governor/, "q"], [/scientist|doctor|teacher|professor|elder|\\bold\\b|grand|wizard|sage|priest|imam|monk|inventor|engineer/, "i"],
+  [/businessman|banker|boss|manager|lawyer|politician|president|mayor|agent|accountant|ceo|judge|governor/, "q"], [/scientist|doctor|teacher|professor|elder|\bold\b|grand|wizard|sage|priest|imam|monk|inventor|engineer/, "i"],
   [/zombie|ghost|undead|vampire|skeleton/, "l"], [/monster|orc|troll|ogre|goblin|demon|beast|giant/, "o"], [/robot|android|machine|cyborg|ai\b/, "gh"], [/dummy/, "d"],
   [/girl|woman|lady|mother|mom|wife|queen|princess|nurse|maid|sister|daughter|aunt|female|witch|bride|waitress|she/, "efn"], [/soldier|knight|warrior|army|hunter|explorer|adventurer|archer|general/, "mk"],
   [/king|emperor|pharaoh|sultan|chief|lord|prince/, "ak"], [/kid|boy|child|son|student/, "bc"], [/gamer|nerd|clerk|merchant|seller|trader|shopkeeper|vendor|baker|cook|chef/, "ck"], [/farmer|peasant|villager|worker|miner|builder|driver|pilot|man|guy|fisher/, "bkcam"],

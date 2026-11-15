@@ -503,7 +503,18 @@ const BUILD: Record<Build, { a: number; torso: number; legs: number; tw: number 
   kid: { a: 112, torso: 0.85, legs: 1.0, tw: 0.72 },
 };
 
+
+/** action reach: two-bone IK in the card plane so a hand lands exactly on a contact point given in metres (x right of the body, y above the ground) */
+export type Reach = { side: -1 | 1; x: number; y: number };
+const reachArm = (S: P2, r: Reach, sole: number, top: number, total: number): [P2, P2, P2] => {
+  const ppm = (sole - top) / 1.75, tx = 300 + r.x * ppm, ty = sole - r.y * ppm, l1 = total * 0.5, l2 = total * 0.5;
+  let dx = tx - S[0], dy = ty - S[1], d = Math.hypot(dx, dy) || 1e-6; const mx = (l1 + l2) * 0.999;
+  if (d > mx) { dx *= mx / d; dy *= mx / d; d = mx; }
+  const a = (l1 * l1 - l2 * l2 + d * d) / (2 * d), h = Math.sqrt(Math.max(0, l1 * l1 - a * a)), px = S[0] + (dx / d) * a, py = S[1] + (dy / d) * a;
+  return [S, [px - (dy / d) * h * r.side, py + (dx / d) * h * r.side], [S[0] + dx, S[1] + dy]];
+};
 export type FrontOpts = {
+  reach?: Reach[];
   phase?: number; expr?: Expr; mode?: "march" | "stroll" | "stand" | "sit" | "fall"; look?: number; blink?: boolean | number; lift?: number;
   prop?: Prop; tilt?: number; headTilt?: number; wave?: number; cheer?: number; point?: -1 | 1;
   /** canvas angle the key light comes FROM (painted crescent + thick outline side) */
@@ -610,6 +621,7 @@ export const bodyFront = (p: Pen, o: Outfit, opts: FrontOpts) => {
       arms.push({ pts: [S, E, Hd], front: true });
     } else arms.push({ pts: hang(1, sw), front: false });
   }
+  if (opts.reach?.length) for (const r of opts.reach) { const S0 = sh(r.side), pts = reachArm(S0, r, sole, crown, 0.95 * HH), i = r.side < 0 ? 0 : arms.length - 1; arms[Math.max(0, i)] = { pts, front: true }; }
   const drawArm = (a: Arm) => { p.stroke(curve(a.pts[0], a.pts[1], a.pts[2]), 5.2 * u, armCol); p.dot(a.pts[2][0], a.pts[2][1], 5.5 * u); };
   // behind the body: rifle, sword, arms
   if (rifle) {
@@ -689,6 +701,7 @@ export const bodyFront = (p: Pen, o: Outfit, opts: FrontOpts) => {
 };
 
 export type SideOpts = {
+  reach?: Reach[];
   phase?: number; expr?: Expr; mode?: "march" | "stand" | "swing" | "push"; blink?: boolean | number; stomp?: number; pose?: number;
   /** step length as a multiple of 0.8 m (370 units): matches 1.6 m/s at 2 steps/s; scale by the view's foreshortening */
   stride?: number; light?: number; seed?: number;
@@ -788,6 +801,7 @@ export const bodySide = (p: Pen, o: Outfit, opts: SideOpts) => {
     far = [S, [(S[0] + hN[0]) / 2 - 4 * u, (S[1] + hN[1]) / 2 - 0.02 * HH], [hN[0] - 6 * u, hN[1] - 0.08 * HH]];
   } else if (rifle) { near = [S, [S[0] - 4 * u, S[1] + 0.42 * HH], B0]; far = mode === "march" ? swingArm(rad(30) * nearFwd) : swingArm(0); }
   else { near = swingArm(rad(-30) * nearFwd); far = mode === "march" ? swingArm(rad(30) * nearFwd) : null; }
+  if (opts.reach?.length) { near = reachArm(S, opts.reach[0], sole, chin - HH, aLen); if (opts.reach[1]) far = reachArm(S, opts.reach[1], sole, chin - HH, aLen); }
   const heldIm = opts.held ? true : undefined;   // carry pose for any held item (drawn as a 3D prop by the world)
   if (heldIm) near = [S, [S[0] + 12 * u, S[1] + 0.4 * HH], [S[0] + 0.42 * HH, S[1] + 0.36 * HH]];
   if (far) { p.stroke(curve(far[0], far[1], far[2]), 5.2 * u, farArm); p.dot(far[2][0], far[2][1], 5.5 * u); }

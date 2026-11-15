@@ -10,6 +10,7 @@ import { Pool, Actor, Fx, person, blob, lidAt, setLight, Who, Stage, CamInfo, FP
 import { FrontOpts, SideOpts, Expr } from "../bridge/toon";
 import { SceneDef, CastDef, PropDef } from "./types";
 import { STICKERS } from "../bridge/stickers";
+import { createAction, updateAction, handTarget, propBase, ballistic, Action, ActionType } from "./actions";
 import { buildInterior, flicker, INTERIOR_ALIAS, DIM, FOG, InteriorKind } from "./interiors";
 import { Props3D, canon, DEFAULT_H, ORIENT, SADDLE, FLY, GUNS, registerRecipes, Recipe, CLOSED, MELEE } from "./props3d";
 import { outfitFor } from "./outfits";
@@ -23,7 +24,7 @@ export class StoryWorld {
   root = new THREE.Group();
   private pool = new Pool();
   private p3: Props3D;
-  private ints = new Map<string, THREE.Group>(); private fxe: Effects; private town: THREE.Object3D[] = []; private plat: THREE.Mesh;
+  private ints = new Map<string, THREE.Group>(); private acts = new Map<string, Action>(); private fxe: Effects; private town: THREE.Object3D[] = []; private plat: THREE.Mesh;
   private actors: Actor[] = [];
   private fxs: Fx[] = [];
   private hemi = new THREE.HemisphereLight("#cfe6ff", "#6c5c8c", 1.1);
@@ -180,6 +181,27 @@ export class StoryWorld {
       if (d.act === "point") fo.point = (look >= 0 ? 1 : -1) as 1 | -1;
       if (d.act === "nod") fo.headTilt = Math.round(7 * Math.sin(absT * 5));
       const so: SideOpts = { mode: pp.moving ? "march" : "stand", phase: pp.moving && d.act === "run" ? pp.dist / 1.25 : phase, expr, stomp: d.act === "run" ? 1.6 : 0.4, stride: d.act === "run" ? 1.3 : 0.9, held: holdOn ? { name: d.hold!, s: 150 } : undefined };
+      if (d.do && !d.mount) {   // ---- universal physical action: the world contact point is the master, the hand IK and the 3D prop follow it ----
+        const key = `${i}:${d.id}`, tg = d.do.to ?? "", tgp = tg.startsWith("@") ? (cur.props ?? []).find((q) => q.name === tg.slice(1).toLowerCase()) : cur.cast.find((q) => q.id === tg);
+        let A = this.acts.get(key);
+        if (!A) {
+          const toV = tgp ? new THREE.Vector3(tgp.x, 0, tgp.z) : new THREE.Vector3(d.do.x ?? pp.x + 0.8 * (look >= 0 ? 1 : -1), 0, d.do.z ?? pp.z), fromV = new THREE.Vector3(pp.x, 0, pp.z);
+          A = createAction(d.do.type as ActionType, { start: (d.do.at ?? 0.1) * dur, dur: (d.do.dur ?? dur * 0.8), from: fromV, to: toV, prop: d.do.prop });
+          this.acts.set(key, A);
+        }
+        const tk = updateAction(A, u * dur), body = new THREE.Vector3(pp.x, 0, pp.z), mir = side && mirror ? -1 : 1, grip = A.gripOffsets.right;
+        const ht = handTarget(tk.contact, body, right, grip as [number, number] | undefined, mir), dsd = (ht.x >= 0 ? 1 : -1) as 1 | -1;
+        const rc = A.hands === "both" ? [{ side: -1 as const, x: ht.x - 0.08, y: ht.y }, { side: 1 as const, x: ht.x + 0.08, y: ht.y - 0.04 }] : [{ side: dsd, x: ht.x, y: ht.y }];
+        fo.reach = rc; so.reach = rc; fo.headTilt = Math.round(5 * (tk.active ? 1 : 0));
+        if (A.prop && this.p3.has(A.prop)) {
+          const face = Math.atan2(cam.position.x - pp.x, cam.position.z - pp.z), pb = propBase(A, tk.contact);
+          if (A.released && A.released(tk.progress)) {   // thrown: free flight along a ballistic arc toward the target
+            const dir = new THREE.Vector3(tgp ? tgp.x - pp.x : 1, 0, tgp ? tgp.z - pp.z : 0).normalize(), t0 = (tk.progress - 0.55) * A.duration, bp = ballistic(tk.contact, dir.multiplyScalar(7).setY(3.2), t0);
+            this.p3.put(A.prop, bp.x, Math.max(0, bp.y), bp.z, A.propSize, 1, face, t0 * 9, false, { dist: 0, t: absT, mv: false });
+          } else this.p3.put(A.prop, pb.x, pb.y, pb.z, A.propSize, 1, face, 0, false, { dist: 0, t: absT, mv: false, rx: 0, rz: -dsd * A.propTilt(tk.progress) });
+        }
+        if (A.extra?.dirt && this.p3.has("hill")) { const k = Math.max(0, (tk.progress - 0.35) / 0.65); if (k > 0.02) this.p3.put("hill", (tgp?.x ?? pp.x + 0.8) + 0.7, 0, tgp?.z ?? pp.z, 0.12 + 0.45 * k, 1, 0, 0); }
+      }
       let rx = pp.x, ry = bob, rz = pp.z;
       if (d.mount && this.p3.has(d.mount)) {   // riding: a real 3D mount under the rider, moving with them; the rider card sits just behind the mount's flank so its body hides the legs
         const mc = canon(d.mount), hm = (DEFAULT_H[mc] ?? 2) * Math.max(0.8, sc2), ang = pp.moving ? Math.atan2(pp.dx, pp.dz) : Math.atan2(right.x, right.z);

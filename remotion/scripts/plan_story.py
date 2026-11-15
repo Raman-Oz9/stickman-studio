@@ -45,7 +45,7 @@ RULES. (0) Plan like a film director: each sentence = 1-2 scenes that SHOW the p
 (3) Use the right role for the person named: police, thief, doctor, nurse, chef, teacher, king, queen, pirate, grandma, businessman... Use different roles for different people; give a recurring person the same id/role. Max 3 characters per scene, >=1.2 m apart. Use "v" 0-5 (optional) to vary two people of the same role.
 (4) Camera language: "reveal" = push-in from environment to a character (opening, introductions); "push" = approach a face for emotion; "pull" = start on a face/object and widen; "pan" = two-person exchange; "descend" with shot "high" = overhead establishing;
 "track" = follow a walking/running character sideways (use with act run/walk); "crane" = rise up and over a scene; "tiltup" = look up (tall tree, castle, falling coins); "tiltdown" = look down at the object; when the story is about an object set "focus":"@object".
-(5) SIZES: scale things to the world (a person is 1.7 m): castle/palace "h" 12-14, house 7-8, tower 8, mountain 14-18, volcano 12, pyramid 9, windmill 7, ship 6-9, tree 4-6. Big things stand behind the actors. (6) INTERIORS: only when the narration is INSIDE a place (inside the palace / throne room, in a cave, in a gold mine, inside a house or kitchen or bedroom, in jail / dungeon) set the scene field "interior" to one of palace|cave|mine|house|jail|shop: the plaza is replaced by an enclosed set with the right furniture, torches, gold, crystals. Outside shots keep the plaza and the castle/house as a big 3D prop. For a SHOP (barber shop, mango seller, blacksmith, padlock seller, bakery, weapon shop, any seller) use interior "shop" plus "shop":"<kind>" and "stock":[3-6 prop names the shop sells: mango, sword, padlock, bread...] so the shelves and counter are full of those real 3D items; when the shop is seen from outside, show the shop as a house prop with a sign. Never use an interior for outdoor sentences. (7) NEW THINGS: if a noun, vehicle, building, animal or weapon is NOT in the known list (the library), design it in the top-level "models" object: {{"models": {{"lighthouse keeper hut": {{"h": 3, "parts": [{{"s": "box|sphere|cyl|cone|torus|pyramid", "c": "#hex", "p": [x,y,z], "z": [sx,sy,sz], "r": [rx,ry,rz]}}, ...8-30 parts]}}}}}}. Unit shapes of size 1 centred at p (y up, +z front), scaled by z; build a recognisable toon model with correct colours; add "saddle" (0-1, rider hip height fraction) if it can be ridden/driven and "fly" (metres) if it flies. Then use its name as a prop/hold/mount like any other. Reaction (expr2+at2) triggers a quick push-in and hold: use it for surprise, fear, joke, discovery. Never repeat the same shot type or move twice in a row. Open with a wide shot, use close shots on emotional beats, golden light only for the ending or warm/sad beats."""
+(5) SIZES: scale things to the world (a person is 1.7 m): castle/palace "h" 12-14, house 7-8, tower 8, mountain 14-18, volcano 12, pyramid 9, windmill 7, ship 6-9, tree 4-6. Big things stand behind the actors. (6) INTERIORS: only when the narration is INSIDE a place (inside the palace / throne room, in a cave, in a gold mine, inside a house or kitchen or bedroom, in jail / dungeon) set the scene field "interior" to one of palace|cave|mine|house|jail|shop: the plaza is replaced by an enclosed set with the right furniture, torches, gold, crystals. Outside shots keep the plaza and the castle/house as a big 3D prop. For a SHOP (barber shop, mango seller, blacksmith, padlock seller, bakery, weapon shop, any seller) use interior "shop" plus "shop":"<kind>" and "stock":[3-6 prop names the shop sells: mango, sword, padlock, bread...] so the shelves and counter are full of those real 3D items; when the shop is seen from outside, show the shop as a house prop with a sign. Never use an interior for outdoor sentences. (7) NEW THINGS: if a noun, vehicle, building, animal or weapon is NOT in the known list (the library), design it in the top-level "models" object: {{"models": {{"lighthouse keeper hut": {{"h": 3, "parts": [{{"s": "box|sphere|cyl|cone|torus|pyramid", "c": "#hex", "p": [x,y,z], "z": [sx,sy,sz], "r": [rx,ry,rz]}}, ...8-30 parts]}}}}}}. Unit shapes of size 1 centred at p (y up, +z front), scaled by z; build a recognisable toon model with correct colours; add "saddle" (0-1, rider hip height fraction) if it can be ridden/driven and "fly" (metres) if it flies. Then use its name as a prop/hold/mount like any other. (8) PHYSICAL ACTIONS: when a character writes, digs, drinks, throws, places/sets down, hands over, pushes, pulls, opens, leans on or climbs something, set on that cast member "do":{{"type":"write|dig|drink|throw|place|handOver|push|pull|open|lean|climb","at":0.1-0.5,"dur":seconds,"prop":"<tool or item: pen, shovel, cup, ball...>","to":"@<prop name>|<cast id>"}} (the hand really touches the surface/object and the prop is shown). Do not combine with act run or mount. Reaction (expr2+at2) triggers a quick push-in and hold: use it for surprise, fear, joke, discovery. Never repeat the same shot type or move twice in a row. Open with a wide shot, use close shots on emotional beats, golden light only for the ending or warm/sad beats."""
 
 def post(url, headers, body):
     r = urllib.request.Request(url, json.dumps(body).encode(), {"Content-Type": "application/json", **headers})
@@ -224,6 +224,25 @@ def enrich(b):
                 if s.get("move") not in ("track",): s["move"] = "track"
     return b
 
+ACTV = [("dig", r"\b(dug|dig|digging)\b", "shovel"), ("write", r"\b(wrote|write|writing|signed)\b", "pen"), ("drink", r"\b(drank|drink|drinking|sipped)\b", "cup"), ("throw", r"\b(threw|throw|throwing|tossed|hurled)\b", None), ("handOver", r"\b(handed|gave|passed him|passed her)\b", None), ("place", r"\b(placed|set down|put down|laid|put the)\b", None), ("open", r"\bopened the (door|gate|chest|box)\b", None), ("push", r"\bpushed\b", None), ("pull", r"\bpulled\b", None), ("lean", r"\bleaned\b", None), ("climb", r"\bclimbed\b", None)]
+def enrich_actions(b):
+    for s in b.get("scenes", []):
+        t = (s.get("caption") or "").lower(); cast = s.get("cast") or []
+        if not cast or any(c.get("do") or c.get("mount") or c.get("act") == "run" for c in cast): continue
+        for typ, rx, prop in ACTV:
+            if not re.search(rx, t): continue
+            who = cast[0]; others = [c for c in cast if c is not who]; props = s.get("props") or []
+            do = {"type": typ, "at": 0.15, "dur": max(1.0, float(s.get("dur", 3)) * 0.7)}
+            if prop: do["prop"] = prop
+            if typ in ("throw", "place") and who.get("hold"): do["prop"] = who.pop("hold")
+            elif typ in ("throw", "place"): do["prop"] = next((p["name"] for p in props), "ball" if typ == "throw" else "book")
+            if typ == "handOver" and others: do["to"] = others[0]["id"]; do["prop"] = who.pop("hold", None) or (props[0]["name"] if props else "gem")
+            elif typ in ("push", "pull", "open", "lean", "climb", "place", "throw") and props: do["to"] = "@" + (props[-1]["name"] if typ in ("push", "pull", "open", "lean", "climb") else props[0]["name"])
+            elif typ == "throw" and others: do["to"] = others[0]["id"]
+            if typ == "dig" and not do.get("to"): do["x"] = who.get("x", 0) + 0.9; do["z"] = who.get("z", 0.3)
+            who["do"] = do; break
+    return b
+
 def clean(b):
     ok = []
     for s in b.get("scenes", []):
@@ -291,6 +310,12 @@ def clean(b):
         if s.get("move") not in MOVES: s.pop("move", None)
         if s.get("focus") and not (str(s["focus"]).startswith("@") or s["focus"] in [c["id"] for c in cast]): s.pop("focus", None)
         if s.get("target") not in [c["id"] for c in cast]: s["target"] = cast[0]["id"]
+        for c in cast:
+            dd = c.get("do")
+            if isinstance(dd, dict) and dd.get("type") in ("write", "dig", "carry", "place", "drink", "pull", "push", "climb", "throw", "handOver", "lean", "open"):
+                dd["at"] = max(0.0, min(0.7, float(dd.get("at", 0.15)))); dd["dur"] = max(0.6, min(8.0, float(dd.get("dur", 2.0))))
+                if c.get("act") == "run" or c.get("mount"): c.pop("do")
+            else: c.pop("do", None)
         ok.append(s)
     b["scenes"] = ok
     lib = {}
@@ -314,6 +339,6 @@ if __name__ == "__main__":
     src = "llm"
     if not b or not b.get("scenes"):
         b, src = heuristic(script), "heuristic"
-    b = clean(enrich(b))
+    b = clean(enrich_actions(enrich(b)))
     json.dump(b, open(sys.argv[2], "w"), indent=1)
     print(f"{src}: {len(b['scenes'])} scenes, {sum(s['dur'] for s in b['scenes']):.0f}s -> {sys.argv[2]}")

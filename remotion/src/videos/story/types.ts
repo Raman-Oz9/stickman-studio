@@ -11,6 +11,7 @@ export type CastDef = {
   look?: "partner" | "left" | "right" | "cam";
   scale?: number; v?: number;
   holdH?: number;
+  do?: { type: string; at?: number; dur?: number; prop?: string; to?: string; x?: number; z?: number };   // universal physical action (write|dig|carry|place|drink|pull|push|climb|throw|handOver|lean|open): the hand follows a real contact point
   mount?: string;                    // rides this 3D animal or vehicle (horse, camel, car, motorbike, chariot...) which moves with them
   hold?: string; holdAt?: number;   // sticker name held in the hand (from this fraction of the scene)
   act?: "wave" | "cheer" | "point" | "nod" | "run" | "swing" | "stab" | "shoot" | "aim";   // swing/stab/shoot/aim: use the held weapon

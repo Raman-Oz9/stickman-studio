@@ -289,3 +289,13 @@ export class Props3D {
 Object.assign(PROC, { mountain, hill, volcano, pyramid, lighthouse, windmill, tent, tower, temple, colosseum, bridge: bridgeM, piratehut: piratesail, rock, tree3: tree });
 Object.assign(DEFAULT_H, { mountain: 14, hill: 3, volcano: 12, pyramid: 9, lighthouse: 10, windmill: 7, tent: 2.6, tower: 8, temple: 6, colosseum: 7, bridge: 3, piratehut: 5, rock: 1.2, tree3: 4 });
 Object.assign(ALIAS, { mountains: "mountain", peak: "mountain", cliff: "mountain", hills: "hill", mound: "hill", dune: "hill", eruption: "volcano", pyramids: "pyramid", beacon: "lighthouse", mill: "windmill", camp: "tent", turret: "tower", watchtower: "tower", parthenon: "temple", shrine: "temple", arena: "colosseum", stadium: "colosseum", boulder: "rock", stone: "rock", rocks: "rock", bridges: "bridge" });
+// tools for the action layer (long axis +y, business end at the bottom for shovel/pen)
+const shovel = () => grp(mk(C(0.03, 0.03, 1.0, 8), "#8a5a2b", 0, 0.8, 0), mk(B(0.22, 0.04, 0.3), "#8a5a2b", 0, 1.3, 0), mk(B(0.3, 0.32, 0.03), "#9aa0ab", 0, 0.16, 0, 1, 1, 1, 0, 0, 0), mk(cone(0.15, 0.2, 4), "#9aa0ab", 0, -0.04, 0, 1, 1, 0.2, Math.PI, Math.PI / 4));
+const pen = () => grp(mk(C(0.04, 0.04, 0.8, 8), "#2b5cb8", 0, 0.5, 0), mk(cone(0.04, 0.2, 8), "#222", 0, 0.0, 0, 1, 1, 1, Math.PI));
+const cup = () => grp(mk(C(0.5, 0.38, 0.9, 16), "#f4efe4", 0, 0.45, 0), mk(C(0.44, 0.44, 0.06, 16), "#6b3f1c", 0, 0.84, 0), mk(new THREE.TorusGeometry(0.28, 0.06, 8, 14), "#f4efe4", 0.55, 0.45, 0));
+const ball = () => grp(mk(S(0.5, 16, 12), "#e23b3b", 0, 0.5, 0), mk(new THREE.TorusGeometry(0.5, 0.04, 6, 20), "#ffffff", 0, 0.5, 0, 1, 1, 1, Math.PI / 2));
+const bucket = () => grp(mk(C(0.5, 0.38, 0.7, 16), "#6b7a8f", 0, 0.35, 0), mk(new THREE.TorusGeometry(0.45, 0.03, 6, 18), "#444", 0, 0.78, 0, 1, 1, 1, 0, 0, 0));
+const pickaxe = () => grp(mk(C(0.04, 0.04, 1.2, 8), "#8a5a2b", 0, 0.6, 0), mk(B(0.9, 0.08, 0.1), "#9aa0ab", 0, 1.2, 0));
+Object.assign(PROC, { shovel, spade: shovel, pen, cup, mug: cup, ball, bucket, pickaxe });
+Object.assign(DEFAULT_H, { shovel: 1.3, pen: 0.25, cup: 0.25, ball: 0.3, bucket: 0.4, pickaxe: 1.2 });
+Object.assign(ALIAS, { spade: "shovel", mug: "cup", glass: "cup", pail: "bucket", football: "ball" });

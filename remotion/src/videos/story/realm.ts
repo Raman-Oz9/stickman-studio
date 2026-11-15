@@ -23,6 +23,7 @@ const heightAt = (x: number, z: number) => {
   const hill = 6 * (Math.sin(x * 0.006) * Math.cos(z * 0.007) + 0.5 * Math.sin(x * 0.017 + z * 0.013)) + 2.5 * Math.sin(x * 0.04) * Math.cos(z * 0.035);
   const flat = flatOf(x, z), ridge = sm(700, 920, -z) * (38 + 30 * Math.abs(Math.sin(x * 0.011) * Math.cos(z * 0.013)) + 14 * Math.sin(x * 0.03 + z * 0.02));
   let h = (hill + ridge) * (1 - flat * (1 - sm(0.1, 0.9, ridge / 60) * 0)); h = hill * (1 - flat) + ridge * (1 - flat * 0.97);
+  h += sm(380, 480, z) * (1 - flat) * (5 + 4 * Math.sin(x * 0.03 + z * 0.012)) * Math.max(0, Math.sin(x * 0.02 + z * 0.02) + 0.3);   // desert dunes
   const sea = seaOf(x, z); return h * (1 - sea) - 9 * sea - 0.08;
 };
 const NOISE = (x: number, z: number) => 0.92 + 0.08 * Math.sin(x * 0.05) * Math.cos(z * 0.043) + 0.05 * Math.sin(x * 0.19 + z * 0.17);
@@ -40,7 +41,7 @@ const terrain = (se: Season) => {
     const rd = 1 - sm(7, 11, roadD(x, z)); if (rd > 0 && flatOf(x, z) > 0.5 && h > -1) c.lerp(new THREE.Color("#b99a6a"), rd * 0.95);   // dirt roads painted into the terrain
     if (h < 0.25 && h > -2.2) c.lerp(new THREE.Color("#e8d9a8"), 0.8);            // beach
     if (h <= -2.2) c.set("#2a6fa0");
-    const n = NOISE(x, z); col[i * 3] = c.r * n; col[i * 3 + 1] = c.g * n; col[i * 3 + 2] = c.b * n;
+    const n = (0.78 + 0.22 * (0.5 + 0.5 * Math.sin(x * 0.045 + Math.sin(z * 0.03) * 2) * Math.cos(z * 0.05 + Math.sin(x * 0.02) * 2)) + 0.05 * Math.sin(x * 0.31 + z * 0.27)) * 0.84; col[i * 3] = c.r * n; col[i * 3 + 1] = c.g * n; col[i * 3 + 2] = c.b * n;
   }
   g.setAttribute("color", new THREE.BufferAttribute(col, 3)); g.computeVertexNormals();
   const m = new THREE.Mesh(g, twoTone(new THREE.MeshLambertMaterial({ vertexColors: true }))); m.receiveShadow = true; return m;
@@ -75,9 +76,9 @@ export const buildRealm = (se: Season) => {
   for (const k in KIND) { const b = KIND[k]!; if (k === "mountain" || k === "ocean") continue; const d = buildBiome(b, se, false); d.position.set(LOCS[k][0], 0, LOCS[k][1]); R.add(d); }
   const mt = buildBiome("mountain", se, false); mt.position.set(LOCS.mountain[0], 0, LOCS.mountain[1] + 40); mt.scale.set(2.2, 2.2, 2.2); R.add(mt);
   const oc = buildBiome("ocean", se, false); oc.position.set(LOCS.ocean[0], 0, LOCS.ocean[1]); R.add(oc);
-  const pc = castle(); pc.position.set(LOCS.palace[0], 0, LOCS.palace[1] - 30); R.add(pc);
-  const mm = mineMouth(); mm.position.set(LOCS.mine[0], 0, LOCS.mine[1] - 30); R.add(mm);
-  const cm = caveMouth(); cm.position.set(LOCS.cave[0], 0, LOCS.cave[1] - 30); R.add(cm);
+  const pc = castle(); pc.position.set(LOCS.palace[0], 0, LOCS.palace[1] - 28); R.add(pc);
+  const mm = mineMouth(); mm.position.set(LOCS.mine[0], 0, LOCS.mine[1] - 14); R.add(mm);
+  const cm = caveMouth(); cm.position.set(LOCS.cave[0], 0, LOCS.cave[1] - 14); R.add(cm);
   for (const [lx, lz] of [[-60, -240], [90, -520], [-110, 260], [260, 240], [-250, 20]]) { for (let i = 0; i < 14; i++) { const x = lx + (rnd() - 0.5) * 140, z = lz + (rnd() - 0.5) * 140; if (flatOf(x, z) > 0.98 || seaOf(x, z) > 0.2) continue; const y = heightAt(x, z); R.add(mk(C(0.4, 0.6, 5, 7), "#6b4a2a", x, y + 2.5, z), mk(S(3, 9, 7), se === "autumn" ? "#e0832a" : se === "winter" ? "#e8f1f7" : "#3f9f3f", x, y + 6.5, z)); } }
   return R;
 };

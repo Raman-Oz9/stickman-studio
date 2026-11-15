@@ -6,7 +6,7 @@ on:
         description: "Script text file in the repo"
         default: "remotion/story_example.txt"
       voice:
-        default: "am_michael"
+        default: "am_liam"
       shards:
         default: "16"
 permissions:

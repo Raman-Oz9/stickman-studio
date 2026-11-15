@@ -11,8 +11,8 @@ on:
         type: choice
         options: [short, long]
       voice:
-        description: "Narrator (Kokoro): am_michael, am_puck, am_eric, am_liam, bm_lewis"
-        default: "am_michael"
+        description: "Narrator (Kokoro): am_liam (default), am_michael, am_puck, am_eric, bm_lewis"
+        default: "am_liam"
       samples:
         description: "Only render voice samples to pick a narrator"
         default: false

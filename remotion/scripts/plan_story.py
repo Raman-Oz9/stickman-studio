@@ -236,6 +236,7 @@ def enrich(b):
                 if not who.get("to"):
                     d = 1 if who.get("x", 0) <= 0 else -1; who["to"] = {"x": max(-14, min(14, who.get("x", 0) + d * 12)), "z": who.get("z", 0.3)}
                 who["act"] = who.get("act") or "run"
+                if v in ("galleon", "sailboat", "steamship", "canoe", "submarine"): who["z"] = -40; who["x"] = -20; who["to"] = {"x": 20, "z": -40}; s["loc"] = "ocean"
                 if s.get("move") not in ("track",): s["move"] = "track"
     return b
 
@@ -325,12 +326,13 @@ def establish(b):
             nar = (s.get("narration") or "").strip(); m = re.search(r",\s*|\s+and\s+", nar); first, rest = (nar[:m.start()], nar[m.end():]) if m and len(nar[:m.start()].split()) >= 2 and len(rest := nar[m.end():].split()) >= 2 else ("", nar)
             if rest and first: s["narration"] = s["caption"] = nar[m.end():]
             e = copy.deepcopy(s); e.pop("interior", None); e.pop("stock", None); e.pop("shop", None); e["loc"] = EXT.get(k, "town"); e["narration"] = e["caption"] = first
-            e["dur"] = 2.2 if first else 1.8; e["shot"] = "wide"; e["move"] = "push"; e.pop("props", None); e.pop("fx", None); e.pop("focus", None)
-            who = copy.deepcopy(s["cast"][0]); who["x"] = 0; who["z"] = 3.0; who.pop("to", None); who["act"] = "wave"; who.pop("hold", None); who.pop("do", None); who.pop("mount", None); e["cast"] = [who]; e["target"] = who["id"]
+            e["dur"] = 2.4 if first else 1.8; e["shot"] = "wide"; e["move"] = "reveal"; e.pop("props", None); e.pop("fx", None); e.pop("focus", None)
+            who = copy.deepcopy(s["cast"][0]); who["x"] = 0; who["z"] = (-1.5 if k == "shop" else 2.0); who.pop("to", None); who["act"] = "wave"; who.pop("hold", None); who.pop("do", None); who.pop("mount", None); e["cast"] = [who]; e["target"] = who["id"]
             if k == "shop":
                 kind = (s.get("shop") or "shop").strip(); e["front"] = kind.upper() if re.search(r"shop|store|seller|stall|barber|smith|bakery|market", kind) else (kind + " shop").upper()
             out.append(e)
         if k == "shop" and s.get("cast"):
+            s["shot"] = "wide"; s["move"] = "reveal"
             sel = next((c for c in s["cast"] if re.search(r"seller|shop|baker|barber|smith|vendor|merchant|trader", (c.get("id", "") + c.get("role", "")))), s["cast"][0])
             for c in s["cast"]:
                 if c is sel: c["z"] = -4.3; c["x"] = max(-3.0, min(3.0, c.get("x", 0)))

@@ -75,18 +75,30 @@ const HATS: [RegExp, () => THREE.Object3D | null][] = [
 const hatFor = (role: string) => { const r = role.toLowerCase(); for (const [re, f] of HATS) if (re.test(r)) return f(); return null; };
 void HAT; void flat;
 
+const MAP: [RegExp, string][] = [
+  [/police|sheriff|cop|officer|guard|detective|marshal|ranger/, "j"], [/pirate|captain|sailor|buccaneer/, "p"], [/ninja|assassin|spy/, "r"], [/thief|robber|bandit|burglar|criminal|outlaw|crook|smuggler/, "r"],
+  [/businessman|banker|boss|manager|lawyer|politician|president|mayor|agent|accountant|ceo|judge|governor/, "q"], [/scientist|doctor|teacher|professor|elder|old|grand|wizard|sage|priest|imam|monk|inventor|engineer/, "i"],
+  [/zombie|ghost|undead|vampire|skeleton/, "l"], [/monster|orc|troll|ogre|goblin|demon|beast|giant/, "o"], [/robot|android|machine|cyborg|ai\b/, "gh"], [/dummy/, "d"],
+  [/girl|woman|lady|mother|mom|wife|queen|princess|nurse|maid|sister|daughter|aunt|female|witch|bride|waitress|she/, "efn"], [/soldier|knight|warrior|army|hunter|explorer|adventurer|archer|general/, "mk"],
+  [/king|emperor|pharaoh|sultan|chief|lord|prince/, "ak"], [/kid|boy|child|son|student/, "bc"], [/gamer|nerd|clerk|merchant|seller|trader|shopkeeper|vendor|baker|cook|chef/, "ck"], [/farmer|peasant|villager|worker|miner|builder|driver|pilot|man|guy|fisher/, "bkcam"],
+];
 export class Rigs {
   private pool = new Map<string, Rig>(); private seen = new Set<string>(); private tmp = new THREE.Vector3();
   constructor(private root: THREE.Object3D, private kit: Kit) {}
   get ready() { return CHAR_MODELS.some((m) => this.kit[m] && KIT_ANIMS[m]?.length); }
   begin() { this.seen.clear(); }
-  model(role: string, v = 0) { const r = role.toLowerCase(); const dm = /^char-([a-r])$/.exec(r); if (dm) return "character-" + dm[1]; return CHAR_MODELS[(hash(r) + v * 5) % CHAR_MODELS.length]; }
+  model(role: string, v = 0) {
+    const r = role.toLowerCase(), dm = /^char-([a-r])$/.exec(r); if (dm) return "character-" + dm[1];
+    const pick = (l: string) => "character-" + l[(hash(r) + v) % l.length];
+    for (const [re, l] of MAP) if (re.test(r)) return pick(l);
+    return pick("bcakm");
+  }
   /** pose one character and return its rig so the caller can read hand positions */
   put(i: RigIn): Rig | null {
     const m = this.model(i.role, i.v ?? 0); if (!this.kit[m]) return null;
     const pk = i.key + "|" + m; let r = this.pool.get(pk);
     if (!r) { r = new Rig(this.kit[m], KIT_ANIMS[m] ?? []); this.root.add(r.root); this.pool.set(pk, r); }
-    this.seen.add(pk); r.dress(i.role, this.kit);
+    this.seen.add(pk); r.dress(m === "character-r" || m === "character-j" ? "" : i.role, this.kit);
     r.root.visible = true; r.root.position.set(i.x, i.y, i.z); r.root.rotation.set(0, i.yaw, 0); r.root.scale.setScalar(i.h / r.hNat);
     const list: Pose[] = this.poses(i);
     const w = new Map(list.map((p) => [p.clip, p])); const dur = (n: string) => r!.acts.get(n)?.getClip().duration ?? 1;

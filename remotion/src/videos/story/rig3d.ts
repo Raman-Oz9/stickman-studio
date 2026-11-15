@@ -50,7 +50,7 @@ class Rig {
     const a = side > 0 ? this.armR : this.armL; this.root.updateMatrixWorld(true);
     if (!a) return out.setFromMatrixPosition(this.root.matrixWorld).add(new THREE.Vector3(0, this.hNat * 0.5, 0));
     const ws = new THREE.Vector3(); a.getWorldScale(ws);
-    return out.set(0, -this.armLen / Math.max(0.001, ws.y), 0).applyMatrix4(a.matrixWorld);
+    void ws; return out.set(0, -this.armLen, 0).applyMatrix4(a.matrixWorld);
   }
 }
 
@@ -80,7 +80,7 @@ export class Rigs {
   constructor(private root: THREE.Object3D, private kit: Kit) {}
   get ready() { return CHAR_MODELS.some((m) => this.kit[m] && KIT_ANIMS[m]?.length); }
   begin() { this.seen.clear(); }
-  model(role: string, v = 0) { const r = role.toLowerCase(); return CHAR_MODELS[(hash(r) + v * 5) % CHAR_MODELS.length]; }
+  model(role: string, v = 0) { const r = role.toLowerCase(); const dm = /^char-([a-r])$/.exec(r); if (dm) return "character-" + dm[1]; return CHAR_MODELS[(hash(r) + v * 5) % CHAR_MODELS.length]; }
   /** pose one character and return its rig so the caller can read hand positions */
   put(i: RigIn): Rig | null {
     const m = this.model(i.role, i.v ?? 0); if (!this.kit[m]) return null;

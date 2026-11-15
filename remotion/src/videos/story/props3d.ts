@@ -3,6 +3,7 @@
 import * as THREE from "three";
 import { twoTone } from "../bridge/shade";
 import { kitClone, Kit } from "../bridge/build";
+import { MORPH } from "../bridge/world";
 
 const mats = new Map<string, THREE.Material>();
 const M = (c: string) => { let m = mats.get(c); if (!m) { m = twoTone(new THREE.MeshLambertMaterial({ color: c })); mats.set(c, m); } return m; };
@@ -248,6 +249,7 @@ export const canon = (name: string, pile = false): string => {
 };
 
 const KFIX: Record<string, number> = {};
+export const BACK: Record<string, number> = {};
 export class Props3D {
   private tpl = new Map<string, THREE.Object3D | null>(); private pool = new Map<string, THREE.Object3D[]>(); private used = new Map<string, number>();
   constructor(private root: THREE.Object3D, private kit: Kit) {}
@@ -276,6 +278,11 @@ export class Props3D {
     if (list.length <= i) { const t = this.tpl.get(c)!; const inst = t.clone(true); (inst.userData as { hNat?: number }).hNat = t.userData.hNat; this.root.add(inst); list.push(inst); }
     const o = list[i], k = (h * sc) / o.userData.hNat;
     o.visible = true; o.position.set(x, y + (h * sc) / 2, z); o.scale.setScalar(k); o.rotation.order = "YXZ"; o.rotation.set(an?.rx ?? tumble, yaw, an?.rz ?? 0);
+    if (c === "horse" && MORPH.horse && an) {   // morph-target gallop: phase = distance travelled
+      const M = MORPH.horse, ts = M.times, T = ts[ts.length - 1] || 1, ph = an.mv ? ((an.dist / 2.4) % 1) * T : 0.35 * T;
+      let mm = o.userData.mm as THREE.Mesh | undefined; if (!mm) { o.traverse((n) => { const m2 = n as THREE.Mesh; if (!mm && m2.isMesh && m2.morphTargetInfluences) mm = m2; }); o.userData.mm = mm; }
+      if (mm?.morphTargetInfluences) { let j = 0; while (j < ts.length - 2 && ts[j + 1] < ph) j++; const f = Math.min(1, Math.max(0, (ph - ts[j]) / Math.max(1e-6, ts[j + 1] - ts[j]))); for (let k = 0; k < M.n; k++) mm.morphTargetInfluences[k] = M.values[j * M.n + k] * (1 - f) + M.values[(j + 1) * M.n + k] * f; }
+    }
     if (an) o.traverse((n) => {   // articulated parts: legs swing with distance travelled, wheels roll, wings flap, rotors and props spin
       const d = n.userData;
       if (d.leg !== undefined) n.rotation.x = an.mv ? Math.sin((an.dist / Math.max(0.2, 1.3 * h * sc)) * 6.283 + (d.leg === 0 || d.leg === 3 ? 0 : Math.PI)) * 0.75 : 0;
@@ -349,3 +356,4 @@ for (const c of ["sedan", "suv", "van", "racecar", "sportscar", "monstertruck", 
 for (const [c, [f, h]] of Object.entries(GEAR)) { KEN[c] = f; DEFAULT_H[c] = h; }
 Object.assign(ALIAS, { limousine: "sedan", automobile: "car", vehicle: "car", jeep: "suv", pickup: "truck", lorry: "truck", cab: "taxi", "police car": "policecar", cop: "policecar", "fire truck": "firetruck", racingcar: "racecar", "race car": "racecar", "sports car": "sportscar", locomotive: "train", subway: "tram", streetcar: "tram", steamship: "ship", vessel: "ship", sailboat: "boat", rowboat: "boat", "pirate ship": "pirateship",
   cattle: "cow", ox: "cow", bull: "cow", hound: "dog", puppy: "dog", kitten: "cat", hen: "chicken", rooster: "chicken", pigeon: "parrot", puppy3: "dog", hare: "rabbit", skyscrapers: "skyscraper", tower2: "skyscraper", highrise: "skyscraper", coins: "coin", sovereign: "coin", swords: "sword", axes: "axe" });
+KEN.horse = "horse"; KEN.horsewhite = "horse"; KFIX.horse = 0; KFIX.horsewhite = 0; BACK.horse = 0.6; BACK.horsewhite = 0.6;

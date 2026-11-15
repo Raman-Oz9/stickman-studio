@@ -20,10 +20,12 @@ const KENNEY = [ "character-a", "character-b", "character-c", "character-d", "ch
   "chest", "barrel", "crate", "cannon", "cart", "ship-medium", "ship-pirate-medium", "boat-row-large", "fountain-round", "tent_detailedClosed", "campfire_logs", "statue_head", "rock_largeA", "crop_pumpkin", "crop_carrot", "crop_melon", "bottle", "sign", "bear", "fence", "pillar-stone", "log", "bench", "stump_old", "mushroom_redTall", "bridge_stone", "stairs-stone", "castle-wall", "castle-gate", "tower-b", "bookcaseClosed", "table", "chair", "bed", "lampRoundFloor", "televisionModern", "laptop"];
 let kitP: Promise<Kit> | null = null;
 export const KIT_ANIMS: Record<string, THREE.AnimationClip[]> = {};
+export const MORPH: { horse?: { times: ArrayLike<number>; values: ArrayLike<number>; n: number } } = {};
 export const loadKit = () => {
   if (!kitP) {
     const loader = new GLTFLoader();
-    kitP = Promise.all(KENNEY.map((n) => loader.loadAsync(staticFile(`bridge/kenney/${n}.glb`)).then((g) => { KIT_ANIMS[n] = g.animations ?? []; return [n, g.scene] as const; }).catch(() => [n, null] as const)))
+    kitP = Promise.all([...KENNEY.map((n) => loader.loadAsync(staticFile(`bridge/kenney/${n}.glb`)).then((g) => { KIT_ANIMS[n] = g.animations ?? []; return [n, g.scene] as const; }).catch(() => [n, null] as const))),
+      loader.loadAsync(staticFile("models/Horse.glb")).then((g) => { const tr = g.animations?.[0]?.tracks?.[0]; if (tr) { const nT = Math.round(tr.values.length / tr.times.length); MORPH.horse = { times: tr.times, values: tr.values, n: nT }; } return ["horse", g.scene] as const; }).catch(() => ["horse", null] as const)])
       .then((list) => Object.fromEntries(list.filter((e) => e[1]).map(([n, s]) => [n, s!])) as Kit);
   }
   return kitP;

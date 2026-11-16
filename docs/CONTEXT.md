@@ -5,6 +5,11 @@
 
 ## CHANGELOG
 
+### 2026-11-16 — Native-frame QA pass: correct receiver orientation and map staging
+- Inspected the refreshed native 1080×1920 frames. The trade scene exposed a mirrored-arm issue: the receiver's reaching arm pointed away from the exchange, so the coin appeared to float between them. Updated the ink-card facing/mirroring and both hand targets so the receiver reaches toward the giver and the coin interpolates between actual hand positions, then remains at the receiver's waist.
+- Removed the foreground guide character from the overhead trade-map reveal so the map, route and labels remain unobstructed. The map now reads as a separate geography shot rather than the same environment with a different background.
+- Previous code commit `b3fba82` passed strict TypeScript and all 13 native still renders; this new interaction correction must pass the same check and visual inspection before full MP4 rendering. The current renderer is still visual-only (no narration/music mix).
+
 ### 2026-11-16 — CI now renders the storyboard-driven 2D composition (pending run)
 - Extended `.github/workflows/illustrated-proof.yml` to include `Story2D.tsx` in push triggers, prepare the actual `story_great_zimbabwe_board.json` as Remotion input props, and render seven native-resolution frames spanning the establishing shot, hand-over action, elevated reveal and ending through `StoryShort2D`, alongside the existing isolated proof frames.
 - This closes the gap where the old CI only rendered `IllustratedProof` and could not verify the new storyboard renderer. TypeScript and visual QA are still pending; inspect the uploaded `story2d` frames, especially hand/object contact and framing during the trade scene.

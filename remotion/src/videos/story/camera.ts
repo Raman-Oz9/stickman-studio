@@ -166,9 +166,19 @@ export const camAt = (s: SceneDef, i: number, u: number, t: number, dur = 3): Ca
     const k = u * u * (3 - 2 * u), shop = !!s.front;
     return { pos: new THREE.Vector3(Math.sin(t * 0.6) * 0.3, (shop ? 3.4 : 4.6) - 0.6 * k, (shop ? 12 : 17) - (shop ? 3 : 4) * k), look: new THREE.Vector3(0, shop ? 4.2 : 7, shop ? -14 : -28), fov: shop ? 52 : 54, roll: 0, cInf: 0 };
   }
-  if (s.world?.mapMode) {   // historical maps need a legible elevated map view, not a character close-up
-    const k = sm(u);
-    return { pos: new THREE.Vector3(0.4, 158 - 18 * k, 40 - 10 * k), look: new THREE.Vector3(0, 0, -24), fov: 62 - 3 * k, roll: 0, cInf: 0 };
+  if (s.world?.mapMode) {   // true overhead view: map geography fills the vertical canvas
+    return { pos: new THREE.Vector3(0, 150, -24), look: new THREE.Vector3(0, 0, -24), fov: 52, roll: 0, cInf: 0 };
+  }
+  if (s.world) {   // world scenes establish the settlement first, then descend while retaining geography
+    const F = focusOf(s, s.target ?? s.cast[0]?.id);
+    const multi = s.cast.length > 1;
+    const k = s.move === "hold" ? 0.72 : 1 - sm(clamp(u / (multi ? 0.62 : 1.1)));
+    const y = 14 + 32 * k, z = 18 + 48 * k, lookZ = -4 - 16 * k;
+    return {
+      pos: new THREE.Vector3(F.x * 0.15 + Math.sin(u * Math.PI) * 2, y, F.z + z),
+      look: new THREE.Vector3(0, 0.8, lookZ),
+      fov: 50 + 5 * k, roll: 0, cInf: 0,
+    };
   }
   if (s.fly) {   // sky flight between two places of the realm: the world slides under a high camera looking along the route
     const A = LOCS[s.fly.from] ?? LOCS.town, Bq = LOCS[s.fly.to] ?? A, dx = Bq[0] - A[0], dz = Bq[1] - A[1], l = Math.hypot(dx, dz) || 1, ux = dx / l, uz = dz / l, k = u * u * (3 - 2 * u);

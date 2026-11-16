@@ -173,7 +173,7 @@ export const camAt = (s: SceneDef, i: number, u: number, t: number, dur = 3): Ca
     const F = focusOf(s, s.target ?? s.cast[0]?.id);
     const multi = s.cast.length > 1;
     const k = s.move === "hold" ? 0.72 : 1 - sm(clamp(u / (multi ? 0.62 : 1.1)));
-    const y = 14 + 32 * k, z = 18 + 48 * k, lookZ = -4 - 16 * k;
+    const y = multi ? 8 + 20 * k : 14 + 32 * k, z = multi ? 10 + 26 * k : 18 + 48 * k, lookZ = multi ? -4 - 6 * k : -4 - 16 * k;
     return {
       pos: new THREE.Vector3(F.x * 0.15 + Math.sin(u * Math.PI) * 2, y, F.z + z),
       look: new THREE.Vector3(0, 0.8, lookZ),

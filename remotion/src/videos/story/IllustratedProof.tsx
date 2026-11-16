@@ -56,9 +56,9 @@ export const IllustratedProof: React.FC = () => {
   const receiverHandY = 1560 - receiverReachY * 414 * 0.68;
   const coinX = f < 82 ? 540 : f < 126 ? mix(540, receiverHandX, exchange) : receiverHandX;
   const coinY = f < 82 ? 1210 : f < 126 ? mix(1210, receiverHandY, exchange) : receiverHandY;
-  const zoom = interpolate(f, [0, 48, 100, 148, 179], [1, 1.035, 1.12, 1.08, 1.035], { easing: Easing.inOut(Easing.quad), extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-  const pan = interpolate(f, [0, 100, 179], [0, -18, 0], { easing: Easing.inOut(Easing.quad), extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-  const cameraY = interpolate(f, [0, 100, 179], [0, 22, 0], { easing: Easing.inOut(Easing.quad), extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const zoom = interpolate(f, [0, 45, 82, 108, 145, 179], [1, 1.06, 1.3, 1.52, 1.28, 1], { easing: Easing.inOut(Easing.quad), extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const pan = interpolate(f, [0, 82, 108, 145, 179], [0, -8, -12, -4, 0], { easing: Easing.inOut(Easing.quad), extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const cameraY = interpolate(f, [0, 82, 108, 145, 179], [0, -10, -46, -18, 0], { easing: Easing.inOut(Easing.quad), extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   const phase = f / 30;
   const cap = f < 55 ? "GREAT ZIMBABWE" : f < 116 ? "GOLD. IVORY. TRADE." : "A KINGDOM CONNECTED.";
   const captionIn = interpolate(f, [6, 14, 160, 176], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });

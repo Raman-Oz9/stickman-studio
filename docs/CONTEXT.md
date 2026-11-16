@@ -56,6 +56,8 @@ Working in stills: shop FRONT with sign, palace gate/hall, mine entrance (rails 
 Render stills with the props-test workflow (build a board in `remotion/story_props_test.json`), clone branch `props-test`, LOOK at the images. For a full video, clone `story-out`, extract ~18 frames with ffmpeg, view them against the cinematic-skill QC checklist. Send the owner only what passes.
 
 ## 7. CHANGELOG (newest first)
+- 2026-11-16 — Proof workflow now watches `Stickman2D.tsx` directly. The prior path filter watched the composition but not its imported character component, so geometry-only edits could miss automatic still QA. This closes that test-trigger gap; a fresh run of the shared anatomy pass is required.
+
 - 2026-11-16 — Character geometry overhaul on Claude's shared `Stickman2D`: replaced uniform tube limbs with tapered, contoured two-bone forms and articulated elbow/knee caps; reshaped the tunic into a tailored shoulder-to-waist silhouette with hem, seams and fabric highlights; rebuilt hands with thumb, separated finger contours and palm creases; added shaped footwear with sole and upper details; refined the head/jaw/hair silhouette. Preserved Claude's IK targets, expressions, walk-cycle interface and single shared component. This is a geometry pass, not yet visually accepted: strict typecheck and fresh native-resolution proof frames must be reviewed for joint overlap, hand contact, proportions and foot planting.
 
 - 2026-11-16 Claude: Stickman2D torso now tapered tunic with hem + shoulder caps; caption moved below feet. Verified frames 0/90/110/175 (clasped hands + coin, shock/joy faces, camera push). Known: shoulder caps look knobby, no run/sit/ride poses yet, not yet wired into StoryShort pipeline.

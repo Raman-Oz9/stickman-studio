@@ -8,6 +8,7 @@
 ### 2026-11-16 — Full 2D illustrated proof reset (awaiting render QA)
 - Replaced the proof scene's custom segmented `Stickman2D` characters with the repository's original expressive ink-card renderer (`bodyFront` from `bridge/toon.ts`), preserving front-view character identity, facial expressions, and reach-driven hand contact.
 - Rebuilt the Great Zimbabwe proof environment as layered SVG illustration: distant escarpment, masonry enclosure and conical tower, homesteads, baobab silhouettes, textured earth, path, and foreground trade vessels. Camera push/pan now affects the complete illustrated composition.
+- The first native render exposed a JSX layering bug: the handoff coin was emitted as an SVG group outside the SVG root. Replaced it with a positioned 2D prop in the shared camera layer so it can visibly sit between the reaching hands.
 - This is a representative all-2D proof, not yet a production-pipeline migration. It must pass TypeScript, render, and native-resolution visual inspection before the treatment is propagated into StoryWorld. Verify both hands meet the coin through the exchange and that the canvas characters render in Remotion's headless browser.
 
 

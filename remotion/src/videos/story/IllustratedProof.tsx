@@ -1,80 +1,12 @@
 import React from "react";
+import { Stickman } from "./Stickman2D";
 import { AbsoluteFill, Easing, interpolate, useCurrentFrame } from "remotion";
 
 const clamp = (v: number) => Math.max(0, Math.min(1, v));
 const smooth = (v: number) => { const t = clamp(v); return t * t * (3 - 2 * t); };
 const mix = (a: number, b: number, t: number) => a + (b - a) * t;
-
-const Character: React.FC<{ x: number; y: number; scale?: number; skin: string; cloth: string; trim: string; facing?: 1 | -1; phase: number; reach: number; holding?: boolean; expression?: "smile" | "focused" }> = ({
-  x, y, scale = 1, skin, cloth, trim, facing = 1, phase, reach, holding, expression = "smile",
-}) => {
-  const stride = Math.sin(phase * Math.PI * 2) * 17 * (1 - reach);
-  const knee = Math.sin(phase * Math.PI * 2) * 9 * (1 - reach);
-  const arm = mix(-18, -78, reach);
-  const forearm = mix(24, 18, reach);
-  const ink = "#29212a";
-  const hair = "#2e2423";
-  return (
-    <g transform={`translate(${x} ${y}) scale(${scale * facing} ${scale})`} stroke={ink} strokeWidth="9" strokeLinecap="round" strokeLinejoin="round">
-      <ellipse cx="0" cy="12" rx="78" ry="19" fill="#3b2b2c" opacity=".16" stroke="none" />
-
-      {/* Legs are built as shaped thighs and calves, with readable knees and ankles. */}
-      <g>
-        <path d={`M -29 252 C -49 278 -48 315 -39 344 Q -35 360 -40 384 L ${-43 + stride} 432 Q -48 450 -35 457 Q -18 462 -7 449 L -8 426 L ${-13 + stride * .55} 365 Q -7 328 -2 286Z`} fill={trim} stroke={ink} strokeWidth="11"/>
-        <path d={`M 5 278 C 23 294 31 321 27 347 Q 23 364 30 387 L ${38 - stride} 432 Q 46 449 32 457 Q 13 462 4 448 L 5 425 L ${13 - stride * .55} 365 Q 8 328 -5 296Z`} fill={cloth} stroke={ink} strokeWidth="11"/>
-        <path d={`M -34 350 Q -23 359 -10 353 M 24 352 Q 34 360 42 352`} fill="none" stroke={ink} strokeWidth="5" opacity=".42"/>
-        <path d={`M -42 454 Q -59 462 -78 455 Q -91 450 -88 438 Q -84 427 -68 431 L -47 431 Q -35 438 -35 448Z`} fill={ink} stroke={ink} strokeWidth="5"/>
-        <path d={`M 35 454 Q 51 462 73 455 Q 87 450 83 438 Q 79 427 64 431 L 43 431 Q 30 438 30 448Z`} fill={ink} stroke={ink} strokeWidth="5"/>
-        <path d={`M -28 435 L -28 447 M 49 435 L 49 447`} fill="none" stroke="#f1c77b" strokeWidth="4" opacity=".75"/>
-      </g>
-
-      {/* Tunic silhouette: broad shoulders, shaped waist, hem and fabric folds. */}
-      <path d="M -48 119 Q -67 124 -73 151 L -64 202 Q -59 235 -54 266 Q 0 290 55 266 Q 60 235 65 202 L 73 151 Q 67 124 48 119 Q 25 106 0 110 Q -25 106 -48 119Z" fill={cloth} stroke={ink} strokeWidth="12"/>
-      <path d="M -49 133 Q 0 153 49 133" fill="none" stroke={trim} strokeWidth="10"/>
-      <path d="M -40 157 Q -30 203 -21 263 M 40 157 Q 30 203 21 263" fill="none" stroke={trim} strokeWidth="5" opacity=".85"/>
-      <path d="M -52 224 Q 0 239 52 224" fill="none" stroke="#6e3e36" strokeWidth="4" opacity=".32"/>
-      <path d="M -12 154 L -7 258 M 13 154 L 8 258" fill="none" stroke="#fff0bf" strokeWidth="3" opacity=".35"/>
-
-      {/* Relaxed far arm: upper arm, elbow, forearm and a palm with separated fingers. */}
-      <path d="M -58 143 Q -83 147 -98 173 Q -113 194 -111 222" fill="none" stroke={ink} strokeWidth="31"/>
-      <path d="M -58 143 Q -83 147 -98 173 Q -113 194 -111 222" fill="none" stroke={skin} strokeWidth="20"/>
-      <circle cx="-109" cy="222" r="12" fill={skin} stroke={ink} strokeWidth="7"/>
-      <path d="M -111 222 Q -123 237 -117 253 Q -113 263 -104 258 Q -96 252 -100 239 L -96 229" fill={skin} stroke={ink} strokeWidth="7"/>
-      <path d="M -112 245 l -7 10 M -104 248 l -2 12" fill="none" stroke={ink} strokeWidth="3"/>
-
-      {/* Near arm has articulated upper arm and forearm; the wrist remains the coin anchor. */}
-      <path d="M 53 143 Q 75 146 91 165 Q 101 179 92 194" fill="none" stroke={ink} strokeWidth="34"/>
-      <path d="M 53 143 Q 75 146 91 165 Q 101 179 92 194" fill="none" stroke={skin} strokeWidth="22"/>
-      <circle cx="92" cy="194" r="13" fill={skin} stroke={ink} strokeWidth="7"/>
-      <g transform={`translate(53 142) rotate(${arm})`}>
-        <path d="M 0 0 C 18 2 32 15 42 35" fill="none" stroke={ink} strokeWidth="34"/>
-        <path d="M 0 0 C 18 2 32 15 42 35" fill="none" stroke={skin} strokeWidth="22"/>
-        <ellipse cx="42" cy="35" rx="14" ry="13" fill={skin} stroke={ink} strokeWidth="7"/>
-        <g transform={`translate(42 35) rotate(${forearm})`}>
-          <path d="M 0 0 C 20 8 39 9 57 5" fill="none" stroke={ink} strokeWidth="31"/>
-          <path d="M 0 0 C 20 8 39 9 57 5" fill="none" stroke={skin} strokeWidth="20"/>
-          {/* Palm, thumb and four finger grooves; coin sits against the fingertips. */}
-          <path d="M 52 -5 Q 65 -14 77 -5 Q 87 3 80 15 Q 73 25 59 18 L 49 10Z" fill={skin} stroke={ink} strokeWidth="7"/>
-          <path d="M 64 1 Q 73 -4 80 2 M 65 8 Q 74 5 81 10 M 61 15 Q 69 15 75 19" fill="none" stroke="#8f5140" strokeWidth="3"/>
-          <path d="M 54 1 Q 44 -8 39 -1 Q 37 7 51 12" fill={skin} stroke={ink} strokeWidth="5"/>
-          {holding ? <g transform="translate(67 7)"><circle r="14" fill="#f3bd45" stroke={ink} strokeWidth="5"/><circle r="8" fill="none" stroke="#fff0ad" strokeWidth="3"/><path d="M-4 0 Q0 -5 4 0 Q0 5 -4 0" fill="none" stroke="#a56a2a" strokeWidth="2"/></g> : null}
-        </g>
-      </g>
-
-      {/* Neck and head sit in front of the shoulders for a complete readable silhouette. */}
-      <path d="M -17 91 L -17 123 Q 0 137 17 123 L 17 91Z" fill={skin} stroke={ink} strokeWidth="8"/>
-      <path d="M -43 53 Q -43 -14 0 -22 Q 45 -14 43 53 L 37 91 Q 25 119 0 119 Q -25 119 -37 91Z" fill={skin} stroke={ink} strokeWidth="11"/>
-      <path d="M -44 42 Q -54 -25 0 -36 Q 54 -27 46 43 Q 25 17 0 19 Q -25 17 -44 42Z" fill={hair} stroke={ink} strokeWidth="8"/>
-      <path d="M -27 58 Q -17 50 -7 58 M 9 58 Q 20 50 30 58" fill="none" stroke={ink} strokeWidth="5"/>
-      <ellipse cx="-16" cy="69" rx="4.5" ry="7" fill={ink} stroke="none"/>
-      <ellipse cx="17" cy="69" rx="4.5" ry="7" fill={ink} stroke="none"/>
-      <path d="M 0 69 Q -4 80 1 82" fill="none" stroke="#a8664e" strokeWidth="3"/>
-      {expression === "smile" ? <path d="M -14 92 Q 0 105 15 91" fill="none" stroke="#8c3f45" strokeWidth="5"/> : <path d="M -12 98 Q 0 91 13 98" fill="none" stroke="#8c3f45" strokeWidth="5"/>}
-      <path d="M -37 30 Q 0 8 37 30" fill="none" stroke="#f4c36b" strokeWidth="8"/>
-      <path d="M -43 82 Q -32 110 0 116 Q 32 110 43 82" fill="none" stroke="#f0bc69" strokeWidth="3" opacity=".45"/>
-    </g>
-  );
-};
+const lerp2 = (a: [number, number], b: [number, number], t: number): [number, number] => [mix(a[0], b[0], t), mix(a[1], b[1], t)];
+const toLocal = (w: [number, number], gx: number, facing: 1 | -1): [number, number] => [((w[0] - gx) * facing) / 1.18, (w[1] - 1560) / 1.18];
 
 export const IllustratedProof: React.FC = () => {
   const f = useCurrentFrame();
@@ -83,9 +15,7 @@ export const IllustratedProof: React.FC = () => {
   // Release the giver first; the recipient then lowers the hand with the coin.
   const giverRelease = smooth((f - 122) / 30);
   const receiverRelease = smooth((f - 132) / 30);
-  const coinX = mix(537, 579, exchange);
   // The coin travels from the giver's fingertips to the receiver's fingertips.
-  const coinY = 1091 - Math.sin(exchange * Math.PI) * 10;
   // Push toward the handover, then ease back to re-establish the whole setting.
   const zoom = interpolate(f, [0, 55, 100, 145, 179], [1, 1.08, 1.2, 1.14, 1.08], {
     easing: Easing.inOut(Easing.quad), extrapolateLeft: "clamp", extrapolateRight: "clamp",
@@ -93,12 +23,20 @@ export const IllustratedProof: React.FC = () => {
   const pan = interpolate(f, [0, 100, 179], [0, -28, 0], {
     easing: Easing.inOut(Easing.quad), extrapolateLeft: "clamp", extrapolateRight: "clamp",
   });
-  const cameraY = interpolate(f, [0, 55, 100, 145, 179], [960, 1000, 1091, 1040, 960], {
+  const cameraY = interpolate(f, [0, 55, 100, 145, 179], [1050, 1100, 1190, 1130, 1050], {
     easing: Easing.inOut(Easing.quad), extrapolateLeft: "clamp", extrapolateRight: "clamp",
   });
   const walk = mix(f / 30, 1.85, smooth((f - 45) / 20));
   const giverReach = approach * (1 - giverRelease);
   const receiverReach = approach * (1 - receiverRelease);
+  const SC = 1.18, GY = 1560, GX = 410, RX = 690;
+  const M: [number, number] = [550, 1175];
+  const standA = smooth((f - 40) / 20);
+  const restHand = (gx: number, dir: 1 | -1): [number, number] => [gx + dir * 40, GY - 215 * SC];
+  const gHand = lerp2(restHand(GX, 1), M, giverReach);
+  const rHand = lerp2(restHand(RX, -1), [M[0] + 16, M[1] + 4], receiverReach);
+  const coinPos: [number, number] = f < 80 ? [gHand[0] + 14, gHand[1]] : f < 124 ? [mix(gHand[0], rHand[0], exchange) + 8, mix(gHand[1], rHand[1], exchange)] : [rHand[0] - 14, rHand[1]];
+  const coinOp = interpolate(f, [58, 68], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   const capOpacity = interpolate(f, [8, 18, 138, 158], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   return (
     <AbsoluteFill style={{ backgroundColor: "#f6dba6" }}>
@@ -124,8 +62,8 @@ export const IllustratedProof: React.FC = () => {
           {/* One camera transform drives the complete illustrated world, not only the actors. */}
           <g transform={`translate(${540 + pan} ${cameraY}) scale(${zoom}) translate(-540 -${cameraY})`}>
           <rect width="1080" height="1920" fill="url(#sky)"/>
-          <circle cx="960" cy="450" r="90" fill="#fff4c8" opacity=".72"/>
-          <circle cx="960" cy="450" r="68" fill="url(#sun)"/>
+          <circle cx="865" cy="260" r="118" fill="#fff4c8" opacity=".72"/>
+          <circle cx="865" cy="260" r="88" fill="url(#sun)"/>
           <g fill="#fff" opacity=".42"><ellipse cx="205" cy="300" rx="120" ry="28"/><ellipse cx="270" cy="286" rx="72" ry="35"/><ellipse cx="720" cy="440" rx="110" ry="23"/></g>
           <path d="M0 850 Q160 670 330 820 Q500 620 700 820 Q880 650 1080 800 V1250 H0Z" fill="#829c68"/>
           <path d="M0 930 Q170 810 345 940 Q520 770 710 930 Q880 800 1080 920 V1340 H0Z" fill="#607f58"/>
@@ -183,16 +121,18 @@ export const IllustratedProof: React.FC = () => {
           </g>
           <g transform="translate(965 1430)"><path d="M0 0 Q-30 -180 0 -270" fill="none" stroke="#62412e" strokeWidth="24"/><g fill="#527b4c"><circle cx="-35" cy="-270" r="70"/><circle cx="35" cy="-310" r="75"/><circle cx="0" cy="-360" r="70"/></g></g>
           <g transform={`translate(${540 + pan} ${cameraY}) scale(${zoom}) translate(-540 -${cameraY})`}>
-            <Character x={430 - approach * 22} y={1030} scale={1.03} skin="#8b5139" cloth="#315f59" trim="#e8bd73" phase={walk} reach={giverReach} holding={false} expression="smile" />
-            <Character x={690 + approach * 18} y={1030} scale={1.03} skin="#a86645" cloth="#9b493d" trim="#edc06c" facing={-1} phase={walk + .3} reach={receiverReach} holding={f >= 128} expression="focused" />
-            <g transform={`translate(${coinX} ${coinY})`} opacity={interpolate(f, [72, 82, 132, 145], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })}>
-              <ellipse rx="20" ry="11" fill="#9b6428" stroke="#382b2a" strokeWidth="7"/>
-              <ellipse rx="14" ry="7" fill="#f8d36d" stroke="#fff0ad" strokeWidth="3"/>
+            <Stickman x={GX} y={GY} scale={SC} facing={1} skin="#8b5139" cloth="#315f59" trim="#e8bd73" stand={standA} walk={walk} frame={f} lean={3 * giverReach}
+              frontHand={toLocal(gHand, GX, 1)} grip={f > 128} expression={f < 60 ? "smile" : f < 118 ? "joy" : "smile"} look={0.6} />
+            <Stickman x={RX} y={GY} scale={SC} facing={-1} skin="#a86645" cloth="#9b493d" trim="#edc06c" stand={standA} walk={walk + .3} frame={f + 17} lean={3 * receiverReach}
+              frontHand={toLocal(rHand, RX, -1)} grip={f > 128} expression={f < 70 ? "focused" : f < 128 ? "shock" : "joy"} look={0.6} />
+            <g transform={`translate(${coinPos[0]} ${coinPos[1]})`} opacity={coinOp}>
+              <ellipse rx="22" ry="22" fill="#9b6428" stroke="#382b2a" strokeWidth="7"/>
+              <circle r="14" fill="#f8d36d" stroke="#fff0ad" strokeWidth="3"/>
               <path d="M-8 0 Q0 -8 8 0 Q0 8 -8 0" fill="none" stroke="#a56a2a" strokeWidth="3"/>
             </g>
           </g>
           </g>
-          <g transform="translate(540 1780)"><rect x="-200" y="-48" width="400" height="82" rx="24" fill="#352a30" opacity=".9"/><text x="0" y="8" textAnchor="middle" fontFamily="Arial Black, sans-serif" fontWeight="900" fontSize="38" fill="#fff2d5">GOLD FOR THE COAST</text></g>
+          <g transform="translate(540 1670)"><rect x="-200" y="-48" width="400" height="82" rx="24" fill="#352a30" opacity=".9"/><text x="0" y="8" textAnchor="middle" fontFamily="Arial Black, sans-serif" fontWeight="900" fontSize="38" fill="#fff2d5">GOLD FOR THE COAST</text></g>
           <rect width="1080" height="1920" fill="#8a6748" opacity=".08" filter="url(#paperGrain)"/>
           <rect width="1080" height="1920" fill="none" stroke="#fff2d5" strokeWidth="24"/>
         </g>

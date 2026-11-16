@@ -3,15 +3,32 @@ on:
   workflow_dispatch:
     inputs:
       frames:
+        description: "Comma-separated frame numbers"
         default: "25,75,125,185,230,290"
+      board:
+        description: "Board JSON path to render"
+        default: "remotion/story_props_test.json"
+  issue_comment:
+    types: [created]
 permissions:
   contents: write
+  issues: read
+  pull-requests: read
 jobs:
   t:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.number == 1 &&
+       github.event.issue.pull_request &&
+       github.event.comment.user.login == 'Raman-Oz9' &&
+       github.event.comment.body == '/run-story-props-test')
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'issue_comment' && format('refs/pull/{0}/head', github.event.issue.number) || github.ref }}
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
       - name: Stickers
@@ -20,7 +37,8 @@ jobs:
         run: |
           true
           mkdir -p remotion/public/prep/stickers
-          cp remotion/story_props_test.json remotion/public/prep/board.json
+          BOARD_PATH="${{ github.event_name == 'issue_comment' && 'remotion/story_great_zimbabwe_board.json' || inputs.board }}"
+          cp "$BOARD_PATH" remotion/public/prep/board.json
           python3 remotion/scripts/make_stickers.py remotion/public/prep/board.json remotion/public/prep/stickers
           python3 -c "
           import json
@@ -38,7 +56,8 @@ jobs:
         working-directory: remotion
         run: |
           mkdir -p out
-          for f in $(echo "${{ inputs.frames }}" | tr ',' ' '); do
+          FRAMES="${{ github.event_name == 'issue_comment' && '45,300,720,1200,1590' || inputs.frames }}"
+          for f in $(echo "$FRAMES" | tr ',' ' '); do
             npx remotion still src/index.ts StoryShort out/f$f.jpg --frame=$f --scale=0.5 --gl=swangle --image-format=jpeg --jpeg-quality=88 --props=./public/prep/props.json --timeout=300000 --log=warn
           done
       - name: Publish

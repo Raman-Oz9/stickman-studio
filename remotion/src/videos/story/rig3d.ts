@@ -5,6 +5,8 @@
 import * as THREE from "three";
 import { Kit } from "../bridge/build";
 import { mk, B, C, S, cone, grp } from "./props3d";
+import { NOINK } from "../bridge/ink";
+import { Pen, faceFront, lidOf, Expr } from "../bridge/toon";
 
 const hash = (s: string) => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
 const INK = "#08080b", SKIN = "#fffaf0";
@@ -13,17 +15,36 @@ const sin = Math.sin, cos = Math.cos, clamp = (v: number, a = 0, b = 1) => Math.
 export type Pose = { clip: string; w: number; t: number };
 export type RigIn = {
   key: string; role: string; v?: number; x: number; y: number; z: number; yaw: number; h: number;
-  dist: number; moving: boolean; run: boolean; sit: boolean; drive: boolean; act?: string; doType?: string; doT?: number; hold: boolean; absT: number; idx: number; dead?: boolean; mirror?: boolean;
+  expr?: Expr; blink?: boolean | number; look?: number; dist: number; moving: boolean; run: boolean; sit: boolean; drive: boolean; act?: string; doType?: string; doT?: number; hold: boolean; absT: number; idx: number; dead?: boolean; mirror?: boolean;
 };
 
 // ---- skeleton dimensions (native units, total height 1.84) ----
-const THIGH = 0.45, SHIN = 0.45, UPA = 0.3, FORE = 0.3, TORSO = 0.52, HEADR = 0.19, LIMB = 0.042;
+const THIGH = 0.45, SHIN = 0.45, UPA = 0.3, FORE = 0.3, TORSO = 0.52, HEADR = 0.235, LIMB = 0.046;
 export const NATIVE_H = THIGH + SHIN + TORSO + 0.06 + HEADR * 2;
 
 type P = { tx: number; tz: number; ty: number; hx: number; hy: number; aL: [number, number, number]; aR: [number, number, number]; lL: [number, number, number]; lR: [number, number, number]; rx: number; ry: number; sit: number; lift: number };
 const base = (): P => ({ tx: 0, tz: 0, ty: 0, hx: 0, hy: 0, aL: [0, 0.1, 0.12], aR: [0, 0.1, 0.12], lL: [0, 0, 0.03], lR: [0, 0, 0.03], rx: 0, ry: 0, sit: 0, lift: 0 });   // arms [fwd, out, elbow], legs [fwd, knee, out]
 
-function poseOf(i: RigIn): P {
+/** exaggerated body acting layered on top of any pose, driven by the face expression */
+function emote(p: P, e: Expr | undefined, T: number, still: boolean) {
+  if (!e || e === "neutral") return p;
+  const j = (f: number) => sin(T * f), k = still ? 1 : 0.5;
+  switch (e) {
+    case "shock": p.tx -= 0.22 * k; p.hx -= 0.22; p.aL = [0.25, 1.15, 0.5 + 0.06 * j(40)]; p.aR = [0.25, 1.15, 0.5 + 0.06 * j(40)]; p.lift += 0.05 + 0.02 * j(38); break;
+    case "laugh": p.tx -= 0.12; p.hx -= 0.3 + 0.08 * j(22); p.tz += 0.07 * j(18); p.lift += 0.07 * Math.abs(j(11)); if (still) { p.aL = [-0.7, 0.4, 1.7]; p.aR = [-0.7, 0.4, 1.7]; } break;
+    case "grin": case "relief_open": p.hx -= 0.1; p.lift += 0.03 * Math.abs(j(7)); p.tz += 0.03 * j(5); break;
+    case "smile": case "smile_closed": case "relief": p.hy += 0.08 * j(1.4); p.hx -= 0.04; break;
+    case "stern": p.tx += 0.14 * k; p.hx += 0.1; if (still) { p.aL = [-0.5, 0.22, 1.6]; p.aR = [-0.5, 0.22, 1.6]; } break;
+    case "nervous": p.tz += 0.02 * j(34); p.hy += 0.2 * j(5); p.aL = [-0.4, 0.2, 1.7 + 0.1 * j(30)]; p.aR = [-0.4, 0.2, 1.7 + 0.1 * j(33)]; p.tx += 0.1; break;
+    case "dazed": p.tz += 0.12 * j(2.2); p.hy += 0.45 * j(1.6); p.hx += 0.1 * j(2.9); p.tx += 0.05; break;
+    case "pained": p.tx += 0.38 * k; p.hx += 0.2; p.aL = [-0.2, 0.3, 1.1]; p.aR = [-0.2, 0.3, 1.1]; p.lL = [0.1, 0.35, 0.1]; p.lR = [-0.1, 0.35, 0.1]; break;
+    case "whistle": p.hy += 0.15 * j(1.6); p.hx -= 0.1; p.tz += 0.04 * j(2); break;
+    case "lick": p.hx -= 0.08; p.tz += 0.03 * j(3); break;
+  }
+  return p;
+}
+export function poseOf(i: RigIn): P { return emote(poseBase(i), i.expr, i.absT, !i.moving && !i.act && !i.doType && !i.sit && !i.drive); }
+function poseBase(i: RigIn): P {
   const p = base(), t = i.doT ?? i.absT, T = i.absT, a = i.act, dt = i.doType, off = i.idx * 0.43;
   const breath = sin((T + off) * 2.1);
   if (i.dead) { const k = sm(clamp((i.doT ?? 0) / 0.7)); p.rx = -1.45 * k; p.ry = 0.12 * k; p.aL = [-1.2 * k, 0.9 * k, 0.4]; p.aR = [-0.8 * k, 1.1 * k, 0.4]; p.lift = 0.13 * k; return p; }
@@ -108,7 +129,7 @@ class Rig {
   root = new THREE.Group(); pelvis = new THREE.Group(); torso = new THREE.Group(); head = new THREE.Group(); body = new THREE.Group();
   shL = new THREE.Group(); shR = new THREE.Group(); elL = new THREE.Group(); elR = new THREE.Group(); handL = new THREE.Group(); handR = new THREE.Group();
   hpL = new THREE.Group(); hpR = new THREE.Group(); knL = new THREE.Group(); knR = new THREE.Group();
-  hNat = NATIVE_H; role = ""; dyn: THREE.Object3D[] = [];
+  hNat = NATIVE_H; role = ""; dyn: THREE.Object3D[] = []; fc!: HTMLCanvasElement; ft!: THREE.CanvasTexture; fkey = "";
   constructor() {
     const line = (len: number, r = LIMB, col = INK) => grp(mk(C(r, r, len, 10), col, 0, -len / 2, 0));
     this.root.add(this.body); this.body.add(this.pelvis);
@@ -117,19 +138,21 @@ class Rig {
     this.torso.add(mk(C(0.085, 0.075, TORSO, 14), INK, 0, TORSO / 2, 0));
     const hd = this.head; hd.position.set(0, TORSO + 0.06, 0); this.torso.add(hd);
     hd.add(mk(S(HEADR, 24, 18), SKIN, 0, HEADR, 0));
-    hd.add(mk(S(0.026, 8, 6), INK, 0.068, HEADR + 0.03, HEADR - 0.012), mk(S(0.026, 8, 6), INK, -0.068, HEADR + 0.03, HEADR - 0.012));
-    hd.add(mk(B(0.075, 0.014, 0.012), INK, 0, HEADR - 0.075, HEADR - 0.004));
+    // expressive face: the studio's hand-drawn face system painted onto a canvas wrapped on the front of the head
+    const cv = document.createElement("canvas"); cv.width = cv.height = 256; this.fc = cv; this.ft = new THREE.CanvasTexture(cv); this.ft.colorSpace = THREE.SRGBColorSpace;
+    const fm = new THREE.Mesh(new THREE.SphereGeometry(HEADR * 1.012, 28, 20, Math.PI / 2 - 0.95, 1.9, Math.PI / 2 - 0.95, 1.9), new THREE.MeshBasicMaterial({ map: this.ft, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
+    fm.position.set(0, HEADR, 0); fm.layers.set(NOINK); hd.add(fm);
     // arms
     for (const [sh, el, hn, sx] of [[this.shL, this.elL, this.handL, 0.055], [this.shR, this.elR, this.handR, -0.055]] as const) {
       sh.position.set(sx, TORSO - 0.04, 0); this.torso.add(sh); sh.add(line(UPA), mk(S(LIMB * 1.15, 8, 6), INK, 0, 0, 0));
       el.position.set(0, -UPA, 0); sh.add(el); el.add(line(FORE), mk(S(LIMB * 1.15, 8, 6), INK, 0, 0, 0));
-      hn.position.set(0, -FORE, 0); el.add(hn); hn.add(mk(S(0.052, 10, 8), INK, 0, 0, 0));
+      hn.position.set(0, -FORE, 0); el.add(hn); hn.add(mk(S(0.062, 12, 10), "#ffffff", 0, -0.01, 0));
     }
     // legs (hips on the pelvis)
     for (const [hp, kn, sx] of [[this.hpL, this.knL, 0.07], [this.hpR, this.knR, -0.07]] as const) {
       hp.position.set(sx, 0, 0); this.pelvis.add(hp); hp.add(line(THIGH, LIMB * 1.1), mk(S(LIMB * 1.2, 8, 6), INK, 0, 0, 0));
       kn.position.set(0, -THIGH, 0); hp.add(kn); kn.add(line(SHIN, LIMB * 1.1), mk(S(LIMB * 1.15, 8, 6), INK, 0, 0, 0));
-      const ft = mk(S(0.058, 10, 8), INK, 0, -SHIN + 0.02, 0.055, 0.85, 0.6, 1.9); kn.add(ft);
+      const ft = mk(S(0.07, 12, 10), sx > 0 ? "#e8e8ee" : "#e8e8ee", 0, -SHIN + 0.025, 0.06, 0.85, 0.62, 1.9); kn.add(ft);
     }
     this.root.traverse((n) => { const m = n as THREE.Mesh; if (m.isMesh) { m.castShadow = true; } });
   }
@@ -161,6 +184,11 @@ class Rig {
     this.shL.rotation.set(-p.aL[0], 0, p.aL[1]); this.elL.rotation.set(-p.aL[2], 0, 0);
     this.shR.rotation.set(-p.aR[0], 0, -p.aR[1]); this.elR.rotation.set(-p.aR[2], 0, 0);
   }
+  face(expr: Expr, blink: boolean | number, look: number) {
+    const key = `${expr}|${typeof blink === "number" ? Math.round(blink * 6) : blink ? 1 : 0}|${Math.round(look * 8)}`; if (key === this.fkey) return; this.fkey = key;
+    const g = this.fc.getContext("2d")!; g.clearRect(0, 0, 256, 256); const pen = new Pen(g); pen.ol = 6;
+    faceFront(pen, 128, 112, 236, expr, 0, look, lidOf(blink), false, SKIN); this.ft.needsUpdate = true;
+  }
   hand(side: 1 | -1, out: THREE.Vector3) { this.root.updateMatrixWorld(true); return (side > 0 ? this.handR : this.handL).getWorldPosition(out); }
 }
 
@@ -172,7 +200,7 @@ export class Rigs {
   put(i: RigIn): Rig {
     let r = this.pool.get(i.key); if (!r) { r = new Rig(); this.root.add(r.root); this.pool.set(i.key, r); }
     this.seen.add(i.key); r.dress(i.role); r.root.visible = true;
-    r.apply(poseOf(i));
+    r.apply(poseOf(i)); r.face(i.expr ?? "neutral", i.blink ?? false, i.look ?? 0);
     r.root.position.set(i.x, i.y, i.z); r.root.rotation.set(0, i.yaw, 0); r.root.scale.setScalar(i.h / NATIVE_H);
     return r;
   }

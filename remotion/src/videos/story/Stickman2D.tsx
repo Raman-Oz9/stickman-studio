@@ -6,9 +6,9 @@ import React from "react";
 export type Expression = "smile" | "joy" | "focused" | "shock" | "angry" | "sad";
 export type Vec = [number, number];
 export type CharacterBuild = "lean" | "stocky";
-const BUILD_PROPORTIONS: Record<CharacterBuild, { torso: number; shoulder: number; arm: number; leg: number; head: number; hand: number; shoe: number }> = {
-  lean: { torso: 0.94, shoulder: 0.96, arm: 0.94, leg: 0.96, head: 0.98, hand: 0.96, shoe: 0.96 },
-  stocky: { torso: 1.12, shoulder: 1.08, arm: 1.06, leg: 1.08, head: 1.04, hand: 1.04, shoe: 1.04 },
+const BUILD_PROPORTIONS: Record<CharacterBuild, { torso: number; shoulder: number; arm: number; legSpread: number; legLength: number; legWidth: number; head: number; hand: number; shoe: number }> = {
+  lean: { torso: 0.94, shoulder: 0.96, arm: 0.94, legSpread: 0.98, legLength: 1, legWidth: 0.94, head: 0.98, hand: 0.96, shoe: 0.96 },
+  stocky: { torso: 1.12, shoulder: 1.08, arm: 1.06, legSpread: 1.3, legLength: 1, legWidth: 1.08, head: 1.04, hand: 1.04, shoe: 1.04 },
 };
 
 const INK = "#29212a";
@@ -175,9 +175,9 @@ export const Stickman: React.FC<StickmanProps> = ({
 
   const hip: Vec = [HIP[0], HIP[1] + breathe * 0.4];
   const trousers = shadeColor(cloth, 0.72);
-  const footF: Vec = [mix(34 * body.leg + swing * 62 * body.leg, 38 * body.leg, stand), -lift(walk)];
-  const footB: Vec = [mix(-34 * body.leg - swing * 62 * body.leg, -34 * body.leg, stand), -lift(walk + 0.5)];
-  const legF = ik([12 * body.torso, hip[1]], footF, THIGH * body.leg, SHIN * body.leg, 1);
+  const footF: Vec = [mix(34 * body.legSpread + swing * 62 * body.legSpread, 38 * body.legSpread, stand), -lift(walk)];
+  const footB: Vec = [mix(-34 * body.legSpread - swing * 62 * body.legSpread, -34 * body.legSpread, stand), -lift(walk + 0.5)];
+  const legF = ik([12 * body.torso, hip[1]], footF, THIGH * body.legLength, SHIN * body.legLength, 1);
   const legB = ik([-12 * body.torso, hip[1]], footB, THIGH * body.leg, SHIN * body.leg, 1);
 
   const rest = (side: 1 | -1, p: number): Vec => [side * 22 + swing * side * 38 * (1 - stand) * (p ? -1 : 1), -402 + 150];
@@ -200,7 +200,7 @@ export const Stickman: React.FC<StickmanProps> = ({
       {/* back arm + back leg */}
       <Limb a={shB} b={armB.joint} c={armB.end} w={20 * body.arm} color={skin} sleeve={cloth} />
       <Hand at={armB.end} dir={handDir(armB)} skin={skin} size={0.78 * body.hand} />
-      <Limb a={[-12 * body.torso, hip[1]]} b={legB.joint} c={legB.end} w={21 * body.leg} color={trousers} />
+      <Limb a={[-12 * body.torso, hip[1]]} b={legB.joint} c={legB.end} w={21 * body.legWidth} color={trousers} />
       <Shoe at={legB.end} scale={0.82 * body.shoe} />
       {/* torso */}
       <g transform={`rotate(${lean} 0 ${HIP[1]})`}>

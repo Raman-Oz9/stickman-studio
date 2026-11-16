@@ -5,6 +5,11 @@ import React from "react";
 // land exactly on targets (coin hand-offs, pointing) and knees/elbows bend the right way.
 export type Expression = "smile" | "joy" | "focused" | "shock" | "angry" | "sad";
 export type Vec = [number, number];
+export type CharacterBuild = "lean" | "stocky";
+const BUILD_PROPORTIONS: Record<CharacterBuild, { torso: number; shoulder: number; arm: number; leg: number; head: number; hand: number; shoe: number }> = {
+  lean: { torso: 0.94, shoulder: 0.96, arm: 0.94, leg: 0.96, head: 0.98, hand: 0.96, shoe: 0.96 },
+  stocky: { torso: 1.12, shoulder: 1.08, arm: 1.06, leg: 1.08, head: 1.04, hand: 1.04, shoe: 1.04 },
+};
 
 const INK = "#29212a";
 const mix = (a: number, b: number, t: number) => a + (b - a) * t;
@@ -72,8 +77,8 @@ const Shoe: React.FC<{ at: Vec; scale?: number }> = ({ at, scale = 1 }) => (
   </g>
 );
 
-const Hand: React.FC<{ at: Vec; dir: number; skin: string; grip?: boolean }> = ({ at, dir, skin, grip }) => (
-  <g transform={`translate(${at[0]} ${at[1]}) rotate(${dir}) scale(.78)`} stroke={INK} strokeLinejoin="round" strokeLinecap="round">
+const Hand: React.FC<{ at: Vec; dir: number; skin: string; grip?: boolean; size?: number }> = ({ at, dir, skin, grip, size = 0.78 }) => (
+  <g transform={`translate(${at[0]} ${at[1]}) rotate(${dir}) scale(${size})`} stroke={INK} strokeLinejoin="round" strokeLinecap="round">
     {/* One continuous palm silhouette with four distinct finger tips and a working thumb. */}
     <path d="M -11 -13 C -19 -24 -11 -34 -3 -32 C 4 -31 7 -23 7 -16 L 12 -29 C 15 -37 25 -34 25 -25 L 23 -15 L 29 -24 C 34 -30 42 -23 38 -14 L 32 -5 Q 43 -8 45 2 Q 46 13 34 17 Q 26 25 11 22 L -8 15 Q -21 8 -17 -3Z" fill={skin} strokeWidth="7" />
     <path d="M -8 -5 Q -24 -18 -31 -7 Q -34 4 -18 11 L -8 8Z" fill={skin} strokeWidth="6" />
@@ -155,12 +160,14 @@ export type StickmanProps = {
   frame?: number;             // drives blink + idle breathing
   look?: number;              // -1..1 eye direction
   lean?: number;              // torso lean in degrees (positive = forward)
+  build?: CharacterBuild;     // distinct silhouette proportions, independent of outfit
 };
 
 export const Stickman: React.FC<StickmanProps> = ({
   x, y, scale = 1, facing = 1, skin, cloth, trim, hair = "#2e2423", walk = 0, stand = 1,
-  frontHand = null, backHand = null, grip, expression = "smile", frame = 0, look = 0, lean = 0,
+  frontHand = null, backHand = null, grip, expression = "smile", frame = 0, look = 0, lean = 0, build = "lean",
 }) => {
+  const body = BUILD_PROPORTIONS[build];
   const breathe = Math.sin(frame / 9) * 2.5;
   const blink = frame % 96 < 5 ? 1 : 0;
   const swing = Math.sin(walk * Math.PI * 2);
@@ -168,44 +175,46 @@ export const Stickman: React.FC<StickmanProps> = ({
 
   const hip: Vec = [HIP[0], HIP[1] + breathe * 0.4];
   const trousers = shadeColor(cloth, 0.72);
-  const footF: Vec = [mix(34 + swing * 62, 38, stand), -lift(walk)];
-  const footB: Vec = [mix(-34 - swing * 62, -34, stand), -lift(walk + 0.5)];
-  const legF = ik([12, hip[1]], footF, THIGH, SHIN, 1);
-  const legB = ik([-12, hip[1]], footB, THIGH, SHIN, 1);
+  const footF: Vec = [mix(34 * body.leg + swing * 62 * body.leg, 38 * body.leg, stand), -lift(walk)];
+  const footB: Vec = [mix(-34 * body.leg - swing * 62 * body.leg, -34 * body.leg, stand), -lift(walk + 0.5)];
+  const legF = ik([12 * body.torso, hip[1]], footF, THIGH * body.leg, SHIN * body.leg, 1);
+  const legB = ik([-12 * body.torso, hip[1]], footB, THIGH * body.leg, SHIN * body.leg, 1);
 
   const rest = (side: 1 | -1, p: number): Vec => [side * 22 + swing * side * 38 * (1 - stand) * (p ? -1 : 1), -402 + 150];
-  const shF: Vec = [SHOULDER_X, SHOULDER_Y + breathe];
-  const shB: Vec = [-SHOULDER_X, SHOULDER_Y + breathe];
-  const tF = frontHand ?? [SHOULDER_X + 12, -232];
-  const tB = backHand ?? [-SHOULDER_X - 8 + swing * 24 * (1 - stand), -226];
-  const armF = ik(shF, tF, UPPER, FORE, 1);
-  const armB = ik(shB, tB, UPPER, FORE, 1);
+  const shF: Vec = [shoulderX, SHOULDER_Y + breathe];
+  const shB: Vec = [-shoulderX, SHOULDER_Y + breathe];
+  const shoulderX = SHOULDER_X * body.shoulder;
+  const tF = frontHand ?? [shoulderX + 12 * body.arm, -232];
+  const tB = backHand ?? [-shoulderX - 8 * body.arm + swing * 24 * (1 - stand), -226];
+  const armF = ik(shF, tF, UPPER * body.arm, FORE * body.arm, 1);
+  const armB = ik(shB, tB, UPPER * body.arm, FORE * body.arm, 1);
 
   const sy = SHOULDER_Y, hy = HIP[1];
-  const torsoPath = `M -58 ${sy + 6} Q -66 ${sy + 60} -46 ${hy - 40} Q -62 ${hy + 4} -58 ${hy + 34} Q 0 ${hy + 52} 58 ${hy + 34} Q 62 ${hy + 4} 46 ${hy - 40} Q 66 ${sy + 60} 58 ${sy + 6} Q 0 ${sy - 24} -58 ${sy + 6} Z`;
+  const tw = body.torso;
+  const torsoPath = `M ${-58 * tw} ${sy + 6} Q ${-66 * tw} ${sy + 60} ${-46 * tw} ${hy - 40} Q ${-62 * tw} ${hy + 4} ${-58 * tw} ${hy + 34} Q 0 ${hy + 52} ${58 * tw} ${hy + 34} Q ${62 * tw} ${hy + 4} ${46 * tw} ${hy - 40} Q ${66 * tw} ${sy + 60} ${58 * tw} ${sy + 6} Q 0 ${sy - 24} ${-58 * tw} ${sy + 6} Z`;
   const handDir = (a: { joint: Vec; end: Vec }) => (Math.atan2(a.end[1] - a.joint[1], a.end[0] - a.joint[0]) * 180) / Math.PI;
 
   return (
     <g transform={`translate(${x} ${y}) scale(${scale * facing} ${scale})`} strokeLinejoin="round" strokeLinecap="round">
       <ellipse cx="0" cy="6" rx="105" ry="20" fill="#3b2b2c" opacity=".2" />
       {/* back arm + back leg */}
-      <Limb a={shB} b={armB.joint} c={armB.end} w={20} color={skin} sleeve={cloth} />
-      <Hand at={armB.end} dir={handDir(armB)} skin={skin} />
-      <Limb a={[-12, hip[1]]} b={legB.joint} c={legB.end} w={21} color={trousers} />
-      <Shoe at={legB.end} scale={0.82} />
+      <Limb a={shB} b={armB.joint} c={armB.end} w={20 * body.arm} color={skin} sleeve={cloth} />
+      <Hand at={armB.end} dir={handDir(armB)} skin={skin} size={0.78 * body.hand} />
+      <Limb a={[-12 * body.torso, hip[1]]} b={legB.joint} c={legB.end} w={21 * body.leg} color={trousers} />
+      <Shoe at={legB.end} scale={0.82 * body.shoe} />
       {/* torso */}
       <g transform={`rotate(${lean} 0 ${HIP[1]})`}>
         <path d={torsoPath} fill={INK} stroke={INK} strokeWidth="14" />
         <path d={torsoPath} fill={cloth} />
-        <path d={`M -48 ${SHOULDER_Y + 22} Q 0 ${SHOULDER_Y + 46} 48 ${SHOULDER_Y + 22}`} fill="none" stroke={trim} strokeWidth="9" />
-        <path d={`M -58 ${hy + 24} Q 0 ${hy + 42} 58 ${hy + 24}`} fill="none" stroke={trim} strokeWidth="9" />
-        <path d={`M -45 ${hy - 36} Q 0 ${hy - 22} 45 ${hy - 36}`} fill="none" stroke={INK} strokeWidth="5" opacity=".5" />
+        <path d={`M ${-48 * tw} ${SHOULDER_Y + 22} Q 0 ${SHOULDER_Y + 46} ${48 * tw} ${SHOULDER_Y + 22}`} fill="none" stroke={trim} strokeWidth="9" />
+        <path d={`M ${-58 * tw} ${hy + 24} Q 0 ${hy + 42} ${58 * tw} ${hy + 24}`} fill="none" stroke={trim} strokeWidth="9" />
+        <path d={`M ${-45 * tw} ${hy - 36} Q 0 ${hy - 22} ${45 * tw} ${hy - 36}`} fill="none" stroke={INK} strokeWidth="5" opacity=".5" />
         <path d={`M 0 ${SHOULDER_Y + 46} L 0 ${HIP[1] - 4}`} stroke={trim} strokeWidth="4" opacity=".65" />
-        <path d={`M -66 ${sy + 12} Q -54 ${sy - 7} -35 ${sy + 3} M 35 ${sy + 3} Q 54 ${sy - 7} 66 ${sy + 12}`} fill="none" stroke={INK} strokeWidth="5" opacity=".48" />
+        <path d={`M ${-66 * tw} ${sy + 12} Q ${-54 * tw} ${sy - 7} ${-35 * tw} ${sy + 3} M ${35 * tw} ${sy + 3} Q ${54 * tw} ${sy - 7} ${66 * tw} ${sy + 12}`} fill="none" stroke={INK} strokeWidth="5" opacity=".48" />
         {/* neck + head */}
         <path d={`M 0 ${SHOULDER_Y - 4} L 0 -440`} stroke={INK} strokeWidth="38" />
         <path d={`M 0 ${SHOULDER_Y - 4} L 0 -440`} stroke={skin} strokeWidth="26" />
-        <g transform={`translate(0 ${breathe * 0.6}) rotate(${look * 4})`}>
+        <g transform={`translate(0 ${breathe * 0.6}) rotate(${look * 4}) translate(0 -486) scale(${body.head}) translate(0 486)`}>
           <ellipse cx="-64" cy="-480" rx="13" ry="18" fill={skin} stroke={INK} strokeWidth="7" />
           <ellipse cx="64" cy="-480" rx="13" ry="18" fill={skin} stroke={INK} strokeWidth="7" />
           <path d="M 0 -556 C -43 -556 -72 -526 -70 -484 C -69 -443 -42 -416 0 -414 C 42 -416 69 -443 70 -484 C 72 -526 43 -556 0 -556Z" fill={skin} stroke={INK} strokeWidth="10" />
@@ -216,10 +225,10 @@ export const Stickman: React.FC<StickmanProps> = ({
         </g>
       </g>
       {/* front leg + arm */}
-      <Limb a={[12, hip[1]]} b={legF.joint} c={legF.end} w={21} color={trousers} />
-      <Shoe at={legF.end} scale={0.86} />
-      <Limb a={shF} b={armF.joint} c={armF.end} w={20} color={skin} sleeve={cloth} />
-      <Hand at={armF.end} dir={handDir(armF)} skin={skin} grip={grip} />
+      <Limb a={[12 * body.torso, hip[1]]} b={legF.joint} c={legF.end} w={21 * body.leg} color={trousers} />
+      <Shoe at={legF.end} scale={0.86 * body.shoe} />
+      <Limb a={shF} b={armF.joint} c={armF.end} w={20 * body.arm} color={skin} sleeve={cloth} />
+      <Hand at={armF.end} dir={handDir(armF)} skin={skin} grip={grip} size={0.78 * body.hand} />
     </g>
   );
 };

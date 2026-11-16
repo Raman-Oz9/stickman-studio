@@ -1,4 +1,5 @@
 import React from "react";
+import { twoBone } from "./actions";
 
 // Articulated flat-2D ink stickman. Local space: origin = ground point between the feet,
 // +x = forward (mirrored by `facing`), -y = up. Limbs are solved with two-bone IK so hands
@@ -51,13 +52,8 @@ const THIGH = 120;
 const SHIN = 118;
 
 function ik(s: Vec, t: Vec, l1: number, l2: number, bend: 1 | -1): { joint: Vec; end: Vec } {
-  const dx = t[0] - s[0], dy = t[1] - s[1];
-  const dist = Math.max(8, Math.min(Math.hypot(dx, dy), l1 + l2 - 0.5));
-  const base = Math.atan2(dy, dx);
-  const cosA = (l1 * l1 + dist * dist - l2 * l2) / (2 * l1 * dist);
-  const a = Math.acos(Math.max(-1, Math.min(1, cosA))) * bend;
-  const joint: Vec = [s[0] + Math.cos(base + a) * l1, s[1] + Math.sin(base + a) * l1];
-  const end: Vec = [s[0] + Math.cos(base) * dist, s[1] + Math.sin(base) * dist];
+  // Reuse the established 2D contact/action solver so character posing and prop contacts share one IK convention.
+  const [, joint, end] = twoBone(s, t, l1, l2, bend);
   return { joint, end };
 }
 

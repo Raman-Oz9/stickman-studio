@@ -136,7 +136,7 @@ class Rig {
     // torso: coloured vest on a black spine, head on a neck
     this.pelvis.add(this.torso);
     this.torso.add(mk(C(0.085, 0.075, TORSO, 14), INK, 0, TORSO / 2, 0));
-    const hd = this.head; hd.position.set(0, TORSO + 0.06, 0); this.torso.add(hd);
+    const hd = this.head; hd.position.set(0, TORSO + 0.012, 0); this.torso.add(hd);
     hd.add(mk(S(HEADR, 24, 18), SKIN, 0, HEADR, 0));
     // expressive face: the studio's hand-drawn face system painted onto a canvas wrapped on the front of the head
     const cv = document.createElement("canvas"); cv.width = cv.height = 256; this.fc = cv; this.ft = new THREE.CanvasTexture(cv); this.ft.colorSpace = THREE.SRGBColorSpace;

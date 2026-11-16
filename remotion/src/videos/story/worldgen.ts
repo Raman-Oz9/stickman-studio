@@ -191,13 +191,13 @@ export const drawArtifact=(type:ArtifactType,t=0):THREE.Group=>{
 };
 
 export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
-  const p={season:"summer",timeOfDay:"dawn",weather:"clear",era:"medieval",region:"african",...params};
+  const p: WorldParams={season:"summer",timeOfDay:"dawn",weather:"clear",era:"medieval",region:"african",...params};
   const g=new THREE.Group();g.name=p.mapMode?"HistoricalMapWorld":"ProceduralWorld";
   if(p.mapMode){mapLayer(g,p,t);g.scale.set(.5,1,.72);}else{
     terrain(g,p,t);
     settlement(g,p,t);
     if(p.artifact){const a=drawArtifact(p.artifact,t);a.position.set(0,0,5);g.add(a);}
-    if(p.timeOfDay==="night"){const moon=ball(g,3,P.sky,40,34,-70);moon.material=new THREE.MeshBasicMaterial({color:P.sky});}
+    if(p.timeOfDay==="night"){ball(g,3,P.sky,40,34,-70);}
     if(p.timeOfDay==="dawn"||p.timeOfDay==="dusk")ball(g,2.8,p.accentEnabled?P.accent:P.sky,34,26,-68);
   }
   // Deterministic weather particles. Accent stays dormant until explicitly unlocked.

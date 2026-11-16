@@ -5,6 +5,10 @@
 
 ## CHANGELOG
 
+### 2026-11-16 — Trade contact spacing correction
+- The next native-frame review confirmed the receiver arm now faces the giver, but the characters were still too far apart for their hands to meet. For hand-over scenes only, reduced the staging distance between the two traders while keeping their world positions unchanged for all other scenes. Updated the coin hand anchors to the ink-card canvas scale so the object travels between the two contact points and stays with the receiver.
+- Strict TypeScript and all native stills passed on the previous commit, but the revised hand contact needs another frame review before the full visual render is authorised.
+
 ### 2026-11-16 — Native-frame QA pass: correct receiver orientation and map staging
 - Inspected the refreshed native 1080×1920 frames. The trade scene exposed a mirrored-arm issue: the receiver's reaching arm pointed away from the exchange, so the coin appeared to float between them. Updated the ink-card facing/mirroring and both hand targets so the receiver reaches toward the giver and the coin interpolates between actual hand positions, then remains at the receiver's waist.
 - Removed the foreground guide character from the overhead trade-map reveal so the map, route and labels remain unobstructed. The map now reads as a separate geography shot rather than the same environment with a different background.

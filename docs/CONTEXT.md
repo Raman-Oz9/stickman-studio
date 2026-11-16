@@ -5,6 +5,10 @@
 
 ## CHANGELOG
 
+### 2026-11-16 — CI now renders the storyboard-driven 2D composition (pending run)
+- Extended `.github/workflows/illustrated-proof.yml` to include `Story2D.tsx` in push triggers, prepare the actual `story_great_zimbabwe_board.json` as Remotion input props, and render seven native-resolution frames spanning the establishing shot, hand-over action, elevated reveal and ending through `StoryShort2D`, alongside the existing isolated proof frames.
+- This closes the gap where the old CI only rendered `IllustratedProof` and could not verify the new storyboard renderer. TypeScript and visual QA are still pending; inspect the uploaded `story2d` frames, especially hand/object contact and framing during the trade scene.
+
 ### 2026-11-16 — Storyboard-driven 2D production vertical slice (render QA pending)
 - Added `remotion/src/videos/story/Story2D.tsx`, a second renderer consuming the existing `Board` / `SceneDef` timeline, reusing role/era outfits and the original ink-card character renderer, and drawing an illustrated Great Zimbabwe setting with 2D props, captions, scene framing and a timed hand-over interaction. It does not mount ThreeCanvas or StoryWorld.
 - Registered `StoryShort2D` as a separate Remotion composition, leaving the established `StoryShort` path intact while the new renderer is tested against the actual storyboard.

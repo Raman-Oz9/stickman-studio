@@ -5,8 +5,10 @@ on:
     paths:
       - ".github/workflows/illustrated-proof.yml"
       - "remotion/src/videos/story/IllustratedProof.tsx"
+      - "remotion/src/videos/story/Story2D.tsx"
       - "remotion/src/videos/story/Stickman2D.tsx"
       - "remotion/src/Root.tsx"
+      - "remotion/story_great_zimbabwe_board.json"
       - "remotion/package.json"
       - "remotion/package-lock.json"
   workflow_dispatch:
@@ -29,10 +31,19 @@ jobs:
       - name: Strict TypeScript check
         working-directory: remotion
         run: npx tsc --noEmit
-      - name: Render native-resolution proof frames
+      - name: Prepare Great Zimbabwe storyboard props for the 2D renderer
+        run: |
+          mkdir -p remotion/public/prep
+          python3 -c "import json; b=json.load(open('remotion/story_great_zimbabwe_board.json')); json.dump({'board':b},open('remotion/public/prep/story2d-props.json','w'))"
+      - name: Render native-resolution storyboard and proof frames
         working-directory: remotion
         run: |
           mkdir -p out
+          for frame in 60 240 570 780 1000 1225 1530; do
+            npx remotion still src/index.ts StoryShort2D "out/story2d-f${frame}.jpg" \
+              --frame="${frame}" --scale=1 --gl=swangle --image-format=jpeg \
+              --jpeg-quality=94 --props=./public/prep/story2d-props.json --timeout=300000 --log=warn
+          done
           for frame in 15 45 75 105 150 175; do
             npx remotion still src/index.ts IllustratedProof "out/2d-proof-f${frame}.jpg" \
               --frame="${frame}" --scale=1 --gl=swangle --image-format=jpeg \
@@ -42,7 +53,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: illustrated-proof-frames
-          path: remotion/out/2d-proof-*.jpg
+          name: illustrated-2d-storyboard-proof
+          path: remotion/out/*.jpg
           if-no-files-found: warn
           retention-days: 7

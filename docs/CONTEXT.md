@@ -5,6 +5,10 @@
 
 ## CHANGELOG
 
+### 2026-11-16 — Narrated render complete; output-branch authentication correction
+- The narrated render completed successfully: 42.27 seconds, 1080×1920, 30 fps, H.264 video plus AAC stereo audio. Liam narration and the music/SFX mix were generated and assembled; audio peak measured at -0.5 dBFS and mean at -16.9 dBFS. The MP4 artifact `great-zimbabwe-2d-narrated-video` is uploaded and available even though the optional `story-out-2d` branch publication step failed.
+- Corrected the branch-publish command to use the already-populated `GH_TOKEN` environment variable rather than interpolating the token directly into the URL. The artifact is the deliverable; verify the follow-up publication step separately.
+
 ### 2026-11-16 — Fix GitHub expression syntax in narrated render workflow
 - Corrected the workflow's matrix/output expressions to GitHub Actions `${{ ... }}` syntax before its first run. This is a workflow-only correction; the visual-only MP4 remains available while the narrated pipeline executes.
 

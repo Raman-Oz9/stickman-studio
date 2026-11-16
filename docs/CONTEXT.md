@@ -5,6 +5,10 @@
 
 ## CHANGELOG
 
+### 2026-11-16 — Pin transferred coin to receiver's visible carry hand
+- Native review confirmed the two traders now close the gap and both arms reach into the exchange, but the carried coin still sat slightly outside the receiver's bent hand after the transfer. Calibrated the final coin anchor against the actual rendered hand position in the 1080×1920 frame; the transfer path now terminates at that waist-level grip.
+- This is the final visual contact calibration before a complete MP4 preview. TypeScript and native-frame render must pass again; the existing production renderer remains unchanged.
+
 ### 2026-11-16 — Trade contact spacing correction
 - The next native-frame review confirmed the receiver arm now faces the giver, but the characters were still too far apart for their hands to meet. For hand-over scenes only, reduced the staging distance between the two traders while keeping their world positions unchanged for all other scenes. Updated the coin hand anchors to the ink-card canvas scale so the object travels between the two contact points and stays with the receiver.
 - Strict TypeScript and all native stills passed on the previous commit, but the revised hand contact needs another frame review before the full visual render is authorised.

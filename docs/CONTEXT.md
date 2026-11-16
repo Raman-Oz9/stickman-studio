@@ -1,3 +1,9 @@
+### 2026-11-16 — Reconnect the storyboard proof to the dimensional world renderer
+- Added a dedicated CI proof workflow that renders the actual Great Zimbabwe board through the existing `StoryShort` / `StoryWorld` Three.js composition at native 1080×1920 resolution, rather than the separate flat `StoryShort2D` SVG/canvas composition. It captures multiple points across the narrated timeline and runs strict TypeScript first.
+- This is a renderer-integration diagnostic, not yet a replacement for the current narrated MP4 workflow. Inspect every proof frame for terrain depth, settlement scale, character integration, camera framing, lighting, post-processing and world animation before switching the video pipeline. If the 3D path exposes weak terrain or staging, improve those systems before producing another full test video.
+- The existing 2D render path remains intact until the dimensional proof passes visual QA. PR #1 remains open and unmerged.
+
+
 # CONTEXT — hand-off file for any AI continuing this project
 
 > **RULE (standing instruction from the owner, Raman):** every time the repository is changed, update this file in the same commit

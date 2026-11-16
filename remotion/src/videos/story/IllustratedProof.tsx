@@ -9,41 +9,69 @@ const Character: React.FC<{ x: number; y: number; scale?: number; skin: string; 
   x, y, scale = 1, skin, cloth, trim, facing = 1, phase, reach, holding, expression = "smile",
 }) => {
   const stride = Math.sin(phase * Math.PI * 2) * 17 * (1 - reach);
+  const knee = Math.sin(phase * Math.PI * 2) * 9 * (1 - reach);
   const arm = mix(-18, -78, reach);
   const forearm = mix(24, 18, reach);
+  const ink = "#29212a";
+  const hair = "#2e2423";
   return (
-    <g transform={`translate(${x} ${y}) scale(${scale * facing} ${scale})`} stroke="#29212a" strokeWidth="11" strokeLinecap="round" strokeLinejoin="round">
-      <ellipse cx="0" cy="12" rx="76" ry="20" fill="#3b2b2c" opacity=".18" stroke="none" />
-      <g fill="none" strokeWidth="28">
-        <path d={`M -25 260 Q -43 315 -35 380 L ${-37 + stride} 455`} stroke="#29212a" />
-        <path d={`M -25 260 Q -43 315 -35 380 L ${-37 + stride} 455`} stroke={trim} strokeWidth="17" />
-        <path d={`M 27 260 Q 44 318 35 380 L ${37 - stride} 455`} stroke="#29212a" />
-        <path d={`M 27 260 Q 44 318 35 380 L ${37 - stride} 455`} stroke={cloth} strokeWidth="17" />
+    <g transform={`translate(${x} ${y}) scale(${scale * facing} ${scale})`} stroke={ink} strokeWidth="9" strokeLinecap="round" strokeLinejoin="round">
+      <ellipse cx="0" cy="12" rx="78" ry="19" fill="#3b2b2c" opacity=".16" stroke="none" />
+
+      {/* Legs are built as shaped thighs and calves, with readable knees and ankles. */}
+      <g>
+        <path d={`M -29 252 C -49 278 -48 315 -39 344 Q -35 360 -40 384 L ${-43 + stride} 432 Q -48 450 -35 457 Q -18 462 -7 449 L -8 426 L ${-13 + stride * .55} 365 Q -7 328 -2 286Z`} fill={trim} stroke={ink} strokeWidth="11"/>
+        <path d={`M 5 278 C 23 294 31 321 27 347 Q 23 364 30 387 L ${38 - stride} 432 Q 46 449 32 457 Q 13 462 4 448 L 5 425 L ${13 - stride * .55} 365 Q 8 328 -5 296Z`} fill={cloth} stroke={ink} strokeWidth="11"/>
+        <path d={`M -34 350 Q -23 359 -10 353 M 24 352 Q 34 360 42 352`} fill="none" stroke={ink} strokeWidth="5" opacity=".42"/>
+        <path d={`M -42 454 Q -59 462 -78 455 Q -91 450 -88 438 Q -84 427 -68 431 L -47 431 Q -35 438 -35 448Z`} fill={ink} stroke={ink} strokeWidth="5"/>
+        <path d={`M 35 454 Q 51 462 73 455 Q 87 450 83 438 Q 79 427 64 431 L 43 431 Q 30 438 30 448Z`} fill={ink} stroke={ink} strokeWidth="5"/>
+        <path d={`M -28 435 L -28 447 M 49 435 L 49 447`} fill="none" stroke="#f1c77b" strokeWidth="4" opacity=".75"/>
       </g>
-      <path d="M -42 455 Q -64 466 -83 458" fill="none" stroke="#29212a" strokeWidth="27" />
-      <path d="M 42 455 Q 64 466 83 458" fill="none" stroke="#29212a" strokeWidth="27" />
-      <path d="M -55 118 Q -70 170 -53 267 Q 0 292 54 267 Q 70 170 55 118 Q 0 89 -55 118Z" fill={cloth} />
-      <path d="M -48 135 Q 0 156 48 135" fill="none" stroke={trim} strokeWidth="9" />
-      <path d="M -28 150 L -8 267 M 28 150 L 8 267" stroke={trim} strokeWidth="5" opacity=".8" />
-      <path d="M -55 142 Q -100 165 -103 220" fill="none" stroke="#29212a" strokeWidth="27" />
-      <path d="M -55 142 Q -100 165 -103 220" fill="none" stroke={skin} strokeWidth="17" />
+
+      {/* Tunic silhouette: broad shoulders, shaped waist, hem and fabric folds. */}
+      <path d="M -48 119 Q -67 124 -73 151 L -64 202 Q -59 235 -54 266 Q 0 290 55 266 Q 60 235 65 202 L 73 151 Q 67 124 48 119 Q 25 106 0 110 Q -25 106 -48 119Z" fill={cloth} stroke={ink} strokeWidth="12"/>
+      <path d="M -49 133 Q 0 153 49 133" fill="none" stroke={trim} strokeWidth="10"/>
+      <path d="M -40 157 Q -30 203 -21 263 M 40 157 Q 30 203 21 263" fill="none" stroke={trim} strokeWidth="5" opacity=".85"/>
+      <path d="M -52 224 Q 0 239 52 224" fill="none" stroke="#6e3e36" strokeWidth="4" opacity=".32"/>
+      <path d="M -12 154 L -7 258 M 13 154 L 8 258" fill="none" stroke="#fff0bf" strokeWidth="3" opacity=".35"/>
+
+      {/* Relaxed far arm: upper arm, elbow, forearm and a palm with separated fingers. */}
+      <path d="M -58 143 Q -83 147 -98 173 Q -113 194 -111 222" fill="none" stroke={ink} strokeWidth="31"/>
+      <path d="M -58 143 Q -83 147 -98 173 Q -113 194 -111 222" fill="none" stroke={skin} strokeWidth="20"/>
+      <circle cx="-109" cy="222" r="12" fill={skin} stroke={ink} strokeWidth="7"/>
+      <path d="M -111 222 Q -123 237 -117 253 Q -113 263 -104 258 Q -96 252 -100 239 L -96 229" fill={skin} stroke={ink} strokeWidth="7"/>
+      <path d="M -112 245 l -7 10 M -104 248 l -2 12" fill="none" stroke={ink} strokeWidth="3"/>
+
+      {/* Near arm has articulated upper arm and forearm; the wrist remains the coin anchor. */}
+      <path d="M 53 143 Q 75 146 91 165 Q 101 179 92 194" fill="none" stroke={ink} strokeWidth="34"/>
+      <path d="M 53 143 Q 75 146 91 165 Q 101 179 92 194" fill="none" stroke={skin} strokeWidth="22"/>
+      <circle cx="92" cy="194" r="13" fill={skin} stroke={ink} strokeWidth="7"/>
       <g transform={`translate(53 142) rotate(${arm})`}>
-        <path d="M 0 0 Q 20 14 40 35" fill="none" stroke="#29212a" strokeWidth="29" />
-        <path d="M 0 0 Q 20 14 40 35" fill="none" stroke={skin} strokeWidth="18" />
-        <g transform={`translate(40 35) rotate(${forearm})`}>
-          <path d="M 0 0 Q 28 10 58 5" fill="none" stroke="#29212a" strokeWidth="26" />
-          <path d="M 0 0 Q 28 10 58 5" fill="none" stroke={skin} strokeWidth="16" />
-          <path d="M 58 5 q 8 -10 17 -2 q 7 8 -2 14 q -10 5 -15 -2" fill={skin} />
-          {holding ? <g transform="translate(62 7)"><circle r="14" fill="#f3bd45" stroke="#29212a" strokeWidth="5" /><circle r="8" fill="none" stroke="#fff0ad" strokeWidth="3" /><path d="M-4 0 Q0 -5 4 0 Q0 5 -4 0" fill="none" stroke="#a56a2a" strokeWidth="2" /></g> : null}
+        <path d="M 0 0 C 18 2 32 15 42 35" fill="none" stroke={ink} strokeWidth="34"/>
+        <path d="M 0 0 C 18 2 32 15 42 35" fill="none" stroke={skin} strokeWidth="22"/>
+        <ellipse cx="42" cy="35" rx="14" ry="13" fill={skin} stroke={ink} strokeWidth="7"/>
+        <g transform={`translate(42 35) rotate(${forearm})`}>
+          <path d="M 0 0 C 20 8 39 9 57 5" fill="none" stroke={ink} strokeWidth="31"/>
+          <path d="M 0 0 C 20 8 39 9 57 5" fill="none" stroke={skin} strokeWidth="20"/>
+          {/* Palm, thumb and four finger grooves; coin sits against the fingertips. */}
+          <path d="M 52 -5 Q 65 -14 77 -5 Q 87 3 80 15 Q 73 25 59 18 L 49 10Z" fill={skin} stroke={ink} strokeWidth="7"/>
+          <path d="M 64 1 Q 73 -4 80 2 M 65 8 Q 74 5 81 10 M 61 15 Q 69 15 75 19" fill="none" stroke="#8f5140" strokeWidth="3"/>
+          <path d="M 54 1 Q 44 -8 39 -1 Q 37 7 51 12" fill={skin} stroke={ink} strokeWidth="5"/>
+          {holding ? <g transform="translate(67 7)"><circle r="14" fill="#f3bd45" stroke={ink} strokeWidth="5"/><circle r="8" fill="none" stroke="#fff0ad" strokeWidth="3"/><path d="M-4 0 Q0 -5 4 0 Q0 5 -4 0" fill="none" stroke="#a56a2a" strokeWidth="2"/></g> : null}
         </g>
       </g>
-      <path d="M -39 60 Q -38 -9 0 -20 Q 42 -10 40 60 L 33 107 Q 0 130 -33 107Z" fill={skin} />
-      <path d="M -40 45 Q -48 -23 0 -33 Q 49 -25 42 44 Q 20 17 -1 18 Q -21 17 -40 45Z" fill="#2e2423" />
-      <path d="M -24 56 q 10 -8 20 0 M 10 56 q 10 -8 20 0" fill="none" stroke="#29212a" strokeWidth="5" />
-      <ellipse cx="-14" cy="66" rx="4" ry="7" fill="#29212a" stroke="none" />
-      <ellipse cx="17" cy="66" rx="4" ry="7" fill="#29212a" stroke="none" />
-      {expression === "smile" ? <path d="M -12 87 Q 0 99 14 85" fill="none" stroke="#8c3f45" strokeWidth="5" /> : <path d="M -10 94 Q 0 88 12 94" fill="none" stroke="#8c3f45" strokeWidth="5" />}
-      <path d="M -34 31 Q 0 12 34 31" fill="none" stroke="#f4c36b" strokeWidth="7" />
+
+      {/* Neck and head sit in front of the shoulders for a complete readable silhouette. */}
+      <path d="M -17 91 L -17 123 Q 0 137 17 123 L 17 91Z" fill={skin} stroke={ink} strokeWidth="8"/>
+      <path d="M -43 53 Q -43 -14 0 -22 Q 45 -14 43 53 L 37 91 Q 25 119 0 119 Q -25 119 -37 91Z" fill={skin} stroke={ink} strokeWidth="11"/>
+      <path d="M -44 42 Q -54 -25 0 -36 Q 54 -27 46 43 Q 25 17 0 19 Q -25 17 -44 42Z" fill={hair} stroke={ink} strokeWidth="8"/>
+      <path d="M -27 58 Q -17 50 -7 58 M 9 58 Q 20 50 30 58" fill="none" stroke={ink} strokeWidth="5"/>
+      <ellipse cx="-16" cy="69" rx="4.5" ry="7" fill={ink} stroke="none"/>
+      <ellipse cx="17" cy="69" rx="4.5" ry="7" fill={ink} stroke="none"/>
+      <path d="M 0 69 Q -4 80 1 82" fill="none" stroke="#a8664e" strokeWidth="3"/>
+      {expression === "smile" ? <path d="M -14 92 Q 0 105 15 91" fill="none" stroke="#8c3f45" strokeWidth="5"/> : <path d="M -12 98 Q 0 91 13 98" fill="none" stroke="#8c3f45" strokeWidth="5"/>}
+      <path d="M -37 30 Q 0 8 37 30" fill="none" stroke="#f4c36b" strokeWidth="8"/>
+      <path d="M -43 82 Q -32 110 0 116 Q 32 110 43 82" fill="none" stroke="#f0bc69" strokeWidth="3" opacity=".45"/>
     </g>
   );
 };

@@ -5,6 +5,9 @@
 
 ## CHANGELOG
 
+### 2026-11-16 — Fix GitHub expression syntax in narrated render workflow
+- Corrected the workflow's matrix/output expressions to GitHub Actions `${{ ... }}` syntax before its first run. This is a workflow-only correction; the visual-only MP4 remains available while the narrated pipeline executes.
+
 ### 2026-11-16 — Narrated 2D production render pipeline added (run pending)
 - Added `.github/workflows/story-2d-video.yml` to use the reviewed Great Zimbabwe board, generate the established Liam narration, fit scene durations to speech, mix narration/music/action SFX, render the `StoryShort2D` composition in four Remotion shards, assemble a 1080×1920 H.264 MP4 and publish a downloadable artifact plus `story-out-2d` branch output.
 - The visual-only preview is already rendered and verified. The new narrated workflow has not yet completed; verify TTS, music/SFX mix, shard joins, duration and final audio levels before presenting it as the finished narrated cut.

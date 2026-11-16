@@ -16,7 +16,7 @@ jobs:
   prep:
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${ steps.m.outputs.matrix }
+      matrix: ${{steps.m.outputs.matrix}}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -66,7 +66,7 @@ jobs:
     timeout-minutes: 90
     strategy:
       fail-fast: false
-      matrix: ${ fromJson(needs.prep.outputs.matrix) }
+      matrix: ${{fromJson(needs.prep.outputs.matrix)}}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -81,18 +81,18 @@ jobs:
       - name: Install Remotion dependencies
         working-directory: remotion
         run: npm install --no-audit --no-fund
-      - name: Render 2D storyboard frames ${ matrix.a }-${ matrix.b }
+      - name: Render 2D storyboard frames ${{matrix.a}}-${{matrix.b}}
         working-directory: remotion
         run: |
           mkdir -p out
-          npx remotion render src/index.ts StoryShort2D out/part_${ matrix.i }.mp4 \
-            --frames=${ matrix.a }-${ matrix.b } --gl=swangle --codec=h264 \
+          npx remotion render src/index.ts StoryShort2D out/part_${{matrix.i}}.mp4 \
+            --frames=${{matrix.a}}-${{matrix.b}} --gl=swangle --codec=h264 \
             --crf=17 --pixel-format=yuv420p --concurrency=1 \
             --props=./public/prep/props.json --timeout=900000 --log=warn
       - uses: actions/upload-artifact@v4
         with:
-          name: great-zimbabwe-2d-part-${ matrix.i }
-          path: remotion/out/part_${ matrix.i }.mp4
+          name: great-zimbabwe-2d-part-${{matrix.i}}
+          path: remotion/out/part_${{matrix.i}}.mp4
   join:
     needs: [prep, shard]
     runs-on: ubuntu-latest
@@ -125,7 +125,7 @@ jobs:
           retention-days: 7
       - name: Publish narrated video on story-out-2d
         env:
-          GH_TOKEN: ${ github.token }
+          GH_TOKEN: ${{github.token}}
         run: |
           mkdir /tmp/pub
           cp great-zimbabwe-2d-narrated.mp4 prep/board.json /tmp/pub/
@@ -136,4 +136,4 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           git commit -qm "Publish narrated Great Zimbabwe 2D render"
-          git push -f "https://x-access-token:${ github.token }@@github.com/${ github.repository }" story-out-2d
+          git push -f "https://x-access-token:${{github.token}}@@github.com/${{github.repository}}" story-out-2d

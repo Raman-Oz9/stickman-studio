@@ -56,6 +56,8 @@ Working in stills: shop FRONT with sign, palace gate/hall, mine entrance (rails 
 Render stills with the props-test workflow (build a board in `remotion/story_props_test.json`), clone branch `props-test`, LOOK at the images. For a full video, clone `story-out`, extract ~18 frames with ffmpeg, view them against the cinematic-skill QC checklist. Send the owner only what passes.
 
 ## 7. CHANGELOG (newest first)
+- 2026-11-16 — Rejected the previous custom closed-limb contour after native still review showed sharp, star-like elbows/knees. Replaced it with a rounded quadratic IK fillet rendered as one continuous inked stroke; keeps the bend readable without separate joint buttons or angular miter artefacts. Coordinated trouser colours remain. Strict typecheck and fresh stills pending.
+
 - 2026-11-16 — Character form pass: smoothed the continuous IK limb bend with matched tangents through elbows/knees (removing the angular hinge visible in the handover close-up) and changed the lower-body fill from bright trim-gold to a coordinated darker trouser tone derived from each tunic colour. Goal: preserve the ink-cartoon proportions while making limbs read as connected anatomy and clothing as a designed outfit. New typecheck and still review pending.
 
 - 2026-11-16 — Replaced the segmented tube-and-joint character limbs with a single continuous, tapered SVG silhouette following the two-bone IK path. This keeps articulated elbows/knees but removes outlined circular joint buttons, adds a subtle bend crease and continuous form shading. The latest still review showed the button joints still read mechanically after the prior oval reduction; this pass targets organic limb continuity. Strict typecheck and new stills are pending.

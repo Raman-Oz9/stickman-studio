@@ -5,6 +5,10 @@
 
 ## CHANGELOG
 
+### 2026-11-16 — Narrated 2D production render pipeline added (run pending)
+- Added `.github/workflows/story-2d-video.yml` to use the reviewed Great Zimbabwe board, generate the established Liam narration, fit scene durations to speech, mix narration/music/action SFX, render the `StoryShort2D` composition in four Remotion shards, assemble a 1080×1920 H.264 MP4 and publish a downloadable artifact plus `story-out-2d` branch output.
+- The visual-only preview is already rendered and verified. The new narrated workflow has not yet completed; verify TTS, music/SFX mix, shard joins, duration and final audio levels before presenting it as the finished narrated cut.
+
 ### 2026-11-16 — Ensure the full MP4 is included in the downloadable artifact
 - Corrected the artifact upload glob to include both the rendered MP4 and the native-resolution JPG QA frames. The initial video-render workflow only selected JPGs, which would have omitted the video from the downloadable artifact despite a successful render.
 

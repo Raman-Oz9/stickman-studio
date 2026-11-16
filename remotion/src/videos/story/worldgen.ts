@@ -26,7 +26,7 @@ const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
   const ground=seasonGround(p);box(g,180,0.5,180,ground,0,-0.35,-18);
   if(p.terrain==="ocean"||p.terrain==="river"||p.terrain==="coast"){
     box(g,180,0.3,65,P.sky,0,-0.12,-38);
-    for(let i=0;i<32;i++){const x=(hash(i,4)-.5)*150,z=-15-hash(i,5)*60;const m=box(g,2+hash(i,6)*7,.025,.18,P.accent,x,-.0,z);m.position.x+=Math.sin(t*1.2+i)*.18;}
+    for(let i=0;i<32;i++){const x=(hash(i,4)-.5)*150,z=-15-hash(i,5)*60;const m=box(g,2+hash(i,6)*7,.025,.18,P.sky,x,-.0,z);m.position.x+=Math.sin(t*1.2+i)*.18;}
     if(p.terrain!=="ocean")poly(g,[[-90,-.05,0],[-90,-.05,-14],[90,-.05,-14],[90,-.05,0]],P.earth);
   } else if(p.terrain==="mountain"){
     for(let i=0;i<9;i++){const x=-75+i*18,h=18+hash(i,2)*22;poly(g,[[x-18,0,-48],[x,h,-78],[x+18,0,-48]],i%2?P.stone:P.shade);if(p.season==="winter"||p.climate==="polar")poly(g,[[x-5,h*.72,-76],[x,h,-78],[x+5,h*.72,-76]],P.sky);}
@@ -85,7 +85,7 @@ export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
     terrain(g,p,t);
     settlement(g,p,t);
     if(p.timeOfDay==="night"){const moon=ball(g,3,P.sky,40,34,-70);moon.material=new THREE.MeshBasicMaterial({color:P.sky});}
-    if(p.timeOfDay==="dawn"||p.timeOfDay==="dusk")ball(g,2.8,P.accent,34,26,-68);
+    if(p.timeOfDay==="dawn"||p.timeOfDay==="dusk")ball(g,2.8,p.accentEnabled?P.accent:P.sky,34,26,-68);
   }
   // Deterministic weather particles. Accent stays dormant until explicitly unlocked.
   if(p.weather==="rain"||p.weather==="storm"||p.weather==="snow"||p.weather==="fog"||p.weather==="wind"){

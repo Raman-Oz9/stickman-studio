@@ -96,7 +96,7 @@ export const IllustratedProof: React.FC = () => {
           <g opacity=".48" fill="#fff0ce"><path d="M0 1370 Q200 1300 380 1370 T760 1360 T1080 1350" fill="none" stroke="#fff0ce" strokeWidth="9"/><path d="M0 1530 Q240 1460 490 1535 T1080 1510" fill="none" stroke="#fff0ce" strokeWidth="7"/></g>
           <g transform="translate(90 1450)"><ellipse cx="0" cy="0" rx="90" ry="23" fill="#61422f" opacity=".18"/><path d="M-54 -10 Q-45 -115 0 -130 Q50 -112 58 -10Z" fill="#c27c48" stroke="#51382e" strokeWidth="10"/><path d="M-35 -70 Q0 -100 38 -70" fill="none" stroke="#e8bb7a" strokeWidth="10"/></g>
           <g transform="translate(965 1430)"><path d="M0 0 Q-30 -180 0 -270" fill="none" stroke="#62412e" strokeWidth="24"/><g fill="#527b4c"><circle cx="-35" cy="-270" r="70"/><circle cx="35" cy="-310" r="75"/><circle cx="0" cy="-360" r="70"/></g></g>
-          <g transform={`translate(${pan} 0) scale(${zoom})`}>
+          <g transform={`translate(${540 + pan} ${cameraY}) scale(${zoom}) translate(-540 -${cameraY})`}>
             <Character x={430 - approach * 22} y={1030} scale={1.03} skin="#8b5139" cloth="#315f59" trim="#e8bd73" phase={walk} reach={approach * (1 - settle * .25)} holding={false} expression="smile" />
             <Character x={690 + approach * 18} y={1030} scale={1.03} skin="#a86645" cloth="#9b493d" trim="#edc06c" facing={-1} phase={walk + .3} reach={approach * (1 - settle * .25)} holding={false} expression="focused" />
             <g transform={`translate(${coinX} ${coinY})`} opacity={interpolate(f, [72, 82, 132, 145], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })}>

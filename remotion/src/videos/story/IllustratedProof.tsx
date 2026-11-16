@@ -122,9 +122,9 @@ export const IllustratedProof: React.FC = () => {
           <g transform="translate(965 1430)"><path d="M0 0 Q-30 -180 0 -270" fill="none" stroke="#62412e" strokeWidth="24"/><g fill="#527b4c"><circle cx="-35" cy="-270" r="70"/><circle cx="35" cy="-310" r="75"/><circle cx="0" cy="-360" r="70"/></g></g>
           <g transform={`translate(${540 + pan} ${cameraY}) scale(${zoom}) translate(-540 -${cameraY})`}>
             <Stickman x={GX} y={GY} scale={SC} facing={1} skin="#8b5139" cloth="#315f59" trim="#e8bd73" stand={standA} walk={walk} frame={f} lean={3 * giverReach}
-              frontHand={toLocal(gHand, GX, 1)} grip={f > 128} expression={f < 60 ? "smile" : f < 118 ? "joy" : "smile"} look={0.6} />
+              frontHand={toLocal(gHand, GX, 1)} build="lean" grip={f > 128} expression={f < 60 ? "smile" : f < 118 ? "joy" : "smile"} look={0.6} />
             <Stickman x={RX} y={GY} scale={SC} facing={-1} skin="#a86645" cloth="#9b493d" trim="#edc06c" stand={standA} walk={walk + .3} frame={f + 17} lean={3 * receiverReach}
-              frontHand={toLocal(rHand, RX, -1)} grip={f > 128} expression={f < 70 ? "focused" : f < 128 ? "shock" : "joy"} look={0.6} />
+              frontHand={toLocal(rHand, RX, -1)} build="stocky" grip={f > 128} expression={f < 70 ? "focused" : f < 128 ? "shock" : "joy"} look={0.6} />
             <g transform={`translate(${coinPos[0]} ${coinPos[1]})`} opacity={coinOp}>
               <ellipse rx="22" ry="22" fill="#9b6428" stroke="#382b2a" strokeWidth="7"/>
               <circle r="14" fill="#f8d36d" stroke="#fff0ad" strokeWidth="3"/>

@@ -28,13 +28,13 @@ const Character: React.FC<{ x: number; y: number; scale?: number; skin: string; 
       <path d="M -55 142 Q -100 165 -103 220" fill="none" stroke="#29212a" strokeWidth="27" />
       <path d="M -55 142 Q -100 165 -103 220" fill="none" stroke={skin} strokeWidth="17" />
       <g transform={`translate(53 142) rotate(${arm})`}>
-        <path d="M 0 0 Q 40 28 78 72" fill="none" stroke="#29212a" strokeWidth="29" />
-        <path d="M 0 0 Q 40 28 78 72" fill="none" stroke={skin} strokeWidth="18" />
-        <g transform={`translate(78 72) rotate(${forearm})`}>
-          <path d="M 0 0 Q 48 18 98 5" fill="none" stroke="#29212a" strokeWidth="26" />
-          <path d="M 0 0 Q 48 18 98 5" fill="none" stroke={skin} strokeWidth="16" />
-          <path d="M 98 5 q 15 -13 25 -2 q 9 10 -3 18 q -14 7 -22 -3" fill={skin} />
-          {holding ? <circle cx="123" cy="8" r="12" fill="#f3bd45" stroke="#29212a" strokeWidth="5" /> : null}
+        <path d="M 0 0 Q 20 14 40 35" fill="none" stroke="#29212a" strokeWidth="29" />
+        <path d="M 0 0 Q 20 14 40 35" fill="none" stroke={skin} strokeWidth="18" />
+        <g transform={`translate(40 35) rotate(${forearm})`}>
+          <path d="M 0 0 Q 28 10 58 5" fill="none" stroke="#29212a" strokeWidth="26" />
+          <path d="M 0 0 Q 28 10 58 5" fill="none" stroke={skin} strokeWidth="16" />
+          <path d="M 98 5 q 8 -10 17 -2 q 7 8 -2 14 q -10 5 -15 -2" fill={skin} />
+          {holding ? <circle cx="82" cy="7" r="12" fill="#f3bd45" stroke="#29212a" strokeWidth="5" /> : null}
         </g>
       </g>
       <path d="M -39 60 Q -38 -9 0 -20 Q 42 -10 40 60 L 33 107 Q 0 130 -33 107Z" fill={skin} />
@@ -53,7 +53,7 @@ export const IllustratedProof: React.FC = () => {
   const approach = smooth((f - 12) / 44);
   const exchange = smooth((f - 75) / 44);
   const settle = smooth((f - 138) / 28);
-  const coinX = mix(445, 660, exchange);
+  const coinX = mix(600, 520, exchange);
   const coinY = mix(1008, 1008, exchange) - Math.sin(exchange * Math.PI) * 36;
   const zoom = mix(1, 1.13, smooth(f / 170));
   const pan = mix(0, -42, smooth(f / 170));

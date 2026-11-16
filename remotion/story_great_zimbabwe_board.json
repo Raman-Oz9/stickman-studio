@@ -32,7 +32,8 @@
           "expr": "shock"
         }
       ],
-      "props": []
+      "props": [],
+      "extras": 18
     },
     {
       "dur": 11,
@@ -74,7 +75,8 @@
           "z": 1,
           "h": 0.7
         }
-      ]
+      ],
+      "extras": 22
     },
     {
       "dur": 20,
@@ -137,7 +139,8 @@
           "h": 1.55
         }
       ],
-      "focus": "goldcoin"
+      "focus": "goldcoin",
+      "extras": 26
     },
     {
       "dur": 15,
@@ -167,7 +170,8 @@
           "expr": "shock"
         }
       ],
-      "props": []
+      "props": [],
+      "extras": 10
     },
     {
       "dur": 5,

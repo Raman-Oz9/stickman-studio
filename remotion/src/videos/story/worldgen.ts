@@ -24,7 +24,7 @@ const cylinder=(g:THREE.Group,r:number,h:number,c:string,x:number,y:number,z:num
 const poly=(g:THREE.Group,pts:[number,number,number][],c:string)=>{const v:number[]=[];for(let i=1;i<pts.length-1;i++)v.push(...pts[0],...pts[i],...pts[i+1]);const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.Float32BufferAttribute(v,3));geo.computeVertexNormals();const m=new THREE.Mesh(geo,mat(c));g.add(m);return m;};
 const seasonGround=(p:WorldParams)=>p.season==="winter"?P.sky:p.season==="spring"?P.green:P.earth;
 const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
-  const ground=(p.weather==="rain"||p.weather==="storm")?P.shade:seasonGround(p);box(g,180,0.5,180,ground,0,-0.25,-18);
+  const ground=(p.weather==="rain"||p.weather==="storm")?P.shade:seasonGround(p);box(g,260,0.5,260,ground,0,-0.25,-45);
   if(p.terrain==="ocean"||p.terrain==="river"||p.terrain==="coast"){
     box(g,180,0.3,65,P.sky,0,-0.12,-38);
     for(let i=0;i<32;i++){const x=(hash(i,4)-.5)*150,z=-15-hash(i,5)*60;const m=box(g,2+hash(i,6)*7,.025,.18,P.sky,x,-.0,z);m.position.x+=Math.sin(t*1.2+i)*.18;}
@@ -38,11 +38,30 @@ const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
   } else if(p.terrain==="forest"||p.terrain==="jungle"||p.terrain==="savanna"||p.terrain==="plain"){
     const count=p.terrain==="forest"||p.terrain==="jungle"?28:12;
     for(let i=0;i<count;i++){const x=(hash(i,8)-.5)*145,z=-8-hash(i,9)*60,s=.75+hash(i,10)*.8;const trunk=cylinder(g,.45*s,4*s,P.shade,x,2*s,z);const crown=ball(g,3.3*s,p.season==="autumn"?P.earth:P.green,x,5.2*s,z,1.4,1.1,1.1);crown.userData.sway={phase:hash(i,11)*6.28,amp:.035*s};}
-    for(let i=0;i<70;i++){const x=(hash(i,12)-.5)*140,z=-2-hash(i,13)*50;box(g,.05,.5+hash(i,14)*.5,.05,P.green,x,.25,z,(hash(i,15)-.5)*.5);}
+    for(let i=0;i<70;i++){const x=(hash(i,12)-.5)*140,z=-2-hash(i,13)*50;const blade=box(g,.05,.5+hash(i,14)*.5,.05,P.green,x,.25,z,(hash(i,15)-.5)*.5);blade.userData.sway={phase:hash(i,16)*6.28,amp:.12};}
   } else if(p.terrain==="swamp"){
     box(g,150,.2,70,P.shade,0,-.05,-30);for(let i=0;i<55;i++){const x=(hash(i,20)-.5)*130,z=-3-hash(i,21)*55;box(g,.08,1+hash(i,22),.08,P.green,x,.5,z,(hash(i,23)-.5)*.4);}
   } else if(p.terrain==="cave"){
     box(g,160,45,5,P.shade,0,20,-55);for(let i=0;i<20;i++)poly(g,[[-78+i*8,44,-52],[-74+i*8,34+hash(i,24)*8,-48],[-70+i*8,44,-52]],P.stone);
+  }
+  if(p.terrain==="savanna"){
+    // Layered southern-African kopje and escarpment silhouettes behind the city.
+    for(let i=0;i<11;i++){
+      const x=-92+i*18.4,z=-104-hash(i,61)*24,h=17+hash(i,62)*19,r=11+hash(i,63)*8;
+      const peak=new THREE.Mesh(new THREE.ConeGeometry(r,h,7),mat(i%3===0?P.shade:P.stone));
+      peak.position.set(x,h*.48,z);peak.rotation.y=hash(i,64)*.7;peak.castShadow=true;peak.receiveShadow=true;g.add(peak);
+      const shoulder=ball(g,r*.95,i%2?P.earth:P.shade,x+8,1,z+9,1,.34,1.25);shoulder.rotation.y=hash(i,65)*.5;
+    }
+    for(const side of [-1,1])for(let i=0;i<3;i++){
+      const x=side*(43+i*8),z=-47-i*15,r=7+i*1.8;
+      const rock=ball(g,r,P.stone,x,r*.38,z,1.35,.9,1.05);rock.rotation.z=side*.08;
+      ball(g,r*.48,P.earth,x-side*2,r*.28,z-1,1.25,.55,.82);
+    }
+    for(let i=0;i<13;i++){
+      const x=-105+i*17.5,z=-91-hash(i,66)*13,s=.65+hash(i,67)*.55;
+      cylinder(g,.32*s,3.8*s,P.shade,x,1.9*s,z,7);
+      const crown=ball(g,2.6*s,P.green,x,4*s,z,1.65,.42,1.05);crown.userData.sway={phase:hash(i,68)*6.28,amp:.025};
+    }
   }
   // near / mid / far parallax markers remain spatially separated for the camera.
   for(let i=0;i<18;i++){const z=-5-i*3.2;const x=(hash(i,30)-.5)*(12+i*4);const m=box(g,.12,.08,.12,P.shade,x,.04,z);m.userData.parallax=.18+i*.025;}
@@ -99,8 +118,21 @@ const settlement=(g:THREE.Group,p:WorldParams,t:number)=>{
       box(g,1.15,3.25,8,P.stone,2.15,1.62,-17);
       // Iconic conical tower formed from progressively smaller dry-stone courses.
       for(let i=0;i<9;i++) cylinder(g,4.7-i*.43,1.05,i%2?P.stone:P.earth,5,.525+i*1.05,-36,12);
-      // Small round domestic compounds remain outside the monumental enclosure.
+      // Outer residential compounds spread beyond the monumental wall, forming a lived-in city.
       hut(-29,-34,.82); hut(29,-34,.82); hut(-27,-53,.72); hut(27,-53,.72); hut(0,-59,.68);
+      for(let i=0;i<12;i++){const a=i/12*Math.PI*2,r=31+hash(i,71)*10;hut(Math.cos(a)*r,-35+Math.sin(a)*r*.78,.55+hash(i,72)*.22);}
+      // A worn processional road links the gate to the outer market.
+      box(g,4.2,.12,47,P.earth,0,.025,8);
+      for(let i=0;i<22;i++){const z=-13+i*2;box(g,.16,.08,.32,P.stone,-2.15,.12,z);box(g,.16,.08,.32,P.stone,2.15,.12,z);}
+      // Four timber-and-thatch market stalls with visible trade goods.
+      for(let i=0;i<4;i++){
+        const x=(i%2?1:-1)*(12+(i>1?7:0)),z=-2+Math.floor(i/2)*13;
+        for(const dx of [-1.7,1.7])for(const dz of [-1.1,1.1])cylinder(g,.12,3.1,P.shade,x+dx,1.55,z+dz,6);
+        box(g,4.2,.28,3.2,P.earth,x,3.15,z);box(g,3.5,.18,2.8,P.green,x,3.38,z);
+        box(g,3.4,.65,1.15,P.stone,x,1.0,z);
+        for(let k=0;k<4;k++)cylinder(g,.28,.55,k%2?P.earth:P.shade,x-1.2+k*.8,1.55,z,8);
+      }
+      for(let i=0;i<2;i++){const puff=ball(g,.42,P.sky,-25+i*50,.8,-48,1.2,1,.9);puff.userData.smokeParticle={phase:i*2.4,baseY:2.2};}
       for(let i=0;i<5;i++)box(g,1.2,.12,1.2,P.shade,-2+i*1.1,.08,-7);
     } else if(region==="african"){
       const wall=(x:number,z:number,w:number,h:number)=>{box(g,w,h,.9,P.stone,x,h/2,z);for(let k=0;k<Math.floor(w/1.5);k++)box(g,1.1,.16,1,P.earth,x-w/2+.75+k*1.5,h+.08,z);};

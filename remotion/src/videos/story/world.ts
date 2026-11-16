@@ -275,7 +275,12 @@ export class StoryWorld {
       const a = hh(k, 20) * Math.PI * 2, r = 8 + hh(k, 21) * 3.5;
       const ex = F.x * 0.3 + Math.sin(a) * r, ez = F.z * 0.3 + Math.cos(a) * r;
       if (Math.hypot(ex - cam.position.x, ez - cam.position.z) < 6.5) continue; // never let a bystander block the lens
-      put({ id: `x${k}`, role: "townsfolk", x: ex, z: ez, expr: (["smile", "grin", "neutral", "smile_closed"] as Expr[])[k % 4], v: k }, k, true);
+      const drift = 1.2 + hh(k, 22) * 2.2, heading = a + (hh(k, 23) - 0.5) * 1.4;
+      // Background citizens now walk short, staggered paths instead of freezing in a ring.
+      put({ id: "x" + k, role: "townsfolk", x: ex, z: ez,
+        to: { x: ex + Math.cos(heading) * drift, z: ez + Math.sin(heading) * drift },
+        walkAt: hh(k, 24) * 0.42, mode: "stroll",
+        expr: (["smile", "grin", "neutral", "smile_closed"] as Expr[])[k % 4], v: k }, k, true);
     }
 
     // ---- props: the things the narration is about (stickers) ----

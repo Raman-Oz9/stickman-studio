@@ -11,6 +11,14 @@
 
 ## CHANGELOG
 
+### 2026-11-16 — Great Zimbabwe dimensional world pass 09 (terrain, settlement life and camera)
+- Expanded the savanna ground plane and added layered southern-African escarpment peaks, granite kopjes, distant acacia silhouettes and wind-driven grass/tree sway.
+- Expanded the Great Zimbabwe settlement beyond its monumental wall with an outer ring of residential compounds, a processional road, four market stalls, visible goods and animated hearth smoke.
+- Tightened the world-scene camera path from an overly distant high view into a controlled establishing descent that retains the city in frame and finishes closer to human activity.
+- Background townsfolk now take short staggered walking paths; the reviewed board increases crowd density in city and market scenes.
+- NOT YET VERIFIED: strict TypeScript, native 3D frame render, camera continuity, crowd motion and composition must pass the world proof workflow before another MP4 is produced.
+
+
 ### 2026-11-16 — Fix narrated MP4 publication authentication
 - The first complete 42.27-second narrated MP4 assembled and uploaded successfully. The optional publication step failed because the shell command interpolated an empty GitHub token into the remote URL (and included an extra `@`). The artifact remained intact and was downloaded for local playback and visual QA.
 - Corrected the publish step to use the already-populated `GH_TOKEN` environment variable in the shell URL and the standard `GITHUB_REPOSITORY` variable. This avoids embedding a GitHub expression in the command string. A workflow rerun will verify publication; no claim of branch publication until the push succeeds.

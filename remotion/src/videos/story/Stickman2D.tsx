@@ -18,6 +18,29 @@ const shadeColor = (hex: string, factor: number): string => {
   const channel = (shift: number) => Math.max(0, Math.min(255, Math.round(((n >> shift) & 255) * factor))).toString(16).padStart(2, "0");
   return `#${channel(16)}${channel(8)}${channel(0)}`;
 };
+const seeded = (seed: number, n: number): number => {
+  const v = Math.sin(seed * 127.1 + n * 311.7) * 43758.5453;
+  return v - Math.floor(v);
+};
+const buildHeadPath = (rx: number, ry: number, seed: number): string => {
+  const nTop = 1.75 + 0.3 * (seeded(seed, 2) - 0.5);
+  const nBot = 2.3 + 0.3 * (seeded(seed, 3) - 0.5);
+  const egg = -0.12 + 0.06 * (seeded(seed, 4) - 0.5);
+  const asym = 0.06 + 0.04 * seeded(seed, 5);
+  const rot = (8 * (seeded(seed, 7) - 0.5) * Math.PI) / 180;
+  const pts: Vec[] = [];
+  for (let i = 0; i < 72; i++) {
+    const t = (i / 72) * Math.PI * 2, c = Math.cos(t), sn = Math.sin(t);
+    const e = 2 / (sn < 0 ? nTop : nBot);
+    let X = Math.sign(c) * Math.abs(c) ** e;
+    const Y = Math.sign(sn) * Math.abs(sn) ** e;
+    X *= (1 + egg * Y) * (1 + asym * Math.sign(X));
+    const noise = 1 + 0.006 * (Math.cos(2 * t + seeded(seed, 11) * Math.PI * 2) + 0.7 * Math.cos(3 * t + seeded(seed, 12) * Math.PI * 2));
+    const px = rx * X * noise, py = ry * Y * noise;
+    pts.push([px * Math.cos(rot) - py * Math.sin(rot), -486 + px * Math.sin(rot) + py * Math.cos(rot)]);
+  }
+  return `M ${pts.map(([x, y]) => `${x.toFixed(2)} ${y.toFixed(2)}`).join(" L ")} Z`;
+};
 
 const HIP: Vec = [0, -236];
 const SHOULDER_Y = -402;
@@ -161,11 +184,12 @@ export type StickmanProps = {
   look?: number;              // -1..1 eye direction
   lean?: number;              // torso lean in degrees (positive = forward)
   build?: CharacterBuild;     // distinct silhouette proportions, independent of outfit
+  seed?: number;              // stable per-character silhouette variation
 };
 
 export const Stickman: React.FC<StickmanProps> = ({
   x, y, scale = 1, facing = 1, skin, cloth, trim, hair = "#2e2423", walk = 0, stand = 1,
-  frontHand = null, backHand = null, grip, expression = "smile", frame = 0, look = 0, lean = 0, build = "lean",
+  frontHand = null, backHand = null, grip, expression = "smile", frame = 0, look = 0, lean = 0, build = "lean", seed = 17,
 }) => {
   const body = BUILD_PROPORTIONS[build];
   const breathe = Math.sin(frame / 9) * 2.5;
@@ -175,6 +199,7 @@ export const Stickman: React.FC<StickmanProps> = ({
 
   const hip: Vec = [HIP[0], HIP[1] + breathe * 0.4];
   const trousers = shadeColor(cloth, 0.72);
+  const headPath = buildHeadPath(70, 70, seed);
   const footF: Vec = [mix(34 * body.legSpread + swing * 62 * body.legSpread, 38 * body.legSpread, stand), -lift(walk)];
   const footB: Vec = [mix(-34 * body.legSpread - swing * 62 * body.legSpread, -34 * body.legSpread, stand), -lift(walk + 0.5)];
   const legF = ik([12 * body.torso, hip[1]], footF, THIGH * body.legLength, SHIN * body.legLength, 1);
@@ -217,7 +242,7 @@ export const Stickman: React.FC<StickmanProps> = ({
         <g transform={`translate(0 ${breathe * 0.6}) rotate(${look * 4}) translate(0 -486) scale(${body.head}) translate(0 486)`}>
           <ellipse cx="-64" cy="-480" rx="13" ry="18" fill={skin} stroke={INK} strokeWidth="7" />
           <ellipse cx="64" cy="-480" rx="13" ry="18" fill={skin} stroke={INK} strokeWidth="7" />
-          <path d="M 0 -556 C -43 -556 -72 -526 -70 -484 C -69 -443 -42 -416 0 -414 C 42 -416 69 -443 70 -484 C 72 -526 43 -556 0 -556Z" fill={skin} stroke={INK} strokeWidth="10" />
+          <path d={headPath} fill={skin} stroke={INK} strokeWidth="10" strokeLinejoin="round" />
           <path d="M -70 -493 Q -79 -568 -16 -579 Q 42 -592 72 -535 Q 78 -514 68 -490 Q 46 -526 12 -528 Q -28 -533 -70 -493Z" fill={hair} stroke={INK} strokeWidth="7" />
           <path d="M -52 -531 Q -30 -550 -4 -546 M 2 -546 Q 34 -556 55 -530" fill="none" stroke="#51403a" strokeWidth="5" opacity=".7" />
           <path d="M -52 -520 Q 0 -550 52 -520" fill="none" stroke={trim} strokeWidth="9" />

@@ -178,7 +178,7 @@ export const Stickman: React.FC<StickmanProps> = ({
   const footF: Vec = [mix(34 * body.legSpread + swing * 62 * body.legSpread, 38 * body.legSpread, stand), -lift(walk)];
   const footB: Vec = [mix(-34 * body.legSpread - swing * 62 * body.legSpread, -34 * body.legSpread, stand), -lift(walk + 0.5)];
   const legF = ik([12 * body.torso, hip[1]], footF, THIGH * body.legLength, SHIN * body.legLength, 1);
-  const legB = ik([-12 * body.torso, hip[1]], footB, THIGH * body.leg, SHIN * body.leg, 1);
+  const legB = ik([-12 * body.torso, hip[1]], footB, THIGH * body.legLength, SHIN * body.legLength, 1);
 
   const rest = (side: 1 | -1, p: number): Vec => [side * 22 + swing * side * 38 * (1 - stand) * (p ? -1 : 1), -402 + 150];
   const shoulderX = SHOULDER_X * body.shoulder;
@@ -225,7 +225,7 @@ export const Stickman: React.FC<StickmanProps> = ({
         </g>
       </g>
       {/* front leg + arm */}
-      <Limb a={[12 * body.torso, hip[1]]} b={legF.joint} c={legF.end} w={21 * body.leg} color={trousers} />
+      <Limb a={[12 * body.torso, hip[1]]} b={legF.joint} c={legF.end} w={21 * body.legWidth} color={trousers} />
       <Shoe at={legF.end} scale={0.86 * body.shoe} />
       <Limb a={shF} b={armF.joint} c={armF.end} w={20 * body.arm} color={skin} sleeve={cloth} />
       <Hand at={armF.end} dir={handDir(armF)} skin={skin} grip={grip} size={0.78 * body.hand} />

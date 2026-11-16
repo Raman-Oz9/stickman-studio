@@ -139,17 +139,30 @@ const settlement=(g:THREE.Group,p:WorldParams,t:number)=>{
 };
 const mapLayer=(g:THREE.Group,p:WorldParams,t:number)=>{
   box(g,150,.5,180,MAP.paper,0,-.15,-24);
-  // coastline and land mass, with restrained six-colour parchment palette
-  poly(g,[[-65,.14,-4],[-48,.14,-58],[-15,.14,-74],[18,.14,-60],[55,.14,-30],[68,.14,8],[30,.14,20],[-20,.14,15]],MAP.land);
-  for(let i=0;i<7;i++){const x=-46+i*15,z=-35+Math.sin(i*1.7)*13;poly(g,[[x-4,.28,z+3],[x,.28,z-5],[x+4,.28,z+3]],MAP.line);}
-  for(let i=0;i<8;i++){const x=-45+i*12,z=-7-hash(i,44)*28;ball(g,1.3,MAP.ink,x,.35,z,.8,1.1,.8);}
-  // dashed trade route grows left-to-right from t=0 to t=1.
-  for(let i=0;i<26;i++){const u=i/26,x=-48+u*96,z=-5-Math.sin(u*Math.PI)*24;const dot=ball(g,.72,p.accentEnabled?MAP.accent:MAP.line,x,.42,z,1,1,1);dot.visible=false;dot.userData.routeIndex=i;}
-  const pulse=.75+.25*Math.sin(t*3);ball(g,2.2,p.accentEnabled?MAP.accent:MAP.ink,35,.5,-32,pulse,pulse,pulse);
-  // period-style serif map label rendered onto the parchment surface
+  // Southern Africa is the visual anchor: a tapered continent, east-coast curve and Madagascar.
+  poly(g,[[-48,.14,-74],[-28,.14,-82],[-8,.14,-76],[8,.14,-65],[28,.14,-58],[43,.14,-42],[53,.14,-20],[48,.14,2],[34,.14,16],[17,.14,24],[2,.14,20],[-10,.14,10],[-23,.14,-2],[-37,.14,-20],[-52,.14,-43],[-58,.14,-60]],MAP.land);
+  // Southern tip and east African coast are picked out with short ink strokes.
+  const coast:[[number,number,number],[number,number,number]][]=[
+    [[-48,.3,-74],[-28,.3,-82]], [[-28,.3,-82],[-8,.3,-76]], [[-8,.3,-76],[8,.3,-65]],
+    [[8,.3,-65],[28,.3,-58]], [[28,.3,-58],[43,.3,-42]], [[43,.3,-42],[53,.3,-20]],
+    [[53,.3,-20],[48,.3,2]], [[48,.3,2],[34,.3,16]], [[34,.3,16],[17,.3,24]],
+    [[17,.3,24],[2,.3,20]], [[2,.3,20],[-10,.3,10]], [[-10,.3,10],[-23,.3,-2]]
+  ];
+  for(const [a,b] of coast){const dx=b[0]-a[0],dz=b[2]-a[2],len=Math.hypot(dx,dz);const edge=box(g,len,.055,.22,MAP.line,(a[0]+b[0])/2,.31,(a[2]+b[2])/2);edge.rotation.y=-Math.atan2(dz,dx);}
+  // Madagascar, just off the south-east coast.
+  poly(g,[[58,.18,-22],[63,.18,-35],[66,.18,-48],[63,.18,-58],[59,.18,-49],[57,.18,-35]],MAP.land);
+  for(let i=0;i<4;i++){const x=-25+i*12,z=-42+Math.sin(i*1.3)*8;poly(g,[[x-3,.28,z+2],[x,.28,z-4],[x+3,.28,z+2]],MAP.line);}
+  // Zimbabwe marker and a dotted route to the Indian Ocean coast.
+  const zx=25,zz=-36;
+  for(let i=0;i<18;i++){const u=i/17,x=zx+u*24,z=zz+u*26-Math.sin(u*Math.PI)*5;const dot=ball(g,.82,p.accentEnabled?MAP.accent:MAP.line,x,.43,z,1,1,1);dot.userData.routeIndex=i;}
+  const marker=ball(g,2.5,p.accentEnabled?MAP.accent:MAP.ink,zx,.48,zz,1,1,1);marker.userData.mapMarker="great-zimbabwe";
+  // Zimbabwe label on a small parchment plaque near the marker.
+  const tag=document.createElement("canvas");tag.width=512;tag.height=128;const tc=tag.getContext("2d")!;tc.clearRect(0,0,512,128);tc.fillStyle=MAP.ink;tc.font="bold 54px Georgia, serif";tc.textAlign="center";tc.fillText("ZIMBABWE",256,78);const tt=new THREE.CanvasTexture(tag);tt.colorSpace=THREE.SRGBColorSpace;const label=new THREE.Mesh(new THREE.PlaneGeometry(24,6),new THREE.MeshBasicMaterial({map:tt,transparent:true,depthWrite:false}));label.position.set(25,.52,-47);label.rotation.x=-Math.PI/2;g.add(label);
+  // Main title and trade geography, kept away from the lower caption safe area.
   const canvas=document.createElement("canvas");canvas.width=1024;canvas.height=256;const ctx=canvas.getContext("2d")!;ctx.clearRect(0,0,1024,256);ctx.fillStyle=MAP.ink;ctx.font="bold 82px Georgia, serif";ctx.textAlign="center";ctx.fillText("GREAT ZIMBABWE",512,112);ctx.font="38px Georgia, serif";ctx.fillText("SOUTHERN AFRICA  •  INDIAN OCEAN TRADE",512,190);const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;const sign=new THREE.Mesh(new THREE.PlaneGeometry(74,18),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));sign.position.set(0,.48,66);sign.rotation.x=-Math.PI/2;g.add(sign);
-  // compass rose
+  // Compass rose and Indian Ocean label.
   poly(g,[[58,.4,50],[61,.4,40],[64,.4,50],[61,.4,60]],MAP.ink);
+  const ocean=document.createElement("canvas");ocean.width=512;ocean.height=96;const oc=ocean.getContext("2d")!;oc.clearRect(0,0,512,96);oc.fillStyle=MAP.ink;oc.font="italic 42px Georgia, serif";oc.textAlign="center";oc.fillText("INDIAN OCEAN",256,62);const ot=new THREE.CanvasTexture(ocean);ot.colorSpace=THREE.SRGBColorSpace;const ol=new THREE.Mesh(new THREE.PlaneGeometry(32,6),new THREE.MeshBasicMaterial({map:ot,transparent:true,depthWrite:false}));ol.position.set(48,.4,28);ol.rotation.x=-Math.PI/2;g.add(ol);
 };
 
 // Procedural archaeology insert. Each artifact is built only from the active six-colour world palette.

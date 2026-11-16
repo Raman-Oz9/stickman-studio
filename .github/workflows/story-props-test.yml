@@ -4,6 +4,9 @@ on:
     inputs:
       frames:
         default: "25,75,125,185,230,290"
+      board:
+        description: "Board JSON path to render"
+        default: "remotion/story_props_test.json"
 permissions:
   contents: write
 jobs:
@@ -20,7 +23,7 @@ jobs:
         run: |
           true
           mkdir -p remotion/public/prep/stickers
-          cp remotion/story_props_test.json remotion/public/prep/board.json
+          cp "${{ inputs.board }}" remotion/public/prep/board.json
           python3 remotion/scripts/make_stickers.py remotion/public/prep/board.json remotion/public/prep/stickers
           python3 -c "
           import json

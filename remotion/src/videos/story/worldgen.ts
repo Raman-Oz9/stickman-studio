@@ -13,7 +13,7 @@ export type WorldParams = {
   seed?: number; accentBeat?: number; accentEnabled?: boolean; label?: string; artifact?: ArtifactType;
 };
 const P = { earth:"#b99a6a", stone:"#71685c", shade:"#403c39", green:"#718b4c", sky:"#a9c7cf", accent:"#d2a34a" } as const;
-const MAP = { paper:"#e5d5ae", ink:"#665844", land:"#aab18a", water:"#9bb8bd", line:"#85775e", accent:"#b78b45" } as const;
+const MAP = { paper:"#e5d5ae", ink:"#554632", land:"#899967", water:"#86aeb8", line:"#66513a", accent:"#c18b3d" } as const;
 const hash = (n:number,s:number)=>{const x=Math.sin(n*127.1+s*311.7)*43758.5453;return x-Math.floor(x);};
 const clamp=(x:number,a=0,b=1)=>Math.max(a,Math.min(b,x));
 const smooth=(x:number)=>{const k=clamp(x);return k*k*(3-2*k);};
@@ -79,7 +79,30 @@ const settlement=(g:THREE.Group,p:WorldParams,t:number)=>{
     // forum paving and amphitheatre tiers
     for(let i=0;i<5;i++)box(g,26-i*3,.45,2,P.stone,0,.3+i*.5,-48-i*1.4);
   } else if(era==="medieval"){
-    if(region==="african"){
+    if(region==="african" && p.label==="great-zimbabwe"){
+      // Great Zimbabwe-inspired dry-stone enclosure: a broad elliptical wall, stepped conical tower and controlled entrance.
+      const cx=0, cz=-36, rx=19, rz=14, segs=36, wallH=5.6;
+      for(let i=0;i<segs;i++){
+        if(i>=8 && i<=10) continue; // leave the near-side gateway open
+        const a=i/segs*Math.PI*2, x=cx+Math.cos(a)*rx, z=cz+Math.sin(a)*rz;
+        const dx=-Math.sin(a)*rx, dz=Math.cos(a)*rz, angle=Math.atan2(-dz,dx);
+        const course=box(g,3.45,wallH,1.05,i%5===0?P.earth:P.stone,x,wallH/2,z);
+        course.rotation.y=angle;
+        for(let row=0;row<3;row++){
+          const block=box(g,.92,.42,.14,(i+row)%3===0?P.shade:P.earth,
+            x+Math.cos(a)*.62,1.05+row*1.35,z+Math.sin(a)*.62);
+          block.rotation.y=angle;
+        }
+      }
+      // Gate passage and short projecting cheeks.
+      box(g,1.15,3.25,8,P.stone,-2.15,1.62,-17);
+      box(g,1.15,3.25,8,P.stone,2.15,1.62,-17);
+      // Iconic conical tower formed from progressively smaller dry-stone courses.
+      for(let i=0;i<9;i++) cylinder(g,4.7-i*.43,1.05,i%2?P.stone:P.earth,5,.525+i*1.05,-36,12);
+      // Small round domestic compounds remain outside the monumental enclosure.
+      hut(-29,-34,.82); hut(29,-34,.82); hut(-27,-53,.72); hut(27,-53,.72); hut(0,-59,.68);
+      for(let i=0;i<5;i++)box(g,1.2,.12,1.2,P.shade,-2+i*1.1,.08,-7);
+    } else if(region==="african"){
       const wall=(x:number,z:number,w:number,h:number)=>{box(g,w,h,.9,P.stone,x,h/2,z);for(let k=0;k<Math.floor(w/1.5);k++)box(g,1.1,.16,1,P.earth,x-w/2+.75+k*1.5,h+.08,z);};
       wall(0,-23,34,4.4);wall(-17,-12,1,3.4);wall(17,-12,1,3.4);wall(0,-2,34,3.6);
       cylinder(g,4.4,7,P.stone,0,3.5,-23,12);
@@ -121,7 +144,7 @@ const mapLayer=(g:THREE.Group,p:WorldParams,t:number)=>{
   for(let i=0;i<7;i++){const x=-46+i*15,z=-35+Math.sin(i*1.7)*13;poly(g,[[x-4,.28,z+3],[x,.28,z-5],[x+4,.28,z+3]],MAP.line);}
   for(let i=0;i<8;i++){const x=-45+i*12,z=-7-hash(i,44)*28;ball(g,1.3,MAP.ink,x,.35,z,.8,1.1,.8);}
   // dashed trade route grows left-to-right from t=0 to t=1.
-  for(let i=0;i<26;i++){const u=i/26,x=-48+u*96,z=-5-Math.sin(u*Math.PI)*24;const dot=ball(g,.38,p.accentEnabled?MAP.accent:MAP.line,x,.42,z,1,1,1);dot.visible=false;dot.userData.routeIndex=i;}
+  for(let i=0;i<26;i++){const u=i/26,x=-48+u*96,z=-5-Math.sin(u*Math.PI)*24;const dot=ball(g,.72,p.accentEnabled?MAP.accent:MAP.line,x,.42,z,1,1,1);dot.visible=false;dot.userData.routeIndex=i;}
   const pulse=.75+.25*Math.sin(t*3);ball(g,2.2,p.accentEnabled?MAP.accent:MAP.ink,35,.5,-32,pulse,pulse,pulse);
   // period-style serif map label rendered onto the parchment surface
   const canvas=document.createElement("canvas");canvas.width=1024;canvas.height=256;const ctx=canvas.getContext("2d")!;ctx.clearRect(0,0,1024,256);ctx.fillStyle=MAP.ink;ctx.font="bold 82px Georgia, serif";ctx.textAlign="center";ctx.fillText("GREAT ZIMBABWE",512,112);ctx.font="38px Georgia, serif";ctx.fillText("SOUTHERN AFRICA  •  INDIAN OCEAN TRADE",512,190);const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;const sign=new THREE.Mesh(new THREE.PlaneGeometry(74,18),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));sign.position.set(0,.48,66);sign.rotation.x=-Math.PI/2;g.add(sign);
@@ -170,7 +193,7 @@ export const drawArtifact=(type:ArtifactType,t=0):THREE.Group=>{
 export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
   const p={season:"summer",timeOfDay:"dawn",weather:"clear",era:"medieval",region:"african",...params};
   const g=new THREE.Group();g.name=p.mapMode?"HistoricalMapWorld":"ProceduralWorld";
-  if(p.mapMode)mapLayer(g,p,t);else{
+  if(p.mapMode){mapLayer(g,p,t);g.scale.set(.5,1,.72);}else{
     terrain(g,p,t);
     settlement(g,p,t);
     if(p.artifact){const a=drawArtifact(p.artifact,t);a.position.set(0,0,5);g.add(a);}

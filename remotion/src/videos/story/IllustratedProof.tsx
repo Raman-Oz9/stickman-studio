@@ -121,9 +121,9 @@ export const IllustratedProof: React.FC = () => {
         </svg>
         <InkCharacter x={390} feet={1560} facing={1} outfit={GIVE} reach={giverReach} phase={phase} expr={f < 62 ? "grin" : f < 118 ? "laugh" : "grin"} seed={17}/>
         <InkCharacter x={690} feet={1560} facing={-1} outfit={RECEIVE} reach={receiverReach} phase={phase + .3} expr={f < 68 ? "stern" : f < 128 ? "shock" : "grin"} seed={41}/>
-        <g transform={`translate(${coinX} ${coinY})`} opacity={interpolate(f,[58,68],[0,1],{extrapolateLeft:"clamp",extrapolateRight:"clamp"})}>
-          <circle r="26" fill="#8c5725" stroke="#382b2a" strokeWidth="8"/><circle r="18" fill="#f6d16a" stroke="#fff0ad" strokeWidth="3"/><path d="M-9 0Q0-10 9 0 0 10-9 0" fill="none" stroke="#9b6428" strokeWidth="3"/>
-        </g>
+        <div style={{ position:"absolute", left:coinX-27, top:coinY-27, width:54, height:54, borderRadius:"50%", background:"#8c5725", border:"8px solid #382b2a", boxSizing:"border-box", display:"grid", placeItems:"center", opacity:interpolate(f,[58,68],[0,1],{extrapolateLeft:"clamp",extrapolateRight:"clamp"}), zIndex:3 }}>
+          <div style={{ width:29, height:29, borderRadius:"50%", background:"#f6d16a", border:"3px solid #fff0ad", boxSizing:"border-box", display:"grid", placeItems:"center", color:"#9b6428", fontSize:19, fontWeight:900 }}>✦</div>
+        </div>
       </div>
       <div style={{ position:"absolute", left:48, right:48, top:78, textAlign:"center", fontFamily:"Arial Black, Impact, sans-serif", fontWeight:900, fontSize:56, color:"#fff4dc", WebkitTextStroke:"7px #35252b", paintOrder:"stroke fill", textShadow:"0 7px 0 #654333", opacity:captionIn }}>{cap}</div>
       <div style={{ position:"absolute", left:50, right:50, bottom:92, display:"flex", justifyContent:"center", opacity:.75 }}>

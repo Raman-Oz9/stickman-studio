@@ -136,4 +136,4 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           git commit -qm "Publish narrated Great Zimbabwe 2D render"
-          git push -f "https://x-access-token:${{github.token}}@@github.com/${{github.repository}}" story-out-2d
+          git push -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" story-out-2d

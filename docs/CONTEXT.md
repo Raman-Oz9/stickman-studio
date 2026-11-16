@@ -5,6 +5,10 @@
 
 ## CHANGELOG
 
+### 2026-11-16 — Fix narrated MP4 publication authentication
+- The first complete 42.27-second narrated MP4 assembled and uploaded successfully. The optional publication step failed because the shell command interpolated an empty GitHub token into the remote URL (and included an extra `@`). The artifact remained intact and was downloaded for local playback and visual QA.
+- Corrected the publish step to use the already-populated `GH_TOKEN` environment variable in the shell URL and the standard `GITHUB_REPOSITORY` variable. This avoids embedding a GitHub expression in the command string. A workflow rerun will verify publication; no claim of branch publication until the push succeeds.
+
 ### 2026-11-16 — Narrated render complete; output-branch authentication correction
 - The narrated render completed successfully: 42.27 seconds, 1080×1920, 30 fps, H.264 video plus AAC stereo audio. Liam narration and the music/SFX mix were generated and assembled; audio peak measured at -0.5 dBFS and mean at -16.9 dBFS. The MP4 artifact `great-zimbabwe-2d-narrated-video` is uploaded and available even though the optional `story-out-2d` branch publication step failed.
 - Corrected the branch-publish command to use the already-populated `GH_TOKEN` environment variable rather than interpolating the token directly into the URL. The artifact is the deliverable; verify the follow-up publication step separately.

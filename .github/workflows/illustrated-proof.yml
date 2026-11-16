@@ -1,0 +1,49 @@
+name: 2D illustrated proof
+on:
+  push:
+    branches: [reference-style-pass-01]
+    paths:
+      - ".github/workflows/illustrated-proof.yml"
+      - "remotion/src/videos/story/IllustratedProof.tsx"
+      - "remotion/src/Root.tsx"
+      - "remotion/package.json"
+      - "remotion/package-lock.json"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: reference-style-pass-01
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: remotion/package-lock.json
+      - name: Install dependencies
+        working-directory: remotion
+        run: npm install --no-audit --no-fund
+      - name: Strict TypeScript check
+        working-directory: remotion
+        run: npx tsc --noEmit
+      - name: Render native-resolution proof frames
+        working-directory: remotion
+        run: |
+          mkdir -p out
+          for frame in 15 75 105 150; do
+            npx remotion still src/index.ts IllustratedProof "out/2d-proof-f${frame}.jpg" \
+              --frame="${frame}" --scale=1 --gl=swangle --image-format=jpeg \
+              --jpeg-quality=94 --timeout=300000 --log=warn
+          done
+      - name: Upload proof frames
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: illustrated-proof-frames
+          path: remotion/out/2d-proof-*.jpg
+          if-no-files-found: warn
+          retention-days: 7

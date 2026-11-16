@@ -8,8 +8,9 @@ export type Expression = "smile" | "joy" | "focused" | "shock" | "angry" | "sad"
 export type Vec = [number, number];
 export type CharacterBuild = "lean" | "stocky";
 const BUILD_PROPORTIONS: Record<CharacterBuild, { torso: number; shoulder: number; arm: number; legSpread: number; legLength: number; legWidth: number; head: number; hand: number; shoe: number }> = {
-  lean: { torso: 1.18, shoulder: 1.28, arm: 1.22, legSpread: 1.04, legLength: 1.12, legWidth: 1.34, head: 0.55, hand: 1.12, shoe: 0.92 },
-  stocky: { torso: 1.3, shoulder: 1.34, arm: 1.3, legSpread: 1.2, legLength: 1.08, legWidth: 1.48, head: 0.58, hand: 1.16, shoe: 0.96 },
+  // Adult silhouettes: smaller craniums, longer legs, broader shoulder-to-head ratio.
+  lean: { torso: 1.22, shoulder: 1.48, arm: 1.28, legSpread: 1.02, legLength: 1.2, legWidth: 1.2, head: 0.47, hand: 1.18, shoe: 1.02 },
+  stocky: { torso: 1.34, shoulder: 1.58, arm: 1.34, legSpread: 1.18, legLength: 1.16, legWidth: 1.55, head: 0.49, hand: 1.22, shoe: 1.06 },
 };
 
 const INK = "#29212a";
@@ -24,8 +25,9 @@ const seeded = (seed: number, n: number): number => {
   return v - Math.floor(v);
 };
 const buildHeadPath = (rx: number, ry: number, seed: number): string => {
-  const nTop = 1.62 + 0.18 * (seeded(seed, 2) - 0.5);
-  const nBot = 2.85 + 0.18 * (seeded(seed, 3) - 0.5);
+  // Flatter temples and a narrower lower face create a more mature jaw silhouette.
+  const nTop = 1.38 + 0.12 * (seeded(seed, 2) - 0.5);
+  const nBot = 2.18 + 0.14 * (seeded(seed, 3) - 0.5);
   const egg = -0.12 + 0.06 * (seeded(seed, 4) - 0.5);
   const asym = 0.06 + 0.04 * seeded(seed, 5);
   const rot = (8 * (seeded(seed, 7) - 0.5) * Math.PI) / 180;
@@ -126,9 +128,9 @@ const Hand: React.FC<{ at: Vec; dir: number; skin: string; grip?: boolean; size?
 );
 
 const Face: React.FC<{ expression: Expression; blink: number; look: number }> = ({ expression, blink, look }) => {
-  const eyeY = -490, ex = 23;
+  const eyeY = -493, ex = 21;
   const shut = blink > 0.5;
-  const big = expression === "shock" ? 0.88 : expression === "joy" ? 0.76 : 0.72;
+  const big = expression === "shock" ? 0.7 : expression === "joy" ? 0.62 : 0.58;
   const brow = (side: -1 | 1) => {
     const x = side * ex;
     switch (expression) {
@@ -159,15 +161,19 @@ const Face: React.FC<{ expression: Expression; blink: number; look: number }> = 
             <path d={`M ${s * ex - 13} ${eyeY} Q ${s * ex} ${eyeY + 8} ${s * ex + 13} ${eyeY}`} fill="none" stroke={INK} strokeWidth="6" strokeLinecap="round" />
           ) : (
             <g>
-              <ellipse cx={s * ex} cy={eyeY} rx={9 * big} ry={(expression === "joy" ? 6 : 9) * big} fill="#fffaf0" stroke={INK} strokeWidth="5" />
-              <circle cx={s * ex + look * 5} cy={eyeY + 1} r={(expression === "shock" ? 4 : 5.5)} fill={INK} />
+              <path d={`M ${s * ex - 7} ${eyeY} Q ${s * ex} ${eyeY - 5} ${s * ex + 7} ${eyeY}`} fill="none" stroke={INK} strokeWidth="5" strokeLinecap="round" />
+              <ellipse cx={s * ex} cy={eyeY + 1} rx={6 * big} ry={(expression === "joy" ? 4 : 6) * big} fill="#fffaf0" stroke={INK} strokeWidth="3.5" />
+              <circle cx={s * ex + look * 3.5} cy={eyeY + 1} r={(expression === "shock" ? 3.2 : 3.4)} fill={INK} />
               
             </g>
           )}
         </g>
       ))}
-      <path d="M -5 -477 L 0 -454 L 6 -477" fill="none" stroke="#633c34" strokeWidth="3" strokeLinecap="round" opacity=".8" />
-      <path d="M -10 -452 Q 0 -449 10 -452" fill="none" stroke="#633c34" strokeWidth="2.5" opacity=".68" />
+      {/* Defined bridge and nostrils replace the tiny generic cartoon nose. */}
+      <path d="M -1 -484 Q 1 -470 5 -458 Q 1 -454 -5 -457" fill="none" stroke="#633c34" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" opacity=".88" />
+      <path d="M -8 -456 Q -4 -453 -1 -456 M 4 -456 Q 7 -453 10 -456" fill="none" stroke="#633c34" strokeWidth="2.3" opacity=".72" />
+      <path d="M -29 -464 Q -23 -460 -18 -462 M 18 -462 Q 23 -460 29 -464" fill="none" stroke="#633c34" strokeWidth="2" opacity=".42" />
+      <path d="M -11 -444 Q 0 -441 11 -444" fill="none" stroke="#633c34" strokeWidth="2.5" opacity=".68" />
       {mouth()}
     </g>
   );
@@ -244,8 +250,9 @@ export const Stickman: React.FC<StickmanProps> = ({
         <path d={`M 0 ${SHOULDER_Y + 46} L 0 ${HIP[1] - 4}`} stroke={trim} strokeWidth="4" opacity=".65" />
         <path d={`M ${-66 * tw} ${sy + 12} Q ${-54 * tw} ${sy - 7} ${-35 * tw} ${sy + 3} M ${35 * tw} ${sy + 3} Q ${54 * tw} ${sy - 7} ${66 * tw} ${sy + 12}`} fill="none" stroke={INK} strokeWidth="5" opacity=".48" />
         {/* neck + head */}
-        <path d={`M 0 ${SHOULDER_Y - 4} L 0 -440`} stroke={INK} strokeWidth="42" />
+        <path d={`M 0 ${SHOULDER_Y - 4} L 0 -440`} stroke={INK} strokeWidth="44" />
         <path d={`M 0 ${SHOULDER_Y - 4} L 0 -440`} stroke={skin} strokeWidth="30" />
+        <path d={`M -18 ${SHOULDER_Y - 20} Q 0 ${SHOULDER_Y + 2} 18 ${SHOULDER_Y - 20}`} fill="none" stroke={shadeColor(skin, .68)} strokeWidth="5" opacity=".8" />
         <g transform={`translate(0 ${breathe * 0.6}) rotate(${look * 4}) translate(0 -486) scale(${body.head}) translate(0 486)`}>
           <ellipse cx="-64" cy="-480" rx="13" ry="18" fill={skin} stroke={INK} strokeWidth="7" />
           <ellipse cx="64" cy="-480" rx="13" ry="18" fill={skin} stroke={INK} strokeWidth="7" />

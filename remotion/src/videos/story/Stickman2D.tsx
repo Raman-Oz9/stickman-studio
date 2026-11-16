@@ -62,30 +62,35 @@ function ik(s: Vec, t: Vec, l1: number, l2: number, bend: 1 | -1): { joint: Vec;
 const line = (a: Vec, b: Vec, c: Vec) => `M ${a[0]} ${a[1]} L ${b[0]} ${b[1]} L ${c[0]} ${c[1]}`;
 
 const Limb: React.FC<{ a: Vec; b: Vec; c: Vec; w: number; color: string; sleeve?: string; sleeveFrac?: number }> = ({ a, b, c, w, color, sleeve, sleeveFrac = 0.62 }) => {
-  // Round the IK corner with a quadratic fillet, then draw one continuous inked limb.
-  // This preserves the elbow/knee direction without separate outlined joint discs or sharp hinges.
-  const u1: Vec = [(b[0] - a[0]), (b[1] - a[1])];
-  const u2: Vec = [(c[0] - b[0]), (c[1] - b[1])];
+  // Sculpt the two-bone chain as one tapered anatomical silhouette rather than
+  // two constant-width tubes joined by a visible mechanical hinge.
+  const u1: Vec = [b[0] - a[0], b[1] - a[1]];
+  const u2: Vec = [c[0] - b[0], c[1] - b[1]];
   const l1 = Math.max(1, Math.hypot(u1[0], u1[1])), l2 = Math.max(1, Math.hypot(u2[0], u2[1]));
   u1[0] /= l1; u1[1] /= l1; u2[0] /= l2; u2[1] /= l2;
-  const corner = Math.min(w * 0.72, l1 * 0.32, l2 * 0.32);
-  const p1: Vec = [b[0] - u1[0] * corner, b[1] - u1[1] * corner];
-  const p2: Vec = [b[0] + u2[0] * corner, b[1] + u2[1] * corner];
-  const d = `M ${a[0]} ${a[1]} L ${p1[0]} ${p1[1]} Q ${b[0]} ${b[1]} ${p2[0]} ${p2[1]} L ${c[0]} ${c[1]}`;
+  const n1: Vec = [-u1[1], u1[0]], n2: Vec = [-u2[1], u2[0]];
+  const bis: Vec = [n1[0] + n2[0], n1[1] + n2[1]];
+  const bl = Math.max(0.001, Math.hypot(bis[0], bis[1]));
+  bis[0] /= bl; bis[1] /= bl;
+  const pt = (v: Vec, n: Vec, amount: number, sign = 1): Vec => [v[0] + n[0] * amount * sign, v[1] + n[1] * amount * sign];
+  const a1 = pt(a, n1, w * 0.43), a2 = pt(a, n1, w * 0.43, -1);
+  const j1 = pt(b, n1, w * 0.48), j2 = pt(b, n2, w * 0.48);
+  const j3 = pt(b, n2, w * 0.48, -1), j4 = pt(b, n1, w * 0.48, -1);
+  const c1 = pt(c, n2, w * 0.27), c2 = pt(c, n2, w * 0.27, -1);
+  const crown = pt(b, bis, w * 0.66), underside = pt(b, bis, w * 0.66, -1);
+  const d = `M ${a1[0]} ${a1[1]} L ${j1[0]} ${j1[1]} Q ${crown[0]} ${crown[1]} ${j2[0]} ${j2[1]} L ${c1[0]} ${c1[1]} Q ${c[0] + u2[0] * w * .18} ${c[1] + u2[1] * w * .18} ${c2[0]} ${c2[1]} L ${j3[0]} ${j3[1]} Q ${underside[0]} ${underside[1]} ${j4[0]} ${j4[1]} L ${a2[0]} ${a2[1]} Q ${a[0] - u1[0] * w * .18} ${a[1] - u1[1] * w * .18} ${a1[0]} ${a1[1]} Z`;
   const cuff: Vec = [mix(a[0], b[0], sleeveFrac), mix(a[1], b[1], sleeveFrac)];
+  const cuffPath = `M ${a[0]} ${a[1]} L ${cuff[0]} ${cuff[1]}`;
   return (
-    <g fill="none" strokeLinecap="round" strokeLinejoin="round">
-      <path d={d} stroke={INK} strokeWidth={w + 8} />
-      <path d={d} stroke={color} strokeWidth={w} />
-      {/* Subtle anatomical joint mass and crease: a hinge with volume, not a toy-like round connector. */}
-      <ellipse cx={b[0]} cy={b[1]} rx={w * 0.43} ry={w * 0.38} fill={color} stroke={INK} strokeWidth={Math.max(3, w * 0.12)} />
-      <path d={`M ${b[0] - w * .2} ${b[1] - w * .04} Q ${b[0]} ${b[1] + w * .17} ${b[0] + w * .2} ${b[1] - w * .04}`} fill="none" stroke={shadeColor(color, .68)} strokeWidth={Math.max(2, w * .09)} opacity=".9" />
-      <path d={`M ${mix(a[0], b[0], .22)} ${mix(a[1], b[1], .22)} Q ${p1[0]} ${p1[1]} ${p2[0]} ${p2[1]}`} stroke="#fff0ce" strokeWidth="2.5" opacity=".12" />
+    <g strokeLinejoin="round" strokeLinecap="round">
+      <path d={d} fill={color} stroke={INK} strokeWidth={Math.max(4, w * .19)} />
+      <path d={`M ${a1[0] + n1[0] * 2} ${a1[1] + n1[1] * 2} Q ${j1[0]} ${j1[1]} ${c1[0]} ${c1[1]}`} fill="none" stroke="#fff0ce" strokeWidth={Math.max(2, w * .075)} opacity=".22" />
+      <path d={`M ${j3[0]} ${j3[1]} Q ${underside[0]} ${underside[1]} ${j4[0]} ${j4[1]}`} fill="none" stroke={shadeColor(color, .62)} strokeWidth={Math.max(2, w * .12)} opacity=".72" />
       {sleeve ? (
         <g>
-          <path d={`M ${a[0]} ${a[1]} L ${cuff[0]} ${cuff[1]}`} stroke={INK} strokeWidth={w + 8} />
-          <path d={`M ${a[0]} ${a[1]} L ${cuff[0]} ${cuff[1]}`} stroke={sleeve} strokeWidth={w - 1} />
-          <path d={`M ${cuff[0] - 5} ${cuff[1] - 5} L ${cuff[0] + 5} ${cuff[1] + 5}`} stroke={INK} strokeWidth="3.5" opacity=".48" />
+          <path d={cuffPath} fill="none" stroke={INK} strokeWidth={w * .91 + 5} />
+          <path d={cuffPath} fill="none" stroke={sleeve} strokeWidth={w * .91} />
+          <path d={`M ${cuff[0] - n1[0] * w * .36} ${cuff[1] - n1[1] * w * .36} L ${cuff[0] + n1[0] * w * .36} ${cuff[1] + n1[1] * w * .36}`} stroke={INK} strokeWidth="3.5" opacity=".5" />
         </g>
       ) : null}
     </g>

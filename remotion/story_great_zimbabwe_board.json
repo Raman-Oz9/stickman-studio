@@ -132,9 +132,9 @@
         },
         {
           "name": "ivory",
-          "x": -4,
-          "z": 2,
-          "h": 1.1
+          "x": -2.2,
+          "z": 1.15,
+          "h": 1.55
         }
       ],
       "focus": "goldcoin"
@@ -171,7 +171,7 @@
     },
     {
       "dur": 5,
-      "shot": "wide",
+      "shot": "high",
       "move": "hold",
       "loc": "savanna",
       "world": {
@@ -182,16 +182,18 @@
         "era": "medieval",
         "region": "african",
         "seed": 41,
-        "label": "great-zimbabwe"
+        "label": "great-zimbabwe",
+        "mapMode": true,
+        "accentEnabled": true
       },
       "caption": "GREAT ZIMBABWE",
-      "narration": "Great Zimbabwe: a powerful kingdom built in stone.",
+      "narration": "Great Zimbabwe: a powerful African kingdom, remembered in stone and connected to the wider Indian Ocean world.",
       "cast": [
         {
           "id": "guide",
           "role": "merchant",
           "x": 0,
-          "z": 1,
+          "z": 0,
           "expr": "grin"
         }
       ],

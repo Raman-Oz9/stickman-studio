@@ -33,8 +33,8 @@ const Character: React.FC<{ x: number; y: number; scale?: number; skin: string; 
         <g transform={`translate(40 35) rotate(${forearm})`}>
           <path d="M 0 0 Q 28 10 58 5" fill="none" stroke="#29212a" strokeWidth="26" />
           <path d="M 0 0 Q 28 10 58 5" fill="none" stroke={skin} strokeWidth="16" />
-          <path d="M 98 5 q 8 -10 17 -2 q 7 8 -2 14 q -10 5 -15 -2" fill={skin} />
-          {holding ? <circle cx="82" cy="7" r="12" fill="#f3bd45" stroke="#29212a" strokeWidth="5" /> : null}
+          <path d="M 58 5 q 8 -10 17 -2 q 7 8 -2 14 q -10 5 -15 -2" fill={skin} />
+          {holding ? <circle cx="62" cy="7" r="12" fill="#f3bd45" stroke="#29212a" strokeWidth="5" /> : null}
         </g>
       </g>
       <path d="M -39 60 Q -38 -9 0 -20 Q 42 -10 40 60 L 33 107 Q 0 130 -33 107Z" fill={skin} />
@@ -53,9 +53,9 @@ export const IllustratedProof: React.FC = () => {
   const approach = smooth((f - 12) / 44);
   const exchange = smooth((f - 75) / 44);
   const settle = smooth((f - 138) / 28);
-  const coinX = mix(618, 502, exchange);
+  const coinX = mix(544, 576, exchange);
   // The coin travels from the giver's fingertips to the receiver's fingertips.
-  const coinY = 1175 - Math.sin(exchange * Math.PI) * 18;
+  const coinY = 1091 - Math.sin(exchange * Math.PI) * 10;
   // Push toward the handover, then ease back to re-establish the whole setting.
   const zoom = interpolate(f, [0, 55, 100, 145, 179], [1, 1.08, 1.2, 1.14, 1.08], {
     easing: Easing.inOut(Easing.quad), extrapolateLeft: "clamp", extrapolateRight: "clamp",
@@ -63,7 +63,7 @@ export const IllustratedProof: React.FC = () => {
   const pan = interpolate(f, [0, 100, 179], [0, -28, 0], {
     easing: Easing.inOut(Easing.quad), extrapolateLeft: "clamp", extrapolateRight: "clamp",
   });
-  const cameraY = interpolate(f, [0, 55, 100, 145, 179], [960, 1030, 1175, 1080, 960], {
+  const cameraY = interpolate(f, [0, 55, 100, 145, 179], [960, 1000, 1091, 1040, 960], {
     easing: Easing.inOut(Easing.quad), extrapolateLeft: "clamp", extrapolateRight: "clamp",
   });
   const walk = f / 30;
@@ -109,8 +109,8 @@ export const IllustratedProof: React.FC = () => {
             <Character x={430 - approach * 22} y={1030} scale={1.03} skin="#8b5139" cloth="#315f59" trim="#e8bd73" phase={walk} reach={approach * (1 - settle * .25)} holding={false} expression="smile" />
             <Character x={690 + approach * 18} y={1030} scale={1.03} skin="#a86645" cloth="#9b493d" trim="#edc06c" facing={-1} phase={walk + .3} reach={approach * (1 - settle * .25)} holding={false} expression="focused" />
             <g transform={`translate(${coinX} ${coinY})`} opacity={interpolate(f, [72, 82, 132, 145], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })}>
-              <ellipse rx="28" ry="14" fill="#9b6428" stroke="#382b2a" strokeWidth="7"/>
-              <ellipse rx="21" ry="9" fill="#f8d36d" stroke="#fff0ad" strokeWidth="3"/>
+              <ellipse rx="20" ry="11" fill="#9b6428" stroke="#382b2a" strokeWidth="7"/>
+              <ellipse rx="14" ry="7" fill="#f8d36d" stroke="#fff0ad" strokeWidth="3"/>
               <path d="M-8 0 Q0 -8 8 0 Q0 8 -8 0" fill="none" stroke="#a56a2a" strokeWidth="3"/>
             </g>
           </g>

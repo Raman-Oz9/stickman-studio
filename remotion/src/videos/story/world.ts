@@ -123,7 +123,7 @@ export class StoryWorld {
     this.plat.visible = E.space && !ik;
     if (s.front && !this.fronts.has(s.front)) { const fg = buildShopFront(s.front); fg.position.set(0, 0, -14); this.root.add(fg); this.fronts.set(s.front, fg); }
     this.fronts.forEach((fg, k) => { fg.visible = k === s.front && !ik; });
-    cam.position.copy(c.pos); cam.up.set(0, 1, 0); cam.lookAt(c.look); cam.rotateZ(c.roll);
+    cam.position.copy(c.pos); cam.up.set(s.world?.mapMode ? 0 : 0, s.world?.mapMode ? 0 : 1, s.world?.mapMode ? -1 : 0); cam.lookAt(c.look); cam.rotateZ(c.roll);
     cam.fov = c.fov; cam.near = 0.15; cam.far = 1500; cam.updateProjectionMatrix(); cam.updateMatrixWorld();
     cam.layers.enable(NOINK);
     // sun: camera-relative, frozen per scene (from the start of the move)

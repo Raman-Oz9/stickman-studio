@@ -8,8 +8,8 @@ const mix = (a: number, b: number, t: number) => a + (b - a) * t;
 const GIVE: Outfit = { jacket: "#b66b37", pants: "#604537", boots: "#34272b", skin: "#8b5139", sash: "#e5b95f", buttons: "#e9cf91", build: "adult" };
 const RECEIVE: Outfit = { jacket: "#326c68", pants: "#3f4b45", boots: "#29252b", skin: "#a86645", sash: "#d9a85b", buttons: "#e6c98b", moustache: "#34251f", build: "stout" };
 
-type CardProps = { x: number; feet: number; facing: 1 | -1; outfit: Outfit; reach: number; phase: number; expr: "neutral" | "stern" | "grin" | "laugh" | "nervous" | "shock"; seed: number };
-const InkCharacter: React.FC<CardProps> = ({ x, feet, facing, outfit, reach, phase, expr, seed }) => {
+type CardProps = { x: number; feet: number; facing: 1 | -1; outfit: Outfit; reachX: number; reachY: number; phase: number; expr: "neutral" | "stern" | "grin" | "laugh" | "nervous" | "shock"; seed: number };
+const InkCharacter: React.FC<CardProps> = ({ x, feet, facing, outfit, reachX, reachY, phase, expr, seed }) => {
   const ref = useRef<HTMLCanvasElement>(null);
   const f = useCurrentFrame();
   useEffect(() => {
@@ -17,9 +17,9 @@ const InkCharacter: React.FC<CardProps> = ({ x, feet, facing, outfit, reach, pha
     const ctx = canvas?.getContext("2d");
     if (!ctx) return;
     ctx.clearRect(0, 0, 600, 1000);
-    const r = [{ side: 1 as const, x: 0.53 * reach, y: 1.24 * reach }];
+    const r = reachX > 0.06 || reachY > 0.06 ? [{ side: 1 as const, x: reachX, y: reachY }] : undefined;
     bodyFront(new Pen(ctx), outfit, {
-      mode: reach > 0.08 ? "stand" : "stroll",
+      mode: reachX > 0.06 || reachY > 0.06 ? "stand" : "stroll",
       phase,
       expr,
       reach: r,
@@ -28,10 +28,10 @@ const InkCharacter: React.FC<CardProps> = ({ x, feet, facing, outfit, reach, pha
       seed,
       blink: f % 104 < 4 ? 1 : 0,
       look: facing === 1 ? 0.35 : -0.2,
-      tilt: reach > 0.8 ? -2 : 0,
-      headTilt: reach > 0.8 ? 1.5 : 0,
+      tilt: reachY > 0.8 ? -2 : 0,
+      headTilt: reachY > 0.8 ? 1.5 : 0,
     });
-  }, [f, outfit, reach, phase, expr, facing, seed]);
+  }, [f, outfit, reachX, reachY, phase, expr, facing, seed]);
   const scale = 0.68;
   return <canvas ref={ref} width={600} height={1000} style={{
     position: "absolute", left: x - 300 * scale, top: feet - 975 * scale,
@@ -119,8 +119,8 @@ export const IllustratedProof: React.FC = () => {
           <g transform="translate(960 1660)"><path d="M-54-5Q-48-86 0-100 48-86 54-5Z" fill="#bd824d" stroke="#52382d" strokeWidth="9"/><path d="M-43-42Q0-24 43-42M-33-68Q0-54 33-68M-20-8V-86M0-8V-96M20-8V-86" fill="none" stroke="#edc98e" strokeWidth="7"/></g>
           <g fill="#fff1d0" opacity=".2"><path d="M0 1340Q250 1280 500 1340T1080 1320" fill="none" stroke="#fff1d0" strokeWidth="9"/><path d="M0 1540Q260 1480 540 1540T1080 1520" fill="none" stroke="#fff1d0" strokeWidth="6"/></g>
         </svg>
-        <InkCharacter x={390} feet={1560} facing={1} outfit={GIVE} reach={giverReach} phase={phase} expr={f < 62 ? "grin" : f < 118 ? "laugh" : "grin"} seed={17}/>
-        <InkCharacter x={690} feet={1560} facing={-1} outfit={RECEIVE} reach={receiverReach} phase={phase + .3} expr={f < 68 ? "stern" : f < 128 ? "shock" : "grin"} seed={41}/>
+        <InkCharacter x={390} feet={1560} facing={1} outfit={GIVE} reachX={giverReachX} reachY={giverReachY} phase={phase} expr={f < 62 ? "grin" : f < 118 ? "laugh" : "grin"} seed={17}/>
+        <InkCharacter x={690} feet={1560} facing={-1} outfit={RECEIVE} reachX={receiverReachX} reachY={receiverReachY} phase={phase + .3} expr={f < 68 ? "stern" : f < 128 ? "shock" : "grin"} seed={41}/>
         <div style={{ position:"absolute", left:coinX-27, top:coinY-27, width:54, height:54, borderRadius:"50%", background:"#8c5725", border:"8px solid #382b2a", boxSizing:"border-box", display:"grid", placeItems:"center", opacity:interpolate(f,[58,68],[0,1],{extrapolateLeft:"clamp",extrapolateRight:"clamp"}), zIndex:3 }}>
           <div style={{ width:29, height:29, borderRadius:"50%", background:"#f6d16a", border:"3px solid #fff0ad", boxSizing:"border-box", display:"grid", placeItems:"center", color:"#9b6428", fontSize:19, fontWeight:900 }}>✦</div>
         </div>

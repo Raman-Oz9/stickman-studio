@@ -56,6 +56,8 @@ Working in stills: shop FRONT with sign, palace gate/hall, mine entrance (rails 
 Render stills with the props-test workflow (build a board in `remotion/story_props_test.json`), clone branch `props-test`, LOOK at the images. For a full video, clone `story-out`, extract ~18 frames with ffmpeg, view them against the cinematic-skill QC checklist. Send the owner only what passes.
 
 ## 7. CHANGELOG (newest first)
+- 2026-11-16 — Connected the new 2D character renderer to the repository's established `actions.ts` `twoBone` solver instead of maintaining a second IK implementation. The 2D rig and existing world-contact/action layer now share the same bend convention and reach clamp, reducing hand/prop drift risk during production integration.
+
 - 2026-11-16 — Replaced the circular head outline with a stable seeded superellipse contour inspired by the repository's established toon head geometry: slightly pointed crown, fuller lower jaw, subtle facing-side asymmetry and restrained organic contour noise. Added per-character seeds so silhouettes remain stable frame-to-frame while traders have distinct head shapes. Strict typecheck and six-pose visual review pending.
 
 - 2026-11-16 — Fixed two remaining old `body.leg` references after splitting profile leg controls into spread/length/width. Both IK legs now use `legLength`, and both limb strokes use `legWidth`; strict TypeScript rerun required.

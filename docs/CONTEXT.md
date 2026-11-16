@@ -5,6 +5,10 @@
 
 ## CHANGELOG
 
+### 2026-11-16 — Full storyboard MP4 render enabled
+- The handoff sequence now reads as a continuous exchange: the receiver faces the giver, the partners are staged within arm's reach, the coin travels between their hands and settles against the receiver's waist-level carry pose. The overhead scene is a separate clean trade-route map. Strict TypeScript and all native-resolution storyboard/proof stills passed on commit `b35b2f4`; native inspection confirmed the receiver's hand is now directly under the coin at the carry beat.
+- Extended the proof workflow to render the complete 55-second `StoryShort2D` storyboard at 1080×1920, 30 fps, H.264, then upload the MP4 with the proof frames. This output is currently a visual-only render: narration, music and synced SFX are not yet integrated into the new 2D composition. Do not describe it as the final narrated production cut.
+
 ### 2026-11-16 — Pin transferred coin to receiver's visible carry hand
 - Native review confirmed the two traders now close the gap and both arms reach into the exchange, but the carried coin still sat slightly outside the receiver's bent hand after the transfer. Calibrated the final coin anchor against the actual rendered hand position in the 1080×1920 frame; the transfer path now terminates at that waist-level grip.
 - This is the final visual contact calibration before a complete MP4 preview. TypeScript and native-frame render must pass again; the existing production renderer remains unchanged.

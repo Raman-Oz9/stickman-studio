@@ -144,7 +144,7 @@ class Rig {
     if (o.brow) add(this.head, mk(B(0.085, 0.017, 0.014), INK, 0.07, HEADR + 0.085, HEADR - 0.004, 1, 1, 1, 0, 0, -o.brow * 2), mk(B(0.085, 0.017, 0.014), INK, -0.07, HEADR + 0.085, HEADR - 0.004, 1, 1, 1, 0, 0, o.brow * 2));
     if (o.mask) add(this.head, mk(B(0.4, 0.085, 0.4), "#14141a", 0, HEADR + 0.03, 0));
     if (o.patch) add(this.head, mk(S(0.045, 8, 6), "#14141a", 0.068, HEADR + 0.03, HEADR + 0.0, 1, 1, 0.4));
-    if (o.glasses) add(this.head, mk(new THREE.TorusGeometry(0.045, 0.01, 6, 16), INK, 0.068, HEADR + 0.03, HEADR + 0.01), mk(new THREE.TorusGeometry(0.045, 0.01, 6, 16), INK, -0.068, HEADR + 0.03, HEADR + 0.01));
+    if (o.glasses) add(this.head, mk(new THREE.TorusGeometry(0.056, 0.006, 6, 20), INK, 0.068, HEADR + 0.03, HEADR + 0.025), mk(new THREE.TorusGeometry(0.056, 0.006, 6, 20), INK, -0.068, HEADR + 0.03, HEADR + 0.025));
     const hat = o.hat?.();
     if (hat) { const w = new THREE.Group(); w.add(hat); w.scale.setScalar(0.62); w.position.set(0, HEADR * 2 - 0.01, 0); add(this.head, w); }
     o.extra?.(this);

@@ -106,7 +106,7 @@ export const IllustratedProof: React.FC = () => {
           </g>)}
           {/* Baobab silhouettes with illustrated leaf clusters */}
           <g transform="translate(120 1200)"><path d="M0 0Q-22-130-8-250M-8-160Q-92-220-110-275M-2-190Q88-250 115-310" fill="none" stroke="#765036" strokeWidth="36" strokeLinecap="round"/><g fill="#55794b" stroke="#3d6342" strokeWidth="8"><circle cx="-105" cy="-285" r="72"/><circle cx="-36" cy="-325" r="82"/><circle cx="52" cy="-338" r="80"/><circle cx="112" cy="-305" r="70"/></g><g fill="#82a45e"><circle cx="-65" cy="-300" r="28"/><circle cx="22" cy="-350" r="33"/><circle cx="90" cy="-292" r="26"/></g></g>
-          <g transform="translate(1000 1205) scale(.85)"><path d="M0 0Q-12-130 5-260M0-160Q-90-210-110-270M0-190Q80-245 110-300" fill="none" stroke="#765036" strokeWidth="34" strokeLinecap="round"/><g fill="#55794b" stroke="#3d6342" strokeWidth="8"><circle cx="-104" cy="-285" r="68"/><circle cx="-34" cy="-326" r="80"/><circle cx="48" cy="-330" r="78/><circle cx="112" cy="-300" r="67"/></g></g>
+          <g transform="translate(1000 1205) scale(.85)"><path d="M0 0Q-12-130 5-260M0-160Q-90-210-110-270M0-190Q80-245 110-300" fill="none" stroke="#765036" strokeWidth="34" strokeLinecap="round"/><g fill="#55794b" stroke="#3d6342" strokeWidth="8"><circle cx="-104" cy="-285" r="68"/><circle cx="-34" cy="-326" r="80"/><circle cx="48" cy="-330" r="78"/><circle cx="112" cy="-300" r="67"/></g></g>
           {/* Ground plane, path and hand-painted texture */}
           <path d="M0 1260Q240 1180 460 1260T1080 1240V1920H0Z" fill="url(#zEarth)"/>
           <path d="M0 1260Q240 1180 460 1260T1080 1240V1920H0Z" fill="url(#zGrain)"/>

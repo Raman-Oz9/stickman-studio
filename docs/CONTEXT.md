@@ -5,6 +5,12 @@
 
 ## CHANGELOG
 
+### 2026-11-16 — Organic limb silhouette pass 03 (awaiting visual QA)
+- Replaced the constant-width tube limbs and visible elbow/knee hinge discs with a single tapered, curved silhouette per articulated limb. Added restrained form highlights and shadow contours while preserving the two-bone IK endpoints, reach targets, grip timing and clothing sleeve overlay.
+- Reason: native-resolution pass 02 still read as a toy/robot because each limb looked like connected cylinders. The next proof must confirm smoother anatomical flow without breaking object contact or walk poses.
+- NOT YET TYPECHECKED OR RENDERED. Reject if joints kink, sleeves detach, or hand/foot contacts drift.
+
+
 ### 2026-11-16 — Adult anatomy second pass (in progress)
 - Increased shoulder breadth, torso mass, arm and leg cross-sections, hand scale and footwear so the figures read as adult bodies rather than thin toy-like stick figures.
 - Reduced head-to-body ratio and eye size further; kept the existing two-bone IK and hand targets intact so contact-driven actions remain compatible.

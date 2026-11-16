@@ -2,7 +2,7 @@
 // All geometry is assembled from flat primitives; drawWorld(params,t) is deterministic for a given time.
 import * as THREE from "three";
 
-export type TerrainType = "forest"|"ocean"|"mountain"|"desert"|"ice"|"plain"|"river"|"coast"|"swamp"|"cave"|"savanna";
+export type TerrainType = "forest"|"jungle"|"ocean"|"mountain"|"desert"|"ice"|"plain"|"river"|"coast"|"swamp"|"cave"|"savanna";
 export type WeatherType = "clear"|"rain"|"snow"|"fog"|"storm"|"drought"|"wind";
 export type EraType = "stone-age"|"ancient"|"classical"|"medieval"|"early-modern"|"industrial"|"modern";
 export type RegionType = "european"|"african"|"east-asian"|"south-asian"|"middle-eastern"|"mesoamerican";
@@ -73,6 +73,8 @@ const mapLayer=(g:THREE.Group,p:WorldParams,t:number)=>{
   // dashed trade route grows left-to-right from t=0 to t=1.
   const route=clamp(t/3);for(let i=0;i<26*route;i++){const u=i/26,x=-48+u*96,z=-5-Math.sin(u*Math.PI)*24;ball(g,.38,MAP.accent,x,.42,z,1,1,1);}
   const pulse=.75+.25*Math.sin(t*3);ball(g,2.2,p.accentEnabled?MAP.accent:MAP.ink,35,.5,-32,pulse,pulse,pulse);
+  // period-style serif map label rendered onto the parchment surface
+  const canvas=document.createElement("canvas");canvas.width=1024;canvas.height=256;const ctx=canvas.getContext("2d")!;ctx.clearRect(0,0,1024,256);ctx.fillStyle=MAP.ink;ctx.font="bold 82px Georgia, serif";ctx.textAlign="center";ctx.fillText("GREAT ZIMBABWE",512,112);ctx.font="38px Georgia, serif";ctx.fillText("SOUTHERN AFRICA  •  INDIAN OCEAN TRADE",512,190);const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;const sign=new THREE.Mesh(new THREE.PlaneGeometry(74,18),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));sign.position.set(0,.48,66);sign.rotation.x=-Math.PI/2;g.add(sign);
   // compass rose
   poly(g,[[58,.4,50],[61,.4,40],[64,.4,50],[61,.4,60]],MAP.ink);
 };

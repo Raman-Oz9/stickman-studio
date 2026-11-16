@@ -49,12 +49,12 @@ const Limb: React.FC<{ a: Vec; b: Vec; c: Vec; w: number; color: string; sleeve?
   const cuff: Vec = [mix(a[0], b[0], sleeveFrac), mix(a[1], b[1], sleeveFrac)];
   return (
     <g fill="none" strokeLinecap="round" strokeLinejoin="round">
-      <path d={d} stroke={INK} strokeWidth={w + 12} />
+      <path d={d} stroke={INK} strokeWidth={w + 8} />
       <path d={d} stroke={color} strokeWidth={w} />
       <path d={`M ${mix(a[0], b[0], .22)} ${mix(a[1], b[1], .22)} Q ${p1[0]} ${p1[1]} ${p2[0]} ${p2[1]}`} stroke="#fff0ce" strokeWidth="3" opacity=".16" />
       {sleeve ? (
         <g>
-          <path d={`M ${a[0]} ${a[1]} L ${cuff[0]} ${cuff[1]}`} stroke={INK} strokeWidth={w + 10} />
+          <path d={`M ${a[0]} ${a[1]} L ${cuff[0]} ${cuff[1]}`} stroke={INK} strokeWidth={w + 8} />
           <path d={`M ${a[0]} ${a[1]} L ${cuff[0]} ${cuff[1]}`} stroke={sleeve} strokeWidth={w - 1} />
           <path d={`M ${cuff[0] - 5} ${cuff[1] - 5} L ${cuff[0] + 5} ${cuff[1] + 5}`} stroke={INK} strokeWidth="3.5" opacity=".48" />
         </g>
@@ -73,7 +73,7 @@ const Shoe: React.FC<{ at: Vec; scale?: number }> = ({ at, scale = 1 }) => (
 );
 
 const Hand: React.FC<{ at: Vec; dir: number; skin: string; grip?: boolean }> = ({ at, dir, skin, grip }) => (
-  <g transform={`translate(${at[0]} ${at[1]}) rotate(${dir}) scale(.82)`} stroke={INK} strokeLinejoin="round" strokeLinecap="round">
+  <g transform={`translate(${at[0]} ${at[1]}) rotate(${dir}) scale(.78)`} stroke={INK} strokeLinejoin="round" strokeLinecap="round">
     {/* One continuous palm silhouette with four distinct finger tips and a working thumb. */}
     <path d="M -11 -13 C -19 -24 -11 -34 -3 -32 C 4 -31 7 -23 7 -16 L 12 -29 C 15 -37 25 -34 25 -25 L 23 -15 L 29 -24 C 34 -30 42 -23 38 -14 L 32 -5 Q 43 -8 45 2 Q 46 13 34 17 Q 26 25 11 22 L -8 15 Q -21 8 -17 -3Z" fill={skin} strokeWidth="7" />
     <path d="M -8 -5 Q -24 -18 -31 -7 Q -34 4 -18 11 L -8 8Z" fill={skin} strokeWidth="6" />
@@ -189,10 +189,10 @@ export const Stickman: React.FC<StickmanProps> = ({
     <g transform={`translate(${x} ${y}) scale(${scale * facing} ${scale})`} strokeLinejoin="round" strokeLinecap="round">
       <ellipse cx="0" cy="6" rx="105" ry="20" fill="#3b2b2c" opacity=".2" />
       {/* back arm + back leg */}
-      <Limb a={shB} b={armB.joint} c={armB.end} w={29} color={skin} sleeve={cloth} />
+      <Limb a={shB} b={armB.joint} c={armB.end} w={20} color={skin} sleeve={cloth} />
       <Hand at={armB.end} dir={handDir(armB)} skin={skin} />
-      <Limb a={[-12, hip[1]]} b={legB.joint} c={legB.end} w={33} color={trousers} />
-      <Shoe at={legB.end} scale={0.86} />
+      <Limb a={[-12, hip[1]]} b={legB.joint} c={legB.end} w={21} color={trousers} />
+      <Shoe at={legB.end} scale={0.82} />
       {/* torso */}
       <g transform={`rotate(${lean} 0 ${HIP[1]})`}>
         <path d={torsoPath} fill={INK} stroke={INK} strokeWidth="14" />
@@ -217,7 +217,7 @@ export const Stickman: React.FC<StickmanProps> = ({
       </g>
       {/* front leg + arm */}
       <Limb a={[12, hip[1]]} b={legF.joint} c={legF.end} w={33} color={trousers} />
-      <Shoe at={legF.end} scale={0.9} />
+      <Shoe at={legF.end} scale={0.86} />
       <Limb a={shF} b={armF.joint} c={armF.end} w={29} color={skin} sleeve={cloth} />
       <Hand at={armF.end} dir={handDir(armF)} skin={skin} grip={grip} />
     </g>

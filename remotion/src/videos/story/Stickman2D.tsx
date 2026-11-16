@@ -8,8 +8,8 @@ export type Expression = "smile" | "joy" | "focused" | "shock" | "angry" | "sad"
 export type Vec = [number, number];
 export type CharacterBuild = "lean" | "stocky";
 const BUILD_PROPORTIONS: Record<CharacterBuild, { torso: number; shoulder: number; arm: number; legSpread: number; legLength: number; legWidth: number; head: number; hand: number; shoe: number }> = {
-  lean: { torso: 0.94, shoulder: 0.96, arm: 0.94, legSpread: 0.98, legLength: 1, legWidth: 0.94, head: 0.98, hand: 0.96, shoe: 0.96 },
-  stocky: { torso: 1.12, shoulder: 1.08, arm: 1.06, legSpread: 1.3, legLength: 1, legWidth: 1.08, head: 1.04, hand: 1.04, shoe: 1.04 },
+  lean: { torso: 1.08, shoulder: 1.12, arm: 0.98, legSpread: 1.04, legLength: 1.14, legWidth: 1.08, head: 0.78, hand: 1.02, shoe: 0.9 },
+  stocky: { torso: 1.2, shoulder: 1.16, arm: 1.08, legSpread: 1.22, legLength: 1.1, legWidth: 1.2, head: 0.82, hand: 1.06, shoe: 0.94 },
 };
 
 const INK = "#29212a";
@@ -24,8 +24,8 @@ const seeded = (seed: number, n: number): number => {
   return v - Math.floor(v);
 };
 const buildHeadPath = (rx: number, ry: number, seed: number): string => {
-  const nTop = 1.75 + 0.3 * (seeded(seed, 2) - 0.5);
-  const nBot = 2.3 + 0.3 * (seeded(seed, 3) - 0.5);
+  const nTop = 1.62 + 0.18 * (seeded(seed, 2) - 0.5);
+  const nBot = 2.85 + 0.18 * (seeded(seed, 3) - 0.5);
   const egg = -0.12 + 0.06 * (seeded(seed, 4) - 0.5);
   const asym = 0.06 + 0.04 * seeded(seed, 5);
   const rot = (8 * (seeded(seed, 7) - 0.5) * Math.PI) / 180;
@@ -89,10 +89,10 @@ const Limb: React.FC<{ a: Vec; b: Vec; c: Vec; w: number; color: string; sleeve?
 
 const Shoe: React.FC<{ at: Vec; scale?: number }> = ({ at, scale = 1 }) => (
   <g transform={`translate(${at[0]} ${at[1]}) scale(${scale})`}>
-    <path d="M -25 -13 Q -9 -25 10 -17 Q 25 -12 42 -9 Q 64 -6 70 8 Q 73 21 57 25 L -23 24 Q -42 20 -38 5 Q -35 -5 -25 -13Z" fill={INK} stroke="#1f1a22" strokeWidth="5" strokeLinejoin="round" />
-    <path d="M -25 17 Q 12 22 60 16" fill="none" stroke="#7b6253" strokeWidth="4" strokeLinecap="round" />
-    <path d="M -6 -14 Q 11 -7 27 -8" fill="none" stroke="#f0c779" strokeWidth="4" strokeLinecap="round" opacity=".78" />
-    <path d="M 2 -2 Q 16 2 30 0" fill="none" stroke="#fff0ce" strokeWidth="2.5" opacity=".24" />
+    <path d="M -23 -15 Q -5 -22 10 -13 L 34 -8 Q 54 -5 61 4 L 66 14 Q 63 22 47 22 L -26 20 Q -38 17 -34 5 L -30 -7Z" fill={INK} stroke="#1f1a22" strokeWidth="4.5" strokeLinejoin="round" />
+    <path d="M -29 13 Q 12 18 59 12" fill="none" stroke="#9a806c" strokeWidth="3" strokeLinecap="round" />
+    <path d="M -3 -13 L 8 -8 L 25 -7" fill="none" stroke="#f0c779" strokeWidth="3" strokeLinecap="round" opacity=".55" />
+    <path d="M -15 2 L 30 3" fill="none" stroke="#fff0ce" strokeWidth="2" opacity=".18" />
   </g>
 );
 
@@ -115,16 +115,16 @@ const Hand: React.FC<{ at: Vec; dir: number; skin: string; grip?: boolean; size?
       </g>
     )}
     <path d="M -10 -13 Q 1 -23 14 -15 Q 26 -5 19 11 Q 13 24 -3 20 Q -17 13 -15 -2Z" fill={skin} strokeWidth="7" />
-    <path d="M -8 -4 Q -24 -18 -31 -7 Q -35 4 -18 13 L -7 8Z" fill={skin} strokeWidth="6" />
-    <path d="M -3 -7 Q 6 -12 14 -7 M -2 2 Q 7 -2 15 3" fill="none" stroke="#633c34" strokeWidth="2.8" opacity=".5" />
+    <path d="M -8 -5 Q -20 -17 -30 -8 Q -36 2 -20 13 L -7 9Z" fill={skin} strokeWidth="6" />
+    <path d="M -7 -5 Q 2 -10 10 -7 M -7 2 Q 1 -1 9 3 M 1 10 Q 10 13 17 8" fill="none" stroke="#633c34" strokeWidth="2.6" opacity=".58" />
     <path d="M 0 14 Q 12 19 24 13" fill="none" stroke="#fff0ce" strokeWidth="2.5" opacity=".25" />
   </g>
 );
 
 const Face: React.FC<{ expression: Expression; blink: number; look: number }> = ({ expression, blink, look }) => {
-  const eyeY = -490, ex = 22;
+  const eyeY = -490, ex = 25;
   const shut = blink > 0.5;
-  const big = expression === "shock" ? 1.35 : expression === "joy" ? 0.9 : 1;
+  const big = expression === "shock" ? 1.12 : expression === "joy" ? 0.94 : 0.88;
   const brow = (side: -1 | 1) => {
     const x = side * ex;
     switch (expression) {
@@ -143,7 +143,7 @@ const Face: React.FC<{ expression: Expression; blink: number; look: number }> = 
       case "angry": return <path d="M -17 -437 Q 0 -450 17 -437" fill="none" stroke={INK} strokeWidth="6" strokeLinecap="round" />;
       case "sad": return <path d="M -16 -436 Q 0 -450 16 -436" fill="none" stroke={INK} strokeWidth="6" strokeLinecap="round" />;
       case "focused": return <path d="M -13 -441 L 13 -441" fill="none" stroke={INK} strokeWidth="6" strokeLinecap="round" />;
-      default: return <path d="M -19 -446 Q 0 -427 19 -446" fill="none" stroke={INK} strokeWidth="6" strokeLinecap="round" />;
+      default: return <path d="M -18 -444 Q -2 -437 17 -446" fill="none" stroke={INK} strokeWidth="5" strokeLinecap="round" />;
     }
   };
   return (
@@ -162,8 +162,8 @@ const Face: React.FC<{ expression: Expression; blink: number; look: number }> = 
           )}
         </g>
       ))}
-      <ellipse cx="-38" cy="-456" rx="10" ry="6" fill="#e0707a" opacity={expression === "joy" || expression === "smile" ? 0.35 : 0.12} />
-      <ellipse cx="38" cy="-456" rx="10" ry="6" fill="#e0707a" opacity={expression === "joy" || expression === "smile" ? 0.35 : 0.12} />
+      <path d="M -7 -474 L 0 -454 L 7 -474" fill="none" stroke="#633c34" strokeWidth="3.5" strokeLinecap="round" opacity=".72" />
+      <path d="M -8 -450 Q 0 -446 8 -450" fill="none" stroke="#633c34" strokeWidth="2.5" opacity=".55" />
       {mouth()}
     </g>
   );
@@ -214,7 +214,7 @@ export const Stickman: React.FC<StickmanProps> = ({
 
   const sy = SHOULDER_Y, hy = HIP[1];
   const tw = body.torso;
-  const torsoPath = `M ${-58 * tw} ${sy + 6} Q ${-66 * tw} ${sy + 60} ${-46 * tw} ${hy - 40} Q ${-62 * tw} ${hy + 4} ${-58 * tw} ${hy + 34} Q 0 ${hy + 52} ${58 * tw} ${hy + 34} Q ${62 * tw} ${hy + 4} ${46 * tw} ${hy - 40} Q ${66 * tw} ${sy + 60} ${58 * tw} ${sy + 6} Q 0 ${sy - 24} ${-58 * tw} ${sy + 6} Z`;
+  const torsoPath = `M ${-64 * tw} ${sy + 8} Q ${-76 * tw} ${sy + 28} ${-68 * tw} ${sy + 72} L ${-49 * tw} ${hy - 48} Q ${-45 * tw} ${hy - 18} ${-48 * tw} ${hy + 8} Q ${-54 * tw} ${hy + 26} ${-57 * tw} ${hy + 34} Q 0 ${hy + 46} ${57 * tw} ${hy + 34} Q ${54 * tw} ${hy + 26} ${48 * tw} ${hy + 8} Q ${45 * tw} ${hy - 18} ${49 * tw} ${hy - 48} L ${68 * tw} ${sy + 72} Q ${76 * tw} ${sy + 28} ${64 * tw} ${sy + 8} Q 0 ${sy - 18} ${-64 * tw} ${sy + 8} Z`;
   const handDir = (a: { joint: Vec; end: Vec }) => (Math.atan2(a.end[1] - a.joint[1], a.end[0] - a.joint[0]) * 180) / Math.PI;
 
   return (
@@ -229,9 +229,10 @@ export const Stickman: React.FC<StickmanProps> = ({
       <g transform={`rotate(${lean} 0 ${HIP[1]})`}>
         <path d={torsoPath} fill={INK} stroke={INK} strokeWidth="14" />
         <path d={torsoPath} fill={cloth} />
-        <path d={`M ${-48 * tw} ${SHOULDER_Y + 22} Q 0 ${SHOULDER_Y + 46} ${48 * tw} ${SHOULDER_Y + 22}`} fill="none" stroke={trim} strokeWidth="9" />
-        <path d={`M ${-58 * tw} ${hy + 24} Q 0 ${hy + 42} ${58 * tw} ${hy + 24}`} fill="none" stroke={trim} strokeWidth="9" />
-        <path d={`M ${-45 * tw} ${hy - 36} Q 0 ${hy - 22} ${45 * tw} ${hy - 36}`} fill="none" stroke={INK} strokeWidth="5" opacity=".5" />
+        <path d={`M ${-54 * tw} ${SHOULDER_Y + 25} Q ${-24 * tw} ${SHOULDER_Y + 58} 0 ${SHOULDER_Y + 52} Q ${24 * tw} ${SHOULDER_Y + 58} ${54 * tw} ${SHOULDER_Y + 25}`} fill="none" stroke={trim} strokeWidth="7" opacity=".9" />
+        <path d={`M ${-56 * tw} ${hy + 24} Q 0 ${hy + 40} ${56 * tw} ${hy + 24}`} fill="none" stroke={trim} strokeWidth="7" />
+        <path d={`M ${-38 * tw} ${hy - 34} Q 0 ${hy - 20} ${38 * tw} ${hy - 34}`} fill="none" stroke={INK} strokeWidth="4" opacity=".42" />
+        <path d={`M ${-42 * tw} ${sy + 80} Q ${-24 * tw} ${sy + 104} 0 ${sy + 98} Q ${24 * tw} ${sy + 104} ${42 * tw} ${sy + 80}`} fill="none" stroke={INK} strokeWidth="4" opacity=".28" />
         <path d={`M 0 ${SHOULDER_Y + 46} L 0 ${HIP[1] - 4}`} stroke={trim} strokeWidth="4" opacity=".65" />
         <path d={`M ${-66 * tw} ${sy + 12} Q ${-54 * tw} ${sy - 7} ${-35 * tw} ${sy + 3} M ${35 * tw} ${sy + 3} Q ${54 * tw} ${sy - 7} ${66 * tw} ${sy + 12}`} fill="none" stroke={INK} strokeWidth="5" opacity=".48" />
         {/* neck + head */}

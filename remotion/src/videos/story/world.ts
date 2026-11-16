@@ -21,6 +21,7 @@ import { BACK, Props3D, canon, DEFAULT_H, ORIENT, SADDLE, FLY, GUNS, registerRec
 import { outfitFor } from "./outfits";
 import { camAt, focusOf } from "./camera";
 import { Effects } from "./effects";
+import { drawWorld, animateWorld } from "./worldgen";
 
 const hh = (i: number, s = 0) => { const v = Math.sin(i * 127.1 + s * 311.7) * 43758.5453; return v - Math.floor(v); };
 const ROLE_SCALE: Record<string, number> = { kid: 0.72, girl: 0.74 };
@@ -29,7 +30,7 @@ export class StoryWorld {
   root = new THREE.Group();
   private pool = new Pool();
   private p3: Props3D; private rigs!: Rigs; private hv = new THREE.Vector3();
-  private ints = new Map<string, THREE.Group>(); private acts = new Map<string, Action>(); private realms = new Map<string, THREE.Group>(); private fronts = new Map<string, THREE.Group>(); private holder = new THREE.Group(); private fxe: Effects; private town: THREE.Object3D[] = []; private plat: THREE.Mesh;
+  private worldLayers = new Map<string, THREE.Group>(); private ints = new Map<string, THREE.Group>(); private acts = new Map<string, Action>(); private realms = new Map<string, THREE.Group>(); private fronts = new Map<string, THREE.Group>(); private holder = new THREE.Group(); private fxe: Effects; private town: THREE.Object3D[] = []; private plat: THREE.Mesh;
   private actors: Actor[] = [];
   private fxs: Fx[] = [];
   private hemi = new THREE.HemisphereLight("#cfe6ff", "#6c5c8c", 1.1);
@@ -92,6 +93,10 @@ export class StoryWorld {
     const light = s.light ?? (s.tod === "dawn" || s.tod === "dusk" ? "golden" : "day"), L = LIGHTS[light], K = LOOK[light];
     const u = n > 1 ? lf / (n - 1) : 0, t = lf / FPS;
     const dur = n / FPS;
+    // Optional world preset is an independent environment layer; character/action code below is unchanged.
+    const worldKey = s.world ? JSON.stringify(s.world) : "";
+    this.worldLayers.forEach((g, key) => { g.visible = !!worldKey && key === worldKey; if (g.visible) animateWorld(g, absT); });
+    if (worldKey) { let wg = this.worldLayers.get(worldKey); if (!wg) { wg = drawWorld(s.world!, 0); this.root.add(wg); this.worldLayers.set(worldKey, wg); } wg.visible = true; animateWorld(wg, absT); }
     const posOf = (d: CastDef) => {
       if (!d.to) return { x: d.x, z: d.z, moving: false, dist: 0, dx: 0, dz: 0 };
       const w0 = d.walkAt ?? 0, k = Math.min(1, Math.max(0, (u - w0) / Math.max(0.05, 0.96 - w0))), e = d.act === "run" ? (k < 0.08 ? k * k / 0.16 : k - 0.04) / 0.96 : k * k * (3 - 2 * k);   // sprints keep full speed (no slow ease)
@@ -113,7 +118,7 @@ export class StoryWorld {
     if (!this.realms.has(se)) { const Rl = buildRealm(se); Rl.visible = false; this.holder.add(Rl); this.realms.set(se, Rl); }
     this.realms.forEach((Rl, k) => { Rl.visible = k === se; if (k === se) realmWaves(Rl, absT); });
     const [ax, az] = fly ? anchorAt(fly.from, fly.to, u) : (LOCS[loc] as [number, number]);
-    this.holder.position.set(-ax, 0, -az); this.holder.visible = !ik && !E.space;
+    this.holder.position.set(-ax, 0, -az); this.holder.visible = !ik && !E.space && !s.world?.mapMode;
     const bk = loc !== "town" || !!fly ? (KINDB[loc] ?? "farm") : undefined;
     this.plat.visible = E.space && !ik;
     if (s.front && !this.fronts.has(s.front)) { const fg = buildShopFront(s.front); fg.position.set(0, 0, -14); this.root.add(fg); this.fronts.set(s.front, fg); }

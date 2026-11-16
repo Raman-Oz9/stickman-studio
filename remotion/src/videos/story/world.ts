@@ -11,7 +11,7 @@ import { FrontOpts, SideOpts, Expr } from "../bridge/toon";
 import { SceneDef, CastDef, PropDef } from "./types";
 import { STICKERS } from "../bridge/stickers";
 import { createAction, updateAction, handTarget, propBase, ballistic, Action, ActionType } from "./actions";
-import { FOGB, Biome, Season } from "./terrain";
+import { FOGB, Biome, Season, BIOMES } from "./terrain";
 import { buildRealm, realmWaves, anchorAt, resolveLoc, LOCS } from "./realm";
 const KINDB: Record<string, Biome> = { forest: "forest", desert: "desert", savanna: "savanna", swamp: "swamp", jungle: "jungle", ice: "ice", ocean: "ocean", farm: "farm", mountain: "mountain", palace: "farm", city: "farm", mine: "mountain", cave: "mountain" };
 import { buildShopFront } from "./interiors";
@@ -123,7 +123,7 @@ export class StoryWorld {
     this.plat.visible = E.space && !ik;
     if (s.front && !this.fronts.has(s.front)) { const fg = buildShopFront(s.front); fg.position.set(0, 0, -14); this.root.add(fg); this.fronts.set(s.front, fg); }
     this.fronts.forEach((fg, k) => { fg.visible = k === s.front && !ik; });
-    cam.position.copy(c.pos); cam.up.set(s.world?.mapMode ? 0 : 0, s.world?.mapMode ? 0 : 1, s.world?.mapMode ? -1 : 0); cam.lookAt(c.look); cam.rotateZ(c.roll);
+    cam.position.copy(c.pos); cam.up.set(0, s.world?.mapMode ? 0 : 1, s.world?.mapMode ? -1 : 0); cam.lookAt(c.look); cam.rotateZ(c.roll);
     cam.fov = c.fov; cam.near = 0.15; cam.far = 1500; cam.updateProjectionMatrix(); cam.updateMatrixWorld();
     cam.layers.enable(NOINK);
     // sun: camera-relative, frozen per scene (from the start of the move)
@@ -231,7 +231,7 @@ export class StoryWorld {
         const fx2 = cam.position.x - pp.x, fz2 = cam.position.z - pp.z, fl = Math.hypot(fx2, fz2) || 1;
         rx = pp.x - (fx2 / fl) * 0.22; rz = pp.z - (fz2 / fl) * 0.22; ry = bob + lift + ((SADDLE[mc] ?? 0.55) + (CLOSED.has(mc) ? 0.3 : 0)) * hm - 0.92 * sc2; crop = CLOSED.has(mc) ? 0.4 : 0.3;
       }
-      let rg: ReturnType<Rigs["put"]> = null;
+      let rg: ReturnType<Rigs["put"]> | undefined;
       if (this.rigs.ready) {   // real 3D skeletal character: stateless clip sampling, walk time = distance travelled
         const mc3 = d.mount ? canon(d.mount) : "", SHIPS = ["galleon", "ship", "pirateship", "ghostship", "wreck"], onShip = SHIPS.includes(mc3), vehicle = !!mc3 && CLOSED.has(mc3) && !onShip, mounted = !!d.mount && this.p3.has(d.mount);
         const hmm = mounted ? (DEFAULT_H[mc3] ?? 2) * Math.max(0.8, sc2) : 0, lf = mounted ? (FLY[mc3] ?? 0) * Math.min(1, (u * dur) / 1.6) ** 2 * (3 - 2 * Math.min(1, (u * dur) / 1.6)) : 0;

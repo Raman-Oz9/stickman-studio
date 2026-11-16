@@ -1,0 +1,52 @@
+# CONTEXT — hand-off file for any AI continuing this project
+
+> **RULE (standing instruction from the owner, Raman):** every time the repository is changed, update this file in the same commit
+> (what changed, why, what is still broken). Newest entry goes at the top of the CHANGELOG. Keep "Current state" truthful — do not oversell.
+
+## 1. What this is
+Fully automated second YouTube storytelling channel (**stickman-studio**, public repo `Raman-Oz9/stickman-studio`). Script in -> finished 9:16 1080x1920 30 fps video out, rendered **free on GitHub Actions** (no GPU). Owner: Raman / Abdurrahman Aminu (Kaduna, UTC+1). He is blunt, impatient, wants SHORT replies, wants you to interpret complaints and propose a complete fix (not ask clarifying questions), and does **not** want reminders to rotate API keys he pastes in chat.
+
+## 2. Owner's requirements (accumulated — treat as acceptance criteria)
+- **Look = the ORIGINAL 2D ink stickman cards** (flat characters drawn by `remotion/src/videos/bridge/toon.ts`, expressive faces: grin/laugh/shock/dazed/pained/nervous/stern…, funny, jovial, angry). He rejected (a) blocky 3D game people and (b) the 3D procedural stickman (`rig3d.ts`) — "you made everything worse". `USE_3D_STICKMAN=false` in `rig3d.ts`; keep it false unless he asks.
+- Style bar: "5-star hotel / first-class airline" polish. Colours, buildings, fabrics must not look cheap. Cinematic, Blender-like, fast smooth continuous camera that tracks everything, ~2 s per shot, 1–2-word captions.
+- **Every noun = a real object, every verb = acted live at the narrated moment** (thief creeps in -> grabs coins -> jumps on horse -> sheriff chases in a car). Hands must visibly connect with objects.
+- Locations: every place is a real location connected by roads (town, palace, farm, forest, desert, savanna, swamp, jungle, ice, ocean, mountain, mine, cave, city); camera may fly through the sky between them. Interiors (palace, cave, mine, house, jail, shop with goods) ONLY when the script goes inside; shops show their FRONT with a readable sign first; palace/mine exteriors first. Castle/palace big. No mountains/ships inside the town.
+- Vehicles of all kinds (horse, car, truck, helicopter, plane, ships) must be driveable/rideable by ANY character, with **no body parts poking out and nothing sinking** into the vehicle/ground. Animals, weapons (usable), terrain, 3D paper currency, weather (rain, storm, lightning, snow, night), era/culture-correct outfits, big varied cast.
+- Audio: narrator voice **am_liam** at 1.18x speed (excited/jovial); quiet all-ages background music (he likes the current one); SFX synced to actions; music+SFX at ~half voice level.
+- Engine should generate new assets itself from the script (LLM designs primitive "recipes" for unknown nouns; library cache `remotion/library/models.json`).
+- **He added a skill: `cinematic-2d-storytelling-director`** (spec copy: `docs/CINEMATIC_CAMERA_SKILL.txt`). USE IT. Key rules: camera is top priority; progressive push-ins to faces/hands/objects; reaction close-ups then pull-backs; pans; tracking; overhead reveals; never crop essential subjects; never an unreadable/empty shot; vary shot sizes; captions lower-middle; QC checklist at the end of that file.
+- He also has skills `cartoon-audio-short`, `video-making`. Reference video of fast tracking camera was provided earlier.
+- Never present a video as good without checking frames first. His rating of the engine: **below 2/10** (as of 2026-11-16). Do not send him another bad render — review every shot first.
+
+## 3. Architecture (where things are)
+- Pipeline workflow `.github/workflows/story-video.yml`: inputs `script` (file path, e.g. `remotion/story_world.txt`), `voice` (default am_liam), `shards` (16). prep -> Gemini/Groq storyboard (`remotion/scripts/plan_story.py`) -> Kokoro TTS (`voice.py`, SPEED 1.18) -> sharded Remotion render -> ffmpeg concat + music/SFX mix (`story_audio.py`). Output on branch **`story-out`** (`video.mp4`, `board.json`). Full render ~35 min.
+- Stills test workflow `.github/workflows/story-props-test.yml`: input `frames` (comma list), renders `remotion/story_props_test.json` to stills on branch **`props-test`** (also publishes `kenney.txt` asset list, `glbinfo.txt`, `tsc.txt`). ~4–5 min. Use this to verify ANY visual change before a full render.
+- Dispatch: `gh api -X POST repos/Raman-Oz9/stickman-studio/actions/workflows/<file>/dispatches -f ref=main -f 'inputs[x]=y'`. No local type-check: transpile-check with `node -e "require('typescript').transpileModule(...)"`, then push, wait ~20 s, dispatch.
+- Secrets: `GEMINI_API_KEY`, `GROQ_API_KEY` (planner backup; added by owner 2026-11-15). Planner: Gemini -> Groq with retries + heuristics + post-passes.
+- Remotion code `remotion/src/videos/story/`: `world.ts` (scene builder, actors, mounts, holds, actions), `camera.ts` (camAt: levels env/char/upper/face/eyes/low/high; moves reveal/push/pull/pan/descend/orbit/hold; est/front/fly branches), `realm.ts` (big world: LOCS, roads, terrain heightmap, castle, mine/cave mouths, `buildCity`), `terrain.ts` (biome dressing), `interiors.ts` (palace/cave/mine/house/jail/shop + shop front sign), `actions.ts` (physical action layer: contact curve + IK), `props3d.ts` (procedural props + Kenney model mapping), `effects.ts` (weather/fx), `rig3d.ts` (3D stickman — DISABLED), `types.ts`. Character cards: `remotion/src/videos/bridge/{toon.ts,cast.ts,world.ts,build.ts,ink.ts}`.
+- Planner post-passes in `plan_story.py`: split_clauses -> enrich -> enrich_actions -> enrich_world -> establish -> clean -> fly_pass -> **drop_worn** (removes worn items like crown/hat as floating props). SPEC rules (5)–(9) cover sizes, interiors, models, physical actions, world/loc.
+- Assets: `scripts/fetch_kenney.py` downloads Kenney CC0 kits at build time (car-kit, city kits, pirate-kit, watercraft, animals/cube-pets, characters, tools, food…) and **embeds each pack's external texture into the GLB** (otherwise models render white). Vehicles/animals/ships/coins/tools/skyscrapers map via `VEH`/`ANI`/`GEAR` tables at the end of `props3d.ts` (`KEN`, `DEFAULT_H`, `SADDLE`, `CLOSED`, `ALIAS`, `KFIX`, `BACK`). Hand-built procedural props remain as fallback. **Horse** = `remotion/public/models/Horse.glb` (three.js example, CC-BY, author mirada — credit in video description) with morph-target gallop driven by distance (`MORPH.horse`, `bridge/world.ts` loader).
+- Mount logic: `world.ts` — card riders are cropped at the seat (`person(..., crop)` in `bridge/cast.ts`) so legs never poke out; `CLOSED` vehicles raise the rider; `SADDLE`/`BACK` set seat height.
+
+## 4. Current state (2026-11-16, ~04:50 Lagos)
+Working in stills: shop FRONT with sign, palace gate/hall, mine entrance (rails inside), galleon at harbor, city with skyscrapers (`loc: city`), Kenney vehicles/animals, animated horse, sky-flight transitions, weather, Liam voice.
+**Latest commit (04:39):** reverted to 2D ink cards; fixed giant coin (flat discs normalised by diameter), duplicate crown (drop_worn), terrain raising props at mountain/mine/cave (ridge×(1−flat)), horse seat. A full render was dispatched from that commit — **UNREVIEWED**. Check `story-out/video.mp4` frames before showing the owner anything.
+
+## 5. Known problems (owner's last complaints, all must be verified fixed)
+1. Camera: shots with no character / only legs / only crown / camera inside shop shelf wall; hero not always framed. Needs shot-timeline discipline per the cinematic skill (every shot keeps speaking/acting character fully in frame, purposeful push/pull/pan/track).
+2. Riders sinking into horse / helicopter, car sinking into ground, sheriff invisible inside car (CLOSED vehicles hide card riders). Needs per-vehicle seat calibration verified in stills (car, truck, helicopter, horse, ship).
+3. Duplicate/floating objects (crown on head AND floor, giant coin in mango shop) — verify shop stock scale and prop dedupe.
+4. Everything "looks cheap": colours, buildings, fabrics, procedural props (helicopter, galleon, banknotes, shop goods). Needs a palette/material pass and better models; consider richer lighting/post (soft shadows, gradients) while keeping the ink look.
+5. Character locomotion / hand placement / action timing vs narration (thief speed, writing reach, grab visibly connecting).
+6. Terrain between locations plain; mine/cave visuals weak; traffic in city static; no office/apartment interior.
+7. Not yet built: word-timed cue sync (`when`->`at`), map mode, daily scheduled workflow, YouTube upload/thumbnail, self-improving QA loop, verb generation for unknown actions.
+
+## 6. How to verify before claiming anything
+Render stills with the props-test workflow (build a board in `remotion/story_props_test.json`), clone branch `props-test`, LOOK at the images. For a full video, clone `story-out`, extract ~18 frames with ffmpeg, view them against the cinematic-skill QC checklist. Send the owner only what passes.
+
+## 7. CHANGELOG (newest first)
+- 2026-11-16 04:5x — Created this file. Standing rule: update on every repo change.
+- 2026-11-16 04:39 — Restored 2D ink cards (`USE_3D_STICKMAN=false`); fixed giant coin (diameter normalisation), duplicate crown (`drop_worn`), ridge height at flat locations, horse saddle 0.79.
+- 2026-11-16 03:5x — 3D stickman (`rig3d.ts`) with expressive canvas faces, emotion body acting, flat shading (owner rejected: wants original cards).
+- 2026-11-15 22–23 — Kenney 3D characters (rejected), Kenney vehicles/animals/ships/coins/tools/skyscrapers, texture embedding in GLBs, animated Horse.glb, city location (skyscrapers, traffic, lights), crop riders at seat.
+- 2026-11-15 earlier — realm/world architecture, interiors, shop fronts, action layer, establishing camera, fly scenes, Liam voice default.

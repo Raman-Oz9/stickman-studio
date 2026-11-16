@@ -1,0 +1,188 @@
+{
+  "title": "Great Zimbabwe — The Power of an African Kingdom",
+  "scenes": [
+    {
+      "dur": 4,
+      "shot": "wide",
+      "move": "reveal",
+      "loc": "savanna",
+      "biome": "savanna",
+      "season": "summer",
+      "tod": "dawn",
+      "world": {
+        "terrain": "savanna",
+        "climate": "tropical",
+        "weather": "clear",
+        "season": "summer",
+        "timeOfDay": "dawn",
+        "era": "medieval",
+        "region": "african",
+        "seed": 41
+      },
+      "caption": "A CITY OF STONE",
+      "narration": "Hidden in the southern African savanna, a remarkable stone city once rose above the grasslands.",
+      "cast": [
+        {
+          "id": "guide",
+          "role": "merchant",
+          "x": -3,
+          "z": 1,
+          "expr": "shock"
+        }
+      ],
+      "props": []
+    },
+    {
+      "dur": 11,
+      "shot": "wide",
+      "move": "push",
+      "loc": "savanna",
+      "world": {
+        "terrain": "savanna",
+        "weather": "clear",
+        "season": "summer",
+        "timeOfDay": "noon",
+        "era": "medieval",
+        "region": "african",
+        "seed": 41
+      },
+      "caption": "GREAT ZIMBABWE",
+      "narration": "Great Zimbabwe grew into a powerful medieval centre, known for its enormous dry-stone walls and carefully built enclosures.",
+      "cast": [
+        {
+          "id": "guide",
+          "role": "merchant",
+          "x": -4,
+          "z": 1,
+          "expr": "grin",
+          "act": "point"
+        }
+      ],
+      "props": [
+        {
+          "name": "pottery",
+          "x": 3,
+          "z": 1,
+          "h": 0.8
+        },
+        {
+          "name": "basket",
+          "x": 4,
+          "z": 1,
+          "h": 0.7
+        }
+      ]
+    },
+    {
+      "dur": 20,
+      "shot": "medium",
+      "move": "pan",
+      "loc": "savanna",
+      "world": {
+        "terrain": "savanna",
+        "weather": "clear",
+        "season": "summer",
+        "timeOfDay": "noon",
+        "era": "medieval",
+        "region": "african",
+        "seed": 41
+      },
+      "caption": "GOLD • IVORY • TRADE",
+      "narration": "Its traders exchanged gold and ivory for goods arriving through long-distance networks linked to the Indian Ocean. Craft workers shaped pottery, metal and stone.",
+      "cast": [
+        {
+          "id": "trader",
+          "role": "merchant",
+          "x": -3,
+          "z": 1,
+          "expr": "neutral",
+          "do": {
+            "type": "handOver",
+            "at": 0.2,
+            "dur": 0.55,
+            "prop": "gold"
+          }
+        },
+        {
+          "id": "buyer",
+          "role": "merchant",
+          "x": 3,
+          "z": -1,
+          "expr": "smile",
+          "look": "partner"
+        }
+      ],
+      "props": [
+        {
+          "name": "gold",
+          "x": 0,
+          "z": 1,
+          "h": 0.45
+        },
+        {
+          "name": "pottery",
+          "x": 4,
+          "z": 2,
+          "h": 0.8
+        }
+      ],
+      "focus": "gold"
+    },
+    {
+      "dur": 15,
+      "shot": "high",
+      "move": "pull",
+      "loc": "savanna",
+      "world": {
+        "terrain": "savanna",
+        "weather": "clear",
+        "season": "summer",
+        "timeOfDay": "dusk",
+        "era": "medieval",
+        "region": "african",
+        "mapMode": true,
+        "accentEnabled": true,
+        "seed": 41
+      },
+      "caption": "CONNECTED TO THE WORLD",
+      "narration": "The city was part of a much wider trading world. Its stone ruins still reveal the scale and skill of this African civilisation.",
+      "cast": [
+        {
+          "id": "guide",
+          "role": "merchant",
+          "x": 0,
+          "z": 0,
+          "expr": "shock"
+        }
+      ],
+      "props": []
+    },
+    {
+      "dur": 5,
+      "shot": "wide",
+      "move": "hold",
+      "loc": "savanna",
+      "world": {
+        "terrain": "savanna",
+        "weather": "clear",
+        "season": "summer",
+        "timeOfDay": "dusk",
+        "era": "medieval",
+        "region": "african",
+        "seed": 41
+      },
+      "caption": "GREAT ZIMBABWE",
+      "narration": "Great Zimbabwe: a powerful kingdom built in stone.",
+      "cast": [
+        {
+          "id": "guide",
+          "role": "merchant",
+          "x": 0,
+          "z": 1,
+          "expr": "grin"
+        }
+      ],
+      "props": []
+    }
+  ]
+}

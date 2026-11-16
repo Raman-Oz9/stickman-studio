@@ -56,6 +56,8 @@ Working in stills: shop FRONT with sign, palace gate/hall, mine entrance (rails 
 Render stills with the props-test workflow (build a board in `remotion/story_props_test.json`), clone branch `props-test`, LOOK at the images. For a full video, clone `story-out`, extract ~18 frames with ffmpeg, view them against the cinematic-skill QC checklist. Send the owner only what passes.
 
 ## 7. CHANGELOG (newest first)
+- 2026-11-16 — Replaced the segmented tube-and-joint character limbs with a single continuous, tapered SVG silhouette following the two-bone IK path. This keeps articulated elbows/knees but removes outlined circular joint buttons, adds a subtle bend crease and continuous form shading. The latest still review showed the button joints still read mechanically after the prior oval reduction; this pass targets organic limb continuity. Strict typecheck and new stills are pending.
+
 - 2026-11-16 — Geometry refinement after native-resolution review: reduced the toy-button look at elbows/knees by using limb-aligned oval joints, widened the thigh masses slightly, removed detached circular shoulder caps in favour of shoulder seams, refined shoes and redrew the hand as a compact palm with distinct fingertips/thumb creases. First anatomy pass is technically clean; this refinement needs its own still review for hand-to-coin contact and joint continuity.
 
 - 2026-11-16 — Proof workflow now watches `Stickman2D.tsx` directly. The prior path filter watched the composition but not its imported character component, so geometry-only edits could miss automatic still QA. This closes that test-trigger gap; a fresh run of the shared anatomy pass is required.

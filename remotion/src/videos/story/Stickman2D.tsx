@@ -61,10 +61,11 @@ const Segment: React.FC<{ a: Vec; b: Vec; ra: number; rb: number; color: string 
 
 const Limb: React.FC<{ a: Vec; b: Vec; c: Vec; w: number; color: string; sleeve?: string; sleeveFrac?: number }> = ({ a, b, c, w, color, sleeve, sleeveFrac = 0.62 }) => {
   const cuff: Vec = [mix(a[0], b[0], sleeveFrac), mix(a[1], b[1], sleeveFrac)];
+  const jointAngle = (Math.atan2(c[1] - a[1], c[0] - a[0]) * 180) / Math.PI;
   return (
     <g>
-      <Segment a={a} b={b} ra={w * 0.43} rb={w * 0.47} color={color} />
-      <Segment a={b} b={c} ra={w * 0.47} rb={w * 0.31} color={color} />
+      <Segment a={a} b={b} ra={w * 0.46} rb={w * 0.48} color={color} />
+      <Segment a={b} b={c} ra={w * 0.48} rb={w * 0.34} color={color} />
       {sleeve ? (
         <g fill="none" strokeLinecap="round">
           <path d={`M ${a[0]} ${a[1]} L ${cuff[0]} ${cuff[1]}`} stroke={INK} strokeWidth={w + 10} />
@@ -72,9 +73,9 @@ const Limb: React.FC<{ a: Vec; b: Vec; c: Vec; w: number; color: string; sleeve?
           <path d={`M ${cuff[0] - 5} ${cuff[1] - 5} L ${cuff[0] + 5} ${cuff[1] + 5}`} stroke={INK} strokeWidth="4" opacity=".48" />
         </g>
       ) : null}
-      <circle cx={b[0]} cy={b[1]} r={w * 0.48} fill={color} stroke={INK} strokeWidth="8" />
-      <ellipse cx={b[0] - w * 0.12} cy={b[1] - w * 0.14} rx={w * 0.2} ry={w * 0.12} fill="#fff0ce" opacity=".2" />
-      <path d={`M ${b[0] - w * .28} ${b[1] + w * .12} Q ${b[0]} ${b[1] + w * .3} ${b[0] + w * .27} ${b[1] + w * .1}`} fill="none" stroke={INK} strokeWidth="3" opacity=".28" />
+      {/* Compact oval joint follows the limb axis; avoid the toy-like circular button look. */}
+      <ellipse cx={b[0]} cy={b[1]} rx={w * 0.39} ry={w * 0.29} transform={`rotate(${jointAngle} ${b[0]} ${b[1]})`} fill={color} stroke={INK} strokeWidth="6" />
+      <path d={`M ${b[0] - w * .18} ${b[1] + w * .12} Q ${b[0]} ${b[1] + w * .22} ${b[0] + w * .18} ${b[1] + w * .1}`} fill="none" stroke={INK} strokeWidth="2.8" opacity=".3" />
     </g>
   );
 };
@@ -89,23 +90,25 @@ const Shoe: React.FC<{ at: Vec; scale?: number }> = ({ at, scale = 1 }) => (
 );
 
 const Hand: React.FC<{ at: Vec; dir: number; skin: string; grip?: boolean }> = ({ at, dir, skin, grip }) => (
-  <g transform={`translate(${at[0]} ${at[1]}) rotate(${dir})`} stroke={INK} strokeLinejoin="round" strokeLinecap="round">
-    <path d="M -10 -16 Q 4 -24 19 -16 Q 32 -8 31 7 Q 27 22 10 22 L -12 15 Q -20 6 -10 -16Z" fill={skin} strokeWidth="7" />
+  <g transform={`translate(${at[0]} ${at[1]}) rotate(${dir}) scale(.82)`} stroke={INK} strokeLinejoin="round" strokeLinecap="round">
+    {/* One continuous palm silhouette with four distinct finger tips and a working thumb. */}
+    <path d="M -11 -13 C -19 -24 -11 -34 -3 -32 C 4 -31 7 -23 7 -16 L 12 -29 C 15 -37 25 -34 25 -25 L 23 -15 L 29 -24 C 34 -30 42 -23 38 -14 L 32 -5 Q 43 -8 45 2 Q 46 13 34 17 Q 26 25 11 22 L -8 15 Q -21 8 -17 -3Z" fill={skin} strokeWidth="7" />
+    <path d="M -8 -5 Q -24 -18 -31 -7 Q -34 4 -18 11 L -8 8Z" fill={skin} strokeWidth="6" />
     {grip ? (
-      <g fill="none" stroke={skin} strokeWidth="8">
-        <path d="M 11 -11 Q 28 -9 24 1 Q 20 8 12 5" />
-        <path d="M 7 1 Q 25 4 20 13 Q 15 17 8 12" />
+      <g fill="none" stroke="#633c34" strokeWidth="3.2">
+        <path d="M 9 -13 Q 23 -9 22 -1" />
+        <path d="M 16 -8 Q 30 -5 28 4" />
+        <path d="M 11 3 Q 23 10 31 8" />
+        <path d="M -12 2 Q -5 8 3 7" />
       </g>
     ) : (
-      <g fill="none" stroke={skin} strokeWidth="8">
-        <path d="M 9 -10 Q 23 -21 31 -13" />
-        <path d="M 13 -3 Q 30 -12 36 -3" />
-        <path d="M 14 5 Q 30 1 34 9" />
+      <g fill="none" stroke="#633c34" strokeWidth="3">
+        <path d="M 8 -17 Q 14 -11 15 -3" />
+        <path d="M 24 -13 Q 29 -7 27 0" />
+        <path d="M 34 -7 Q 38 -1 34 5" />
       </g>
     )}
-    <path d="M -5 -10 Q -22 -23 -28 -11 Q -31 1 -13 8" fill={skin} strokeWidth="6" />
-    <path d="M -4 -3 Q 7 -8 17 -5 M -2 5 Q 8 1 18 4" fill="none" stroke="#633c34" strokeWidth="2.8" opacity=".48" />
-    <path d="M 2 15 Q 12 20 21 14" fill="none" stroke="#fff0ce" strokeWidth="2.5" opacity=".25" />
+    <path d="M 0 14 Q 12 19 24 13" fill="none" stroke="#fff0ce" strokeWidth="2.5" opacity=".25" />
   </g>
 );
 
@@ -204,8 +207,8 @@ export const Stickman: React.FC<StickmanProps> = ({
       {/* back arm + back leg */}
       <Limb a={shB} b={armB.joint} c={armB.end} w={29} color={skin} sleeve={cloth} />
       <Hand at={armB.end} dir={handDir(armB)} skin={skin} />
-      <Limb a={[-12, hip[1]]} b={legB.joint} c={legB.end} w={30} color={trim} sleeve={cloth} sleeveFrac={0.5} />
-      <Shoe at={legB.end} scale={0.92} />
+      <Limb a={[-12, hip[1]]} b={legB.joint} c={legB.end} w={33} color={trim} sleeve={cloth} sleeveFrac={0.5} />
+      <Shoe at={legB.end} scale={0.86} />
       {/* torso */}
       <g transform={`rotate(${lean} 0 ${HIP[1]})`}>
         <path d={torsoPath} fill={INK} stroke={INK} strokeWidth="14" />
@@ -214,8 +217,7 @@ export const Stickman: React.FC<StickmanProps> = ({
         <path d={`M -58 ${hy + 24} Q 0 ${hy + 42} 58 ${hy + 24}`} fill="none" stroke={trim} strokeWidth="9" />
         <path d={`M -45 ${hy - 36} Q 0 ${hy - 22} 45 ${hy - 36}`} fill="none" stroke={INK} strokeWidth="5" opacity=".5" />
         <path d={`M 0 ${SHOULDER_Y + 46} L 0 ${HIP[1] - 4}`} stroke={trim} strokeWidth="4" opacity=".65" />
-        <circle cx={-SHOULDER_X} cy={sy + 8} r="17" fill={cloth} stroke={INK} strokeWidth="6" />
-        <circle cx={SHOULDER_X} cy={sy + 8} r="17" fill={cloth} stroke={INK} strokeWidth="6" />
+        <path d={`M -66 ${sy + 12} Q -54 ${sy - 7} -35 ${sy + 3} M 35 ${sy + 3} Q 54 ${sy - 7} 66 ${sy + 12}`} fill="none" stroke={INK} strokeWidth="5" opacity=".48" />
         {/* neck + head */}
         <path d={`M 0 ${SHOULDER_Y - 4} L 0 -440`} stroke={INK} strokeWidth="38" />
         <path d={`M 0 ${SHOULDER_Y - 4} L 0 -440`} stroke={skin} strokeWidth="26" />
@@ -231,7 +233,7 @@ export const Stickman: React.FC<StickmanProps> = ({
       </g>
       {/* front leg + arm */}
       <Limb a={[12, hip[1]]} b={legF.joint} c={legF.end} w={30} color={trim} sleeve={cloth} sleeveFrac={0.5} />
-      <Shoe at={legF.end} />
+      <Shoe at={legF.end} scale={0.9} />
       <Limb a={shF} b={armF.joint} c={armF.end} w={29} color={skin} sleeve={cloth} />
       <Hand at={armF.end} dir={handDir(armF)} skin={skin} grip={grip} />
     </g>

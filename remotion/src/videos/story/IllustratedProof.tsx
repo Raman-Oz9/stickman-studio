@@ -52,6 +52,7 @@ export const IllustratedProof: React.FC = () => {
   const f = useCurrentFrame();
   const approach = smooth((f - 12) / 44);
   const exchange = smooth((f - 75) / 44);
+  // Release the giver first; the recipient then lowers the hand with the coin.
   const giverRelease = smooth((f - 122) / 30);
   const receiverRelease = smooth((f - 132) / 30);
   const coinX = mix(537, 579, exchange);

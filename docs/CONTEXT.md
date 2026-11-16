@@ -10,6 +10,7 @@
 - Rebuilt the Great Zimbabwe proof environment as layered SVG illustration: distant escarpment, masonry enclosure and conical tower, homesteads, baobab silhouettes, textured earth, path, and foreground trade vessels. Camera push/pan now affects the complete illustrated composition.
 - The first native render exposed a JSX layering bug: the handoff coin was emitted as an SVG group outside the SVG root. Replaced it with a positioned 2D prop in the shared camera layer so it can visibly sit between the reaching hands.
 - Native inspection of the corrected render showed the coin floating after the receiver released the reach pose. The receiver now transitions into a waist-level carry target (raised to the character's actual waist line after native-frame inspection) and the coin position is derived from that same hand target; the giver releases independently.
+- Added a motivated wide → close handoff push-in → wide pull-back across the complete 2D composition; the camera moves the environment, characters, and prop together.
 - This is a representative all-2D proof, not yet a production-pipeline migration. It must pass TypeScript, render, and native-resolution visual inspection before the treatment is propagated into StoryWorld. Verify both hands meet the coin through the exchange and that the canvas characters render in Remotion's headless browser.
 
 

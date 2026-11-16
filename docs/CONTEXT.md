@@ -56,6 +56,8 @@ Working in stills: shop FRONT with sign, palace gate/hall, mine entrance (rails 
 Render stills with the props-test workflow (build a board in `remotion/story_props_test.json`), clone branch `props-test`, LOOK at the images. For a full video, clone `story-out`, extract ~18 frames with ffmpeg, view them against the cinematic-skill QC checklist. Send the owner only what passes.
 
 ## 7. CHANGELOG (newest first)
+- 2026-11-16 — Added reusable `lean` / `stocky` character-build profiles to `Stickman`, varying torso width, shoulder span, arm/leg proportions, head scale, hand size and shoe scale without changing IK/contact APIs. The Great Zimbabwe proof now uses distinct builds for the two traders instead of near-identical body silhouettes. Six-pose strict typecheck and visual review pending.
+
 - 2026-11-16 — Corrected a missed front-side width override: the back arm/leg had adopted the thinner reference proportions, but the front arm/leg retained the previous heavy widths. Both sides now use matched arm (20) and trouser (21) widths so near/far limbs remain consistent through the pose cycle.
 
 - 2026-11-16 — Reduced limb and hand bulk after six-pose review: arm and trouser stroke widths now follow the reference's thin-limbed stickman proportions while retaining the rounded IK fillet; ink rim narrowed, hand scale and shoes slightly reduced. This is a proportion pass, not a character-style sign-off; review all six proof poses at native resolution.

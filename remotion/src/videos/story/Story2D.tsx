@@ -36,7 +36,7 @@ const Prop:React.FC<{name:string;x:number;y:number}>=({name,x,y})=><svg width="9
 </svg>;
 export const StoryShort2D:React.FC=()=>{
  const f=useCurrentFrame(),b=useMemo(getBoard,[]),{i,local,n}=sceneAt(b,f),s=b.scenes[i],u=n>1?local/(n-1):0;
- const z=s.world?.mapMode?.88:s.shot==="close"?1.62:s.shot==="medium"?1.32:s.move==="push"?interpolate(u,[0,1],[1,1.22]):s.move==="pull"?interpolate(u,[0,1],[1.28,.96]):s.shot==="high"?.92:1.02;
+ const z=s.world?.mapMode ? .88 : s.shot==="close"?1.62:s.shot==="medium"?1.32:s.move==="push"?interpolate(u,[0,1],[1,1.22]):s.move==="pull"?interpolate(u,[0,1],[1.28,.96]):s.shot==="high"?.92:1.02;
  const pan=s.move==="pan"?interpolate(u,[0,1],[55,-55]):0;
  const giver=s.cast.find(c=>c.do?.type==="handOver"),buyer=giver?.do?.to?s.cast.find(c=>c.id===giver.do!.to):undefined,at=giver?.do?.at??.25,dur=giver?.do?.dur??.5,p=ease((u-at)/Math.max(.05,dur)),live=!!giver&&u>=at&&u<=at+dur,carry=!!giver&&u>at+dur?ease((u-at-dur)/.12):0;
  const people=s.cast.map((d,j)=>{const w=d.to?ease((u-(d.walkAt??0))/Math.max(.05,1-(d.walkAt??0))):0,x=d.x+(d.to?(d.to.x-d.x)*w:0),zz=d.z+(d.to?(d.to.z-d.z)*w:0);return {d,j,x:540+x*86,y:1480+zz*34,scale:(d.scale??1)*(1-Math.max(-.3,Math.min(.3,zz*.045)))};});

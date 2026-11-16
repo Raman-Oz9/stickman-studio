@@ -24,7 +24,7 @@ const cylinder=(g:THREE.Group,r:number,h:number,c:string,x:number,y:number,z:num
 const poly=(g:THREE.Group,pts:[number,number,number][],c:string)=>{const v:number[]=[];for(let i=1;i<pts.length-1;i++)v.push(...pts[0],...pts[i],...pts[i+1]);const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.Float32BufferAttribute(v,3));geo.computeVertexNormals();const m=new THREE.Mesh(geo,mat(c));g.add(m);return m;};
 const seasonGround=(p:WorldParams)=>p.season==="winter"?P.sky:p.season==="spring"?P.green:P.earth;
 const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
-  const ground=seasonGround(p);box(g,180,0.5,180,ground,0,-0.25,-18);
+  const ground=(p.weather==="rain"||p.weather==="storm")?P.shade:seasonGround(p);box(g,180,0.5,180,ground,0,-0.25,-18);
   if(p.terrain==="ocean"||p.terrain==="river"||p.terrain==="coast"){
     box(g,180,0.3,65,P.sky,0,-0.12,-38);
     for(let i=0;i<32;i++){const x=(hash(i,4)-.5)*150,z=-15-hash(i,5)*60;const m=box(g,2+hash(i,6)*7,.025,.18,P.sky,x,-.0,z);m.position.x+=Math.sin(t*1.2+i)*.18;}
@@ -49,20 +49,69 @@ const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
 };
 const settlement=(g:THREE.Group,p:WorldParams,t:number)=>{
   const era=p.era??"medieval",region=p.region??"african";
-  if(era==="stone-age"){for(let i=0;i<4;i++){const x=-15+i*10;poly(g,[[x-4,0,-12],[x,4,-18],[x+4,0,-12]],P.earth);cylinder(g,.2,1,P.shade,x,0.5,-8);}}
-  else {
-    // African medieval stone enclosure: stacked dry-stone walls, conical tower, round homesteads.
-    const wall=(x:number,z:number,w:number,d:number,h:number)=>{box(g,w,h,.9,P.stone,x,h/2,z);for(let k=0;k<Math.floor(w/1.5);k++)box(g,1.1,.16,1.0,P.earth,x-w/2+.75+k*1.5,h+.08,z);};
-    wall(0,-23,34,0,4.4);wall(-17,-12,1,0,3.4);wall(17,-12,1,0,3.4);wall(0,-2,34,0,3.6);
-    // iconic conical tower and concentric stone courses
-    cylinder(g,4.4,7,P.stone,0,3.5,-23,12);for(let y=1;y<7;y+=.8)cylinder(g,4.6-y*.18,.18,P.earth,0,y,-23,12);
-    poly(g,[[-5,7,-23],[0,12,-23],[5,7,-23]],P.stone);
-    for(let i=0;i<7;i++){const a=i*Math.PI*2/7,x=Math.cos(a)*28,z=-18+Math.sin(a)*20;const hut=new THREE.Group();g.add(hut);cylinder(hut,2.5,2.4,P.earth,0,1.2,0,10);const roof=ball(hut,2.5,P.stone,0,2.9,0,1,1.1,1);roof.scale.y=.7;hut.position.set(x,0,z);}
-    // trade enclosure, grain stores, low market awnings
-    for(let i=0;i<4;i++){const x=-20+i*13;box(g,8,2.8,5,P.earth,x,1.4,12);poly(g,[[x-4,2.8,9.5],[x,5,9.5],[x+4,2.8,9.5]],P.stone);box(g,9,.18,5,P.shade,x,3,12);}
-    if(region==="east-asian")for(let i=0;i<3;i++){const x=-22+i*22;poly(g,[[x-6,4,-30],[x,7,-30],[x+6,4,-30]],P.stone);}
-    if(region==="middle-eastern")for(let i=0;i<3;i++)ball(g,2,P.stone,-20+i*20,5,-28,1,1.3,1);
-    if(region==="european")for(let i=0;i<3;i++)poly(g,[[-24+i*24,3,-28],[-20+i*24,9,-28],[-16+i*24,3,-28]],P.stone);
+  const hut=(x:number,z:number,s=1)=>{
+    cylinder(g,2.1*s,2.2*s,P.earth,x,1.1*s,z,10);
+    const roof=ball(g,2.3*s,P.green,x,2.65*s,z,1,0.72,1);
+    roof.userData.sway={phase:x*.17+z*.11,amp:.012*s};
+  };
+  const gable=(x:number,z:number,w:number,h:number)=>{
+    box(g,w,h*.62,w*.72,P.earth,x,h*.31,z);
+    poly(g,[[x-w*.6,h*.62,z-w*.38],[x,h,z-w*.38],[x+w*.6,h*.62,z-w*.38]],P.stone);
+  };
+  if(era==="stone-age"){
+    for(let i=0;i<5;i++){const x=-20+i*10;poly(g,[[x-4,0,-12],[x,4,-18],[x+4,0,-12]],P.earth);box(g,1.4,.18,1.4,P.shade,x,.1,-8);}
+    cylinder(g,1.2,.25,P.shade,0,.14,2,8);
+    for(let i=0;i<5;i++)ball(g,.16+hash(i,4)*.12,P.stone,-1+i*.5,.3+hash(i,5)*.25,2);
+    return;
+  }
+  if(era==="ancient"){
+    for(let i=0;i<4;i++){const x=-25+i*16;box(g,10,5,8,P.earth,x,2.5,-22);box(g,10.5,.35,8.5,P.stone,x,5.1,-22);}
+    // stepped temple / ziggurat, with a broad processional stair
+    for(let i=0;i<5;i++)box(g,26-i*4,1.7,18-i*2,P.stone,0,.85+i*1.7,-48);
+    box(g,5,1.2,5,P.earth,0,9.1,-48);
+    for(let i=0;i<6;i++)box(g,1.2,1.4,.8,P.shade,-3+i*1.2,.7,-8);
+    box(g,90,.18,7,P.sky,0,.02,12); // canal beside the granaries
+  } else if(era==="classical"){
+    box(g,34,1,18,P.earth,0,.5,-28);
+    for(let i=0;i<9;i++){const x=-15+i*3.75;cylinder(g,.48,7,P.stone,x,4,-22,10);}
+    box(g,36,.8,2,P.stone,0,7.8,-22);
+    poly(g,[[-18,8.2,-23],[0,13,-23],[18,8.2,-23]],P.earth);
+    // forum paving and amphitheatre tiers
+    for(let i=0;i<5;i++)box(g,26-i*3,.45,2,P.stone,0,.3+i*.5,-48-i*1.4);
+  } else if(era==="medieval"){
+    if(region==="african"){
+      const wall=(x:number,z:number,w:number,h:number)=>{box(g,w,h,.9,P.stone,x,h/2,z);for(let k=0;k<Math.floor(w/1.5);k++)box(g,1.1,.16,1,P.earth,x-w/2+.75+k*1.5,h+.08,z);};
+      wall(0,-23,34,4.4);wall(-17,-12,1,3.4);wall(17,-12,1,3.4);wall(0,-2,34,3.6);
+      cylinder(g,4.4,7,P.stone,0,3.5,-23,12);
+      for(let y=1;y<7;y+=.8)cylinder(g,4.6-y*.18,.18,P.earth,0,y,-23,12);
+      for(let i=0;i<7;i++){const a=i*Math.PI*2/7;hut(Math.cos(a)*28,-18+Math.sin(a)*20,.9);}
+    } else {
+      for(let i=0;i<6;i++){const x=-28+i*11;gable(x,-24,8,7);}
+      box(g,44,3,1,P.stone,0,1.5,-8);
+      for(let i=0;i<5;i++)box(g,1,4,.7,P.earth,-20+i*10,2,-7);
+    }
+  } else if(era==="early-modern"||era==="industrial"){
+    // brick works, dock sheds and tall chimneys
+    for(let i=0;i<3;i++){const x=-22+i*22;box(g,15,9,10,P.earth,x,4.5,-28);box(g,16,.55,11,P.stone,x,9.25,-28);}
+    for(let i=0;i<3;i++){const x=-25+i*24;cylinder(g,1.25,15,P.shade,x,14,-32,8);const smoke=ball(g,1.1,P.sky,x,22,-32,1.3,1,1);smoke.userData.smokeParticle={phase:i*2.1,baseY:22};}
+    box(g,90,.3,9,P.sky,0,.05,12);
+  } else if(era==="modern"){
+    for(let i=0;i<7;i++){const x=-30+i*10,h=10+hash(i,7)*18;box(g,8,h,8,P.stone,x,h/2,-30);for(let y=2;y<h-1;y+=2)for(let z=-3;z<=3;z+=2)box(g,.8,1,.08,P.sky,x+z,y,-25.9);}
+    box(g,90,.22,7,P.shade,0,.1,10);
+  }
+  // Region flavour is layered on the era rather than replacing it.
+  if(region==="east-asian"){
+    for(let i=0;i<3;i++){const x=-23+i*23;box(g,8,5,7,P.earth,x,2.5,-43);poly(g,[[x-6,5,-47],[x-4,6.8,-47],[x,6.1,-47],[x+4,6.8,-47],[x+6,5,-47]],P.stone);}
+  } else if(region==="middle-eastern"){
+    for(let i=0;i<3;i++){const x=-22+i*22;box(g,8,5,8,P.earth,x,2.5,-42);ball(g,2.5,P.stone,x,6,-42,.9,1.25,.9);cylinder(g,.35,5,P.stone,x+4,7,-42,8);}
+  } else if(region==="european"){
+    for(let i=0;i<3;i++){const x=-22+i*22;gable(x,-45,9,10);}
+  } else if(region==="african"&&era!=="medieval"){
+    for(let i=0;i<4;i++)hut(-27+i*18,-43,.7);
+  } else if(region==="mesoamerican"){
+    for(let i=0;i<3;i++)for(let k=0;k<4;k++)box(g,12-k*2,1.3,10-k*1.5,-22+i*22,.65+k*1.3,-48);
+  } else if(region==="south-asian"){
+    for(let i=0;i<3;i++){const x=-22+i*22;box(g,9,5,8,P.earth,x,2.5,-43);for(let k=0;k<4;k++)poly(g,[[x-4+k*1.3,5+k*.8,-47],[x,8+k*.8,-47],[x+4-k*1.3,5+k*.8,-47]],P.stone);}
   }
 };
 const mapLayer=(g:THREE.Group,p:WorldParams,t:number)=>{
@@ -141,5 +190,5 @@ export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
   g.userData.worldParams=p;g.userData.time=t;return g;
 };
 export const animateWorld=(g:THREE.Group,t:number)=>{
-  g.traverse(o=>{const routeIndex=o.userData.routeIndex as number|undefined;if(routeIndex!==undefined)o.visible=routeIndex<Math.floor(clamp(t/3)*26);const s=o.userData.sway as {phase:number;amp:number}|undefined;if(s)o.rotation.z=Math.sin(t*1.3+s.phase)*s.amp;const w=o.userData.weatherParticle as {kind:string;baseX:number;baseY:number;baseZ:number;phase:number;index:number}|undefined;if(w){if(w.kind==="rain"||w.kind==="storm")o.position.y=2+((w.baseY-2-t*8)%14+14)%14;else if(w.kind==="snow")o.position.y=2+((w.baseY-2-t*.8)%14+14)%14;else if(w.kind==="fog"){o.position.x=w.baseX+Math.sin(t*.12+w.phase)*2;o.position.y=w.baseY+Math.sin(t*.2+w.phase)*.2;}else o.position.x=w.baseX+Math.sin(t*.7+w.phase)*.8;}});
+  g.traverse(o=>{const routeIndex=o.userData.routeIndex as number|undefined;if(routeIndex!==undefined)o.visible=routeIndex<Math.floor(clamp(t/3)*26);const s=o.userData.sway as {phase:number;amp:number}|undefined;if(s)o.rotation.z=Math.sin(t*1.3+s.phase)*s.amp;const w=o.userData.weatherParticle as {kind:string;baseX:number;baseY:number;baseZ:number;phase:number;index:number}|undefined;if(w){if(w.kind==="rain"||w.kind==="storm")o.position.y=2+((w.baseY-2-t*(w.kind==="storm"?14:8))%14+14)%14;else if(w.kind==="snow")o.position.y=2+((w.baseY-2-t*.8)%14+14)%14;else if(w.kind==="fog"){o.position.x=w.baseX+Math.sin(t*.12+w.phase)*2;o.position.y=w.baseY+Math.sin(t*.2+w.phase)*.2;}else o.position.x=w.baseX+Math.sin(t*.7+w.phase)*.8;}});
 };

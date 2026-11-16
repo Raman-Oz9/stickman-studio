@@ -93,6 +93,8 @@ export const IllustratedProof: React.FC = () => {
           </filter>
         </defs>
         <g>
+          {/* One camera transform drives the complete illustrated world, not only the actors. */}
+          <g>
           <rect width="1080" height="1920" fill="url(#sky)"/>
           <circle cx="865" cy="260" r="118" fill="#fff4c8" opacity=".72"/>
           <circle cx="865" cy="260" r="88" fill="url(#sun)"/>
@@ -160,6 +162,7 @@ export const IllustratedProof: React.FC = () => {
               <ellipse rx="14" ry="7" fill="#f8d36d" stroke="#fff0ad" strokeWidth="3"/>
               <path d="M-8 0 Q0 -8 8 0 Q0 8 -8 0" fill="none" stroke="#a56a2a" strokeWidth="3"/>
             </g>
+          </g>
           </g>
           <g transform="translate(540 1670)"><rect x="-200" y="-48" width="400" height="82" rx="24" fill="#352a30" opacity=".9"/><text x="0" y="8" textAnchor="middle" fontFamily="Arial Black, sans-serif" fontWeight="900" fontSize="38" fill="#fff2d5">GOLD FOR THE COAST</text></g>
           <rect width="1080" height="1920" fill="#8a6748" opacity=".08" filter="url(#paperGrain)"/>

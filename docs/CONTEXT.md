@@ -3,6 +3,14 @@
 > **RULE (standing instruction from the owner, Raman):** every time the repository is changed, update this file in the same commit
 > (what changed, why, what is still broken). Newest entry goes at the top of the CHANGELOG. Keep "Current state" truthful — do not oversell.
 
+## CHANGELOG
+
+### 2026-11-16 — Adult anatomy second pass (in progress)
+- Increased shoulder breadth, torso mass, arm and leg cross-sections, hand scale and footwear so the figures read as adult bodies rather than thin toy-like stick figures.
+- Reduced head-to-body ratio and eye size further; kept the existing two-bone IK and hand targets intact so contact-driven actions remain compatible.
+- Visual QA of the previous six-frame render rejected the first pass: characters still looked juvenile and too slender. This pass specifically targets those failures.
+- Still not approved: render the updated frames, inspect silhouettes and object contact at native resolution, then iterate again. Do not infer visual success from TypeScript alone.
+
 ## 1. What this is
 Fully automated second YouTube storytelling channel (**stickman-studio**, public repo `Raman-Oz9/stickman-studio`). Script in -> finished 9:16 1080x1920 30 fps video out, rendered **free on GitHub Actions** (no GPU). Owner: Raman / Abdurrahman Aminu (Kaduna, UTC+1). He is blunt, impatient, wants SHORT replies, wants you to interpret complaints and propose a complete fix (not ask clarifying questions), and does **not** want reminders to rotate API keys he pastes in chat.
 

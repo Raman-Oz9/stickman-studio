@@ -96,8 +96,8 @@ export const IllustratedProof: React.FC = () => {
           {/* One camera transform drives the complete illustrated world, not only the actors. */}
           <g transform={`translate(${540 + pan} ${cameraY}) scale(${zoom}) translate(-540 -${cameraY})`}>
           <rect width="1080" height="1920" fill="url(#sky)"/>
-          <circle cx="865" cy="260" r="118" fill="#fff4c8" opacity=".72"/>
-          <circle cx="865" cy="260" r="88" fill="url(#sun)"/>
+          <circle cx="960" cy="450" r="90" fill="#fff4c8" opacity=".72"/>
+          <circle cx="960" cy="450" r="68" fill="url(#sun)"/>
           <g fill="#fff" opacity=".42"><ellipse cx="205" cy="300" rx="120" ry="28"/><ellipse cx="270" cy="286" rx="72" ry="35"/><ellipse cx="720" cy="440" rx="110" ry="23"/></g>
           <path d="M0 850 Q160 670 330 820 Q500 620 700 820 Q880 650 1080 800 V1250 H0Z" fill="#829c68"/>
           <path d="M0 930 Q170 810 345 940 Q520 770 710 930 Q880 800 1080 920 V1340 H0Z" fill="#607f58"/>
@@ -164,7 +164,7 @@ export const IllustratedProof: React.FC = () => {
             </g>
           </g>
           </g>
-          <g transform="translate(540 1670)"><rect x="-200" y="-48" width="400" height="82" rx="24" fill="#352a30" opacity=".9"/><text x="0" y="8" textAnchor="middle" fontFamily="Arial Black, sans-serif" fontWeight="900" fontSize="38" fill="#fff2d5">GOLD FOR THE COAST</text></g>
+          <g transform="translate(540 1780)"><rect x="-200" y="-48" width="400" height="82" rx="24" fill="#352a30" opacity=".9"/><text x="0" y="8" textAnchor="middle" fontFamily="Arial Black, sans-serif" fontWeight="900" fontSize="38" fill="#fff2d5">GOLD FOR THE COAST</text></g>
           <rect width="1080" height="1920" fill="#8a6748" opacity=".08" filter="url(#paperGrain)"/>
           <rect width="1080" height="1920" fill="none" stroke="#fff2d5" strokeWidth="24"/>
         </g>

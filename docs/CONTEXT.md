@@ -83,3 +83,5 @@ Render stills with the props-test workflow (build a board in `remotion/story_pro
 - 2026-11-16 03:5x — 3D stickman (`rig3d.ts`) with expressive canvas faces, emotion body acting, flat shading (owner rejected: wants original cards).
 - 2026-11-15 22–23 — Kenney 3D characters (rejected), Kenney vehicles/animals/ships/coins/tools/skyscrapers, texture embedding in GLBs, animated Horse.glb, city location (skyscrapers, traffic, lights), crop riders at seat.
 - 2026-11-15 earlier — realm/world architecture, interiors, shop fronts, action layer, establishing camera, fly scenes, Liam voice default.
+
+- 2026-11-16 — Character geometry pass 01: replaced tube-like limbs and box torso with shaped tunic silhouette, articulated thigh/calf forms, readable knee/elbow joints, neck/head layering, palm/thumb/finger grooves and shoe silhouettes; preserved existing reach/coin timing and camera transforms. Awaiting strict typecheck and native-resolution still review.

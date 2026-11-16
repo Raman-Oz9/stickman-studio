@@ -102,9 +102,10 @@
           "expr": "neutral",
           "do": {
             "type": "handOver",
+            "to": "buyer",
             "at": 0.2,
             "dur": 0.55,
-            "prop": "goldcoin"
+            "prop": "gold"
           }
         },
         {

@@ -30,52 +30,43 @@ function ik(s: Vec, t: Vec, l1: number, l2: number, bend: 1 | -1): { joint: Vec;
 
 const line = (a: Vec, b: Vec, c: Vec) => `M ${a[0]} ${a[1]} L ${b[0]} ${b[1]} L ${c[0]} ${c[1]}`;
 
-const segmentPath = (a: Vec, b: Vec, ra: number, rb: number): string => {
-  const dx = b[0] - a[0], dy = b[1] - a[1];
-  const length = Math.max(1, Math.hypot(dx, dy));
-  const ux = dx / length, uy = dy / length, nx = -uy, ny = ux;
-  const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2;
-  const belly = Math.min(ra, rb) * 0.22;
-  return [
-    `M ${a[0] + nx * ra} ${a[1] + ny * ra}`,
-    `Q ${mx + nx * (ra + rb) * 0.58 + ux * belly} ${my + ny * (ra + rb) * 0.58 + uy * belly} ${b[0] + nx * rb} ${b[1] + ny * rb}`,
-    `Q ${b[0] + ux * rb} ${b[1] + uy * rb} ${b[0] - nx * rb} ${b[1] - ny * rb}`,
-    `Q ${mx - nx * (ra + rb) * 0.58 + ux * belly} ${my - ny * (ra + rb) * 0.58 + uy * belly} ${a[0] - nx * ra} ${a[1] - ny * ra}`,
-    `Q ${a[0] - ux * ra} ${a[1] - uy * ra} ${a[0] + nx * ra} ${a[1] + ny * ra} Z`,
-  ].join(" ");
-};
-
-const Segment: React.FC<{ a: Vec; b: Vec; ra: number; rb: number; color: string }> = ({ a, b, ra, rb, color }) => {
-  const d = segmentPath(a, b, ra, rb);
-  const dx = b[0] - a[0], dy = b[1] - a[1], length = Math.max(1, Math.hypot(dx, dy));
-  const nx = -dy / length, ny = dx / length;
-  const highlight: Vec = [mix(a[0], b[0], 0.28) + nx * ra * 0.42, mix(a[1], b[1], 0.28) + ny * ra * 0.42];
-  const highlightEnd: Vec = [mix(a[0], b[0], 0.76) + nx * rb * 0.38, mix(a[1], b[1], 0.76) + ny * rb * 0.38];
+const Limb: React.FC<{ a: Vec; b: Vec; c: Vec; w: number; color: string; sleeve?: string; sleeveFrac?: number }> = ({ a, b, c, w, color, sleeve, sleeveFrac = 0.62 }) => {
+  // A single continuous tapered silhouette follows both IK bones. This avoids the
+  // mechanical "three cylinders + button joint" look while retaining the elbow/knee bend.
+  const v1: Vec = [b[0] - a[0], b[1] - a[1]];
+  const v2: Vec = [c[0] - b[0], c[1] - b[1]];
+  const l1 = Math.max(1, Math.hypot(v1[0], v1[1]));
+  const l2 = Math.max(1, Math.hypot(v2[0], v2[1]));
+  const u1: Vec = [v1[0] / l1, v1[1] / l1], u2: Vec = [v2[0] / l2, v2[1] / l2];
+  const n1: Vec = [-u1[1], u1[0]], n2: Vec = [-u2[1], u2[0]];
+  const sum: Vec = [n1[0] + n2[0], n1[1] + n2[1]];
+  const sl = Math.hypot(sum[0], sum[1]);
+  const nb: Vec = sl > 0.12 ? [sum[0] / sl, sum[1] / sl] : n1;
+  const ra = w * 0.44, rb = w * 0.43, rc = w * 0.31;
+  const plus = (p: Vec, n: Vec, r: number): Vec => [p[0] + n[0] * r, p[1] + n[1] * r];
+  const minus = (p: Vec, n: Vec, r: number): Vec => [p[0] - n[0] * r, p[1] - n[1] * r];
+  const A = plus(a, n1, ra), B = plus(b, nb, rb), C = plus(c, n2, rc);
+  const D = minus(c, n2, rc), E = minus(b, nb, rb), F = minus(a, n1, ra);
+  const c1: Vec = [a[0] + u1[0] * l1 * .56 + n1[0] * (ra + rb) * .28, a[1] + u1[1] * l1 * .56 + n1[1] * (ra + rb) * .28];
+  const c2: Vec = [b[0] + u2[0] * l2 * .44 + n2[0] * (rb + rc) * .28, b[1] + u2[1] * l2 * .44 + n2[1] * (rb + rc) * .28];
+  const c3: Vec = [b[0] + u2[0] * l2 * .44 - n2[0] * (rb + rc) * .28, b[1] + u2[1] * l2 * .44 - n2[1] * (rb + rc) * .28];
+  const c4: Vec = [a[0] + u1[0] * l1 * .56 - n1[0] * (ra + rb) * .28, a[1] + u1[1] * l1 * .56 - n1[1] * (ra + rb) * .28];
+  const d = `M ${A[0]} ${A[1]} Q ${c1[0]} ${c1[1]} ${B[0]} ${B[1]} Q ${c2[0]} ${c2[1]} ${C[0]} ${C[1]} Q ${c[0] + u2[0] * rc} ${c[1] + u2[1] * rc} ${D[0]} ${D[1]} Q ${c3[0]} ${c3[1]} ${E[0]} ${E[1]} Q ${c4[0]} ${c4[1]} ${F[0]} ${F[1]} Q ${a[0] - u1[0] * ra} ${a[1] - u1[1] * ra} ${A[0]} ${A[1]} Z`;
+  const cuff: Vec = [mix(a[0], b[0], sleeveFrac), mix(a[1], b[1], sleeveFrac)];
+  const creaseA: Vec = [b[0] - nb[0] * rb * .62, b[1] - nb[1] * rb * .62];
+  const creaseB: Vec = [b[0] + nb[0] * rb * .62, b[1] + nb[1] * rb * .62];
   return (
     <g>
       <path d={d} fill={color} stroke={INK} strokeWidth="9" strokeLinejoin="round" />
-      <path d={`M ${highlight[0]} ${highlight[1]} Q ${mix(highlight[0], highlightEnd[0], 0.5) - nx * 3} ${mix(highlight[1], highlightEnd[1], 0.5) - ny * 3} ${highlightEnd[0]} ${highlightEnd[1]}`} fill="none" stroke="#fff0ce" strokeWidth="4" opacity=".22" strokeLinecap="round" />
-    </g>
-  );
-};
-
-const Limb: React.FC<{ a: Vec; b: Vec; c: Vec; w: number; color: string; sleeve?: string; sleeveFrac?: number }> = ({ a, b, c, w, color, sleeve, sleeveFrac = 0.62 }) => {
-  const cuff: Vec = [mix(a[0], b[0], sleeveFrac), mix(a[1], b[1], sleeveFrac)];
-  const jointAngle = (Math.atan2(c[1] - a[1], c[0] - a[0]) * 180) / Math.PI;
-  return (
-    <g>
-      <Segment a={a} b={b} ra={w * 0.46} rb={w * 0.48} color={color} />
-      <Segment a={b} b={c} ra={w * 0.48} rb={w * 0.34} color={color} />
+      <path d={`M ${mix(a[0], b[0], .18) + n1[0] * ra * .46} ${mix(a[1], b[1], .18) + n1[1] * ra * .46} Q ${b[0] + nb[0] * rb * .4} ${b[1] + nb[1] * rb * .4} ${mix(b[0], c[0], .7) + n2[0] * rc * .4} ${mix(b[1], c[1], .7) + n2[1] * rc * .4}`} fill="none" stroke="#fff0ce" strokeWidth="3.5" opacity=".2" strokeLinecap="round" />
       {sleeve ? (
         <g fill="none" strokeLinecap="round">
-          <path d={`M ${a[0]} ${a[1]} L ${cuff[0]} ${cuff[1]}`} stroke={INK} strokeWidth={w + 10} />
-          <path d={`M ${a[0]} ${a[1]} L ${cuff[0]} ${cuff[1]}`} stroke={sleeve} strokeWidth={w - 1} />
-          <path d={`M ${cuff[0] - 5} ${cuff[1] - 5} L ${cuff[0] + 5} ${cuff[1] + 5}`} stroke={INK} strokeWidth="4" opacity=".48" />
+          <path d={`M ${a[0]} ${a[1]} Q ${mix(a[0], b[0], .55) - n1[0] * 4} ${mix(a[1], b[1], .55) - n1[1] * 4} ${cuff[0]} ${cuff[1]}`} stroke={INK} strokeWidth={w + 10} />
+          <path d={`M ${a[0]} ${a[1]} Q ${mix(a[0], b[0], .55) - n1[0] * 4} ${mix(a[1], b[1], .55) - n1[1] * 4} ${cuff[0]} ${cuff[1]}`} stroke={sleeve} strokeWidth={w - 1} />
+          <path d={`M ${cuff[0] - n1[0] * 5} ${cuff[1] - n1[1] * 5} L ${cuff[0] + n1[0] * 5} ${cuff[1] + n1[1] * 5}`} stroke={INK} strokeWidth="3.5" opacity=".48" />
         </g>
       ) : null}
-      {/* Compact oval joint follows the limb axis; avoid the toy-like circular button look. */}
-      <ellipse cx={b[0]} cy={b[1]} rx={w * 0.39} ry={w * 0.29} transform={`rotate(${jointAngle} ${b[0]} ${b[1]})`} fill={color} stroke={INK} strokeWidth="6" />
-      <path d={`M ${b[0] - w * .18} ${b[1] + w * .12} Q ${b[0]} ${b[1] + w * .22} ${b[0] + w * .18} ${b[1] + w * .1}`} fill="none" stroke={INK} strokeWidth="2.8" opacity=".3" />
+      <path d={`M ${creaseA[0]} ${creaseA[1]} Q ${b[0] + (u1[0] + u2[0]) * 2} ${b[1] + (u1[1] + u2[1]) * 2} ${creaseB[0]} ${creaseB[1]}`} fill="none" stroke={INK} strokeWidth="2.5" opacity=".2" strokeLinecap="round" />
     </g>
   );
 };

@@ -17,7 +17,8 @@
         "timeOfDay": "dawn",
         "era": "medieval",
         "region": "african",
-        "seed": 41
+        "seed": 41,
+        "label": "great-zimbabwe"
       },
       "caption": "A CITY OF STONE",
       "narration": "Hidden in the southern African savanna, a remarkable stone city once rose above the grasslands.",
@@ -44,7 +45,8 @@
         "timeOfDay": "noon",
         "era": "medieval",
         "region": "african",
-        "seed": 41
+        "seed": 41,
+        "label": "great-zimbabwe"
       },
       "caption": "GREAT ZIMBABWE",
       "narration": "Great Zimbabwe grew into a powerful medieval centre, known for its enormous dry-stone walls and carefully built enclosures.",
@@ -85,7 +87,8 @@
         "timeOfDay": "noon",
         "era": "medieval",
         "region": "african",
-        "seed": 41
+        "seed": 41,
+        "label": "great-zimbabwe"
       },
       "caption": "GOLD • IVORY • TRADE",
       "narration": "Its traders exchanged gold and ivory for goods arriving through long-distance networks linked to the Indian Ocean. Craft workers shaped pottery, metal and stone.",
@@ -142,7 +145,8 @@
         "region": "african",
         "mapMode": true,
         "accentEnabled": true,
-        "seed": 41
+        "seed": 41,
+        "label": "great-zimbabwe"
       },
       "caption": "CONNECTED TO THE WORLD",
       "narration": "The city was part of a much wider trading world. Its stone ruins still reveal the scale and skill of this African civilisation.",
@@ -169,7 +173,8 @@
         "timeOfDay": "dusk",
         "era": "medieval",
         "region": "african",
-        "seed": 41
+        "seed": 41,
+        "label": "great-zimbabwe"
       },
       "caption": "GREAT ZIMBABWE",
       "narration": "Great Zimbabwe: a powerful kingdom built in stone.",

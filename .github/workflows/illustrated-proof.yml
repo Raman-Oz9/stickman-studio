@@ -61,6 +61,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: great-zimbabwe-2d-render
-          path: remotion/out/*.jpg
+          path: remotion/out/*
           if-no-files-found: warn
           retention-days: 7

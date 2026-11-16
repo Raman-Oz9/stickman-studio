@@ -5,6 +5,9 @@
 
 ## CHANGELOG
 
+### 2026-11-16 — Ensure the full MP4 is included in the downloadable artifact
+- Corrected the artifact upload glob to include both the rendered MP4 and the native-resolution JPG QA frames. The initial video-render workflow only selected JPGs, which would have omitted the video from the downloadable artifact despite a successful render.
+
 ### 2026-11-16 — Full storyboard MP4 render enabled
 - The handoff sequence now reads as a continuous exchange: the receiver faces the giver, the partners are staged within arm's reach, the coin travels between their hands and settles against the receiver's waist-level carry pose. The overhead scene is a separate clean trade-route map. Strict TypeScript and all native-resolution storyboard/proof stills passed on commit `b35b2f4`; native inspection confirmed the receiver's hand is now directly under the coin at the carry beat.
 - Extended the proof workflow to render the complete 55-second `StoryShort2D` storyboard at 1080×1920, 30 fps, H.264, then upload the MP4 with the proof frames. This output is currently a visual-only render: narration, music and synced SFX are not yet integrated into the new 2D composition. Do not describe it as the final narrated production cut.

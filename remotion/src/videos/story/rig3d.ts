@@ -154,24 +154,28 @@ class Rig {
       kn.position.set(0, -THIGH, 0); hp.add(kn); kn.add(line(SHIN, LIMB * 1.1), mk(S(LIMB * 1.15, 8, 6), INK, 0, 0, 0));
       const ft = mk(S(0.07, 12, 10), sx > 0 ? "#e8e8ee" : "#e8e8ee", 0, -SHIN + 0.025, 0.06, 0.85, 0.62, 1.9); kn.add(ft);
     }
-    this.root.traverse((n) => { const m = n as THREE.Mesh; if (m.isMesh) { m.castShadow = true; } });
+    this.flat();
   }
   dress(role: string) {
     if (this.role === role) return; this.role = role;
     for (const d of this.dyn) d.parent?.remove(d); this.dyn = [];
     const o = outfitFor(role), add = (par: THREE.Object3D, ...c: THREE.Object3D[]) => { for (const x of c) { par.add(x); this.dyn.push(x); } };
-    add(this.torso, mk(C(0.115, 0.095, TORSO * 0.88, 16), o.shirt, 0, TORSO * 0.47, 0));
+    add(this.torso, mk(C(0.105, 0.078, TORSO * 0.78, 18), o.shirt, 0, TORSO * 0.52, 0), mk(S(0.105, 16, 10), o.shirt, 0, TORSO * 0.91, 0, 1.12, 0.62, 0.9));
     if (o.skirt) add(this.pelvis, mk(cone(0.26, 0.55, 18), o.skirt, 0, -0.22, 0));
     if (o.cape) add(this.torso, mk(B(0.34, 0.62, 0.035), o.cape, 0, 0.26, -0.13));
     if (o.hair) add(this.head, mk(S(HEADR * 1.06, 14, 10), o.hair, 0, HEADR + 0.04, -0.035, 1, 0.9, 1), mk(S(0.07, 8, 6), o.hair, 0, HEADR + 0.02, -0.2));
-    if (o.brow) add(this.head, mk(B(0.085, 0.017, 0.014), INK, 0.07, HEADR + 0.085, HEADR - 0.004, 1, 1, 1, 0, 0, -o.brow * 2), mk(B(0.085, 0.017, 0.014), INK, -0.07, HEADR + 0.085, HEADR - 0.004, 1, 1, 1, 0, 0, o.brow * 2));
-    if (o.mask) add(this.head, mk(B(0.4, 0.085, 0.4), "#14141a", 0, HEADR + 0.03, 0));
-    if (o.patch) add(this.head, mk(S(0.045, 8, 6), "#14141a", 0.068, HEADR + 0.03, HEADR + 0.0, 1, 1, 0.4));
-    if (o.glasses) add(this.head, mk(new THREE.TorusGeometry(0.056, 0.006, 6, 20), INK, 0.068, HEADR + 0.03, HEADR + 0.025), mk(new THREE.TorusGeometry(0.056, 0.006, 6, 20), INK, -0.068, HEADR + 0.03, HEADR + 0.025));
+    if (o.mask) add(this.head, mk(C(HEADR * 1.035, HEADR * 1.035, 0.085, 28), "#14141a", 0, HEADR + 0.03, 0));
+    if (o.patch) add(this.head, mk(S(0.052, 10, 8), "#14141a", 0.056, HEADR + 0.03, HEADR * 1.03, 1, 1, 0.22));
+    if (o.glasses) add(this.head, mk(new THREE.TorusGeometry(0.056, 0.006, 6, 20), INK, 0.056, HEADR + 0.03, HEADR * 1.03), mk(new THREE.TorusGeometry(0.056, 0.006, 6, 20), INK, -0.056, HEADR + 0.03, HEADR * 1.03));
     const hat = o.hat?.();
     if (hat) { const w = new THREE.Group(); w.add(hat); w.scale.setScalar(0.62); w.position.set(0, HEADR * 2 - 0.01, 0); add(this.head, w); }
     o.extra?.(this);
-    if (this.dyn.length) this.root.traverse((n) => { const m = n as THREE.Mesh; if (m.isMesh) m.castShadow = true; });
+    this.flat();
+  }
+  /** flat, unlit illustration colours (no half-shadowed faces) */
+  flat() {
+    this.root.traverse((n) => { const m = n as THREE.Mesh; if (!m.isMesh) return; const mt = m.material as THREE.Material & { color?: THREE.Color; map?: unknown };
+      if (mt && !mt.map && mt.color && mt.type !== "MeshBasicMaterial") { m.material = new THREE.MeshBasicMaterial({ color: mt.color.clone() }); } m.castShadow = true; });
   }
   apply(p: P) {
     // legs first so the pelvis can be dropped to plant the lowest foot

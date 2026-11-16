@@ -181,9 +181,9 @@ export const Stickman: React.FC<StickmanProps> = ({
   const legB = ik([-12 * body.torso, hip[1]], footB, THIGH * body.leg, SHIN * body.leg, 1);
 
   const rest = (side: 1 | -1, p: number): Vec => [side * 22 + swing * side * 38 * (1 - stand) * (p ? -1 : 1), -402 + 150];
+  const shoulderX = SHOULDER_X * body.shoulder;
   const shF: Vec = [shoulderX, SHOULDER_Y + breathe];
   const shB: Vec = [-shoulderX, SHOULDER_Y + breathe];
-  const shoulderX = SHOULDER_X * body.shoulder;
   const tF = frontHand ?? [shoulderX + 12 * body.arm, -232];
   const tB = backHand ?? [-shoulderX - 8 * body.arm + swing * 24 * (1 - stand), -226];
   const armF = ik(shF, tF, UPPER * body.arm, FORE * body.arm, 1);

@@ -3,6 +3,12 @@
 > **RULE (standing instruction from the owner, Raman):** every time the repository is changed, update this file in the same commit
 > (what changed, why, what is still broken). Newest entry goes at the top of the CHANGELOG. Keep "Current state" truthful — do not oversell.
 
+## 0. TWO AIs WORK HERE (owner told us to combine) — protocol
+- **ChatGPT** (commits as Raman-Oz9; branch `reference-style-pass-01`, PR #1: `worldgen.ts` procedural world generator, historical map mode, Great Zimbabwe sample) and **Claude** (this file's author; has shell + can dispatch Actions and view frames) share this repo.
+- ChatGPT cannot dispatch workflows or typecheck locally; Claude can. So: Claude verifies ChatGPT's branch on a copy (`claude/verify-*`, merged with main), dispatches the stills test, views frames, and writes results into the CHANGELOG. Claude does not push to ChatGPT's branch unless it fixes a compile error and says so here.
+- Avoid collisions: ChatGPT owns `worldgen.ts`, `IllustratedProof.tsx`, boards/sample scripts for new world types. Claude owns `world.ts` mounts/actions, `props3d.ts` models, camera shot logic unless coordinated here. If both need `camera.ts`/`world.ts`, write the intent in this file first, make small commits, rebase on `main` before pushing.
+- Both: update this file on every change; never claim "works" without viewing rendered frames; never send the owner a video that has not been frame-checked.
+
 ## 1. What this is
 Fully automated second YouTube storytelling channel (**stickman-studio**, public repo `Raman-Oz9/stickman-studio`). Script in -> finished 9:16 1080x1920 30 fps video out, rendered **free on GitHub Actions** (no GPU). Owner: Raman / Abdurrahman Aminu (Kaduna, UTC+1). He is blunt, impatient, wants SHORT replies, wants you to interpret complaints and propose a complete fix (not ask clarifying questions), and does **not** want reminders to rotate API keys he pastes in chat.
 

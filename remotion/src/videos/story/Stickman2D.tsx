@@ -98,23 +98,25 @@ const Shoe: React.FC<{ at: Vec; scale?: number }> = ({ at, scale = 1 }) => (
 
 const Hand: React.FC<{ at: Vec; dir: number; skin: string; grip?: boolean; size?: number }> = ({ at, dir, skin, grip, size = 0.78 }) => (
   <g transform={`translate(${at[0]} ${at[1]}) rotate(${dir}) scale(${size})`} stroke={INK} strokeLinejoin="round" strokeLinecap="round">
-    {/* One continuous palm silhouette with four distinct finger tips and a working thumb. */}
-    <path d="M -11 -13 C -19 -24 -11 -34 -3 -32 C 4 -31 7 -23 7 -16 L 12 -29 C 15 -37 25 -34 25 -25 L 23 -15 L 29 -24 C 34 -30 42 -23 38 -14 L 32 -5 Q 43 -8 45 2 Q 46 13 34 17 Q 26 25 11 22 L -8 15 Q -21 8 -17 -3Z" fill={skin} strokeWidth="7" />
-    <path d="M -8 -5 Q -24 -18 -31 -7 Q -34 4 -18 11 L -8 8Z" fill={skin} strokeWidth="6" />
+    {/* Four individually shaped fingers sit behind the palm; the thumb crosses the palm edge. */}
     {grip ? (
-      <g fill="none" stroke="#633c34" strokeWidth="3.2">
-        <path d="M 9 -13 Q 23 -9 22 -1" />
-        <path d="M 16 -8 Q 30 -5 28 4" />
-        <path d="M 11 3 Q 23 10 31 8" />
-        <path d="M -12 2 Q -5 8 3 7" />
+      <g fill="none" stroke={skin} strokeWidth="8">
+        <path d="M 8 -9 Q 25 -13 23 -2 Q 21 4 12 2" />
+        <path d="M 12 -1 Q 29 -3 25 8 Q 21 14 12 8" />
+        <path d="M 9 7 Q 23 10 18 18 Q 13 21 8 14" />
+        <path d="M 4 12 Q 13 17 10 23" />
       </g>
     ) : (
-      <g fill="none" stroke="#633c34" strokeWidth="3">
-        <path d="M 8 -17 Q 14 -11 15 -3" />
-        <path d="M 24 -13 Q 29 -7 27 0" />
-        <path d="M 34 -7 Q 38 -1 34 5" />
+      <g fill={skin} strokeWidth="5.5">
+        <path d="M 5 -9 Q 5 -23 14 -26 Q 23 -28 25 -18 L 22 -4 Q 17 2 10 -2Z" />
+        <path d="M 10 -3 Q 17 -19 27 -18 Q 36 -15 31 -5 L 23 7 Q 16 10 10 4Z" />
+        <path d="M 10 5 Q 21 -7 30 0 Q 35 7 26 14 L 17 18 Q 10 15 8 9Z" />
+        <path d="M 4 11 Q 13 7 20 15 Q 23 22 14 25 L 5 20Z" />
       </g>
     )}
+    <path d="M -10 -13 Q 1 -23 14 -15 Q 26 -5 19 11 Q 13 24 -3 20 Q -17 13 -15 -2Z" fill={skin} strokeWidth="7" />
+    <path d="M -8 -4 Q -24 -18 -31 -7 Q -35 4 -18 13 L -7 8Z" fill={skin} strokeWidth="6" />
+    <path d="M -3 -7 Q 6 -12 14 -7 M -2 2 Q 7 -2 15 3" fill="none" stroke="#633c34" strokeWidth="2.8" opacity=".5" />
     <path d="M 0 14 Q 12 19 24 13" fill="none" stroke="#fff0ce" strokeWidth="2.5" opacity=".25" />
   </g>
 );

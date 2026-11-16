@@ -1,3 +1,8 @@
+### 2026-11-16 — Split long 3D video renders into smaller resumable shards
+- The first narrated Three.js MP4 attempt passed preparation and strict TypeScript in every shard, but shard 0 hit the 120-minute job timeout at frame 235/316. The other three shards rendered; assembly was correctly skipped because the matrix was incomplete.
+- Increased the render matrix from 4 to 12 frame shards and capped concurrent shards at 4. This keeps each job substantially shorter and makes a cancelled shard cheaper to retry without changing the scene, resolution, frame rate, or visual renderer.
+- The workflow will assemble only after all 12 shards succeed. The 3D MP4 is still pending; no output from the incomplete run is considered a deliverable.
+
 ### 2026-11-16 — Add narrated MP4 render path for the actual Three.js StoryWorld
 - Added a separate GitHub Actions workflow that prepares the established Liam narration and music/SFX mix, then renders the `StoryShort` composition (the real `StoryWorld` / Three.js path) in four frame shards at 1080×1920, 30 fps and device pixel ratio 1. FFmpeg joins the shards, muxes audio, writes H.264/yuv420p with faststart, and uploads the MP4 plus six sampled QA frames.
 - Kept the existing `StoryShort2D` workflow unchanged. The new workflow is a diagnostic test-video path, not a claim that the 3D art direction or the wider requested Motion Canvas / MapStage / CCDIK / GPU-renderer stack is complete.

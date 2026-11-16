@@ -45,7 +45,7 @@ jobs:
           b=json.load(open("prep/board.json"))
           json.dump({"board":b,"post":{"dpr":1}},open("prep/props.json","w"))
           total=sum(max(1,round(s["dur"]*30)) for s in b["scenes"])
-          n=4
+          n=12
           per=-(-total//n)
           rows=[]
           for i in range(n):
@@ -67,6 +67,7 @@ jobs:
     timeout-minutes: 120
     strategy:
       fail-fast: false
+      max-parallel: 4
       matrix: ${{fromJson(needs.prep.outputs.matrix)}}
     steps:
       - uses: actions/checkout@v4

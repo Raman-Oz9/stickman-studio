@@ -35,14 +35,23 @@ jobs:
         working-directory: remotion
       - name: Typecheck
         working-directory: remotion
-        continue-on-error: true
-        run: npx tsc --noEmit > out-tsc.txt 2>&1; mkdir -p out; cp out-tsc.txt out/tsc.txt; head -40 out-tsc.txt
+        run: |
+          set +e
+          npx tsc --noEmit > out-tsc.txt 2>&1
+          status=$?
+          mkdir -p out
+          cp out-tsc.txt out/tsc.txt
+          head -60 out-tsc.txt
+          exit $status
       - name: Stills
         working-directory: remotion
         run: |
           mkdir -p out
           for f in $(echo "${{ inputs.frames }}" | tr ',' ' '); do
             npx remotion still src/index.ts StoryShort out/f$f.jpg --frame=$f --scale=0.5 --gl=swangle --image-format=jpeg --jpeg-quality=88 --props=./public/prep/props.json --timeout=300000 --log=warn
+          done
+          for f in 15 75 105 150; do
+            npx remotion still src/index.ts IllustratedProof out/2d-proof-f$f.jpg --frame=$f --scale=1 --gl=swangle --image-format=jpeg --jpeg-quality=92 --timeout=300000 --log=warn
           done
       - name: Publish
         if: always()

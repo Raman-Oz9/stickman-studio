@@ -8,6 +8,11 @@ export type Vec = [number, number];
 
 const INK = "#29212a";
 const mix = (a: number, b: number, t: number) => a + (b - a) * t;
+const shadeColor = (hex: string, factor: number): string => {
+  const n = Number.parseInt(hex.replace("#", ""), 16);
+  const channel = (shift: number) => Math.max(0, Math.min(255, Math.round(((n >> shift) & 255) * factor))).toString(16).padStart(2, "0");
+  return `#${channel(16)}${channel(8)}${channel(0)}`;
+};
 
 const HIP: Vec = [0, -236];
 const SHOULDER_Y = -402;
@@ -42,16 +47,19 @@ const Limb: React.FC<{ a: Vec; b: Vec; c: Vec; w: number; color: string; sleeve?
   const sum: Vec = [n1[0] + n2[0], n1[1] + n2[1]];
   const sl = Math.hypot(sum[0], sum[1]);
   const nb: Vec = sl > 0.12 ? [sum[0] / sl, sum[1] / sl] : n1;
-  const ra = w * 0.44, rb = w * 0.43, rc = w * 0.31;
+  const tangentSum: Vec = [u1[0] + u2[0], u1[1] + u2[1]];
+  const tangentLength = Math.hypot(tangentSum[0], tangentSum[1]);
+  const tangent: Vec = tangentLength > 0.12 ? [tangentSum[0] / tangentLength, tangentSum[1] / tangentLength] : u1;
+  const ra = w * 0.44, rb = w * 0.46, rc = w * 0.31;
   const plus = (p: Vec, n: Vec, r: number): Vec => [p[0] + n[0] * r, p[1] + n[1] * r];
   const minus = (p: Vec, n: Vec, r: number): Vec => [p[0] - n[0] * r, p[1] - n[1] * r];
   const A = plus(a, n1, ra), B = plus(b, nb, rb), C = plus(c, n2, rc);
   const D = minus(c, n2, rc), E = minus(b, nb, rb), F = minus(a, n1, ra);
-  const c1: Vec = [a[0] + u1[0] * l1 * .56 + n1[0] * (ra + rb) * .28, a[1] + u1[1] * l1 * .56 + n1[1] * (ra + rb) * .28];
-  const c2: Vec = [b[0] + u2[0] * l2 * .44 + n2[0] * (rb + rc) * .28, b[1] + u2[1] * l2 * .44 + n2[1] * (rb + rc) * .28];
-  const c3: Vec = [b[0] + u2[0] * l2 * .44 - n2[0] * (rb + rc) * .28, b[1] + u2[1] * l2 * .44 - n2[1] * (rb + rc) * .28];
-  const c4: Vec = [a[0] + u1[0] * l1 * .56 - n1[0] * (ra + rb) * .28, a[1] + u1[1] * l1 * .56 - n1[1] * (ra + rb) * .28];
-  const d = `M ${A[0]} ${A[1]} Q ${c1[0]} ${c1[1]} ${B[0]} ${B[1]} Q ${c2[0]} ${c2[1]} ${C[0]} ${C[1]} Q ${c[0] + u2[0] * rc} ${c[1] + u2[1] * rc} ${D[0]} ${D[1]} Q ${c3[0]} ${c3[1]} ${E[0]} ${E[1]} Q ${c4[0]} ${c4[1]} ${F[0]} ${F[1]} Q ${a[0] - u1[0] * ra} ${a[1] - u1[1] * ra} ${A[0]} ${A[1]} Z`;
+  const along1: Vec = [a[0] + u1[0] * l1 * .38 + n1[0] * ra, a[1] + u1[1] * l1 * .38 + n1[1] * ra];
+  const along2: Vec = [c[0] - u2[0] * l2 * .38 + n2[0] * rc, c[1] - u2[1] * l2 * .38 + n2[1] * rc];
+  const bendIn: Vec = [b[0] - tangent[0] * rb * .82, b[1] - tangent[1] * rb * .82];
+  const bendOut: Vec = [b[0] + tangent[0] * rb * .82, b[1] + tangent[1] * rb * .82];
+  const d = `M ${A[0]} ${A[1]} C ${along1[0]} ${along1[1]} ${bendIn[0]} ${bendIn[1]} ${B[0]} ${B[1]} C ${bendOut[0]} ${bendOut[1]} ${along2[0]} ${along2[1]} ${C[0]} ${C[1]} Q ${c[0] + u2[0] * rc} ${c[1] + u2[1] * rc} ${D[0]} ${D[1]} C ${c[0] - u2[0] * l2 * .38 - n2[0] * rc} ${c[1] - u2[1] * l2 * .38 - n2[1] * rc} ${bendOut[0] - tangent[0] * rb * 2} ${bendOut[1] - tangent[1] * rb * 2} ${E[0]} ${E[1]} C ${bendIn[0] - tangent[0] * rb * 2} ${bendIn[1] - tangent[1] * rb * 2} ${a[0] + u1[0] * l1 * .38 - n1[0] * ra} ${a[1] + u1[1] * l1 * .38 - n1[1] * ra} ${F[0]} ${F[1]} Q ${a[0] - u1[0] * ra} ${a[1] - u1[1] * ra} ${A[0]} ${A[1]} Z`;
   const cuff: Vec = [mix(a[0], b[0], sleeveFrac), mix(a[1], b[1], sleeveFrac)];
   const creaseA: Vec = [b[0] - nb[0] * rb * .62, b[1] - nb[1] * rb * .62];
   const creaseB: Vec = [b[0] + nb[0] * rb * .62, b[1] + nb[1] * rb * .62];
@@ -175,6 +183,7 @@ export const Stickman: React.FC<StickmanProps> = ({
   const lift = (p: number) => Math.max(0, Math.sin(p * Math.PI * 2)) * 34 * (1 - stand);
 
   const hip: Vec = [HIP[0], HIP[1] + breathe * 0.4];
+  const trousers = shadeColor(cloth, 0.72);
   const footF: Vec = [mix(34 + swing * 62, 38, stand), -lift(walk)];
   const footB: Vec = [mix(-34 - swing * 62, -34, stand), -lift(walk + 0.5)];
   const legF = ik([12, hip[1]], footF, THIGH, SHIN, 1);
@@ -198,7 +207,7 @@ export const Stickman: React.FC<StickmanProps> = ({
       {/* back arm + back leg */}
       <Limb a={shB} b={armB.joint} c={armB.end} w={29} color={skin} sleeve={cloth} />
       <Hand at={armB.end} dir={handDir(armB)} skin={skin} />
-      <Limb a={[-12, hip[1]]} b={legB.joint} c={legB.end} w={33} color={trim} sleeve={cloth} sleeveFrac={0.5} />
+      <Limb a={[-12, hip[1]]} b={legB.joint} c={legB.end} w={33} color={trousers} />
       <Shoe at={legB.end} scale={0.86} />
       {/* torso */}
       <g transform={`rotate(${lean} 0 ${HIP[1]})`}>

@@ -114,7 +114,7 @@
       ],
       "props": [
         {
-          "name": "gold",
+          "name": "goldcoin",
           "x": 0,
           "z": 1,
           "h": 0.45
@@ -126,12 +126,12 @@
           "h": 0.8
         }
       ],
-      "focus": "gold"
+      "focus": "goldcoin"
     },
     {
       "dur": 15,
       "shot": "high",
-      "move": "pull",
+      "move": "crane",
       "loc": "savanna",
       "world": {
         "terrain": "savanna",

@@ -50,7 +50,7 @@ export const IllustratedProof: React.FC = () => {
   const giverReachY = 1.24 * approach * (1 - giverRelease);
   const receiverCarry = smooth((f - 126) / 28);
   const receiverReachX = mix(0.53 * approach, 0.12, receiverCarry);
-  const receiverReachY = mix(1.24 * approach, 0.56, receiverCarry);
+  const receiverReachY = mix(1.24 * approach, 1.0, receiverCarry);
   // Keep the coin pinned to the receiver's hand as the arm folds into a waist-level carry.
   const receiverHandX = 690 - receiverReachX * 414 * 0.68;
   const receiverHandY = 1560 - receiverReachY * 414 * 0.68;

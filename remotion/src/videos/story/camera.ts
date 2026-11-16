@@ -35,7 +35,18 @@ export const focusOf = (s: SceneDef, who?: string): { x: number; z: number; spre
     const hd = s.cast.find((q) => q.hold && q.hold.toLowerCase() === nm);   // an item someone is carrying: follow the carrier live
     if (hd && !ps.find((q) => q.name === nm)) return { x: hd.x, z: hd.z, spread: 0, y: 0.95, size: 0.5 };
     const pd = ps.find((q) => q.name === nm) ?? ps.find((q) => q.name.includes(nm) || nm.includes(q.name)) ?? ps.find((q) => nm.replace(/[0-9]/g, "") && q.name.includes(nm.replace(/[0-9]/g, ""))) ?? ps[0];
-    if (pd) { const hh = pd.h ?? DEFAULT_H[canon(pd.name)] ?? 1; return { x: pd.x, z: pd.z, spread: 0, y: (pd.y ?? 0) + hh * 0.5, size: hh }; }
+    if (pd) {
+      const hh = pd.h ?? DEFAULT_H[canon(pd.name)] ?? 1;
+      // Reference-style inserts stay story-connected: when an object is near an actor, frame both
+      // instead of cutting to an isolated prop that can read as an empty/meaningless shot.
+      const near = s.cast.map((c) => ({ c, d: Math.hypot(c.x - pd.x, c.z - pd.z) }))
+        .sort((a, b) => a.d - b.d)[0];
+      if (near && near.d <= 5.5) return {
+        x: (pd.x + near.c.x) * 0.5, z: (pd.z + near.c.z) * 0.5,
+        spread: near.d, tgt: near.c, y: (pd.y ?? 0) + hh * 0.5, size: hh,
+      };
+      return { x: pd.x, z: pd.z, spread: 0, y: (pd.y ?? 0) + hh * 0.5, size: hh };
+    }
   }
   const t = s.cast.find((c) => c.id === who);
   const xs = s.cast.map((c) => c.x), zs = s.cast.map((c) => c.z);
@@ -50,23 +61,27 @@ const other = (s: SceneDef, id?: string) => s.cast.find((c) => c.id !== id)?.id 
 /** how many ~2 s sub-shots a scene is cut into by the action camera (mirrored in story_audio.py) */
 export const nSub = (dur: number) => Math.max(1, Math.min(6, Math.round(dur / 2.0)));
 const GENERIC = new Set(["push", "pull", "reveal", "pan", "descend", "orbit", "hold", undefined]);
-/** Action camera: a new subject and a fast, strong move every ~2 s (reference-video pacing). Subjects cycle through the speaker, every prop
- *  named in the scene (the camera points at it), the other characters. Moves alternate push-in / orbit / pull-back / prop close-up. */
+/** Reference-paced action camera: fast, varied cuts, but every insert remains attached to a story subject.
+ * Props are not blindly cycled as standalone shots (that produced empty tree/bag/terrain inserts in real renders).
+ * A prop close-up is requested explicitly through scene.focus and focusOf keeps a nearby actor in the composition. */
 const actionSegs = (s: SceneDef, i: number, dur: number): Seg[] => {
   const n = nSub(dur), base = s.az ?? ((i % 2 ? 1 : -1) * (16 + (i * 23) % 36));
-  const tgt = s.target ?? s.cast[0].id, props = (s.props ?? []).filter((p, k, a) => a.findIndex((q) => q.name === p.name) === k);
-  const subj: (string | undefined)[] = [tgt, ...props.map((p) => "@" + p.name), ...s.cast.filter((c) => c.id !== tgt).map((c) => c.id), tgt];
+  const tgt = s.target ?? s.cast[0].id;
+  const others = s.cast.filter((c) => c.id !== tgt).map((c) => c.id);
+  const subj: (string | undefined)[] = [tgt, ...others, tgt];
   const segs: Seg[] = [];
   for (let k = 0; k < n; k++) {
-    const who = i === 0 && k === 0 && s.shot === "wide" ? undefined : subj[(k + (i % 2)) % subj.length], pr = who?.startsWith("@");
+    const who = i === 0 && k === 0 && s.shot === "wide" ? undefined : subj[(k + (i % 2)) % subj.length];
     const sw = (k % 2 ? -1 : 1) * (22 + 10 * ((i + k) % 3)), a0 = base + (k % 2 ? 30 : -30), u0 = k / n, u1 = (k + 1) / n;
     let kfs: KF[];
-    if (pr) kfs = [{ u: 0, lv: "char", who: tgt, az: a0 }, { u: 0.45, lv: "prop", who, az: a0 + sw * 0.5 }, { u: 1, lv: "prop", who, az: a0 + sw }];
-    else switch ((k + i) % 4) {
-      case 0: kfs = [{ u: 0, lv: "char", who, az: a0 }, { u: 1, lv: "face", who, az: a0 + sw * 0.4 }]; break;               // fast push-in
-      case 1: kfs = [{ u: 0, lv: "upper", who, az: a0 - sw }, { u: 1, lv: "upper", who, az: a0 + sw }]; break;               // orbit
-      case 2: kfs = [{ u: 0, lv: "face", who, az: a0 }, { u: 1, lv: "env", az: a0 + sw * 0.5 }]; break;                       // pull-back reveal
-      default: kfs = [{ u: 0, lv: "low", who, az: a0 }, { u: 1, lv: "upper", who, az: a0 - sw * 0.4 }];                        // hero low-angle rise
+    // The first beat establishes geography; the next beats move to the actor, reaction, then context.
+    if (k === 0 && s.shot === "wide") {
+      kfs = [{ u: 0, lv: "env", az: a0 }, { u: 1, lv: "char", who: tgt, az: a0 + sw * 0.25 }];
+    } else switch ((k + i) % 4) {
+      case 0: kfs = [{ u: 0, lv: "char", who, az: a0 }, { u: 1, lv: "face", who, az: a0 + sw * 0.4 }]; break;
+      case 1: kfs = [{ u: 0, lv: "upper", who, az: a0 - sw }, { u: 1, lv: "upper", who, az: a0 + sw }]; break;
+      case 2: kfs = [{ u: 0, lv: "face", who, az: a0 }, { u: 1, lv: "env", az: a0 + sw * 0.5 }]; break;
+      default: kfs = [{ u: 0, lv: "low", who, az: a0 }, { u: 1, lv: "upper", who, az: a0 - sw * 0.4 }];
     }
     segs.push({ u0, u1, ease: "out", kfs });
   }
@@ -135,8 +150,10 @@ const pose = (s: SceneDef, kf: KF) => {
   const sc = F.tgt?.scale ?? 1;
   const onProp = F.y !== undefined;
   const mnt = (F.tgt ? F.tgt.mount : s.cast.find((q) => q.mount)?.mount), mm = mnt ? Math.max(2.1, (DEFAULT_H[canon(mnt)] ?? 1.5) * 1.5) : 1;   // riders on horses/vehicles are big: pull back
-  const d0 = onProp ? Math.max(2.8, (F.size ?? 1) * 2.4) : L.d * mm * (wide && !kf.who ? sp : 1);
-  return { d: d0, h: onProp ? Math.max(0.7, F.y! * 0.9 + 0.4) : L.h * (kf.lv === "high" ? 1 : sc) * (mm > 1 ? 1.5 : 1), ly: onProp ? F.y! : L.ly * sc * (mm > 1 ? 1.7 : 1), fov: L.fov, c: L.c, az: kf.az, x: F.x + (kf.lead ?? 0) * Math.sin(kf.az * 0), z: F.z, high: kf.lv === "high" };
+  const d0 = onProp
+    ? Math.max(3.4, (F.size ?? 1) * 2.4, Math.min(8, F.spread * 1.35))
+    : L.d * mm * (wide && !kf.who ? sp : 1);
+  return { d: d0, h: onProp && !F.tgt ? Math.max(0.7, F.y! * 0.9 + 0.4) : L.h * (kf.lv === "high" ? 1 : sc) * (mm > 1 ? 1.5 : 1), ly: onProp && !F.tgt ? F.y! : L.ly * sc * (mm > 1 ? 1.7 : 1), fov: L.fov, c: L.c, az: kf.az, x: F.x + (kf.lead ?? 0) * Math.sin(kf.az * 0), z: F.z, high: kf.lv === "high" };
 };
 
 export const camAt = (s: SceneDef, i: number, u: number, t: number, dur = 3): Cam => {

@@ -115,8 +115,8 @@ export class StoryWorld {
     this.ints.forEach((g, k) => { g.visible = k === ikey; if (k === ikey) flicker(g, absT); });
     if (ik) E.dim = Math.min(E.dim, DIM[ik]);
     const loc = resolveLoc(s), se = ((s.season ?? "summer") as Season), fly = (s as SceneDef & { fly?: { from: string; to: string } }).fly;
-    if (!this.realms.has(se)) { const Rl = buildRealm(se); Rl.visible = false; this.holder.add(Rl); this.realms.set(se, Rl); }
-    this.realms.forEach((Rl, k) => { Rl.visible = k === se; if (k === se) realmWaves(Rl, absT); });
+    if (!s.world && !this.realms.has(se)) { const Rl = buildRealm(se); Rl.visible = false; this.holder.add(Rl); this.realms.set(se, Rl); }
+    this.realms.forEach((Rl, k) => { Rl.visible = !s.world && k === se; if (Rl.visible) realmWaves(Rl, absT); });
     const [ax, az] = fly ? anchorAt(fly.from, fly.to, u) : (LOCS[loc] as [number, number]);
     this.holder.position.set(-ax, 0, -az); this.holder.visible = !ik && !E.space && !s.world;
     const bk = loc !== "town" || !!fly ? (KINDB[loc] ?? "farm") : undefined;

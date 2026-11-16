@@ -56,6 +56,8 @@ Working in stills: shop FRONT with sign, palace gate/hall, mine entrance (rails 
 Render stills with the props-test workflow (build a board in `remotion/story_props_test.json`), clone branch `props-test`, LOOK at the images. For a full video, clone `story-out`, extract ~18 frames with ffmpeg, view them against the cinematic-skill QC checklist. Send the owner only what passes.
 
 ## 7. CHANGELOG (newest first)
+- 2026-11-16 — Matched both legs to the same derived trouser colour and width. Native run #25 exposed a missed front-leg call that left one leg trim-gold while the rear leg used the new trouser shade; corrected both sides. Expanded the proof render to six key poses (15/45/75/105/150/175) so walking, approach, exchange, release and settle geometry are checked rather than only four snapshots. Fresh six-frame QA pending.
+
 - 2026-11-16 — Rejected the previous custom closed-limb contour after native still review showed sharp, star-like elbows/knees. Replaced it with a rounded quadratic IK fillet rendered as one continuous inked stroke; keeps the bend readable without separate joint buttons or angular miter artefacts. Coordinated trouser colours remain. Strict typecheck and fresh stills pending.
 
 - 2026-11-16 — Character form pass: smoothed the continuous IK limb bend with matched tangents through elbows/knees (removing the angular hinge visible in the handover close-up) and changed the lower-body fill from bright trim-gold to a coordinated darker trouser tone derived from each tunic colour. Goal: preserve the ink-cartoon proportions while making limbs read as connected anatomy and clothing as a designed outfit. New typecheck and still review pending.

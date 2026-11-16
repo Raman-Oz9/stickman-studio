@@ -234,7 +234,7 @@ export class StoryWorld {
         const facing = Math.atan2(cam.position.x - pp.x, cam.position.z - pp.z) + 0.45 * look;
         let yaw = pp.moving ? Math.atan2(pp.dx, pp.dz) : usingW ? Math.atan2(aimX, aimZ) : facing;
         let gx = pp.x, gy = bob, gz = pp.z;
-        if (mounted) { yaw = pp.moving ? Math.atan2(pp.dx, pp.dz) : Math.atan2(right.x, right.z); gy = lf + (vehicle ? Math.max(0.1 * hmm, 0.9 * hmm - 0.78 * ch + 0.25) : onShip ? 0.34 * hmm : (BACK[mc3] ?? 0.85) * hmm - 0.5 * ch); }
+        if (mounted) { yaw = pp.moving ? Math.atan2(pp.dx, pp.dz) : Math.atan2(right.x, right.z); gy = lf + (vehicle ? Math.max(0.1 * hmm, 0.9 * hmm - 0.78 * ch + 0.25) : onShip ? 0.34 * hmm : (BACK[mc3] ?? 0.85) * hmm - 0.27 * ch); }
         const dd = d.do, dT = dd ? Math.max(0, u - (dd.at ?? 0)) * dur : undefined;
         rg = this.rigs.put({ key: `${i}:${d.id}`, role: d.role, v: d.v, x: gx, y: gy, z: gz, yaw, h: ch, dist: pp.dist, moving: pp.moving && !mounted, run: d.act === "run", sit: d.mode === "sit" || (mounted && !vehicle && !onShip), drive: vehicle,
           act: d.act, doType: dd?.type, doT: dT, hold: !!holdOn, absT: absT, idx });

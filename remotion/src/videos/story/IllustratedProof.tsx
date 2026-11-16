@@ -94,7 +94,7 @@ export const IllustratedProof: React.FC = () => {
         </defs>
         <g>
           {/* One camera transform drives the complete illustrated world, not only the actors. */}
-          <g>
+          <g transform={`translate(${540 + pan} ${cameraY}) scale(${zoom}) translate(-540 -${cameraY})`}>
           <rect width="1080" height="1920" fill="url(#sky)"/>
           <circle cx="865" cy="260" r="118" fill="#fff4c8" opacity=".72"/>
           <circle cx="865" cy="260" r="88" fill="url(#sun)"/>

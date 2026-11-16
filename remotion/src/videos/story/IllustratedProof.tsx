@@ -52,7 +52,8 @@ export const IllustratedProof: React.FC = () => {
   const f = useCurrentFrame();
   const approach = smooth((f - 12) / 44);
   const exchange = smooth((f - 75) / 44);
-  const giverRelease = smooth((f - 122) / 30);\n  const receiverRelease = smooth((f - 132) / 30);
+  const giverRelease = smooth((f - 122) / 30);
+  const receiverRelease = smooth((f - 132) / 30);
   const coinX = mix(537, 579, exchange);
   // The coin travels from the giver's fingertips to the receiver's fingertips.
   const coinY = 1091 - Math.sin(exchange * Math.PI) * 10;
@@ -66,7 +67,9 @@ export const IllustratedProof: React.FC = () => {
   const cameraY = interpolate(f, [0, 55, 100, 145, 179], [960, 1000, 1091, 1040, 960], {
     easing: Easing.inOut(Easing.quad), extrapolateLeft: "clamp", extrapolateRight: "clamp",
   });
-  const walk = mix(f / 30, 1.85, smooth((f - 45) / 20));\n  const giverReach = approach * (1 - giverRelease);\n  const receiverReach = approach * (1 - receiverRelease);
+  const walk = mix(f / 30, 1.85, smooth((f - 45) / 20));
+  const giverReach = approach * (1 - giverRelease);
+  const receiverReach = approach * (1 - receiverRelease);
   const capOpacity = interpolate(f, [8, 18, 138, 158], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   return (
     <AbsoluteFill style={{ backgroundColor: "#f6dba6" }}>

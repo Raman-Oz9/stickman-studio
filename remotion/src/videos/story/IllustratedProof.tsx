@@ -53,10 +53,19 @@ export const IllustratedProof: React.FC = () => {
   const approach = smooth((f - 12) / 44);
   const exchange = smooth((f - 75) / 44);
   const settle = smooth((f - 138) / 28);
-  const coinX = mix(600, 520, exchange);
-  const coinY = mix(1008, 1008, exchange) - Math.sin(exchange * Math.PI) * 36;
-  const zoom = mix(1, 1.13, smooth(f / 170));
-  const pan = mix(0, -42, smooth(f / 170));
+  const coinX = mix(618, 502, exchange);
+  // The coin travels from the giver's fingertips to the receiver's fingertips.
+  const coinY = 1175 - Math.sin(exchange * Math.PI) * 18;
+  // Push toward the handover, then ease back to re-establish the whole setting.
+  const zoom = interpolate(f, [0, 55, 100, 145, 179], [1, 1.08, 1.2, 1.14, 1.08], {
+    easing: Easing.inOut(Easing.quad), extrapolateLeft: "clamp", extrapolateRight: "clamp",
+  });
+  const pan = interpolate(f, [0, 100, 179], [0, -28, 0], {
+    easing: Easing.inOut(Easing.quad), extrapolateLeft: "clamp", extrapolateRight: "clamp",
+  });
+  const cameraY = interpolate(f, [0, 55, 100, 145, 179], [960, 1030, 1175, 1080, 960], {
+    easing: Easing.inOut(Easing.quad), extrapolateLeft: "clamp", extrapolateRight: "clamp",
+  });
   const walk = f / 30;
   const capOpacity = interpolate(f, [8, 18, 138, 158], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   return (

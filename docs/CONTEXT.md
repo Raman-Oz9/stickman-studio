@@ -56,6 +56,8 @@ Working in stills: shop FRONT with sign, palace gate/hall, mine entrance (rails 
 Render stills with the props-test workflow (build a board in `remotion/story_props_test.json`), clone branch `props-test`, LOOK at the images. For a full video, clone `story-out`, extract ~18 frames with ffmpeg, view them against the cinematic-skill QC checklist. Send the owner only what passes.
 
 ## 7. CHANGELOG (newest first)
+- 2026-11-16 — Separated build-profile leg spread, leg length and leg width. Native six-pose review showed the stocky trader's feet/knees crossing because one multiplier was changing both leg reach and stance spacing. Stocky now gets a wider grounded stance and slightly fuller trouser limbs while preserving the shared leg reach; lean retains a narrower stance.
+
 - 2026-11-16 — Corrected build-profile declaration ordering so shoulder anchors use the selected profile only after its derived span is initialized. This is a compile-safety correction before the new lean/stocky visual test.
 
 - 2026-11-16 — Added reusable `lean` / `stocky` character-build profiles to `Stickman`, varying torso width, shoulder span, arm/leg proportions, head scale, hand size and shoe scale without changing IK/contact APIs. The Great Zimbabwe proof now uses distinct builds for the two traders instead of near-identical body silhouettes. Six-pose strict typecheck and visual review pending.

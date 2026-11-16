@@ -8,6 +8,8 @@ import { mk, B, C, S, cone, grp } from "./props3d";
 import { NOINK } from "../bridge/ink";
 import { Pen, faceFront, lidOf, Expr } from "../bridge/toon";
 
+/** the original flat ink stickman cards are the house style; the 3D stickman stays available behind this switch */
+export const USE_3D_STICKMAN = false;
 const hash = (s: string) => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
 const INK = "#08080b", SKIN = "#fffaf0";
 const sin = Math.sin, cos = Math.cos, clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v)), sm = (t: number) => t * t * (3 - 2 * t);
@@ -199,7 +201,7 @@ class Rig {
 export class Rigs {
   private pool = new Map<string, Rig>(); private seen = new Set<string>();
   constructor(private root: THREE.Object3D, _kit?: Kit) { void _kit; }
-  get ready() { return true; }
+  get ready() { return USE_3D_STICKMAN; }
   begin() { this.seen.clear(); }
   put(i: RigIn): Rig {
     let r = this.pool.get(i.key); if (!r) { r = new Rig(); this.root.add(r.root); this.pool.set(i.key, r); }

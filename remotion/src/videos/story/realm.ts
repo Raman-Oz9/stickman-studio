@@ -22,7 +22,7 @@ const seaOf = (x: number, z: number) => sm(470, 560, x) * sm(-20, -50, z) * (1 -
 const heightAt = (x: number, z: number) => {
   const hill = 6 * (Math.sin(x * 0.006) * Math.cos(z * 0.007) + 0.5 * Math.sin(x * 0.017 + z * 0.013)) + 2.5 * Math.sin(x * 0.04) * Math.cos(z * 0.035);
   const flat = flatOf(x, z), ridge = sm(700, 920, -z) * (38 + 30 * Math.abs(Math.sin(x * 0.011) * Math.cos(z * 0.013)) + 14 * Math.sin(x * 0.03 + z * 0.02));
-  let h = (hill + ridge) * (1 - flat * (1 - sm(0.1, 0.9, ridge / 60) * 0)); h = hill * (1 - flat) + ridge * (1 - flat * 0.97);
+  let h = (hill + ridge) * (1 - flat * (1 - sm(0.1, 0.9, ridge / 60) * 0)); h = hill * (1 - flat) + ridge * (1 - flat);
   h += sm(380, 480, z) * (1 - flat) * (5 + 4 * Math.sin(x * 0.03 + z * 0.012)) * Math.max(0, Math.sin(x * 0.02 + z * 0.02) + 0.3);   // desert dunes
   const sea = seaOf(x, z); return h * (1 - sea) - 9 * sea - 0.08;
 };

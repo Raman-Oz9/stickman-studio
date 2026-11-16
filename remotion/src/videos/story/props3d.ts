@@ -261,6 +261,7 @@ export class Props3D {
     } else if (c in KEN) o = kitClone(this.kit, KEN[c], 1);
     if (!o && c in PROC) o = PROC[c]();
     if (!o) return null;
+    if (o && (c === "coin" || c === "goldcoin" || c === "silvercoin")) { const bx = new THREE.Box3().setFromObject(o), m = Math.max(bx.max.x - bx.min.x, bx.max.z - bx.min.z, 0.001); const g2 = new THREE.Group(); o.scale.multiplyScalar(1 / m); g2.add(o); o = g2; }   // flat discs: normalise by diameter, not thickness
     if (c in KEN && c in KFIX && o) { const g = new THREE.Group(); o.rotation.y = KFIX[c]; g.add(o); o = g; }
     const box = new THREE.Box3().setFromObject(o), sz = box.getSize(new THREE.Vector3()), ctr = box.getCenter(new THREE.Vector3());
     const w = new THREE.Group(), inner = new THREE.Group();
@@ -357,3 +358,4 @@ for (const [c, [f, h]] of Object.entries(GEAR)) { KEN[c] = f; DEFAULT_H[c] = h; 
 Object.assign(ALIAS, { limousine: "sedan", automobile: "car", vehicle: "car", jeep: "suv", pickup: "truck", lorry: "truck", cab: "taxi", "police car": "policecar", cop: "policecar", "fire truck": "firetruck", racingcar: "racecar", "race car": "racecar", "sports car": "sportscar", locomotive: "train", subway: "tram", streetcar: "tram", steamship: "ship", vessel: "ship", sailboat: "boat", rowboat: "boat", "pirate ship": "pirateship",
   cattle: "cow", ox: "cow", bull: "cow", hound: "dog", puppy: "dog", kitten: "cat", hen: "chicken", rooster: "chicken", pigeon: "parrot", puppy3: "dog", hare: "rabbit", skyscrapers: "skyscraper", tower2: "skyscraper", highrise: "skyscraper", coins: "coin", sovereign: "coin", swords: "sword", axes: "axe" });
 KEN.horse = "horse"; KEN.horsewhite = "horse"; KFIX.horse = 0; KFIX.horsewhite = 0; BACK.horse = 0.6; BACK.horsewhite = 0.6;
+SADDLE.horse = 0.79; SADDLE.horsewhite = 0.79;

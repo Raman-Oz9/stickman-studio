@@ -352,6 +352,21 @@ def fly_pass(b, limit=4):
     b["scenes"] = out
     return b
 
+WORN = {"crown": r"king|queen|prince|princess|emperor|monarch|royal", "hat": r".", "helmet": r".", "cap": r".", "turban": r".", "glasses": r"."}
+def drop_worn(b):
+    """a worn item (crown, hat...) is drawn on the character; never also place it as a floating scene prop"""
+    import re
+    for sc in b.get("scenes", []):
+        roles = " ".join(str(c.get("role", "")) for c in sc.get("cast", [])).lower()
+        held = {str(c.get("hold", "")).lower() for c in sc.get("cast", [])}
+        keep = []
+        for p in sc.get("props", []) or []:
+            n = str(p.get("name", p) if isinstance(p, dict) else p).lower()
+            if n in WORN and n not in held and re.search(WORN[n], roles or "x"): continue
+            keep.append(p)
+        sc["props"] = keep
+    return b
+
 def clean(b):
     ok = []
     for s in b.get("scenes", []):
@@ -448,6 +463,6 @@ if __name__ == "__main__":
     src = "llm"
     if not b or not b.get("scenes"):
         b, src = heuristic(script), "heuristic"
-    b = fly_pass(clean(establish(enrich_world(enrich_actions(enrich(split_clauses(b)))))))
+    b = drop_worn(fly_pass(clean(establish(enrich_world(enrich_actions(enrich(split_clauses(b))))))))
     json.dump(b, open(sys.argv[2], "w"), indent=1)
     print(f"{src}: {len(b['scenes'])} scenes, {sum(s['dur'] for s in b['scenes']):.0f}s -> {sys.argv[2]}")

@@ -8,8 +8,8 @@ export type Expression = "smile" | "joy" | "focused" | "shock" | "angry" | "sad"
 export type Vec = [number, number];
 export type CharacterBuild = "lean" | "stocky";
 const BUILD_PROPORTIONS: Record<CharacterBuild, { torso: number; shoulder: number; arm: number; legSpread: number; legLength: number; legWidth: number; head: number; hand: number; shoe: number }> = {
-  lean: { torso: 1.08, shoulder: 1.12, arm: 0.98, legSpread: 1.04, legLength: 1.14, legWidth: 1.08, head: 0.78, hand: 1.02, shoe: 0.9 },
-  stocky: { torso: 1.2, shoulder: 1.16, arm: 1.08, legSpread: 1.22, legLength: 1.1, legWidth: 1.2, head: 0.82, hand: 1.06, shoe: 0.94 },
+  lean: { torso: 1.08, shoulder: 1.12, arm: 0.98, legSpread: 1.04, legLength: 1.14, legWidth: 1.08, head: 0.66, hand: 0.96, shoe: 0.78 },
+  stocky: { torso: 1.2, shoulder: 1.16, arm: 1.08, legSpread: 1.22, legLength: 1.1, legWidth: 1.2, head: 0.69, hand: 1.0, shoe: 0.82 },
 };
 
 const INK = "#29212a";
@@ -75,7 +75,10 @@ const Limb: React.FC<{ a: Vec; b: Vec; c: Vec; w: number; color: string; sleeve?
     <g fill="none" strokeLinecap="round" strokeLinejoin="round">
       <path d={d} stroke={INK} strokeWidth={w + 8} />
       <path d={d} stroke={color} strokeWidth={w} />
-      <path d={`M ${mix(a[0], b[0], .22)} ${mix(a[1], b[1], .22)} Q ${p1[0]} ${p1[1]} ${p2[0]} ${p2[1]}`} stroke="#fff0ce" strokeWidth="3" opacity=".16" />
+      {/* Subtle anatomical joint mass and crease: a hinge with volume, not a toy-like round connector. */}
+      <ellipse cx={b[0]} cy={b[1]} rx={w * 0.43} ry={w * 0.38} fill={color} stroke={INK} strokeWidth={Math.max(3, w * 0.12)} />
+      <path d={`M ${b[0] - w * .2} ${b[1] - w * .04} Q ${b[0]} ${b[1] + w * .17} ${b[0] + w * .2} ${b[1] - w * .04}`} fill="none" stroke={shadeColor(color, .68)} strokeWidth={Math.max(2, w * .09)} opacity=".9" />
+      <path d={`M ${mix(a[0], b[0], .22)} ${mix(a[1], b[1], .22)} Q ${p1[0]} ${p1[1]} ${p2[0]} ${p2[1]}`} stroke="#fff0ce" strokeWidth="2.5" opacity=".12" />
       {sleeve ? (
         <g>
           <path d={`M ${a[0]} ${a[1]} L ${cuff[0]} ${cuff[1]}`} stroke={INK} strokeWidth={w + 8} />
@@ -89,10 +92,10 @@ const Limb: React.FC<{ a: Vec; b: Vec; c: Vec; w: number; color: string; sleeve?
 
 const Shoe: React.FC<{ at: Vec; scale?: number }> = ({ at, scale = 1 }) => (
   <g transform={`translate(${at[0]} ${at[1]}) scale(${scale})`}>
-    <path d="M -23 -15 Q -5 -22 10 -13 L 34 -8 Q 54 -5 61 4 L 66 14 Q 63 22 47 22 L -26 20 Q -38 17 -34 5 L -30 -7Z" fill={INK} stroke="#1f1a22" strokeWidth="4.5" strokeLinejoin="round" />
-    <path d="M -29 13 Q 12 18 59 12" fill="none" stroke="#9a806c" strokeWidth="3" strokeLinecap="round" />
-    <path d="M -3 -13 L 8 -8 L 25 -7" fill="none" stroke="#f0c779" strokeWidth="3" strokeLinecap="round" opacity=".55" />
-    <path d="M -15 2 L 30 3" fill="none" stroke="#fff0ce" strokeWidth="2" opacity=".18" />
+    <path d="M -19 -16 Q -5 -21 7 -14 L 25 -10 Q 39 -7 46 2 L 51 10 Q 48 17 35 18 L -23 17 Q -33 14 -30 4 L -26 -8Z" fill="#29232a" stroke="#17151a" strokeWidth="4" strokeLinejoin="round" />
+    <path d="M -27 11 Q 7 15 44 9" fill="none" stroke="#b49a7d" strokeWidth="2.5" strokeLinecap="round" />
+    <path d="M -8 -12 L 1 -7 L 15 -6 M -3 -2 L 10 0" fill="none" stroke="#d0b58e" strokeWidth="2.2" strokeLinecap="round" opacity=".7" />
+    <path d="M -18 3 L 29 3" fill="none" stroke="#fff0ce" strokeWidth="1.6" opacity=".15" />
   </g>
 );
 
@@ -116,15 +119,16 @@ const Hand: React.FC<{ at: Vec; dir: number; skin: string; grip?: boolean; size?
     )}
     <path d="M -10 -13 Q 1 -23 14 -15 Q 26 -5 19 11 Q 13 24 -3 20 Q -17 13 -15 -2Z" fill={skin} strokeWidth="7" />
     <path d="M -8 -5 Q -20 -17 -30 -8 Q -36 2 -20 13 L -7 9Z" fill={skin} strokeWidth="6" />
-    <path d="M -7 -5 Q 2 -10 10 -7 M -7 2 Q 1 -1 9 3 M 1 10 Q 10 13 17 8" fill="none" stroke="#633c34" strokeWidth="2.6" opacity=".58" />
-    <path d="M 0 14 Q 12 19 24 13" fill="none" stroke="#fff0ce" strokeWidth="2.5" opacity=".25" />
+    <path d="M -8 -5 Q -1 -10 8 -7 M -7 2 Q 1 -1 9 3 M 0 9 Q 8 12 15 8" fill="none" stroke={shadeColor(skin, .62)} strokeWidth="3" opacity=".78" />
+    <path d="M 5 -15 Q 15 -20 22 -14 M 12 -3 Q 22 -8 29 -3 M 11 8 Q 19 6 25 11" fill="none" stroke={INK} strokeWidth="2.2" opacity=".42" />
+    <path d="M -2 14 Q 9 18 18 13" fill="none" stroke="#fff0ce" strokeWidth="2" opacity=".2" />
   </g>
 );
 
 const Face: React.FC<{ expression: Expression; blink: number; look: number }> = ({ expression, blink, look }) => {
-  const eyeY = -490, ex = 25;
+  const eyeY = -490, ex = 24;
   const shut = blink > 0.5;
-  const big = expression === "shock" ? 1.12 : expression === "joy" ? 0.94 : 0.88;
+  const big = expression === "shock" ? 0.94 : expression === "joy" ? 0.82 : 0.78;
   const brow = (side: -1 | 1) => {
     const x = side * ex;
     switch (expression) {
@@ -138,12 +142,12 @@ const Face: React.FC<{ expression: Expression; blink: number; look: number }> = 
   };
   const mouth = () => {
     switch (expression) {
-      case "joy": return <path d="M -22 -452 Q 0 -418 22 -452 Z" fill="#7a2a33" stroke={INK} strokeWidth="5" strokeLinejoin="round" />;
-      case "shock": return <ellipse cx="0" cy="-440" rx="11" ry="15" fill="#7a2a33" stroke={INK} strokeWidth="5" />;
+      case "joy": return <path d="M -16 -444 Q 0 -432 16 -444" fill="none" stroke="#6d3035" strokeWidth="5" strokeLinecap="round" />;
+      case "shock": return <ellipse cx="0" cy="-440" rx="7" ry="10" fill="#6d3035" stroke={INK} strokeWidth="4" />;
       case "angry": return <path d="M -17 -437 Q 0 -450 17 -437" fill="none" stroke={INK} strokeWidth="6" strokeLinecap="round" />;
       case "sad": return <path d="M -16 -436 Q 0 -450 16 -436" fill="none" stroke={INK} strokeWidth="6" strokeLinecap="round" />;
       case "focused": return <path d="M -13 -441 L 13 -441" fill="none" stroke={INK} strokeWidth="6" strokeLinecap="round" />;
-      default: return <path d="M -18 -444 Q -2 -437 17 -446" fill="none" stroke={INK} strokeWidth="5" strokeLinecap="round" />;
+      default: return <path d="M -15 -444 Q 0 -439 15 -445" fill="none" stroke={INK} strokeWidth="4.5" strokeLinecap="round" />;
     }
   };
   return (
@@ -155,15 +159,15 @@ const Face: React.FC<{ expression: Expression; blink: number; look: number }> = 
             <path d={`M ${s * ex - 13} ${eyeY} Q ${s * ex} ${eyeY + 8} ${s * ex + 13} ${eyeY}`} fill="none" stroke={INK} strokeWidth="6" strokeLinecap="round" />
           ) : (
             <g>
-              <ellipse cx={s * ex} cy={eyeY} rx={13 * big} ry={(expression === "joy" ? 9 : 15) * big} fill="#fffaf0" stroke={INK} strokeWidth="5" />
-              <circle cx={s * ex + look * 5} cy={eyeY + 1} r={(expression === "shock" ? 4.5 : 7.5)} fill={INK} />
-              <circle cx={s * ex + look * 5 + 2.5} cy={eyeY - 3} r="2.4" fill="#fff" />
+              <ellipse cx={s * ex} cy={eyeY} rx={9 * big} ry={(expression === "joy" ? 6 : 9) * big} fill="#fffaf0" stroke={INK} strokeWidth="5" />
+              <circle cx={s * ex + look * 5} cy={eyeY + 1} r={(expression === "shock" ? 4 : 5.5)} fill={INK} />
+              
             </g>
           )}
         </g>
       ))}
-      <path d="M -7 -474 L 0 -454 L 7 -474" fill="none" stroke="#633c34" strokeWidth="3.5" strokeLinecap="round" opacity=".72" />
-      <path d="M -8 -450 Q 0 -446 8 -450" fill="none" stroke="#633c34" strokeWidth="2.5" opacity=".55" />
+      <path d="M -5 -477 L 0 -454 L 6 -477" fill="none" stroke="#633c34" strokeWidth="3" strokeLinecap="round" opacity=".8" />
+      <path d="M -10 -452 Q 0 -449 10 -452" fill="none" stroke="#633c34" strokeWidth="2.5" opacity=".68" />
       {mouth()}
     </g>
   );
@@ -197,7 +201,7 @@ export const Stickman: React.FC<StickmanProps> = ({
 
   const hip: Vec = [HIP[0], HIP[1] + breathe * 0.4];
   const trousers = shadeColor(cloth, 0.72);
-  const headPath = buildHeadPath(70, 70, seed);
+  const headPath = buildHeadPath(63, 76, seed);
   const footF: Vec = [mix(34 * body.legSpread + swing * 62 * body.legSpread, 38 * body.legSpread, stand), -lift(walk)];
   const footB: Vec = [mix(-34 * body.legSpread - swing * 62 * body.legSpread, -34 * body.legSpread, stand), -lift(walk + 0.5)];
   const legF = ik([12 * body.torso, hip[1]], footF, THIGH * body.legLength, SHIN * body.legLength, 1);
@@ -214,7 +218,7 @@ export const Stickman: React.FC<StickmanProps> = ({
 
   const sy = SHOULDER_Y, hy = HIP[1];
   const tw = body.torso;
-  const torsoPath = `M ${-64 * tw} ${sy + 8} Q ${-76 * tw} ${sy + 28} ${-68 * tw} ${sy + 72} L ${-49 * tw} ${hy - 48} Q ${-45 * tw} ${hy - 18} ${-48 * tw} ${hy + 8} Q ${-54 * tw} ${hy + 26} ${-57 * tw} ${hy + 34} Q 0 ${hy + 46} ${57 * tw} ${hy + 34} Q ${54 * tw} ${hy + 26} ${48 * tw} ${hy + 8} Q ${45 * tw} ${hy - 18} ${49 * tw} ${hy - 48} L ${68 * tw} ${sy + 72} Q ${76 * tw} ${sy + 28} ${64 * tw} ${sy + 8} Q 0 ${sy - 18} ${-64 * tw} ${sy + 8} Z`;
+  const torsoPath = `M ${-64 * tw} ${sy + 5} Q ${-78 * tw} ${sy + 20} ${-72 * tw} ${sy + 66} L ${-58 * tw} ${sy + 112} L ${-48 * tw} ${hy - 42} Q ${-45 * tw} ${hy - 12} ${-50 * tw} ${hy + 18} Q ${-55 * tw} ${hy + 34} ${-62 * tw} ${hy + 42} Q 0 ${hy + 54} ${62 * tw} ${hy + 42} Q ${55 * tw} ${hy + 34} ${50 * tw} ${hy + 18} Q ${45 * tw} ${hy - 12} ${48 * tw} ${hy - 42} L ${58 * tw} ${sy + 112} L ${72 * tw} ${sy + 66} Q ${78 * tw} ${sy + 20} ${64 * tw} ${sy + 5} Q 0 ${sy - 24} ${-64 * tw} ${sy + 5} Z`;
   const handDir = (a: { joint: Vec; end: Vec }) => (Math.atan2(a.end[1] - a.joint[1], a.end[0] - a.joint[0]) * 180) / Math.PI;
 
   return (
@@ -229,7 +233,11 @@ export const Stickman: React.FC<StickmanProps> = ({
       <g transform={`rotate(${lean} 0 ${HIP[1]})`}>
         <path d={torsoPath} fill={INK} stroke={INK} strokeWidth="14" />
         <path d={torsoPath} fill={cloth} />
-        <path d={`M ${-54 * tw} ${SHOULDER_Y + 25} Q ${-24 * tw} ${SHOULDER_Y + 58} 0 ${SHOULDER_Y + 52} Q ${24 * tw} ${SHOULDER_Y + 58} ${54 * tw} ${SHOULDER_Y + 25}`} fill="none" stroke={trim} strokeWidth="7" opacity=".9" />
+        <path d={`M ${-54 * tw} ${SHOULDER_Y + 25} Q ${-24 * tw} ${SHOULDER_Y + 58} 0 ${SHOULDER_Y + 52} Q ${24 * tw} ${SHOULDER_Y + 58} ${54 * tw} ${SHOULDER_Y + 25}`} fill="none" stroke={trim} strokeWidth="6" opacity=".82" />
+        {/* Tailored tunic construction: defined shoulder seams, tapered waist, side folds and weighted hem. */}
+        <path d={`M ${-56 * tw} ${sy + 74} Q ${-35 * tw} ${sy + 105} ${-28 * tw} ${hy + 16} M ${56 * tw} ${sy + 74} Q ${35 * tw} ${sy + 105} ${28 * tw} ${hy + 16}`} fill="none" stroke={INK} strokeWidth="4.5" opacity=".38" />
+        <path d={`M ${-44 * tw} ${hy + 35} Q 0 ${hy + 58} ${44 * tw} ${hy + 35}`} fill="none" stroke={INK} strokeWidth="5" opacity=".52" />
+        <path d={`M ${-24 * tw} ${sy + 120} Q ${-8 * tw} ${sy + 145} ${-18 * tw} ${hy + 8} M ${24 * tw} ${sy + 120} Q ${8 * tw} ${sy + 145} ${18 * tw} ${hy + 8}`} fill="none" stroke={trim} strokeWidth="3" opacity=".38" />
         <path d={`M ${-56 * tw} ${hy + 24} Q 0 ${hy + 40} ${56 * tw} ${hy + 24}`} fill="none" stroke={trim} strokeWidth="7" />
         <path d={`M ${-38 * tw} ${hy - 34} Q 0 ${hy - 20} ${38 * tw} ${hy - 34}`} fill="none" stroke={INK} strokeWidth="4" opacity=".42" />
         <path d={`M ${-42 * tw} ${sy + 80} Q ${-24 * tw} ${sy + 104} 0 ${sy + 98} Q ${24 * tw} ${sy + 104} ${42 * tw} ${sy + 80}`} fill="none" stroke={INK} strokeWidth="4" opacity=".28" />
@@ -242,9 +250,9 @@ export const Stickman: React.FC<StickmanProps> = ({
           <ellipse cx="-64" cy="-480" rx="13" ry="18" fill={skin} stroke={INK} strokeWidth="7" />
           <ellipse cx="64" cy="-480" rx="13" ry="18" fill={skin} stroke={INK} strokeWidth="7" />
           <path d={headPath} fill={skin} stroke={INK} strokeWidth="10" strokeLinejoin="round" />
-          <path d="M -70 -493 Q -79 -568 -16 -579 Q 42 -592 72 -535 Q 78 -514 68 -490 Q 46 -526 12 -528 Q -28 -533 -70 -493Z" fill={hair} stroke={INK} strokeWidth="7" />
-          <path d="M -52 -531 Q -30 -550 -4 -546 M 2 -546 Q 34 -556 55 -530" fill="none" stroke="#51403a" strokeWidth="5" opacity=".7" />
-          <path d="M -52 -520 Q 0 -550 52 -520" fill="none" stroke={trim} strokeWidth="9" />
+          <path d="M -63 -496 Q -78 -554 -28 -578 Q 18 -598 58 -562 L 75 -526 L 64 -493 Q 42 -524 10 -529 Q -28 -533 -63 -496Z" fill={hair} stroke={INK} strokeWidth="7" />
+          <path d="M -48 -540 Q -24 -556 -4 -550 M 4 -550 Q 30 -559 49 -538" fill="none" stroke="#51403a" strokeWidth="4" opacity=".72" />
+          <path d="M -55 -520 Q -28 -533 0 -529 Q 29 -533 55 -520" fill="none" stroke={trim} strokeWidth="5" opacity=".8" />
           <Face expression={expression} blink={blink} look={look} />
         </g>
       </g>

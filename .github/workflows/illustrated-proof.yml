@@ -5,6 +5,7 @@ on:
     paths:
       - ".github/workflows/illustrated-proof.yml"
       - "remotion/src/videos/story/IllustratedProof.tsx"
+      - "remotion/src/videos/story/Stickman2D.tsx"
       - "remotion/src/Root.tsx"
       - "remotion/package.json"
       - "remotion/package-lock.json"

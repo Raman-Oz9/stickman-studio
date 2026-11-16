@@ -74,14 +74,19 @@ const actionSegs = (s: SceneDef, i: number, dur: number): Seg[] => {
     const who = i === 0 && k === 0 && s.shot === "wide" ? undefined : subj[(k + (i % 2)) % subj.length];
     const sw = (k % 2 ? -1 : 1) * (22 + 10 * ((i + k) % 3)), a0 = base + (k % 2 ? 30 : -30), u0 = k / n, u1 = (k + 1) / n;
     let kfs: KF[];
-    // The first beat establishes geography; the next beats move to the actor, reaction, then context.
-    if (k === 0 && s.shot === "wide") {
+    // A specifically named story prop gets one motivated insert, never a random object cut.
+    const focus = s.focus ? (s.focus.startsWith("@") ? s.focus : "@" + s.focus) : undefined;
+    if (focus && k === n - 1) {
+      kfs = [{ u: 0, lv: "upper", who: tgt, az: a0 }, { u: 0.62, lv: "prop", who: focus, az: a0 + sw * 0.35 }, { u: 1, lv: "prop", who: focus, az: a0 + sw * 0.45 }];
+    } else if (k === 0 && s.shot === "wide") {
+      // Establish the street / room / settlement before moving into the story action.
       kfs = [{ u: 0, lv: "env", az: a0 }, { u: 1, lv: "char", who: tgt, az: a0 + sw * 0.25 }];
-    } else switch ((k + i) % 4) {
+    } else switch ((k + i) % 5) {
       case 0: kfs = [{ u: 0, lv: "char", who, az: a0 }, { u: 1, lv: "face", who, az: a0 + sw * 0.4 }]; break;
       case 1: kfs = [{ u: 0, lv: "upper", who, az: a0 - sw }, { u: 1, lv: "upper", who, az: a0 + sw }]; break;
       case 2: kfs = [{ u: 0, lv: "face", who, az: a0 }, { u: 1, lv: "env", az: a0 + sw * 0.5 }]; break;
-      default: kfs = [{ u: 0, lv: "low", who, az: a0 }, { u: 1, lv: "upper", who, az: a0 - sw * 0.4 }];
+      case 3: kfs = [{ u: 0, lv: "low", who, az: a0 }, { u: 1, lv: "upper", who, az: a0 - sw * 0.4 }]; break;
+      default: kfs = [{ u: 0, lv: "high", az: a0 - sw * 0.25 }, { u: 0.55, lv: "env", az: a0 }, { u: 1, lv: "char", who: tgt, az: a0 + sw * 0.2 }];
     }
     segs.push({ u0, u1, ease: "out", kfs });
   }

@@ -106,7 +106,7 @@ export class StoryWorld {
     const propAt = (pd: PropDef) => { if (!pd.to) return { x: pd.x, z: pd.z }; const a0 = pd.at ?? 0, k = Math.min(1, Math.max(0, (u - a0) / Math.max(0.05, Math.min(pd.until ?? 1, 1) - a0))); return { x: pd.x + (pd.to.x - pd.x) * k, z: pd.z + (pd.to.z - pd.z) * k }; };
     const cur: SceneDef = { ...s, cast: s.cast.map((d) => { const p = posOf(d); return { ...d, x: p.x, z: p.z }; }), props: (s.props ?? []).map((pd) => ({ ...pd, ...propAt(pd), to: undefined })) };
     const c = camAt(cur, i, u, absT, dur);
-    { const ev = new Set<string>(((cur as SceneDef).env ?? []) as string[]); if (s.tod === "night") ev.add("night"); if (s.season === "winter" && BIOMES[String(s.biome ?? "").toLowerCase()] !== "desert") ev.add("snow"); (cur as SceneDef).env = [...ev] as SceneDef["env"]; }
+    { const ev = new Set<string>(((cur as SceneDef).env ?? []) as string[]); if (s.world?.weather === "rain") ev.add("rain"); if (s.world?.weather === "storm") ev.add("storm"); if (s.world?.weather === "snow") ev.add("snow"); if (s.world?.weather === "fog") ev.add("fog"); if (s.world?.weather === "wind") ev.add("wind"); if (s.tod === "night") ev.add("night"); if (s.season === "winter" && BIOMES[String(s.biome ?? "").toLowerCase()] !== "desert") ev.add("snow"); (cur as SceneDef).env = [...ev] as SceneDef["env"]; }
     const E = this.fxe.update(cur, u, dur, c.pos, c.look, absT);
     if (E.shake > 0.01) { const k = E.shake * 0.28; c.pos.x += Math.sin(absT * 61) * k; c.pos.y += Math.sin(absT * 73 + 1) * k; c.look.x += Math.sin(absT * 53 + 2) * k * 0.6; }
     const ik = INTERIOR_ALIAS[String(s.interior ?? "").toLowerCase().replace(/[^a-z]/g, "")] as InteriorKind | undefined;

@@ -1,0 +1,137 @@
+name: Great Zimbabwe 3D narrated test video
+on:
+  push:
+    branches: [reference-style-pass-01]
+    paths:
+      - ".github/workflows/story-3d-video.yml"
+      - "remotion/story_great_zimbabwe_board.json"
+      - "remotion/scripts/make_voice.py"
+      - "remotion/scripts/story_audio.py"
+      - "remotion/src/Root.tsx"
+      - "remotion/src/videos/story/**"
+      - "remotion/src/bridge/**"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  prep:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{steps.m.outputs.matrix}}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: reference-style-pass-01
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install narration dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg espeak-ng
+          pip install requests soundfile numpy edge-tts
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install kokoro huggingface_hub
+      - name: Prepare narrated storyboard
+        run: |
+          cp remotion/story_great_zimbabwe_board.json board_plan.json
+          PYTHONPATH=. python3 remotion/scripts/make_voice.py board_plan.json prep
+          python3 remotion/scripts/story_audio.py prep/board.json prep/narration.wav prep/mix.wav
+      - name: Build native-resolution 3D render props and shard matrix
+        id: m
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          b=json.load(open("prep/board.json"))
+          json.dump({"board":b,"post":{"dpr":1}},open("prep/props.json","w"))
+          total=sum(max(1,round(s["dur"]*30)) for s in b["scenes"])
+          n=4
+          per=-(-total//n)
+          rows=[]
+          for i in range(n):
+              a=i*per
+              e=min(total-1,a+per-1)
+              if a<=total-1: rows.append({"i":i,"a":a,"b":e})
+          print("matrix="+json.dumps({"include":rows}))
+          print("total_frames="+str(total))
+          print("duration_seconds="+str(round(total/30,2)))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: great-zimbabwe-3d-prep
+          path: prep/
+          retention-days: 3
+  render:
+    needs: prep
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix: ${{fromJson(needs.prep.outputs.matrix)}}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: reference-style-pass-01
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/download-artifact@v4
+        with:
+          name: great-zimbabwe-3d-prep
+          path: remotion/public/prep
+      - name: Install Remotion dependencies
+        working-directory: remotion
+        run: npm install --no-audit --no-fund
+      - name: Strict TypeScript check
+        working-directory: remotion
+        run: npx tsc --noEmit
+      - name: Render actual StoryShort Three.js world frames ${{matrix.a}}-${{matrix.b}}
+        working-directory: remotion
+        run: |
+          mkdir -p out
+          npx remotion render src/index.ts StoryShort out/part_${{matrix.i}}.mp4 \
+            --frames=${{matrix.a}}-${{matrix.b}} --scale=1 --gl=swangle \
+            --codec=h264 --crf=18 --pixel-format=yuv420p --concurrency=1 \
+            --props=./public/prep/props.json --timeout=7200000 --log=warn
+      - uses: actions/upload-artifact@v4
+        with:
+          name: great-zimbabwe-3d-part-${{matrix.i}}
+          path: remotion/out/part_${{matrix.i}}.mp4
+          retention-days: 3
+  assemble:
+    needs: [prep, render]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: parts
+          pattern: great-zimbabwe-3d-part-*
+          merge-multiple: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: great-zimbabwe-3d-prep
+          path: prep
+      - name: Assemble narrated 1080x1920 H.264 video
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg >/dev/null
+          ls parts | sort -V | sed 's/^/file parts\//' > list.txt
+          ffmpeg -loglevel error -y -f concat -safe 0 -i list.txt -c:v copy -an video_only.mp4
+          ffmpeg -loglevel error -y -i video_only.mp4 -i prep/mix.wav \
+            -map 0:v:0 -map 1:a:0 -r 30 \
+            -c:v libx264 -crf 18 -preset medium -pix_fmt yuv420p \
+            -c:a aac -b:a 160k -shortest -movflags +faststart \
+            great-zimbabwe-3d-narrated-test.mp4
+          ffprobe -v error -show_entries format=duration,size:stream=codec_name,width,height,r_frame_rate,pix_fmt -of json great-zimbabwe-3d-narrated-test.mp4
+          mkdir -p qa
+          for t in 2 8 18 30 42 52; do
+            ffmpeg -loglevel error -y -ss "$t" -i great-zimbabwe-3d-narrated-test.mp4 -frames:v 1 -q:v 2 "qa/frame-$t.jpg" || true
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: great-zimbabwe-3d-narrated-test-video
+          path: |
+            great-zimbabwe-3d-narrated-test.mp4
+            qa/*.jpg
+          retention-days: 7

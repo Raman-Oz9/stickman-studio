@@ -216,7 +216,7 @@ export const Stickman: React.FC<StickmanProps> = ({
         </g>
       </g>
       {/* front leg + arm */}
-      <Limb a={[12, hip[1]]} b={legF.joint} c={legF.end} w={30} color={trim} sleeve={cloth} sleeveFrac={0.5} />
+      <Limb a={[12, hip[1]]} b={legF.joint} c={legF.end} w={33} color={trousers} />
       <Shoe at={legF.end} scale={0.9} />
       <Limb a={shF} b={armF.joint} c={armF.end} w={29} color={skin} sleeve={cloth} />
       <Hand at={armF.end} dir={handDir(armF)} skin={skin} grip={grip} />

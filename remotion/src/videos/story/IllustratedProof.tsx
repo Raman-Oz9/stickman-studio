@@ -132,7 +132,7 @@ export const IllustratedProof: React.FC = () => {
             </g>
           </g>
           </g>
-          <g transform="translate(540 1670)"><rect x="-200" y="-48" width="400" height="82" rx="24" fill="#352a30" opacity=".9"/><text x="0" y="8" textAnchor="middle" fontFamily="Arial Black, sans-serif" fontWeight="900" fontSize="38" fill="#fff2d5">GOLD FOR THE COAST</text></g>
+          <g transform="translate(540 1790)"><rect x="-200" y="-48" width="400" height="82" rx="24" fill="#352a30" opacity=".9"/><text x="0" y="8" textAnchor="middle" fontFamily="Arial Black, sans-serif" fontWeight="900" fontSize="38" fill="#fff2d5">GOLD FOR THE COAST</text></g>
           <rect width="1080" height="1920" fill="#8a6748" opacity=".08" filter="url(#paperGrain)"/>
           <rect width="1080" height="1920" fill="none" stroke="#fff2d5" strokeWidth="24"/>
         </g>

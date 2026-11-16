@@ -136,7 +136,8 @@ export const Stickman: React.FC<StickmanProps> = ({
   const armF = ik(shF, tF, UPPER, FORE, 1);
   const armB = ik(shB, tB, UPPER, FORE, 1);
 
-  const torsoPath = `M -62 ${SHOULDER_Y + 8} Q -70 -330 -52 ${HIP[1] + 6} Q 0 ${HIP[1] + 34} 52 ${HIP[1] + 6} Q 70 -330 62 ${SHOULDER_Y + 8} Q 0 ${SHOULDER_Y - 22} -62 ${SHOULDER_Y + 8} Z`;
+  const sy = SHOULDER_Y, hy = HIP[1];
+  const torsoPath = `M -58 ${sy + 6} Q -66 ${sy + 60} -46 ${hy - 40} Q -62 ${hy + 4} -58 ${hy + 34} Q 0 ${hy + 52} 58 ${hy + 34} Q 62 ${hy + 4} 46 ${hy - 40} Q 66 ${sy + 60} 58 ${sy + 6} Q 0 ${sy - 24} -58 ${sy + 6} Z`;
   const handDir = (a: { joint: Vec; end: Vec }) => (Math.atan2(a.end[1] - a.joint[1], a.end[0] - a.joint[0]) * 180) / Math.PI;
 
   return (
@@ -152,8 +153,11 @@ export const Stickman: React.FC<StickmanProps> = ({
         <path d={torsoPath} fill={INK} stroke={INK} strokeWidth="14" />
         <path d={torsoPath} fill={cloth} />
         <path d={`M -48 ${SHOULDER_Y + 22} Q 0 ${SHOULDER_Y + 46} 48 ${SHOULDER_Y + 22}`} fill="none" stroke={trim} strokeWidth="9" />
-        <path d={`M -54 ${HIP[1] - 8} Q 0 ${HIP[1] + 14} 54 ${HIP[1] - 8}`} fill="none" stroke={trim} strokeWidth="9" />
+        <path d={`M -58 ${hy + 24} Q 0 ${hy + 42} 58 ${hy + 24}`} fill="none" stroke={trim} strokeWidth="9" />
+        <path d={`M -45 ${hy - 36} Q 0 ${hy - 22} 45 ${hy - 36}`} fill="none" stroke={INK} strokeWidth="5" opacity=".5" />
         <path d={`M 0 ${SHOULDER_Y + 46} L 0 ${HIP[1] - 4}`} stroke={trim} strokeWidth="4" opacity=".65" />
+        <circle cx={-SHOULDER_X} cy={sy + 8} r="17" fill={cloth} stroke={INK} strokeWidth="6" />
+        <circle cx={SHOULDER_X} cy={sy + 8} r="17" fill={cloth} stroke={INK} strokeWidth="6" />
         {/* neck + head */}
         <path d={`M 0 ${SHOULDER_Y - 4} L 0 -440`} stroke={INK} strokeWidth="38" />
         <path d={`M 0 ${SHOULDER_Y - 4} L 0 -440`} stroke={skin} strokeWidth="26" />

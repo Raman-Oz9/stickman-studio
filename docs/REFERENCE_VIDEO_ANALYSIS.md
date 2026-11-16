@@ -46,4 +46,5 @@ Sampling: contact sheets at 2-second and 1-second intervals. This is a visual be
 
 - `camera.ts`: generic action-camera subjects now cycle through the lead and other cast members rather than every prop in the scene.
 - `camera.ts`: an explicitly focused prop close-up keeps the nearest actor in frame when the prop is within 5.5 world units; framing distance expands with actor/prop separation.
+- `camera.ts`: generic camera cycles now include a high-angle → environment → character reveal, and an explicit `scene.focus` receives a motivated final insert.
 - This is a targeted first pass, not the finished style conversion. Background illustration/material treatment, richer aerial coverage and character/prop action staging remain for subsequent passes.

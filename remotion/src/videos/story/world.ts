@@ -95,8 +95,8 @@ export class StoryWorld {
     const dur = n / FPS;
     // Optional world preset is an independent environment layer; character/action code below is unchanged.
     const worldKey = s.world ? JSON.stringify(s.world) : "";
-    this.worldLayers.forEach((g, key) => { g.visible = !!worldKey && key === worldKey; if (g.visible) animateWorld(g, absT); });
-    if (worldKey) { let wg = this.worldLayers.get(worldKey); if (!wg) { wg = drawWorld(s.world!, 0); this.root.add(wg); this.worldLayers.set(worldKey, wg); } wg.visible = true; animateWorld(wg, absT); }
+    this.worldLayers.forEach((g, key) => { g.visible = !!worldKey && key === worldKey; if (g.visible) animateWorld(g, t); });
+    if (worldKey) { let wg = this.worldLayers.get(worldKey); if (!wg) { wg = drawWorld(s.world!, 0); this.root.add(wg); this.worldLayers.set(worldKey, wg); } wg.visible = true; animateWorld(wg, t); }
     const posOf = (d: CastDef) => {
       if (!d.to) return { x: d.x, z: d.z, moving: false, dist: 0, dx: 0, dz: 0 };
       const w0 = d.walkAt ?? 0, k = Math.min(1, Math.max(0, (u - w0) / Math.max(0.05, 0.96 - w0))), e = d.act === "run" ? (k < 0.08 ? k * k / 0.16 : k - 0.04) / 0.96 : k * k * (3 - 2 * k);   // sprints keep full speed (no slow ease)
@@ -118,7 +118,7 @@ export class StoryWorld {
     if (!this.realms.has(se)) { const Rl = buildRealm(se); Rl.visible = false; this.holder.add(Rl); this.realms.set(se, Rl); }
     this.realms.forEach((Rl, k) => { Rl.visible = k === se; if (k === se) realmWaves(Rl, absT); });
     const [ax, az] = fly ? anchorAt(fly.from, fly.to, u) : (LOCS[loc] as [number, number]);
-    this.holder.position.set(-ax, 0, -az); this.holder.visible = !ik && !E.space && !s.world?.mapMode;
+    this.holder.position.set(-ax, 0, -az); this.holder.visible = !ik && !E.space && !s.world;
     const bk = loc !== "town" || !!fly ? (KINDB[loc] ?? "farm") : undefined;
     this.plat.visible = E.space && !ik;
     if (s.front && !this.fronts.has(s.front)) { const fg = buildShopFront(s.front); fg.position.set(0, 0, -14); this.root.add(fg); this.fronts.set(s.front, fg); }

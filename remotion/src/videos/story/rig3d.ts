@@ -7,7 +7,7 @@ import { Kit } from "../bridge/build";
 import { mk, B, C, S, cone, grp } from "./props3d";
 
 const hash = (s: string) => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
-const INK = "#16161b", SKIN = "#fffaf0";
+const INK = "#08080b", SKIN = "#fffaf0";
 const sin = Math.sin, cos = Math.cos, clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v)), sm = (t: number) => t * t * (3 - 2 * t);
 
 export type Pose = { clip: string; w: number; t: number };

@@ -87,7 +87,7 @@ export const drawArtifact=(type:ArtifactType,t=0):THREE.Group=>{
   if(type==="coin"||type==="jewellery"){
     cylinder(g,type==="coin"?1.15:.72,.16,P.earth,0,1,0, type==="coin"?16:10);
     cylinder(g,type==="coin"?.82:.42,.035,P.stone,0,1.1,0,12);
-    if(type==="jewellery")ball(g,.28,P.accent,0,1.28,0,.8,1.2,.8);
+    if(type==="jewellery")ball(g,.28,P.green,0,1.28,0,.8,1.2,.8);
   } else if(type==="pottery"){
     cylinder(g,.62,1.5,P.earth,0,.8,0,10);
     cylinder(g,.48,.12,P.stone,0,1.58,0,10);

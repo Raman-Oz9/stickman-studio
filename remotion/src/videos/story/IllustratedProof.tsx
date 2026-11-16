@@ -1,143 +1,134 @@
-import React from "react";
-import { Stickman } from "./Stickman2D";
+import React, { useEffect, useRef } from "react";
 import { AbsoluteFill, Easing, interpolate, useCurrentFrame } from "remotion";
+import { bodyFront, Outfit, Pen } from "../bridge/toon";
 
 const clamp = (v: number) => Math.max(0, Math.min(1, v));
 const smooth = (v: number) => { const t = clamp(v); return t * t * (3 - 2 * t); };
 const mix = (a: number, b: number, t: number) => a + (b - a) * t;
-const lerp2 = (a: [number, number], b: [number, number], t: number): [number, number] => [mix(a[0], b[0], t), mix(a[1], b[1], t)];
-const toLocal = (w: [number, number], gx: number, facing: 1 | -1): [number, number] => [((w[0] - gx) * facing) / 1.18, (w[1] - 1560) / 1.18];
+const GIVE: Outfit = { jacket: "#b66b37", pants: "#604537", boots: "#34272b", skin: "#8b5139", sash: "#e5b95f", buttons: "#e9cf91", build: "adult" };
+const RECEIVE: Outfit = { jacket: "#326c68", pants: "#3f4b45", boots: "#29252b", skin: "#a86645", sash: "#d9a85b", buttons: "#e6c98b", moustache: "#34251f", build: "stout" };
+
+type CardProps = { x: number; feet: number; facing: 1 | -1; outfit: Outfit; reach: number; phase: number; expr: "neutral" | "stern" | "grin" | "laugh" | "nervous" | "shock"; seed: number };
+const InkCharacter: React.FC<CardProps> = ({ x, feet, facing, outfit, reach, phase, expr, seed }) => {
+  const ref = useRef<HTMLCanvasElement>(null);
+  const f = useCurrentFrame();
+  useEffect(() => {
+    const canvas = ref.current;
+    const ctx = canvas?.getContext("2d");
+    if (!ctx) return;
+    ctx.clearRect(0, 0, 600, 1000);
+    const r = [{ side: 1 as const, x: 0.53 * reach, y: 1.24 * reach }];
+    bodyFront(new Pen(ctx), outfit, {
+      mode: reach > 0.08 ? "stand" : "stroll",
+      phase,
+      expr,
+      reach: r,
+      facing,
+      light: -2.1,
+      seed,
+      blink: f % 104 < 4 ? 1 : 0,
+      look: facing === 1 ? 0.35 : -0.2,
+      tilt: reach > 0.8 ? -2 : 0,
+      headTilt: reach > 0.8 ? 1.5 : 0,
+    });
+  }, [f, outfit, reach, phase, expr, facing, seed]);
+  const scale = 0.68;
+  return <canvas ref={ref} width={600} height={1000} style={{
+    position: "absolute", left: x - 300 * scale, top: feet - 975 * scale,
+    width: 600 * scale, height: 1000 * scale,
+    transform: `scaleX(${facing})`, transformOrigin: "center bottom",
+    overflow: "visible", pointerEvents: "none",
+  }} />;
+};
 
 export const IllustratedProof: React.FC = () => {
   const f = useCurrentFrame();
-  const approach = smooth((f - 12) / 44);
-  const exchange = smooth((f - 75) / 44);
-  // Release the giver first; the recipient then lowers the hand with the coin.
-  const giverRelease = smooth((f - 122) / 30);
-  const receiverRelease = smooth((f - 132) / 30);
-  // The coin travels from the giver's fingertips to the receiver's fingertips.
-  // Push toward the handover, then ease back to re-establish the whole setting.
-  const zoom = interpolate(f, [0, 55, 100, 145, 179], [1, 1.08, 1.2, 1.14, 1.08], {
-    easing: Easing.inOut(Easing.quad), extrapolateLeft: "clamp", extrapolateRight: "clamp",
-  });
-  const pan = interpolate(f, [0, 100, 179], [0, -28, 0], {
-    easing: Easing.inOut(Easing.quad), extrapolateLeft: "clamp", extrapolateRight: "clamp",
-  });
-  const cameraY = interpolate(f, [0, 55, 100, 145, 179], [1050, 1100, 1190, 1130, 1050], {
-    easing: Easing.inOut(Easing.quad), extrapolateLeft: "clamp", extrapolateRight: "clamp",
-  });
-  const walk = mix(f / 30, 1.85, smooth((f - 45) / 20));
+  const approach = smooth((f - 16) / 46);
+  const exchange = smooth((f - 76) / 42);
+  const giverRelease = smooth((f - 126) / 26);
+  const receiverRelease = smooth((f - 137) / 24);
   const giverReach = approach * (1 - giverRelease);
   const receiverReach = approach * (1 - receiverRelease);
-  const SC = 1.18, GY = 1560, GX = 410, RX = 690;
-  const M: [number, number] = [550, 1175];
-  const standA = smooth((f - 40) / 20);
-  const restHand = (gx: number, dir: 1 | -1): [number, number] => [gx + dir * 40, GY - 215 * SC];
-  const gHand = lerp2(restHand(GX, 1), M, giverReach);
-  const rHand = lerp2(restHand(RX, -1), [M[0] + 16, M[1] + 4], receiverReach);
-  const coinPos: [number, number] = f < 80 ? [gHand[0] + 14, gHand[1]] : f < 124 ? [mix(gHand[0], rHand[0], exchange) + 8, mix(gHand[1], rHand[1], exchange)] : [rHand[0] - 14, rHand[1]];
-  const coinOp = interpolate(f, [58, 68], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-  const capOpacity = interpolate(f, [8, 18, 138, 158], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const coinX = f < 82 ? 540 : f < 126 ? mix(540, 554, exchange) : 554;
+  const coinY = f < 82 ? 1210 : f < 126 ? mix(1210, 1218, exchange) : 1218;
+  const zoom = interpolate(f, [0, 48, 100, 148, 179], [1, 1.035, 1.12, 1.08, 1.035], { easing: Easing.inOut(Easing.quad), extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const pan = interpolate(f, [0, 100, 179], [0, -18, 0], { easing: Easing.inOut(Easing.quad), extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const cameraY = interpolate(f, [0, 100, 179], [0, 22, 0], { easing: Easing.inOut(Easing.quad), extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const phase = f / 30;
+  const cap = f < 55 ? "GREAT ZIMBABWE" : f < 116 ? "GOLD. IVORY. TRADE." : "A KINGDOM CONNECTED.";
+  const captionIn = interpolate(f, [6, 14, 160, 176], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   return (
-    <AbsoluteFill style={{ backgroundColor: "#f6dba6" }}>
-      <svg viewBox="0 0 1080 1920" width="100%" height="100%" role="img" aria-label="2D illustrated Great Zimbabwe trade scene">
-        <defs>
-          <linearGradient id="sky" x2="0" y2="1"><stop stopColor="#79c9df"/><stop offset=".62" stopColor="#d9e9ca"/><stop offset="1" stopColor="#f7d99c"/></linearGradient>
-          <linearGradient id="sun" x2="0" y2="1"><stop stopColor="#fff3c0"/><stop offset="1" stopColor="#f2a84e"/></linearGradient>
-          <linearGradient id="stone" x2="0" y2="1"><stop stopColor="#d9a66a"/><stop offset="1" stopColor="#9a6044"/></linearGradient>
-          <linearGradient id="cloth" x2="0" y2="1"><stop stopColor="#f4c36b"/><stop offset="1" stopColor="#c87843"/></linearGradient>
-          <pattern id="grain" width="32" height="32" patternUnits="userSpaceOnUse"><circle cx="5" cy="8" r="1.4" fill="#7d563b" opacity=".16"/><circle cx="24" cy="21" r="1" fill="#fff3d4" opacity=".32"/></pattern>
-          <pattern id="stoneLines" width="92" height="64" patternUnits="userSpaceOnUse">
-            <path d="M0 12 L42 10 L48 30 L0 34Z M52 8 L90 12 L92 34 L50 30Z M0 40 L26 36 L31 62 L0 64Z M36 39 L90 37 L92 64 L32 64Z" fill="none" stroke="#704b3c" strokeWidth="4" opacity=".42"/>
-            <path d="M4 15 L38 13 M56 12 L86 15 M5 44 L23 42 M42 43 L84 42" fill="none" stroke="#f1c68b" strokeWidth="2.5" opacity=".34"/>
-          </pattern>
-          <filter id="softShadow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="18"/></filter>
-          <filter id="paperGrain" x="0" y="0" width="100%" height="100%">
-            <feTurbulence type="fractalNoise" baseFrequency=".72" numOctaves="2" seed="11" stitchTiles="stitch"/>
-            <feColorMatrix type="saturate" values="0"/>
-            <feComponentTransfer><feFuncA type="table" tableValues="0 .18"/></feComponentTransfer>
-          </filter>
-        </defs>
-        <g>
-          {/* One camera transform drives the complete illustrated world, not only the actors. */}
-          <g transform={`translate(${540 + pan} ${cameraY}) scale(${zoom}) translate(-540 -${cameraY})`}>
-          <rect width="1080" height="1920" fill="url(#sky)"/>
-          <circle cx="865" cy="260" r="118" fill="#fff4c8" opacity=".72"/>
-          <circle cx="865" cy="260" r="88" fill="url(#sun)"/>
-          <g fill="#fff" opacity=".42"><ellipse cx="205" cy="300" rx="120" ry="28"/><ellipse cx="270" cy="286" rx="72" ry="35"/><ellipse cx="720" cy="440" rx="110" ry="23"/></g>
-          <path d="M0 850 Q160 670 330 820 Q500 620 700 820 Q880 650 1080 800 V1250 H0Z" fill="#829c68"/>
-          <path d="M0 930 Q170 810 345 940 Q520 770 710 930 Q880 800 1080 920 V1340 H0Z" fill="#607f58"/>
-          <path d="M0 1110 Q240 1000 440 1110 Q690 970 900 1100 Q1000 1040 1080 1080 V1920 H0Z" fill="#d9b879"/>
-          <g transform="translate(0 0)">
-            <ellipse cx="385" cy="1034" rx="355" ry="38" fill="#65443a" opacity=".18" filter="url(#softShadow)"/>
-            <path d="M70 1030 Q100 760 350 735 Q570 720 690 1010Z" fill="url(#stone)" stroke="#65443a" strokeWidth="14"/>
-            <path d="M70 1030 Q100 760 350 735 Q570 720 690 1010Z" fill="url(#stoneLines)" opacity=".96"/>
-            <path d="M210 940 Q240 680 400 650 Q530 680 555 940Z" fill="#c58c59" stroke="#65443a" strokeWidth="13"/>
-            <path d="M210 940 Q240 680 400 650 Q530 680 555 940Z" fill="url(#stoneLines)" opacity=".96"/>
-            <path d="M340 895 L355 820 L372 750 L388 675 L405 610 Q420 555 440 545 Q460 555 475 610 L492 675 L508 750 L525 820 L540 895Z" fill="#b87c50" stroke="#65443a" strokeWidth="13"/>
-            <path d="M340 895 L355 820 L372 750 L388 675 L405 610 Q420 555 440 545 Q460 555 475 610 L492 675 L508 750 L525 820 L540 895Z" fill="url(#stoneLines)"/>
-            <path d="M360 820 Q440 842 520 820 M377 750 Q440 770 503 750 M393 680 Q440 700 487 680 M410 612 Q440 628 470 612" fill="none" stroke="#754b3a" strokeWidth="7" opacity=".52"/>
-            <path d="M105 1030 Q112 955 160 955 Q208 955 215 1030Z" fill="#3f2d2b" stroke="#65443a" strokeWidth="10"/>
-            <path d="M40 1030 Q380 1080 720 1020" fill="none" stroke="#f0c48b" strokeWidth="26"/>
-            <g transform="translate(125 850)">
-              <path d="M0 165 Q-12 82 0 0" fill="none" stroke="#60432e" strokeWidth="22"/>
-              <path d="M-105 0 Q-82 -42 -48 -38 Q-20 -88 8 -56 Q42 -82 70 -42 Q108 -34 105 0 Q56 25 -105 0Z" fill="#54794b" stroke="#3e6343" strokeWidth="9"/>
-              <path d="M-72 -8 Q-44 -45 -20 -28 Q4 -64 30 -31 Q64 -45 82 -7" fill="none" stroke="#7e9b5a" strokeWidth="10" opacity=".72"/>
-              <g fill="#6d8c52"><circle cx="-55" cy="-12" r="25"/><circle cx="5" cy="-45" r="24"/><circle cx="55" cy="-18" r="22"/></g>
-            </g>
-            <g transform="translate(930 900)">
-              <path d="M0 175 Q-8 90 0 0" fill="none" stroke="#60432e" strokeWidth="24"/>
-              <path d="M-112 -6 Q-82 -55 -45 -43 Q-12 -98 20 -58 Q60 -82 85 -40 Q122 -30 112 8 Q60 30 -112 -6Z" fill="#52784b" stroke="#3e6343" strokeWidth="9"/>
-              <path d="M-70 -8 Q-35 -48 -8 -28 Q24 -65 48 -30 Q75 -45 94 -4" fill="none" stroke="#7e9b5a" strokeWidth="10" opacity=".7"/>
-              <g fill="#6d8c52"><circle cx="-62" cy="-16" r="24"/><circle cx="12" cy="-47" r="26"/><circle cx="65" cy="-15" r="23"/></g>
-            </g>
-            <g transform="translate(790 990)">
-              <path d="M-72 42 Q-60 -48 0 -58 Q62 -48 72 42Z" fill="#b77c4c" stroke="#65443a" strokeWidth="9"/>
-              <path d="M-88 -4 Q0 -112 88 -4" fill="#8b5739" stroke="#65443a" strokeWidth="10"/>
-              <path d="M-62 12 Q0 -54 62 12" fill="none" stroke="#e2b577" strokeWidth="8"/>
-              <path d="M-28 42 V-8 M28 42 V-8" stroke="#593c30" strokeWidth="8"/>
-            </g>
+    <AbsoluteFill style={{ background: "#f3dfb5", overflow: "hidden" }}>
+      <div style={{ position: "absolute", inset: 0, transform: `translate(${pan}px,${cameraY}px) scale(${zoom})`, transformOrigin: "50% 56%" }}>
+        <svg viewBox="0 0 1080 1920" width="100%" height="100%" style={{ position: "absolute", inset: 0 }}>
+          <defs>
+            <linearGradient id="zSky" x2="0" y2="1"><stop stopColor="#69b9d2"/><stop offset=".58" stopColor="#d7e4bd"/><stop offset="1" stopColor="#f0d49a"/></linearGradient>
+            <linearGradient id="zEarth" x2="0" y2="1"><stop stopColor="#d9b77d"/><stop offset="1" stopColor="#a86e48"/></linearGradient>
+            <linearGradient id="zStone" x2=".2" y2="1"><stop stopColor="#e5c18a"/><stop offset=".55" stopColor="#bd8757"/><stop offset="1" stopColor="#87563e"/></linearGradient>
+            <linearGradient id="zRoof" x2="0" y2="1"><stop stopColor="#a75e3b"/><stop offset="1" stopColor="#653e32"/></linearGradient>
+            <pattern id="zGrain" width="31" height="31" patternUnits="userSpaceOnUse"><circle cx="5" cy="8" r="1.3" fill="#5e4637" opacity=".17"/><circle cx="22" cy="20" r="1.1" fill="#fff3d4" opacity=".36"/></pattern>
+            <pattern id="zMasonry" width="100" height="65" patternUnits="userSpaceOnUse">
+              <path d="M0 8 L44 5 50 28 0 33Z M56 7 L98 10 100 33 52 29Z M0 40 L29 37 34 64 0 65Z M40 39 L100 37 100 65 35 64Z" fill="none" stroke="#704b39" strokeWidth="4" opacity=".55"/>
+              <path d="M5 12 L38 10 M60 13 L92 15 M5 45 L24 43 M45 44 L91 42" fill="none" stroke="#f5d4a0" strokeWidth="2.5" opacity=".5"/>
+            </pattern>
+            <filter id="zShadow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="16"/></filter>
+          </defs>
+          <rect width="1080" height="1920" fill="url(#zSky)"/>
+          <circle cx="870" cy="245" r="124" fill="#fff2c4" opacity=".55"/><circle cx="870" cy="245" r="78" fill="#ffe4a0"/>
+          <g fill="#fff" opacity=".48"><path d="M80 360q65-62 130-8 52-66 116-5 56 5 60 48H70q-18-20 10-35Z"/><path d="M650 470q54-45 102-4 43-55 96-4 42 7 44 36H635q-13-16 15-28Z"/></g>
+          {/* Far escarpment and layered savanna */}
+          <path d="M0 880 130 760 230 825 370 690 500 820 650 700 790 825 930 715 1080 820V1260H0Z" fill="#82936a"/>
+          <path d="M0 1000q170-155 330-25t330-10 420-12v430H0Z" fill="#6f8458"/>
+          <path d="M0 1150q210-120 410-25t350-5 320-20v800H0Z" fill="#d7b574"/>
+          {/* Great Zimbabwe stone enclosure, drawn as layered masonry not primitive blocks */}
+          <g>
+            <ellipse cx="540" cy="1110" rx="440" ry="70" fill="#604432" opacity=".2" filter="url(#zShadow)"/>
+            <path d="M90 1110 112 935Q145 800 305 770L710 770Q900 815 970 1110Z" fill="url(#zStone)" stroke="#604333" strokeWidth="15"/>
+            <path d="M90 1110 112 935Q145 800 305 770L710 770Q900 815 970 1110Z" fill="url(#zMasonry)" opacity=".92"/>
+            <path d="M155 1070Q170 875 330 840L690 840Q850 875 900 1070" fill="none" stroke="#f1d09b" strokeWidth="16" opacity=".62"/>
+            <path d="M220 1065Q225 905 365 890L665 890Q805 905 830 1065" fill="none" stroke="#704a39" strokeWidth="12"/>
+            <path d="M220 1065Q225 905 365 890L665 890Q805 905 830 1065" fill="url(#zMasonry)" opacity=".65"/>
+            {/* Conical tower and upper courses */}
+            <path d="M390 1010 405 815 430 650Q445 560 470 525Q495 560 510 650L535 815 550 1010Z" fill="url(#zStone)" stroke="#604333" strokeWidth="14"/>
+            <path d="M390 1010 405 815 430 650Q445 560 470 525Q495 560 510 650L535 815 550 1010Z" fill="url(#zMasonry)"/>
+            <path d="M407 840Q470 860 533 840M418 750Q470 768 522 750M430 660Q470 678 510 660" fill="none" stroke="#714b38" strokeWidth="7" opacity=".62"/>
+            <path d="M450 1008V910Q470 870 490 910V1008Z" fill="#44302b" stroke="#654333" strokeWidth="9"/>
+            {/* Wall walk, parapet and stone gate */}
+            <path d="M95 955Q530 900 960 955" fill="none" stroke="#e7c18a" strokeWidth="18"/>
+            <path d="M120 900v-48h36v43m28-49v-49h34v46m32-48v-44h34v42m560 22v-44h34v50m28-55v-43h34v53" fill="none" stroke="#9b6947" strokeWidth="16"/>
           </g>
-          <path d="M0 1230 Q180 1170 330 1235 T660 1220 T1080 1210 V1920 H0Z" fill="#c9965c"/>
-          <path d="M0 1230 Q180 1170 330 1235 T660 1220 T1080 1210 V1920 H0Z" fill="url(#grain)"/>
-          <g stroke="#8c7045" strokeWidth="7" strokeLinecap="round" opacity=".55">
-            <path d="M42 1545 q-18 -35 -28 -42 M42 1545 q8 -45 24 -58 M42 1545 q22 -28 40 -30 M230 1450 q-12 -28 -24 -36 M230 1450 q12 -40 26 -48 M790 1540 q-14 -36 -28 -42 M790 1540 q12 -40 27 -50 M1030 1495 q-14 -30 -26 -34 M1030 1495 q12 -38 26 -44"/>
-          </g>
-          <g fill="#8c7857" stroke="#6f5941" strokeWidth="4" opacity=".75">
-            <path d="M260 1320 l20 -16 28 10 8 22 -36 12Z M735 1410 l18 -18 27 8 9 20 -38 14Z M930 1300 l14 -12 21 8 7 17 -27 10Z"/>
-          </g>
-          <g opacity=".48" fill="#fff0ce"><path d="M0 1370 Q200 1300 380 1370 T760 1360 T1080 1350" fill="none" stroke="#fff0ce" strokeWidth="9"/><path d="M0 1530 Q240 1460 490 1535 T1080 1510" fill="none" stroke="#fff0ce" strokeWidth="7"/></g>
-          <g transform="translate(90 1450)">
-            <ellipse cx="0" cy="0" rx="90" ry="23" fill="#61422f" opacity=".18"/>
-            <path d="M-54 -10 Q-45 -115 0 -130 Q50 -112 58 -10Z" fill="#c27c48" stroke="#51382e" strokeWidth="10"/>
-            <path d="M-35 -70 Q0 -100 38 -70 M-48 -38 Q0 -20 52 -38" fill="none" stroke="#e8bb7a" strokeWidth="10"/>
-            <ellipse cx="2" cy="-128" rx="22" ry="8" fill="#70432f" stroke="#51382e" strokeWidth="7"/>
-          </g>
-          <g transform="translate(890 1470)">
-            <ellipse cx="0" cy="0" rx="82" ry="20" fill="#61422f" opacity=".2"/>
-            <path d="M-56 -6 Q-48 -88 0 -100 Q48 -88 56 -6Z" fill="#b77b46" stroke="#51382e" strokeWidth="9"/>
-            <path d="M-46 -42 Q0 -24 46 -42 M-35 -68 Q0 -54 35 -68 M-25 -8 L-18 -88 M0 -6 V-98 M25 -8 L18 -88" fill="none" stroke="#e9bc78" strokeWidth="7"/>
-            <path d="M-42 -82 Q0 -142 42 -82" fill="none" stroke="#51382e" strokeWidth="8"/>
-          </g>
-          <g transform="translate(965 1430)"><path d="M0 0 Q-30 -180 0 -270" fill="none" stroke="#62412e" strokeWidth="24"/><g fill="#527b4c"><circle cx="-35" cy="-270" r="70"/><circle cx="35" cy="-310" r="75"/><circle cx="0" cy="-360" r="70"/></g></g>
-          <g transform={`translate(${540 + pan} ${cameraY}) scale(${zoom}) translate(-540 -${cameraY})`}>
-            <Stickman x={GX} y={GY} scale={SC} facing={1} skin="#8b5139" cloth="#315f59" trim="#e8bd73" stand={standA} walk={walk} frame={f} lean={3 * giverReach}
-              frontHand={toLocal(gHand, GX, 1)} build="lean" seed={17} grip={f > 128} expression={f < 60 ? "smile" : f < 118 ? "joy" : "smile"} look={0.6} />
-            <Stickman x={RX} y={GY} scale={SC} facing={-1} skin="#a86645" cloth="#9b493d" trim="#edc06c" stand={standA} walk={walk + .3} frame={f + 17} lean={3 * receiverReach}
-              frontHand={toLocal(rHand, RX, -1)} build="stocky" seed={41} grip={f > 128} expression={f < 70 ? "focused" : f < 128 ? "shock" : "joy"} look={0.6} />
-            <g transform={`translate(${coinPos[0]} ${coinPos[1]})`} opacity={coinOp}>
-              <ellipse rx="22" ry="22" fill="#9b6428" stroke="#382b2a" strokeWidth="7"/>
-              <circle r="14" fill="#f8d36d" stroke="#fff0ad" strokeWidth="3"/>
-              <path d="M-8 0 Q0 -8 8 0 Q0 8 -8 0" fill="none" stroke="#a56a2a" strokeWidth="3"/>
-            </g>
-          </g>
-          </g>
-          <g transform="translate(540 1790)"><rect x="-200" y="-48" width="400" height="82" rx="24" fill="#352a30" opacity=".9"/><text x="0" y="8" textAnchor="middle" fontFamily="Arial Black, sans-serif" fontWeight="900" fontSize="38" fill="#fff2d5">GOLD FOR THE COAST</text></g>
-          <rect width="1080" height="1920" fill="#8a6748" opacity=".08" filter="url(#paperGrain)"/>
-          <rect width="1080" height="1920" fill="none" stroke="#fff2d5" strokeWidth="24"/>
+          {/* Distant homesteads and trading huts */}
+          {[-1,1].map((side,i)=><g key={side} transform={`translate(${side===-1?30:760} 1020) scale(.72)`}>
+            <path d="M0 130V-15Q105-110 210-15V130Z" fill="#d7b47a" stroke="#684735" strokeWidth="12"/>
+            <path d="M-18-10Q105-155 228-10L210 4Q105-110 0 4Z" fill="url(#zRoof)" stroke="#55392f" strokeWidth="12"/>
+            <path d="M76 130V55Q105 20 134 55V130" fill="#49332b" stroke="#684735" strokeWidth="9"/>
+            <path d="M22 42H188M32 74H178" stroke="#9b7049" strokeWidth="7" opacity=".65"/>
+          </g>)}
+          {/* Baobab silhouettes with illustrated leaf clusters */}
+          <g transform="translate(120 1200)"><path d="M0 0Q-22-130-8-250M-8-160Q-92-220-110-275M-2-190Q88-250 115-310" fill="none" stroke="#765036" strokeWidth="36" strokeLinecap="round"/><g fill="#55794b" stroke="#3d6342" strokeWidth="8"><circle cx="-105" cy="-285" r="72"/><circle cx="-36" cy="-325" r="82"/><circle cx="52" cy="-338" r="80"/><circle cx="112" cy="-305" r="70"/></g><g fill="#82a45e"><circle cx="-65" cy="-300" r="28"/><circle cx="22" cy="-350" r="33"/><circle cx="90" cy="-292" r="26"/></g></g>
+          <g transform="translate(1000 1205) scale(.85)"><path d="M0 0Q-12-130 5-260M0-160Q-90-210-110-270M0-190Q80-245 110-300" fill="none" stroke="#765036" strokeWidth="34" strokeLinecap="round"/><g fill="#55794b" stroke="#3d6342" strokeWidth="8"><circle cx="-104" cy="-285" r="68"/><circle cx="-34" cy="-326" r="80"/><circle cx="48" cy="-330" r="78/><circle cx="112" cy="-300" r="67"/></g></g>
+          {/* Ground plane, path and hand-painted texture */}
+          <path d="M0 1260Q240 1180 460 1260T1080 1240V1920H0Z" fill="url(#zEarth)"/>
+          <path d="M0 1260Q240 1180 460 1260T1080 1240V1920H0Z" fill="url(#zGrain)"/>
+          <path d="M390 1920Q460 1640 530 1380Q570 1300 650 1380Q720 1640 780 1920Z" fill="#e9cf9c" opacity=".7"/>
+          <path d="M430 1920Q500 1650 560 1420M750 1920Q680 1650 620 1420" fill="none" stroke="#f6e2b8" strokeWidth="12" opacity=".65"/>
+          <g fill="#967b54" opacity=".68"><path d="m180 1450 24-18 30 8 10 23-42 12Z"/><path d="m820 1530 18-18 31 7 10 24-39 12Z"/><path d="m930 1350 17-12 22 8 8 17-30 10Z"/><path d="m300 1710 20-15 24 8 6 20-34 9Z"/></g>
+          <g stroke="#7b6a43" strokeWidth="7" strokeLinecap="round" opacity=".65"><path d="M65 1590q-18-35-28-42m28 42q8-45 24-58m-24 58q22-28 40-30M910 1630q-18-35-28-42m28 42q8-45 24-58m-24 58q22-28 40-30"/></g>
+          {/* foreground trade goods */}
+          <g transform="translate(105 1650)"><ellipse cy="0" rx="90" ry="22" fill="#4c3429" opacity=".2"/><path d="M-52-10Q-44-112 0-128 45-112 54-10Z" fill="#b87845" stroke="#52382d" strokeWidth="10"/><path d="M-37-70Q0-98 39-70M-48-38Q0-20 50-38" fill="none" stroke="#e7bc7a" strokeWidth="10"/><ellipse cy="-128" rx="22" ry="8" fill="#70432f" stroke="#52382d" strokeWidth="7"/></g>
+          <g transform="translate(960 1660)"><path d="M-54-5Q-48-86 0-100 48-86 54-5Z" fill="#bd824d" stroke="#52382d" strokeWidth="9"/><path d="M-43-42Q0-24 43-42M-33-68Q0-54 33-68M-20-8V-86M0-8V-96M20-8V-86" fill="none" stroke="#edc98e" strokeWidth="7"/></g>
+          <g fill="#fff1d0" opacity=".2"><path d="M0 1340Q250 1280 500 1340T1080 1320" fill="none" stroke="#fff1d0" strokeWidth="9"/><path d="M0 1540Q260 1480 540 1540T1080 1520" fill="none" stroke="#fff1d0" strokeWidth="6"/></g>
+        </svg>
+        <InkCharacter x={390} feet={1560} facing={1} outfit={GIVE} reach={giverReach} phase={phase} expr={f < 62 ? "grin" : f < 118 ? "laugh" : "grin"} seed={17}/>
+        <InkCharacter x={690} feet={1560} facing={-1} outfit={RECEIVE} reach={receiverReach} phase={phase + .3} expr={f < 68 ? "stern" : f < 128 ? "shock" : "grin"} seed={41}/>
+        <g transform={`translate(${coinX} ${coinY})`} opacity={interpolate(f,[58,68],[0,1],{extrapolateLeft:"clamp",extrapolateRight:"clamp"})}>
+          <circle r="26" fill="#8c5725" stroke="#382b2a" strokeWidth="8"/><circle r="18" fill="#f6d16a" stroke="#fff0ad" strokeWidth="3"/><path d="M-9 0Q0-10 9 0 0 10-9 0" fill="none" stroke="#9b6428" strokeWidth="3"/>
         </g>
-      </svg>
-      <div style={{ position: "absolute", left: 58, right: 58, top: 88, opacity: capOpacity, fontFamily: "Arial Black, Impact, sans-serif", fontSize: 54, fontWeight: 900, color: "#fff4dc", textAlign: "center", textShadow: "0 5px 0 #56382f, 0 10px 22px #4d352b" }}>GREAT ZIMBABWE</div>
+      </div>
+      <div style={{ position:"absolute", left:48, right:48, top:78, textAlign:"center", fontFamily:"Arial Black, Impact, sans-serif", fontWeight:900, fontSize:56, color:"#fff4dc", WebkitTextStroke:"7px #35252b", paintOrder:"stroke fill", textShadow:"0 7px 0 #654333", opacity:captionIn }}>{cap}</div>
+      <div style={{ position:"absolute", left:50, right:50, bottom:92, display:"flex", justifyContent:"center", opacity:.75 }}>
+        <div style={{ width:280, height:7, borderRadius:8, background:"rgba(255,245,220,.5)", overflow:"hidden" }}><div style={{ width:`${(f/179)*100}%`, height:"100%", background:"#f8d56c" }}/></div>
+      </div>
     </AbsoluteFill>
   );
 };

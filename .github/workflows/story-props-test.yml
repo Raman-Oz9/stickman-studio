@@ -46,11 +46,16 @@ jobs:
           json.dump({'board':b,'post':{'dpr':0.5}},open('remotion/public/prep/props.json','w'))"
       - run: npm install --no-audit --no-fund
         working-directory: remotion
+      - uses: actions/cache@v4
+        id: kenney-cache
+        with:
+          path: remotion/public/bridge/kenney
+          key: kenney-${{ hashFiles('remotion/scripts/fetch_kenney.py') }}
       - run: python3 scripts/fetch_kenney.py
+        if: steps.kenney-cache.outputs.cache-hit != 'true'
         working-directory: remotion
       - name: Typecheck
         working-directory: remotion
-        continue-on-error: true
         run: |
           set +e
           npx tsc --noEmit > out-tsc.txt 2>&1
@@ -59,7 +64,7 @@ jobs:
           cp out-tsc.txt out/tsc.txt
           echo "$STATUS" > out/tsc-exit-code.txt
           head -80 out-tsc.txt
-          exit 0
+          exit "$STATUS"
       - name: Stills
         working-directory: remotion
         run: |

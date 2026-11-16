@@ -13,6 +13,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: story-3d-video-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   prep:
     runs-on: ubuntu-latest
@@ -45,7 +48,7 @@ jobs:
           b=json.load(open("prep/board.json"))
           json.dump({"board":b,"post":{"dpr":1}},open("prep/props.json","w"))
           total=sum(max(1,round(s["dur"]*30)) for s in b["scenes"])
-          n=12
+          n=24
           per=-(-total//n)
           rows=[]
           for i in range(n):
@@ -64,10 +67,10 @@ jobs:
   render:
     needs: prep
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 60
     strategy:
       fail-fast: false
-      max-parallel: 4
+      max-parallel: 8
       matrix: ${{fromJson(needs.prep.outputs.matrix)}}
     steps:
       - uses: actions/checkout@v4
@@ -93,7 +96,7 @@ jobs:
           npx remotion render src/index.ts StoryShort out/part_${{matrix.i}}.mp4 \
             --frames=${{matrix.a}}-${{matrix.b}} --scale=1 --gl=swangle \
             --codec=h264 --crf=18 --pixel-format=yuv420p --concurrency=1 \
-            --props=./public/prep/props.json --timeout=7200000 --log=warn
+            --props=./public/prep/props.json --timeout=3600000 --log=warn
       - uses: actions/upload-artifact@v4
         with:
           name: great-zimbabwe-3d-part-${{matrix.i}}

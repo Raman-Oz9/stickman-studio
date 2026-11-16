@@ -1,3 +1,9 @@
+### 2026-11-17 — Reduce 3D render shard latency and prevent duplicate runs
+- The 12-shard attempt remained reported as queued/in-progress with no updated run timestamp for many hours; the connector could not retrieve the active runner logs, so its exact blocker is not verified.
+- Changed the next render attempt to 24 frame shards with up to 8 concurrent jobs and a 60-minute per-shard ceiling (including the Remotion render timeout). This halves the work per shard relative to the stalled 12-shard attempt while increasing parallel capacity; GitHub runner availability and account quotas still govern actual throughput.
+- Added a branch-scoped concurrency group so a newer video attempt cancels an older duplicate instead of consuming runners indefinitely. Existing run #43973748007 is not retroactively controlled by this new group.
+- No MP4 is claimed until all shards assemble and the resulting video is downloaded and visually inspected.
+
 ### 2026-11-16 — Split long 3D video renders into smaller resumable shards
 - The first narrated Three.js MP4 attempt passed preparation and strict TypeScript in every shard, but shard 0 hit the 120-minute job timeout at frame 235/316. The other three shards rendered; assembly was correctly skipped because the matrix was incomplete.
 - Increased the render matrix from 4 to 12 frame shards and capped concurrent shards at 4. This keeps each job substantially shorter and makes a cancelled shard cheaper to retry without changing the scene, resolution, frame rate, or visual renderer.

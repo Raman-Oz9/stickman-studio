@@ -30,7 +30,8 @@ Fully automated second YouTube storytelling channel (**stickman-studio**, public
 
 ## 4. Current state (2026-11-16, ~04:50 Lagos)
 Working in stills: shop FRONT with sign, palace gate/hall, mine entrance (rails inside), galleon at harbor, city with skyscrapers (`loc: city`), Kenney vehicles/animals, animated horse, sky-flight transitions, weather, Liam voice.
-**Latest commit (04:39):** reverted to 2D ink cards; fixed giant coin (flat discs normalised by diameter), duplicate crown (drop_worn), terrain raising props at mountain/mine/cave (ridge×(1−flat)), horse seat. A full render was dispatched from that commit — **UNREVIEWED**. Check `story-out/video.mp4` frames before showing the owner anything.
+**Reviewed 2026-11-16 ~05:50 (render of commit 04:39, 56.8 s):** ink cards back; mango shop has mangoes on shelves (no giant coin); one crown on the king; car/horse seated on the ground with riders visible; mine/rails/gold, palace gate+hall, galleon, city skyline all OK. STILL WRONG: helicopter rider invisible (blue sphere only); 3 near-empty shots in a row around the chase (tree close-up, empty hill, bag on ground); "A pirate" shot is a blurred empty green field; seller hidden behind shelf in shop interior (only hat visible); thief proportions odd (tall thin legs); overall colours/props still look cheap.
+**Commit 04:39 changes:** reverted to 2D ink cards; fixed giant coin (flat discs normalised by diameter), duplicate crown (drop_worn), terrain raising props at mountain/mine/cave (ridge×(1−flat)), horse seat. A full render was dispatched from that commit — **UNREVIEWED**. Check `story-out/video.mp4` frames before showing the owner anything.
 
 ## 5. Known problems (owner's last complaints, all must be verified fixed)
 1. Camera: shots with no character / only legs / only crown / camera inside shop shelf wall; hero not always framed. Needs shot-timeline discipline per the cinematic skill (every shot keeps speaking/acting character fully in frame, purposeful push/pull/pan/track).
@@ -45,6 +46,7 @@ Working in stills: shop FRONT with sign, palace gate/hall, mine entrance (rails 
 Render stills with the props-test workflow (build a board in `remotion/story_props_test.json`), clone branch `props-test`, LOOK at the images. For a full video, clone `story-out`, extract ~18 frames with ffmpeg, view them against the cinematic-skill QC checklist. Send the owner only what passes.
 
 ## 7. CHANGELOG (newest first)
+- 2026-11-16 05:5x — Reviewed the 04:39 render (see Current state); sent to owner with the remaining problems listed.
 - 2026-11-16 04:5x — Created this file. Standing rule: update on every repo change.
 - 2026-11-16 04:39 — Restored 2D ink cards (`USE_3D_STICKMAN=false`); fixed giant coin (diameter normalisation), duplicate crown (`drop_worn`), ridge height at flat locations, horse saddle 0.79.
 - 2026-11-16 03:5x — 3D stickman (`rig3d.ts`) with expressive canvas faces, emotion body acting, flat shading (owner rejected: wants original cards).

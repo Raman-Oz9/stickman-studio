@@ -46,11 +46,16 @@ export const IllustratedProof: React.FC = () => {
   const approach = smooth((f - 16) / 46);
   const exchange = smooth((f - 76) / 42);
   const giverRelease = smooth((f - 126) / 26);
-  const receiverRelease = smooth((f - 137) / 24);
-  const giverReach = approach * (1 - giverRelease);
-  const receiverReach = approach * (1 - receiverRelease);
-  const coinX = f < 82 ? 540 : f < 126 ? mix(540, 554, exchange) : 554;
-  const coinY = f < 82 ? 1210 : f < 126 ? mix(1210, 1218, exchange) : 1218;
+  const giverReachX = 0.53 * approach * (1 - giverRelease);
+  const giverReachY = 1.24 * approach * (1 - giverRelease);
+  const receiverCarry = smooth((f - 126) / 28);
+  const receiverReachX = mix(0.53 * approach, 0.12, receiverCarry);
+  const receiverReachY = mix(1.24 * approach, 0.56, receiverCarry);
+  // Keep the coin pinned to the receiver's hand as the arm folds into a waist-level carry.
+  const receiverHandX = 690 - receiverReachX * 414 * 0.68;
+  const receiverHandY = 1560 - receiverReachY * 414 * 0.68;
+  const coinX = f < 82 ? 540 : f < 126 ? mix(540, receiverHandX, exchange) : receiverHandX;
+  const coinY = f < 82 ? 1210 : f < 126 ? mix(1210, receiverHandY, exchange) : receiverHandY;
   const zoom = interpolate(f, [0, 48, 100, 148, 179], [1, 1.035, 1.12, 1.08, 1.035], { easing: Easing.inOut(Easing.quad), extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   const pan = interpolate(f, [0, 100, 179], [0, -18, 0], { easing: Easing.inOut(Easing.quad), extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   const cameraY = interpolate(f, [0, 100, 179], [0, 22, 0], { easing: Easing.inOut(Easing.quad), extrapolateLeft: "clamp", extrapolateRight: "clamp" });

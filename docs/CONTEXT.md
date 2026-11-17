@@ -1,3 +1,6 @@
+### 2026-11-17 — Keep village story set-pieces tied to the active scene
+- Refined the chicken-village selector so the chalkboard and explicit fire prop respond to the current scene's caption, narration and prop list rather than the video title. The board still appears as a designed establishing beat on the matching variant; moonlight and fire remain scene-timed.
+
 ### 2026-11-17 — Build the chicken-village reference world and signature props
 - Added a dedicated vertical 2D village backdrop for chicken/egg/rooster/coop stories: perspective cobblestone street, cream half-timbered houses, brick-red roofs and shutters, rows of timber coops, and a readable teacher's chalkboard with the RICH / POOR comparison and egg-count examples.
 - Added a blue-moon night treatment with animated orange/yellow firelight and inked logs. Far architecture and near foreground use separate blur planes for a tilt-shift miniature look; a soft vignette and fine film-grain layer finish the frame without blurring the central action.

@@ -3,13 +3,13 @@ name: opencode
 # Comment "/oc <task>" or "/opencode <task>" on an issue or PR (owner/collaborator only).
 # The open-source OpenCode agent works on the repo (reads AGENTS.md + docs/CONTEXT.md), then
 # replies on the thread and, if it changed files, pushes a branch and opens a PR.
-# Needs the GEMINI_API_KEY repo secret. Model can be changed via MODEL below.
+# Needs the GEMINI_API_KEY repo secret. Models are tried in order (MODELS below) until one answers.
 on:
   issue_comment:
     types: [created]
 
 env:
-  MODEL: google/gemini-3.5-flash
+  MODELS: google/gemini-3.5-flash google/gemini-2.5-flash google/gemini-3.5-flash-lite
 
 jobs:
   opencode:
@@ -42,7 +42,12 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           PROMPT="Repository task from issue #${ISSUE_NUMBER} (${ISSUE_TITLE}). Read AGENTS.md and docs/CONTEXT.md first. Task: ${COMMENT}"
-          opencode run --model "$MODEL" "$PROMPT" 2>&1 | tee /tmp/oc.txt
+          for M in $MODELS; do
+            echo "== model $M" | tee /tmp/oc.txt
+            opencode run --model "$M" "$PROMPT" 2>&1 | tee -a /tmp/oc.txt
+            if ! grep -q "^Error:" /tmp/oc.txt; then break; fi
+            echo "model $M failed, trying next"
+          done
       - name: Push changes and reply
         if: always()
         env:

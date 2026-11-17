@@ -4,6 +4,7 @@ import {bodyFront,Pen} from "../bridge/toon";
 import {outfitFor} from "./outfits";
 import {Board,CastDef,sceneAt,totalFrames,FPS} from "./types";
 import {getBoard} from "./Story";
+// Camera keyframes are pure scene-relative functions; captions remain outside this transform.
 import {camera2D} from "./camera2d";
 const clamp=(v:number)=>Math.max(0,Math.min(1,v));
 const ease=(v:number)=>{const t=clamp(v);return t*t*(3-2*t);};

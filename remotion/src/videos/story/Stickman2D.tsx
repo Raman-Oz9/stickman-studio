@@ -9,8 +9,8 @@ export type Vec = [number, number];
 export type CharacterBuild = "lean" | "stocky";
 const BUILD_PROPORTIONS: Record<CharacterBuild, { torso: number; shoulder: number; arm: number; legSpread: number; legLength: number; legWidth: number; head: number; hand: number; shoe: number }> = {
   // Adult silhouettes: smaller craniums, longer legs, broader shoulder-to-head ratio.
-  lean: { torso: 1.22, shoulder: 1.48, arm: 1.28, legSpread: 1.02, legLength: 1.2, legWidth: 1.2, head: 0.47, hand: 1.18, shoe: 1.02 },
-  stocky: { torso: 1.34, shoulder: 1.58, arm: 1.34, legSpread: 1.18, legLength: 1.16, legWidth: 1.55, head: 0.49, hand: 1.22, shoe: 1.06 },
+  lean: { torso: 1.0, shoulder: 1.04, arm: 1.04, legSpread: 1.0, legLength: 1.12, legWidth: 1.05, head: 0.64, hand: 1.08, shoe: 1.0 },
+  stocky: { torso: 1.14, shoulder: 1.14, arm: 1.08, legSpread: 1.15, legLength: 1.08, legWidth: 1.25, head: 0.68, hand: 1.12, shoe: 1.04 },
 };
 
 const INK = "#29212a";

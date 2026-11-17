@@ -1,3 +1,7 @@
+### 2026-11-17 — Ensure visual component edits trigger proof and production renders
+- Added the dedicated stickman, story-specific backdrop and 2D camera source files to both workflow path filters. Previously, edits to these imported components could change the rendered result without automatically triggering the proof or narrated production workflow.
+- This closes a CI blind spot so character, environment and camera changes receive the same TypeScript, native-frame and MP4 verification.
+
 ### 2026-11-17 — Refine the lead stickman's face and signature details
 - Native review showed the world was improving, but the lead still read as a generic figure. Added clearer white eye shapes and highlights, a small nose and cheek warmth, a more distinctive swept hair silhouette with a restrained highlight, and a simple shirt emblem.
 - Kept the round-headed, clearly stickman silhouette and the existing IK/pose interface intact. This is a visual polish pass, not a change to the action rig.

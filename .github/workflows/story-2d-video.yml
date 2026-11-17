@@ -8,6 +8,9 @@ on:
       - "remotion/scripts/make_voice.py"
       - "remotion/scripts/story_audio.py"
       - "remotion/src/videos/story/Story2D.tsx"
+      - "remotion/src/videos/story/InkStickman.tsx"
+      - "remotion/src/videos/story/GreatZimbabweBackdrop.tsx"
+      - "remotion/src/videos/story/camera2d.ts"
       - "remotion/src/Root.tsx"
   workflow_dispatch:
 permissions:

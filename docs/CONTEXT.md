@@ -1,3 +1,11 @@
+### 2026-11-17 — Build the chicken-village reference world and signature props
+- Added a dedicated vertical 2D village backdrop for chicken/egg/rooster/coop stories: perspective cobblestone street, cream half-timbered houses, brick-red roofs and shutters, rows of timber coops, and a readable teacher's chalkboard with the RICH / POOR comparison and egg-count examples.
+- Added a blue-moon night treatment with animated orange/yellow firelight and inked logs. Far architecture and near foreground use separate blur planes for a tilt-shift miniature look; a soft vignette and fine film-grain layer finish the frame without blurring the central action.
+- Added a recurring ink-black crow sidekick with a small animated wing flick and hand-painted warm-light ink flecks as the signature visual motif. Added reusable chicken, coop, chalkboard, campfire and egg props to the 2D prop renderer.
+- The new environment is selected only for chicken/egg/rooster/coop stories (or the explicit chicken-rich world label); Great Zimbabwe and unrelated stories retain their existing backdrops. No character, IK or camera code was changed.
+- The contact-sheet JPG is present in the repository, but the GitHub file connector cannot decode this binary image in this session. This pass follows the visual and shot requirements transcribed in docs/REFERENCE_VIDEO_V2.md; contact-sheet pixel comparison and native still QA remain outstanding.
+- No strict TypeScript check or rendered-frame review has been run yet; do not treat the art as visually accepted until proof stills are inspected.
+
 ### 2026-11-17 — Verify the rebuilt IllustratedProof at native resolution
 - Run #44047109990 passed strict TypeScript and all native-resolution still renders at 1080×1920. Downloaded and inspected proof frames 15, 45, 75, 105, 150 and 175.
 - The opening frames show the guide walking and pointing; frame 105 shows both IK-driven hands meeting on the coin; frame 150 shows the coin remaining at the receiver's waist. The push-in and pull-back keep the illustrated canvas full-bleed without the previous edge seams.

@@ -23,7 +23,6 @@ const Limb: React.FC<{ a: Vec; b: Vec; c: Vec; w: number; color: string }> = ({ 
     <g fill="none" strokeLinecap="round" strokeLinejoin="round">
       <path d={d} stroke={INK} strokeWidth={w + 9} />
       <path d={d} stroke={color} strokeWidth={w} />
-      {extra}
     </g>
   );
 };
@@ -93,7 +92,6 @@ const Face: React.FC<{ expression: Expression; blink: boolean; look: number; loo
       <ellipse cx="-39" cy="-408" rx="10" ry="5" fill="#d77f73" opacity=".18" />
       <ellipse cx="39" cy="-408" rx="10" ry="5" fill="#d77f73" opacity=".18" />
       {mouth()}
-      {extra}
     </g>
   );
 };

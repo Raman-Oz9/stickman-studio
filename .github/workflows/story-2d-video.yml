@@ -80,7 +80,7 @@ jobs:
           node-version: 20
       - uses: actions/download-artifact@v4
         with:
-          name: great-zimbabwe-2d-prep
+          name: great-zimbabwe-illustrated-2d-prep
           path: remotion/public/prep
       - name: Install Remotion dependencies
         working-directory: remotion
@@ -108,7 +108,7 @@ jobs:
           merge-multiple: true
       - uses: actions/download-artifact@v4
         with:
-          name: great-zimbabwe-2d-prep
+          name: great-zimbabwe-illustrated-2d-prep
           path: prep
       - name: Assemble narrated 1080x1920 MP4
         run: |
@@ -121,23 +121,23 @@ jobs:
             -vf "scale=1080:1920:flags=lanczos,unsharp=5:5:0.6:5:5:0.0" \
             -c:v libx264 -crf 21 -preset medium -pix_fmt yuv420p \
             -c:a aac -b:a 160k -shortest great-zimbabwe-illustrated-2d-narrated.mp4
-          ffprobe -v error -show_entries format=duration,size -of json great-zimbabwe-2d-narrated.mp4
+          ffprobe -v error -show_entries format=duration,size -of json great-zimbabwe-illustrated-2d-narrated.mp4
       - uses: actions/upload-artifact@v4
         with:
           name: great-zimbabwe-illustrated-2d-video
-          path: great-zimbabwe-2d-narrated.mp4
+          path: great-zimbabwe-illustrated-2d-narrated.mp4
           retention-days: 7
       - name: Publish narrated video on story-out-illustrated-2d
         env:
           GH_TOKEN: ${{github.token}}
         run: |
           mkdir /tmp/pub
-          cp great-zimbabwe-2d-narrated.mp4 prep/board.json /tmp/pub/
+          cp great-zimbabwe-illustrated-2d-narrated.mp4 prep/board.json /tmp/pub/
           cd /tmp/pub
           git init -q
-          git checkout -q -b story-out-2d
+          git checkout -q -b story-out-illustrated-2d
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           git commit -qm "Publish narrated Great Zimbabwe 2D render"
-          git push -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" story-out-2d
+          git push -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" story-out-illustrated-2d

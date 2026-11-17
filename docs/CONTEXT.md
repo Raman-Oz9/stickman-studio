@@ -1,3 +1,8 @@
+### 2026-11-17 — Keep every Great Zimbabwe scene inside the same authored world
+- Extended world selection across the entire Great Zimbabwe board, including scenes that omit a repeated `world` object but belong to the same titled story. The trade sequence now remains in the Great Zimbabwe setting instead of falling back to unrelated generic houses.
+- Added a distinct market-stall layer for the trading scene while retaining the same stone city, savanna, animals, path and lighting identity.
+- This is still a story-specific illustrated treatment; other story boards need their own authored environments or validated biome-specific templates.
+
 ### 2026-11-17 — Make the Great Zimbabwe 2D opening use its actual world
 - Fixed a mismatch in the storyboard renderer: scenes carrying the `great-zimbabwe` world label were still receiving a generic backdrop selected by scene index, ignoring the scene's world identity.
 - Added a dedicated 9:16 illustrated Great Zimbabwe establishing environment with layered dawn sky, southern-African escarpments and kopjes, a dry-stone enclosure and conical tower, outer homesteads, acacia framing, antelope, birds, a processional path and foreground grasses. Wind and bird motion are deterministic from the Remotion frame.

@@ -1,3 +1,8 @@
+### 2026-11-17 — Restore colour and detail in the illustrated world
+- Native review showed the global Story2D grade was desaturating the scene to 68%, darkening it, and adding a strong sepia cast. This flattened the new savanna, stonework and sky instead of making them pop.
+- Rebalanced the grade toward natural saturation and brightness, and softened the heavy edge vignette so the world remains readable across the full phone screen.
+- Recheck the first-second proof for clear focal hierarchy, vivid but controlled colour, and no loss of caption contrast.
+
 ### 2026-11-17 — Give the opening a visible first-second action and camera reveal
 - The native review of the earlier render showed the opening guide standing still and the reveal camera changing scale too subtly to read as a hook.
 - The opening guide now points toward the monumental city, and the reveal camera uses a clear, controlled push from a full-bleed composition into the landmark. This creates an immediate character-to-world gesture without adding unrelated spectacle.

@@ -76,11 +76,14 @@ const Face: React.FC<{ expression: Expression; blink: boolean; look: number; loo
             ) : expression === "shock" ? (
               <g><circle cx={s * ex} cy={ey} r="13" fill="#fff" stroke={INK} strokeWidth="4.5" /><circle cx={s * ex + lx} cy={ey + ly} r="4.5" fill={INK} /></g>
             ) : (
-              <circle cx={s * ex + lx} cy={ey + ly} r={expression === "focused" || expression === "angry" ? 5.5 : 6.5} fill={INK} />
+              <g><ellipse cx={s * ex} cy={ey} rx="11" ry="13" fill="#fffaf1" stroke={INK} strokeWidth="3.5" /><circle cx={s * ex + lx} cy={ey + ly} r={expression === "focused" || expression === "angry" ? 5.5 : 6.5} fill={INK} /><circle cx={s * ex + lx - 2} cy={ey + ly - 2} r="2.1" fill="#fff" /></g>
             )}
           </g>
         );
       })}
+      <path d="M -1 -420 Q 8 -413 2 -407" fill="none" stroke="#8a5b49" strokeWidth="3.5" strokeLinecap="round" opacity=".72" />
+      <ellipse cx="-39" cy="-408" rx="10" ry="5" fill="#d77f73" opacity=".18" />
+      <ellipse cx="39" cy="-408" rx="10" ry="5" fill="#d77f73" opacity=".18" />
       {mouth()}
     </g>
   );
@@ -140,11 +143,12 @@ export const InkStickman: React.FC<InkStickmanProps> = ({
         <path d={torso} fill={cloth} stroke={INK} strokeWidth="6" strokeLinejoin="round" />
         <path d={`M ${-tw + 4} ${HIP_Y - 6} Q 0 ${HIP_Y + 6} ${tw - 4} ${HIP_Y - 6}`} fill="none" stroke={shade(cloth, 0.7)} strokeWidth="5" />
         <path d={`M -18 ${SH_Y + 4} Q 0 ${SH_Y + 22} 18 ${SH_Y + 4}`} fill="none" stroke={shade(cloth, 0.7)} strokeWidth="5" />
+        <path d="M 0 -288 l 10 10 -10 10 -10 -10 Z" fill="#e3b15d" stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
         <g transform={`translate(0 ${breathe * 0.5}) translate(0 ${SH_Y}) rotate(${headRot}) translate(0 ${-SH_Y})`}>
           <ellipse cx="-62" cy={HEAD_Y + 2} rx="9" ry="13" fill={skin} stroke={INK} strokeWidth="5" />
           <ellipse cx="62" cy={HEAD_Y + 2} rx="9" ry="13" fill={skin} stroke={INK} strokeWidth="5" />
           <circle cx="0" cy={HEAD_Y} r={HEAD_R} fill={skin} stroke={INK} strokeWidth="6.5" />
-          {hair ? <path d={`M ${-HEAD_R + 2} ${HEAD_Y - 14} Q ${-HEAD_R + 6} ${HEAD_Y - HEAD_R - 6} 0 ${HEAD_Y - HEAD_R - 4} Q ${HEAD_R - 6} ${HEAD_Y - HEAD_R - 6} ${HEAD_R - 2} ${HEAD_Y - 14} Q 30 ${HEAD_Y - 44} 0 ${HEAD_Y - 42} Q -30 ${HEAD_Y - 44} ${-HEAD_R + 2} ${HEAD_Y - 14} Z`} fill={hair} stroke={INK} strokeWidth="5" strokeLinejoin="round" /> : null}
+          {hair ? <g><path d="M -63 -438 C -70 -472 -48 -500 -18 -500 C 2 -524 39 -512 51 -485 C 69 -477 70 -452 63 -438 Q 37 -455 19 -457 Q -2 -449 -17 -461 Q -36 -447 -63 -438 Z" fill={hair} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" /><path d="M -25 -483 Q 7 -509 42 -484 Q 14 -492 0 -469" fill="none" stroke="#fff3d5" strokeWidth="4" strokeLinecap="round" opacity=".28" /></g> : null}
           <Face expression={expression} blink={blink} look={look} lookY={lookY} />
         </g>
       </g>

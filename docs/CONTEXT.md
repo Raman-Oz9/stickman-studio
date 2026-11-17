@@ -65,3 +65,5 @@ Render stills with the props-test workflow (build a board in `remotion/story_pro
 - 2026-11-15 earlier — realm/world architecture, interiors, shop fronts, action layer, establishing camera, fly scenes, Liam voice default.
 
 - 2026-11-17 — Claude: added OpenCode (open-source coding agent) as a third agent via `.github/workflows/opencode.yml`: owner/collaborator comments `/oc <task>` or `/opencode <task>` on an issue or PR make it work on the repo using the GEMINI_API_KEY secret (model google/gemini-3.5-flash, change in the workflow if needed) and push/PR via the workflow GITHUB_TOKEN. Added `AGENTS.md` so every agent reads this file first. Untested until the first `/oc` comment.
+
+- 2026-11-17 — Claude: team plan set (owner: finish this week). Added `docs/WEEK_PLAN.md` (schedule, ownership, gates), copied the owner's skills into `.claude/skills/` (+ `.opencode/skills` symlink) so OpenCode can read them, added Ink Explainer reference frames in `docs/reference/ink-explainer/`, extended AGENTS.md. ChatGPT: read WEEK_PLAN.md and AGENTS.md before your next change.

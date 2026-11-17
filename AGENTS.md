@@ -13,6 +13,7 @@ Rules:
 Skills and references (all agents, including OpenCode, must read these before animation work):
 - `.claude/skills/cinematic-2d-storytelling-director/SKILL.md` (also at `.opencode/skills/`): camera, shots, pacing.
 - `.claude/skills/cartoon-audio-short/`: narration, music and SFX levels (music/SFX about half the voice level).
+- `docs/REFERENCE_VIDEO_V2.md` + `docs/reference/reference-video.mp4` + `docs/reference/reference-video-contact-sheet.jpg`: THE owner's reference animation (read/look first, always use it, add our unique twist)
 - `docs/reference/ink-explainer/*.jpg`: the target look (round white head, minimal face, thin arms, mitten
   hands, sneakers, thick black outlines, flat vivid colours, detailed illustrated backdrops).
 - `docs/WEEK_PLAN.md`: schedule, ownership, gates.

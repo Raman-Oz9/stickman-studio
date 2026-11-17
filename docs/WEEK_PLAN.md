@@ -25,3 +25,6 @@ backdrops bland. Bar: first-class polish, nothing childish, every noun shown, ev
 ## Gates (every PR / push)
 1. `illustrated-proof.yml` passes (strict tsc + stills). 2. Stills viewed and compared with the
 references. 3. CONTEXT.md updated. 4. Never send the owner a video that has not passed QA.
+
+## Reference v2 (added Nov 17)
+All work is judged against `docs/REFERENCE_VIDEO_V2.md`. Daily progress update to owner at end of each agent's work block.

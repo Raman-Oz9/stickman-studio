@@ -1,3 +1,8 @@
+### 2026-11-17 — Use the full vertical canvas for the 2D hook
+- Removed the fixed 110px black bars at the top and bottom of the 9:16 Story2D composition. They were wasting screen area and weakening the opening image on phones.
+- Kept the cinematic edge vignette and caption treatment; the environment, characters and action now have the full 1080×1920 canvas available.
+- Native-resolution first-second frames and the next full render must verify caption clearance and composition after this change.
+
 ### 2026-11-17 — Keep every Great Zimbabwe scene inside the same authored world
 - Extended world selection across the entire Great Zimbabwe board, including scenes that omit a repeated `world` object but belong to the same titled story. The trade sequence now remains in the Great Zimbabwe setting instead of falling back to unrelated generic houses.
 - Added a distinct market-stall layer for the trading scene while retaining the same stone city, savanna, animals, path and lighting identity.

@@ -1,4 +1,5 @@
 import type { Expr } from "../bridge/toon";
+import type { WorldParams } from "./worldgen";
 export type { Expr };
 export type Shot = "wide" | "medium" | "close" | "low" | "over" | "high";
 export type Move = "push" | "pull" | "orbit" | "hold" | "reveal" | "pan" | "descend" | "track" | "crane" | "tiltup" | "tiltdown";
@@ -32,6 +33,7 @@ export type PropDef = {
   flip?: boolean;                    // face the other way when static
 };
 export type SceneDef = {
+  world?: WorldParams;            // optional procedural terrain + civilization + map layer; action engine remains separate
   era?: string;                   // costume set for generic roles: roman|greek|wildwest|viking|egypt|samurai|pirate|space|ww2|1920s|victorian|arabian|india|prehistoric|china
 
   est?: boolean;   // establishing shot of a building from outside

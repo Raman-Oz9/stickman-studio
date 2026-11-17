@@ -11,7 +11,7 @@ import { FrontOpts, SideOpts, Expr } from "../bridge/toon";
 import { SceneDef, CastDef, PropDef } from "./types";
 import { STICKERS } from "../bridge/stickers";
 import { createAction, updateAction, handTarget, propBase, ballistic, Action, ActionType } from "./actions";
-import { FOGB, Biome, Season } from "./terrain";
+import { FOGB, Biome, Season, BIOMES } from "./terrain";
 import { buildRealm, realmWaves, anchorAt, resolveLoc, LOCS } from "./realm";
 const KINDB: Record<string, Biome> = { forest: "forest", desert: "desert", savanna: "savanna", swamp: "swamp", jungle: "jungle", ice: "ice", ocean: "ocean", farm: "farm", mountain: "mountain", palace: "farm", city: "farm", mine: "mountain", cave: "mountain" };
 import { buildShopFront } from "./interiors";
@@ -21,6 +21,7 @@ import { BACK, Props3D, canon, DEFAULT_H, ORIENT, SADDLE, FLY, GUNS, registerRec
 import { outfitFor } from "./outfits";
 import { camAt, focusOf } from "./camera";
 import { Effects } from "./effects";
+import { drawWorld, animateWorld } from "./worldgen";
 
 const hh = (i: number, s = 0) => { const v = Math.sin(i * 127.1 + s * 311.7) * 43758.5453; return v - Math.floor(v); };
 const ROLE_SCALE: Record<string, number> = { kid: 0.72, girl: 0.74 };
@@ -29,7 +30,7 @@ export class StoryWorld {
   root = new THREE.Group();
   private pool = new Pool();
   private p3: Props3D; private rigs!: Rigs; private hv = new THREE.Vector3();
-  private ints = new Map<string, THREE.Group>(); private acts = new Map<string, Action>(); private realms = new Map<string, THREE.Group>(); private fronts = new Map<string, THREE.Group>(); private holder = new THREE.Group(); private fxe: Effects; private town: THREE.Object3D[] = []; private plat: THREE.Mesh;
+  private worldLayers = new Map<string, THREE.Group>(); private ints = new Map<string, THREE.Group>(); private acts = new Map<string, Action>(); private realms = new Map<string, THREE.Group>(); private fronts = new Map<string, THREE.Group>(); private holder = new THREE.Group(); private fxe: Effects; private town: THREE.Object3D[] = []; private plat: THREE.Mesh;
   private actors: Actor[] = [];
   private fxs: Fx[] = [];
   private hemi = new THREE.HemisphereLight("#cfe6ff", "#6c5c8c", 1.1);
@@ -92,6 +93,10 @@ export class StoryWorld {
     const light = s.light ?? (s.tod === "dawn" || s.tod === "dusk" ? "golden" : "day"), L = LIGHTS[light], K = LOOK[light];
     const u = n > 1 ? lf / (n - 1) : 0, t = lf / FPS;
     const dur = n / FPS;
+    // Optional world preset is an independent environment layer; character/action code below is unchanged.
+    const worldKey = s.world ? JSON.stringify(s.world) : "";
+    this.worldLayers.forEach((g, key) => { g.visible = !!worldKey && key === worldKey; if (g.visible) animateWorld(g, t); });
+    if (worldKey) { let wg = this.worldLayers.get(worldKey); if (!wg) { wg = drawWorld(s.world!, 0); this.root.add(wg); this.worldLayers.set(worldKey, wg); } wg.visible = true; animateWorld(wg, t); }
     const posOf = (d: CastDef) => {
       if (!d.to) return { x: d.x, z: d.z, moving: false, dist: 0, dx: 0, dz: 0 };
       const w0 = d.walkAt ?? 0, k = Math.min(1, Math.max(0, (u - w0) / Math.max(0.05, 0.96 - w0))), e = d.act === "run" ? (k < 0.08 ? k * k / 0.16 : k - 0.04) / 0.96 : k * k * (3 - 2 * k);   // sprints keep full speed (no slow ease)
@@ -101,7 +106,7 @@ export class StoryWorld {
     const propAt = (pd: PropDef) => { if (!pd.to) return { x: pd.x, z: pd.z }; const a0 = pd.at ?? 0, k = Math.min(1, Math.max(0, (u - a0) / Math.max(0.05, Math.min(pd.until ?? 1, 1) - a0))); return { x: pd.x + (pd.to.x - pd.x) * k, z: pd.z + (pd.to.z - pd.z) * k }; };
     const cur: SceneDef = { ...s, cast: s.cast.map((d) => { const p = posOf(d); return { ...d, x: p.x, z: p.z }; }), props: (s.props ?? []).map((pd) => ({ ...pd, ...propAt(pd), to: undefined })) };
     const c = camAt(cur, i, u, absT, dur);
-    { const ev = new Set<string>(((cur as SceneDef).env ?? []) as string[]); if (s.tod === "night") ev.add("night"); if (s.season === "winter" && BIOMES[String(s.biome ?? "").toLowerCase()] !== "desert") ev.add("snow"); (cur as SceneDef).env = [...ev] as SceneDef["env"]; }
+    { const ev = new Set<string>(((cur as SceneDef).env ?? []) as string[]); if (s.world?.weather === "rain") ev.add("rain"); if (s.world?.weather === "storm") ev.add("storm"); if (s.world?.weather === "snow") ev.add("snow"); if (s.world?.weather === "fog") ev.add("fog"); if (s.world?.weather === "wind") ev.add("wind"); if (s.tod === "night") ev.add("night"); if (s.season === "winter" && BIOMES[String(s.biome ?? "").toLowerCase()] !== "desert") ev.add("snow"); (cur as SceneDef).env = [...ev] as SceneDef["env"]; }
     const E = this.fxe.update(cur, u, dur, c.pos, c.look, absT);
     if (E.shake > 0.01) { const k = E.shake * 0.28; c.pos.x += Math.sin(absT * 61) * k; c.pos.y += Math.sin(absT * 73 + 1) * k; c.look.x += Math.sin(absT * 53 + 2) * k * 0.6; }
     const ik = INTERIOR_ALIAS[String(s.interior ?? "").toLowerCase().replace(/[^a-z]/g, "")] as InteriorKind | undefined;
@@ -110,15 +115,15 @@ export class StoryWorld {
     this.ints.forEach((g, k) => { g.visible = k === ikey; if (k === ikey) flicker(g, absT); });
     if (ik) E.dim = Math.min(E.dim, DIM[ik]);
     const loc = resolveLoc(s), se = ((s.season ?? "summer") as Season), fly = (s as SceneDef & { fly?: { from: string; to: string } }).fly;
-    if (!this.realms.has(se)) { const Rl = buildRealm(se); Rl.visible = false; this.holder.add(Rl); this.realms.set(se, Rl); }
-    this.realms.forEach((Rl, k) => { Rl.visible = k === se; if (k === se) realmWaves(Rl, absT); });
+    if (!s.world && !this.realms.has(se)) { const Rl = buildRealm(se); Rl.visible = false; this.holder.add(Rl); this.realms.set(se, Rl); }
+    this.realms.forEach((Rl, k) => { Rl.visible = !s.world && k === se; if (Rl.visible) realmWaves(Rl, absT); });
     const [ax, az] = fly ? anchorAt(fly.from, fly.to, u) : (LOCS[loc] as [number, number]);
-    this.holder.position.set(-ax, 0, -az); this.holder.visible = !ik && !E.space;
+    this.holder.position.set(-ax, 0, -az); this.holder.visible = !ik && !E.space && !s.world;
     const bk = loc !== "town" || !!fly ? (KINDB[loc] ?? "farm") : undefined;
     this.plat.visible = E.space && !ik;
     if (s.front && !this.fronts.has(s.front)) { const fg = buildShopFront(s.front); fg.position.set(0, 0, -14); this.root.add(fg); this.fronts.set(s.front, fg); }
     this.fronts.forEach((fg, k) => { fg.visible = k === s.front && !ik; });
-    cam.position.copy(c.pos); cam.up.set(0, 1, 0); cam.lookAt(c.look); cam.rotateZ(c.roll);
+    cam.position.copy(c.pos); cam.up.set(0, s.world?.mapMode ? 0 : 1, s.world?.mapMode ? -1 : 0); cam.lookAt(c.look); cam.rotateZ(c.roll);
     cam.fov = c.fov; cam.near = 0.15; cam.far = 1500; cam.updateProjectionMatrix(); cam.updateMatrixWorld();
     cam.layers.enable(NOINK);
     // sun: camera-relative, frozen per scene (from the start of the move)
@@ -226,7 +231,7 @@ export class StoryWorld {
         const fx2 = cam.position.x - pp.x, fz2 = cam.position.z - pp.z, fl = Math.hypot(fx2, fz2) || 1;
         rx = pp.x - (fx2 / fl) * 0.22; rz = pp.z - (fz2 / fl) * 0.22; ry = bob + lift + ((SADDLE[mc] ?? 0.55) + (CLOSED.has(mc) ? 0.3 : 0)) * hm - 0.92 * sc2; crop = CLOSED.has(mc) ? 0.4 : 0.3;
       }
-      let rg: ReturnType<Rigs["put"]> = null;
+      let rg: ReturnType<Rigs["put"]> | undefined;
       if (this.rigs.ready) {   // real 3D skeletal character: stateless clip sampling, walk time = distance travelled
         const mc3 = d.mount ? canon(d.mount) : "", SHIPS = ["galleon", "ship", "pirateship", "ghostship", "wreck"], onShip = SHIPS.includes(mc3), vehicle = !!mc3 && CLOSED.has(mc3) && !onShip, mounted = !!d.mount && this.p3.has(d.mount);
         const hmm = mounted ? (DEFAULT_H[mc3] ?? 2) * Math.max(0.8, sc2) : 0, lf = mounted ? (FLY[mc3] ?? 0) * Math.min(1, (u * dur) / 1.6) ** 2 * (3 - 2 * Math.min(1, (u * dur) / 1.6)) : 0;
@@ -270,7 +275,12 @@ export class StoryWorld {
       const a = hh(k, 20) * Math.PI * 2, r = 8 + hh(k, 21) * 3.5;
       const ex = F.x * 0.3 + Math.sin(a) * r, ez = F.z * 0.3 + Math.cos(a) * r;
       if (Math.hypot(ex - cam.position.x, ez - cam.position.z) < 6.5) continue; // never let a bystander block the lens
-      put({ id: `x${k}`, role: "townsfolk", x: ex, z: ez, expr: (["smile", "grin", "neutral", "smile_closed"] as Expr[])[k % 4], v: k }, k, true);
+      const drift = 1.2 + hh(k, 22) * 2.2, heading = a + (hh(k, 23) - 0.5) * 1.4;
+      // Background citizens now walk short, staggered paths instead of freezing in a ring.
+      put({ id: "x" + k, role: "townsfolk", x: ex, z: ez,
+        to: { x: ex + Math.cos(heading) * drift, z: ez + Math.sin(heading) * drift },
+        walkAt: hh(k, 24) * 0.42, mode: "stroll",
+        expr: (["smile", "grin", "neutral", "smile_closed"] as Expr[])[k % 4], v: k }, k, true);
     }
 
     // ---- props: the things the narration is about (stickers) ----

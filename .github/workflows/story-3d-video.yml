@@ -1,0 +1,9 @@
+name: Deprecated — 3D story video disabled during 2D migration
+on:
+  workflow_dispatch:
+jobs:
+  disabled:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Explain the current production path
+        run: echo "The legacy 3D story-video renderer is intentionally disabled. Use the 2D illustrated proof workflow for still QA. A full narrated 2D render requires explicit approval in story-2d-video.yml."

@@ -105,7 +105,7 @@ def main(board_p, outdir):
     b = json.load(open(board_p)); os.makedirs(outdir, exist_ok=True)
     st = {}
     from concurrent.futures import ThreadPoolExecutor
-    ALIAS = {"wallet":"purse","handbag":"purse","sack":"money-bag","gold":"gold-coin","money":"coins","cash":"coins","treasure":"treasure-chest","hen":"chicken","rooster":"chicken","puppy":"dog","kitten":"cat","palace":"castle","tower":"castle","cottage":"house","home":"house","ship":"boat","sapphire":"gem","jewel":"gem","ruby":"gem","blade":"sword","love":"heart","cookie":"bread","loaf":"bread","cow":"cow","bull":"cow","automobile":"car","vehicle":"car","smartphone":"phone","fruit":"mango","plant":"tree","sapling":"tree","oak":"tree","stone":"rock","boulder":"rock","flame":"fire","trophy":"crown"}
+    ALIAS = {"goldcoin":"gold-coin","wallet":"purse","handbag":"purse","sack":"money-bag","gold":"gold-coin","money":"coins","cash":"coins","treasure":"treasure-chest","hen":"chicken","rooster":"chicken","puppy":"dog","kitten":"cat","palace":"castle","tower":"castle","cottage":"house","home":"house","ship":"boat","sapphire":"gem","jewel":"gem","ruby":"gem","blade":"sword","love":"heart","cookie":"bread","loaf":"bread","cow":"cow","bull":"cow","automobile":"car","vehicle":"car","smartphone":"phone","fruit":"mango","plant":"tree","sapling":"tree","oak":"tree","stone":"rock","boulder":"rock","flame":"fire","trophy":"crown"}
     def lib_for(n):
         sl = slug(n); cands = [sl, sl.rstrip("s"), sl.replace("-", ""), ALIAS.get(sl, ""), ALIAS.get(sl.rstrip("s"), ""), ALIAS.get(sl.split("-")[-1], ""), sl.split("-")[-1], sl.split("-")[-1].rstrip("s")]
         for c in cands:

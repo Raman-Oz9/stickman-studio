@@ -1,0 +1,61 @@
+name: 2D illustrated proof
+on:
+  push:
+    branches: [reference-style-pass-01]
+    paths:
+      - "remotion/src/videos/story/IllustratedProof.tsx"
+      - "remotion/src/videos/story/Story2D.tsx"
+      - "remotion/src/videos/story/InkStickman.tsx"
+      - "remotion/src/videos/story/GreatZimbabweBackdrop.tsx"
+      - "remotion/src/videos/story/camera2d.ts"
+      - "remotion/src/videos/story/Stickman2D.tsx"
+      - "remotion/src/Root.tsx"
+      - "remotion/story_great_zimbabwe_board.json"
+      - "remotion/package.json"
+      - "remotion/package-lock.json"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: reference-style-pass-01
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies
+        working-directory: remotion
+        run: npm install --no-audit --no-fund
+      - name: Strict TypeScript check
+        working-directory: remotion
+        run: npx tsc --noEmit
+      - name: Prepare Great Zimbabwe storyboard props for the 2D renderer
+        run: |
+          mkdir -p remotion/public/prep
+          python3 -c "import json; b=json.load(open('remotion/story_great_zimbabwe_board.json')); json.dump({'board':b},open('remotion/public/prep/story2d-props.json','w'))"
+      - name: Render native-resolution storyboard and proof frames
+        working-directory: remotion
+        run: |
+          mkdir -p out
+          for frame in 0 15 30 60 240 570 780 1000 1225 1530; do
+            npx remotion still src/index.ts StoryShort2D "out/story2d-f${frame}.jpg" \
+              --frame="${frame}" --scale=1 --gl=swangle --image-format=jpeg \
+              --jpeg-quality=94 --props=./public/prep/story2d-props.json --timeout=300000 --log=warn
+          done
+          for frame in 15 45 75 105 150 175; do
+            npx remotion still src/index.ts IllustratedProof "out/2d-proof-f${frame}.jpg" \
+              --frame="${frame}" --scale=1 --gl=swangle --image-format=jpeg \
+              --jpeg-quality=94 --timeout=300000 --log=warn
+          done
+      - name: Upload native-resolution 2D proof frames
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: great-zimbabwe-2d-render
+          path: remotion/out/*
+          if-no-files-found: warn
+          retention-days: 7

@@ -1,20 +1,5 @@
 name: 3D world renderer integration proof
 on:
-  push:
-    branches: [reference-style-pass-01]
-    paths:
-      - ".github/workflows/world-render-proof.yml"
-      - "remotion/story_great_zimbabwe_board.json"
-      - "remotion/src/Root.tsx"
-      - "remotion/src/videos/story/Story.tsx"
-      - "remotion/src/videos/story/world.ts"
-      - "remotion/src/videos/story/worldgen.ts"
-      - "remotion/src/videos/story/camera.ts"
-      - "remotion/src/videos/story/realm.ts"
-      - "remotion/src/videos/story/terrain.ts"
-      - "remotion/src/videos/story/props3d.ts"
-      - "remotion/src/videos/story/rig3d.ts"
-      - "remotion/src/bridge/**"
   workflow_dispatch:
 permissions:
   contents: read

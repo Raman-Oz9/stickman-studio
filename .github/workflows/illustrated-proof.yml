@@ -52,7 +52,7 @@ jobs:
               --frame="${frame}" --scale=1 --gl=swangle --image-format=jpeg \
               --jpeg-quality=94 --timeout=300000 --log=warn
           done
-      - name: Upload rendered 2D video and proof frames
+      - name: Upload native-resolution 2D proof frames
         if: always()
         uses: actions/upload-artifact@v4
         with:

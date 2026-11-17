@@ -1,3 +1,8 @@
+### 2026-11-17 — Stop cancelling the narrated 2D render during active work
+- The first illustrated-2D run successfully prepared narration and rendered all eight frame shards, but its join/assembly job was cancelled before producing the MP4. The run used branch concurrency with `cancel-in-progress: true`; a subsequent push could cancel a healthy in-flight render while its assembly was still running.
+- Changed the 2D workflow concurrency policy to queue newer runs rather than cancel the active production render. This protects the expensive completed shard artifacts and allows assembly/publication to finish. A newer run may wait until the current one completes.
+- The prior run did not produce a final MP4. Re-run the narrated workflow and verify the joined file and playback before delivery.
+
 ### 2026-11-17 — Reduce 3D render shard latency and prevent duplicate runs
 - The 12-shard attempt remained reported as queued/in-progress with no updated run timestamp for many hours; the connector could not retrieve the active runner logs, so its exact blocker is not verified.
 - Changed the next render attempt to 24 frame shards with up to 8 concurrent jobs and a 60-minute per-shard ceiling (including the Remotion render timeout). This halves the work per shard relative to the stalled 12-shard attempt while increasing parallel capacity; GitHub runner availability and account quotas still govern actual throughput.

@@ -14,7 +14,7 @@ permissions:
   contents: write
 concurrency:
   group: illustrated-2d-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 jobs:
   prep:
     runs-on: ubuntu-latest

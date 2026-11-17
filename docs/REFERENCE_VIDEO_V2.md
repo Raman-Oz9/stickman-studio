@@ -4,7 +4,7 @@ Files: `docs/reference/reference-video.mp4` (720x1280, 73 s, with audio), `docs/
 ALWAYS look at the contact sheet before touching characters, backdrops, camera or captions. Owner wants this kind of animation, rebuilt in 2D, plus our own unique twist.
 
 ## What the reference does (copy the quality, not the pixels)
-- **Characters**: big bean/egg-shaped heads (head ~ 60% of visible body), thick black outline, flat skin tone, tiny dot/line eyes, small expressive brows and mouth, hair as a flat cap/bun/side-part, monocle/hat props. Most people shown waist-up *inside barrels* (cheap to animate, strong silhouette). Rich man = green waistcoat, gold chain, monocle.
+- **Characters**: big bean/egg-shaped heads (head ~ 60% of visible body), thick black outline, flat skin tone, tiny dot/line eyes, small expressive brows and mouth, hair as a flat cap/bun/side-part, monocle/hat props. (That creator keeps people inside barrels. WE DO NOT: owner rejected it. Ours are FULL-BODY articulated humans that walk, pick up, read, write, drink, point, run, sit, etc.) Rich man = green waistcoat, gold chain, monocle.
 - **Animals as co-stars**: chickens/roosters with human acting (teacher chicken with pointer at a chalkboard, rooster hugging a head).
 - **Props with story meaning**: chalkboard charts (RICH/POOR graph, 2=egg, 3=egg), gold-coin piles, light bulb for "idea", protest signs (WE WANT EGGS / UNFAIR! / BOO!), coops, barrels, fire at night.
 - **World**: warm golden-hour palette, cobblestone streets, tall European houses with red shutters, sky with soft clouds, tilt-shift look (blurry far/near, sharp middle), vignette. Night scene = blue sky + moon + orange fire glow.
@@ -14,7 +14,7 @@ ALWAYS look at the contact sheet before touching characters, backdrops, camera o
 
 ## 2D rebuild rules for Remotion/SVG
 1. Heads: big rounded bean (rx<ry), outline 7-9 px, face = dots + brows + mouth only. Build `BeanHead` (done in InkStickman via head scale; keep expanding).
-2. Barrel/crowd shots are allowed and encouraged (waist-up cast, no legs needed) for crowds, protests, meals.
+2. NO barrels. Full-body characters with our own geometry; reference is style only. Engine = script -> storyboard -> action library (verbs become poses) so any story (history, space, person) is performed by the cast.
 3. Fake the 3D: layered parallax backdrops, ground plane with perspective cobble lines, SVG blur filter on far/near layers, vignette, warm light gradient overlay, drop shadows under props.
 4. Camera per the cinematic skill: aerial pull-backs, push-ins to faces, whip-pans, descending-hand reveal. Add a slow handheld drift to every shot.
 5. Captions: word-synced, 1-3 words, white + black stroke.
@@ -26,6 +26,6 @@ ALWAYS look at the contact sheet before touching characters, backdrops, camera o
 - Each agent should add one signature element per day and log it in `docs/CONTEXT.md`.
 
 ## Ownership
-- Claude: character (bean heads, poses, barrels, faces), QA, merges.
+- Claude: character (bean heads, full-body rig, action library, script->action planner), QA, merges.
 - ChatGPT: backdrops/props (cobble street, houses, coops, chalkboard, fire/night), palette, tilt-shift/vignette/grain layers.
 - OpenCode: scoped issues via `/oc` (hair/hats/monocle, signs, coin piles, caption styling).

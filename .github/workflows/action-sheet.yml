@@ -1,0 +1,36 @@
+name: action sheet proof
+on:
+  push:
+    branches: [claude/actions]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install
+        working-directory: remotion
+        run: npm install --no-audit --no-fund
+      - name: Strict TypeScript check
+        working-directory: remotion
+        run: npx tsc --noEmit 2>&1 | tee out-tsc.txt; test ${PIPESTATUS[0]} -eq 0
+        continue-on-error: true
+      - name: Render action sheet pages
+        working-directory: remotion
+        run: |
+          mkdir -p out && cp out-tsc.txt out/ || true
+          for f in 0 1 2 3 4; do
+            npx remotion still src/index.ts ActionSheet "out/actions-$f.jpg" --frame=$f --scale=1 --gl=swangle --image-format=jpeg --jpeg-quality=92 --timeout=300000 --log=warn || true
+          done
+      - name: Publish frames to branch
+        if: always()
+        run: |
+          cd remotion/out && git init -q -b proof-actions && git config user.name bot && git config user.email bot@x
+          git add . && git commit -qm frames
+          git push -f https://x-access-token:${{ github.token }}@github.com/${{ github.repository }} proof-actions

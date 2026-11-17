@@ -1,13 +1,15 @@
 name: opencode
 
-# Comment "/oc <task>" or "/opencode <task>" on an issue or PR (owner only) and the
-# open-source OpenCode agent works on the repo: reads docs/CONTEXT.md, edits code,
-# and opens a PR or pushes to the PR branch. Needs the GEMINI_API_KEY repo secret.
+# Comment "/oc <task>" or "/opencode <task>" on an issue or PR (owner/collaborator only).
+# The open-source OpenCode agent works on the repo (reads AGENTS.md + docs/CONTEXT.md), then
+# replies on the thread and, if it changed files, pushes a branch and opens a PR.
+# Needs the GEMINI_API_KEY repo secret. Model can be changed via MODEL below.
 on:
   issue_comment:
     types: [created]
-  pull_request_review_comment:
-    types: [created]
+
+env:
+  MODEL: google/gemini-3.5-flash
 
 jobs:
   opencode:
@@ -17,23 +19,43 @@ jobs:
       (contains(github.event.comment.body, '/oc') ||
        contains(github.event.comment.body, '/opencode'))
     runs-on: ubuntu-latest
+    timeout-minutes: 40
     permissions:
-      id-token: write
       contents: write
       pull-requests: write
       issues: write
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          persist-credentials: false
-
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install OpenCode
+        run: npm install -g opencode-ai
       - name: Run OpenCode
-        uses: anomalyco/opencode/github@latest
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        with:
-          model: google/gemini-3.5-flash
-          use_github_token: true
+          COMMENT: ${{ github.event.comment.body }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          PROMPT="Repository task from issue #${ISSUE_NUMBER} (${ISSUE_TITLE}). Read AGENTS.md and docs/CONTEXT.md first. Task: ${COMMENT}"
+          opencode run --model "$MODEL" "$PROMPT" 2>&1 | tee /tmp/oc.txt
+      - name: Push changes and reply
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          git config user.name "opencode-agent"; git config user.email "opencode-agent@users.noreply.github.com"
+          BODY=$(tail -c 3500 /tmp/oc.txt 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g')
+          if [ -n "$(git status --porcelain)" ]; then
+            BR="opencode/issue-${ISSUE_NUMBER}-${GITHUB_RUN_ID}"
+            git checkout -b "$BR"; git add -A; git commit -qm "OpenCode: changes for #${ISSUE_NUMBER}"
+            git push origin "$BR"
+            PR=$(gh pr create --base "${{ github.event.repository.default_branch }}" --head "$BR" --title "OpenCode: #${ISSUE_NUMBER}" --body "Automated changes requested in #${ISSUE_NUMBER}." 2>&1 | tail -1)
+            BODY="$BODY"$'\n\n'"PR: $PR"
+          fi
+          gh issue comment "$ISSUE_NUMBER" --body "$BODY" || true

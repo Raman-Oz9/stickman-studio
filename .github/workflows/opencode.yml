@@ -45,7 +45,7 @@ jobs:
           for M in $MODELS; do
             echo "== model $M" | tee /tmp/oc.txt
             opencode run --model "$M" "$PROMPT" 2>&1 | tee -a /tmp/oc.txt
-            if ! grep -q "^Error:" /tmp/oc.txt; then break; fi
+            if ! grep -q "Error:" /tmp/oc.txt; then break; fi
             echo "model $M failed, trying next"
           done
       - name: Push changes and reply

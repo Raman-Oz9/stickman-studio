@@ -1,3 +1,8 @@
+### 2026-11-17 — Brighten the 2D world into the Ink Explainer palette
+- Updated the Great Zimbabwe illustrated backdrop with a vivid sky, green/teal landscape planes, golden earth and stone, saturated market architecture, and confident near-black contours. Removed grain/soft-light overlays that dulled the flat-colour finish while retaining the layered composition and frame-driven wind, birds and elephant movement.
+- Rebalanced Story2D's fallback environments, trade map and reusable props toward brighter fills and black outlines; reduced the heavy scene vignette so details remain readable on a phone. Character, IK, camera keyframes and handover timing are unchanged.
+- This is a focused palette/backdrop/prop pass. It has not yet passed strict TypeScript, native 1080×1920 still rendering or visual review; do not treat the style as accepted until proof frames are inspected.
+
 ### 2026-11-17 — Verify the rebuilt IllustratedProof at native resolution
 - Run #44047109990 passed strict TypeScript and all native-resolution still renders at 1080×1920. Downloaded and inspected proof frames 15, 45, 75, 105, 150 and 175.
 - The opening frames show the guide walking and pointing; frame 105 shows both IK-driven hands meeting on the coin; frame 150 shows the coin remaining at the receiver's waist. The push-in and pull-back keep the illustrated canvas full-bleed without the previous edge seams.

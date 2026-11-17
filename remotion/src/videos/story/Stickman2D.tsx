@@ -132,7 +132,7 @@ const Hand: React.FC<{ at: Vec; dir: number; skin: string; grip?: boolean; size?
   </g>
 );
 
-const Face: React.FC<{ expression: Expression; blink: number; look: number }> = ({ expression, blink, look }) => {
+const Face: React.FC<{ expression: Expression; blink: number; look: number; lookY?: number }> = ({ expression, blink, look, lookY = 0 }) => {
   const eyeY = -493, ex = 21;
   const shut = blink > 0.5;
   const big = expression === "shock" ? 0.7 : expression === "joy" ? 0.62 : 0.58;
@@ -168,7 +168,7 @@ const Face: React.FC<{ expression: Expression; blink: number; look: number }> = 
             <g>
               <path d={`M ${s * ex - 7} ${eyeY} Q ${s * ex} ${eyeY - 5} ${s * ex + 7} ${eyeY}`} fill="none" stroke={INK} strokeWidth="5" strokeLinecap="round" />
               <ellipse cx={s * ex} cy={eyeY + 1} rx={6 * big} ry={(expression === "joy" ? 4 : 6) * big} fill="#fffaf0" stroke={INK} strokeWidth="3.5" />
-              <circle cx={s * ex + look * 3.5} cy={eyeY + 1} r={(expression === "shock" ? 3.2 : 3.4)} fill={INK} />
+              <circle cx={s * ex + look * 3.5} cy={eyeY + 1 + lookY * 2.5} r={(expression === "shock" ? 3.2 : 3.4)} fill={INK} />
               
             </g>
           )}
@@ -195,6 +195,7 @@ export type StickmanProps = {
   expression?: Expression;
   frame?: number;             // drives blink + idle breathing
   look?: number;              // -1..1 eye direction
+  gaze?: Vec | null;          // local-space point the character looks at (head + eyes follow it)
   lean?: number;              // torso lean in degrees (positive = forward)
   build?: CharacterBuild;     // distinct silhouette proportions, independent of outfit
   seed?: number;              // stable per-character silhouette variation
@@ -202,9 +203,13 @@ export type StickmanProps = {
 
 export const Stickman: React.FC<StickmanProps> = ({
   x, y, scale = 1, facing = 1, skin, cloth, trim, hair = "#2e2423", walk = 0, stand = 1,
-  frontHand = null, backHand = null, grip, expression = "smile", frame = 0, look = 0, lean = 0, build = "lean", seed = 17,
+  frontHand = null, backHand = null, grip, expression = "smile", frame = 0, look: lookIn = 0, gaze = null, lean = 0, build = "lean", seed = 17,
 }) => {
   const body = BUILD_PROPORTIONS[build];
+  const gdx = gaze ? gaze[0] : 0, gdy = gaze ? gaze[1] + 486 : 0;
+  const look = gaze ? Math.max(-1, Math.min(1, gdx / 180)) : lookIn;
+  const lookY = gaze ? Math.max(-1, Math.min(1, gdy / 160)) : 0;
+  const tilt = lookY * 9;
   const breathe = Math.sin(frame / 9) * 2.5;
   const blink = frame % 96 < 5 ? 1 : 0;
   const swing = Math.sin(walk * Math.PI * 2);
@@ -258,14 +263,14 @@ export const Stickman: React.FC<StickmanProps> = ({
         <path d={`M 0 ${SHOULDER_Y - 4} L 0 -440`} stroke={INK} strokeWidth="44" />
         <path d={`M 0 ${SHOULDER_Y - 4} L 0 -440`} stroke={skin} strokeWidth="30" />
         <path d={`M -18 ${SHOULDER_Y - 20} Q 0 ${SHOULDER_Y + 2} 18 ${SHOULDER_Y - 20}`} fill="none" stroke={shadeColor(skin, .68)} strokeWidth="5" opacity=".8" />
-        <g transform={`translate(0 ${breathe * 0.6}) rotate(${look * 4}) translate(0 -486) scale(${body.head}) translate(0 486)`}>
+        <g transform={`translate(0 ${breathe * 0.6}) rotate(${look * 4 + tilt}) translate(0 -486) scale(${body.head}) translate(0 486)`}>
           <ellipse cx="-64" cy="-480" rx="13" ry="18" fill={skin} stroke={INK} strokeWidth="7" />
           <ellipse cx="64" cy="-480" rx="13" ry="18" fill={skin} stroke={INK} strokeWidth="7" />
           <path d={headPath} fill={skin} stroke={INK} strokeWidth="10" strokeLinejoin="round" />
           <path d="M -63 -496 Q -78 -554 -28 -578 Q 18 -598 58 -562 L 75 -526 L 64 -493 Q 42 -524 10 -529 Q -28 -533 -63 -496Z" fill={hair} stroke={INK} strokeWidth="7" />
           <path d="M -48 -540 Q -24 -556 -4 -550 M 4 -550 Q 30 -559 49 -538" fill="none" stroke="#51403a" strokeWidth="4" opacity=".72" />
           <path d="M -55 -520 Q -28 -533 0 -529 Q 29 -533 55 -520" fill="none" stroke={trim} strokeWidth="5" opacity=".8" />
-          <Face expression={expression} blink={blink} look={look} />
+          <Face expression={expression} blink={blink} look={look} lookY={lookY} />
         </g>
       </g>
       {/* front leg + arm */}

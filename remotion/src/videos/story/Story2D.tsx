@@ -1,16 +1,17 @@
-import React,{useEffect,useMemo,useRef} from "react";
+import React,{useMemo} from "react";
 import {AbsoluteFill,interpolate,useCurrentFrame} from "remotion";
-import {bodyFront,Pen} from "../bridge/toon";
+import {Stickman,Expression,Vec} from "./Stickman2D";
 import {outfitFor} from "./outfits";
 import {Board,CastDef,sceneAt,totalFrames,FPS} from "./types";
 import {getBoard} from "./Story";
 const clamp=(v:number)=>Math.max(0,Math.min(1,v));
 const ease=(v:number)=>{const t=clamp(v);return t*t*(3-2*t);};
 const mix=(a:number,b:number,t:number)=>a+(b-a)*t;
-const Actor:React.FC<{d:CastDef;i:number;era?:string;x:number;y:number;phase:number;reach?:{side:-1|1;x:number;y:number};expr:CastDef["expr"];scale:number;facing:1|-1}>=({d,i,era,x,y,phase,reach,expr,scale,facing})=>{
- const ref=useRef<HTMLCanvasElement>(null),outfit=useMemo(()=>outfitFor(d.role,i,era),[d.role,i,era]);
- useEffect(()=>{const c=ref.current?.getContext("2d");if(!c)return;c.clearRect(0,0,600,1000);bodyFront(new Pen(c),outfit,{mode:reach?"stand":d.mode==="stroll"?"stroll":"stand",phase,expr:expr??"neutral",reach:reach?[reach]:undefined,facing,light:-2.1,seed:i+11,blink:Math.floor(phase*30)%104<4?1:0});},[outfit,d.mode,expr,i,phase,reach]);
- const s=.66*scale;return <canvas ref={ref} width={600} height={1000} style={{position:"absolute",left:x-300*s,top:y-975*s,width:600*s,height:1000*s,transform:"scaleX("+facing+")",transformOrigin:"center bottom",pointerEvents:"none"}}/>;
+const SCL=1.05;
+const EXPR:Record<string,Expression>={smile:"smile",grin:"joy",laugh:"joy",shock:"shock",stern:"focused",neutral:"focused",nervous:"sad",pained:"sad",angry:"angry",sad:"sad"};
+const Actor:React.FC<{d:CastDef;i:number;era?:string;x:number;y:number;phase:number;hand?:Vec|null;gaze?:Vec|null;expr:CastDef["expr"];scale:number;facing:1|-1;frame:number;moving:boolean;grip:boolean}>=({d,i,era,x,y,phase,hand,gaze,expr,scale,facing,frame,moving,grip})=>{
+ const o=useMemo(()=>outfitFor(d.role,i,era),[d.role,i,era]);
+ return <svg viewBox="0 0 1080 1920" width="100%" height="100%" style={{position:"absolute",inset:0,pointerEvents:"none",overflow:"visible"}}><Stickman x={x} y={y} scale={SCL*scale} facing={facing} skin={o.skin??"#a8704f"} cloth={o.dress??o.jacket} trim={o.belt??o.sash??"#e0b868"} hair={o.hair??"#2b2220"} stand={moving?0:1} walk={phase*0.9} frontHand={hand??null} gaze={gaze??null} grip={grip} expression={EXPR[expr??"neutral"]??"smile"} frame={frame+i*13} build={i%2?"stocky":"lean"} seed={i*17+7}/></svg>;
 };
 const Backdrop:React.FC<{variant:number}>=({variant})=> <svg viewBox="0 0 1080 1920" width="100%" height="100%" style={{position:"absolute",inset:0}}>
  <defs>
@@ -80,7 +81,16 @@ export const StoryShort2D:React.FC=()=>{
  const pan=s.move==="pan"?interpolate(u,[0,1],[55,-55]):0;
  const giver=s.cast.find(c=>c.do?.type==="handOver"),buyer=giver?.do?.to?s.cast.find(c=>c.id===giver.do!.to):undefined,at=giver?.do?.at??.25,dur=giver?.do?.dur??.5,p=ease((u-at)/Math.max(.05,dur)),live=!!giver&&u>=at&&u<=at+dur,carry=!!giver&&u>at+dur?ease((u-at-dur)/.12):0;
  const people=s.cast.map((d,j)=>{const w=d.to?ease((u-(d.walkAt??0))/Math.max(.05,1-(d.walkAt??0))):0,x=d.x+(d.to?(d.to.x-d.x)*w:0),zz=d.z+(d.to?(d.to.z-d.z)*w:0);return {d,j,x:540+x*(giver&&buyer?52:86),y:1480+zz*34,scale:(d.scale??1)*(1-Math.max(-.3,Math.min(.3,zz*.045)))};});
- const gp=people.find(v=>v.d.id===giver?.id),bp=people.find(v=>v.d.id===buyer?.id);const gx=gp?gp.x+(.53*414*.66):540,bx=bp?bp.x-(.53*414*.68):540,gy=gp?gp.y-(1.24*414*.68):1345,by=bp?bp.y-(1.0*414*.68):1345,cx=giver&&buyer?mix(gx,bx+90,p):540,cy=giver&&buyer?mix(gy,by-35,p):1345;
- return <AbsoluteFill style={{background:"#ead5aa",overflow:"hidden"}}><div style={{position:"absolute",inset:0,transform:"translate("+pan+"px,0) scale("+z+")",transformOrigin:"50% 58%",filter:"saturate(.72) contrast(1.1) brightness(.9) sepia(.12)"}}>{s.world?.mapMode?<TradeMap/>:<Backdrop variant={i%4}/>}{(s.props??[]).filter(q=>!(giver&&q.name.toLowerCase().includes("gold"))).map((q,j)=><Prop key={j} name={q.name} x={540+q.x*86} y={1500+q.z*34-(q.h??1)*42}/>)}{(!s.world?.mapMode?people:[]).map(({d,j,x,y,scale})=>{const g=d.id===giver?.id,r=d.id===buyer?.id,reach=g&&live?{side:1 as const,x:.53,y:1.24}:r&&(live||carry>0)?{side:1 as const,x:mix(.53,.12,carry),y:mix(1.24,1.0,carry)}:d.act==="point"?{side:1 as const,x:.45,y:.9}:undefined;const expr=d.expr2&&d.at2!=null&&u>=d.at2?d.expr2:d.expr;return <Actor key={d.id} d={d} i={j} era={s.era} x={x} y={y} phase={f/FPS+j*.17} reach={reach} expr={expr} scale={scale} facing={d.x<0?1:-1}/>;})}{giver&&buyer&&u>=at?<Prop name={giver.do?.prop??"goldcoin"} x={cx} y={cy}/>:null}</div><div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse at 50% 52%,rgba(11,7,16,0) 42%,rgba(11,7,16,.78) 100%)",pointerEvents:"none"}}/><div style={{position:"absolute",left:0,right:0,top:0,height:110,background:"#050308"}}/><div style={{position:"absolute",left:0,right:0,bottom:0,height:110,background:"#050308"}}/>{s.caption?<div style={{position:"absolute",left:54,right:54,bottom:205,textAlign:"center",fontFamily:"Arial Black,Impact,sans-serif",fontWeight:900,fontSize:56,color:"#fff",WebkitTextStroke:"9px #211923",paintOrder:"stroke fill",textShadow:"0 7px 0 rgba(0,0,0,.32)"}}>{s.caption}</div>:null}</AbsoluteFill>;
+ const gp=people.find(v=>v.d.id===giver?.id),bp=people.find(v=>v.d.id===buyer?.id);
+ const face=(v:{d:CastDef})=>(v.d.x<0?1:-1) as 1|-1,k=(v:{scale:number})=>SCL*v.scale;
+ const toLoc=(v:NonNullable<typeof gp>,w:Vec):Vec=>[((w[0]-v.x)*face(v))/k(v),(w[1]-v.y)/k(v)];
+ const toWorld=(v:NonNullable<typeof gp>,l:Vec):Vec=>[v.x+face(v)*l[0]*k(v),v.y+l[1]*k(v)];
+ const REST:Vec=[40,-228],M:Vec=gp&&bp?[(gp.x+bp.x)/2,Math.min(gp.y,bp.y)-330*k(gp)]:[540,1300];
+ const aG=ease((u-(at-.12))/.12)*(1-ease((u-at-dur)/.14)),aB=ease((u-(at-.06))/.14),
+  gL:Vec|null=gp?[mix(REST[0],toLoc(gp,M)[0],aG),mix(REST[1],toLoc(gp,M)[1],aG)]:null,
+  bT:Vec|null=bp?[mix(toLoc(bp,M)[0]+14,70,carry),mix(toLoc(bp,M)[1]+8,-300,carry)]:null,
+  bL:Vec|null=bp&&bT?[mix(REST[0],bT[0],aB),mix(REST[1],bT[1],aB)]:null;
+ const gW=gp&&gL?toWorld(gp,gL):[540,1300] as Vec,bW=bp&&bL?toWorld(bp,bL):[540,1300] as Vec,cx=mix(gW[0],bW[0],p)+(p>=1?-10:0),cy=mix(gW[1],bW[1],p);
+ return <AbsoluteFill style={{background:"#ead5aa",overflow:"hidden"}}><div style={{position:"absolute",inset:0,transform:"translate("+pan+"px,0) scale("+z+")",transformOrigin:"50% 58%",filter:"saturate(.72) contrast(1.1) brightness(.9) sepia(.12)"}}>{s.world?.mapMode?<TradeMap/>:<Backdrop variant={i%4}/>}{(s.props??[]).filter(q=>!(giver&&q.name.toLowerCase().includes("gold"))).map((q,j)=><Prop key={j} name={q.name} x={540+q.x*86} y={1500+q.z*34-(q.h??1)*42}/>)}{(!s.world?.mapMode?people:[]).map((v)=>{const {d,j,x,y,scale}=v,g=d.id===giver?.id,r=d.id===buyer?.id,near=u>=at-.1&&u<=at+dur+.12,partner=g?bp:r?gp:undefined;const hand:Vec|null=g?gL:r?bL:d.act==="point"?[190,-360]:null;const gz:Vec|null=(g||r)&&gp&&bp?(near?toLoc(v as NonNullable<typeof gp>,[cx,cy]):toLoc(v as NonNullable<typeof gp>,[partner!.x,partner!.y-480*k(partner!)])):null;const expr=d.expr2&&d.at2!=null&&u>=d.at2?d.expr2:d.expr;return <Actor key={d.id} d={d} i={j} era={s.era} x={x} y={y} phase={f/FPS+j*.17} hand={hand} gaze={gz} expr={expr} scale={scale} facing={face(v)} frame={f} moving={!!d.to&&u<1&&!(g||r)} grip={(g||r)&&u>at+dur}/>;})}{giver&&buyer&&u>=at-.12?<Prop name={giver.do?.prop??"goldcoin"} x={cx} y={cy}/>:null}</div><div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse at 50% 52%,rgba(11,7,16,0) 42%,rgba(11,7,16,.78) 100%)",pointerEvents:"none"}}/><div style={{position:"absolute",left:0,right:0,top:0,height:110,background:"#050308"}}/><div style={{position:"absolute",left:0,right:0,bottom:0,height:110,background:"#050308"}}/>{s.caption?<div style={{position:"absolute",left:54,right:54,bottom:205,textAlign:"center",fontFamily:"Arial Black,Impact,sans-serif",fontWeight:900,fontSize:56,color:"#fff",WebkitTextStroke:"9px #211923",paintOrder:"stroke fill",textShadow:"0 7px 0 rgba(0,0,0,.32)"}}>{s.caption}</div>:null}</AbsoluteFill>;
 };
 export const story2DFrames=(b:Board)=>totalFrames(b);

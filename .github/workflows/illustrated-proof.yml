@@ -52,13 +52,6 @@ jobs:
               --frame="${frame}" --scale=1 --gl=swangle --image-format=jpeg \
               --jpeg-quality=94 --timeout=300000 --log=warn
           done
-      - name: Render complete 2D storyboard MP4
-        working-directory: remotion
-        run: |
-          npx remotion render src/index.ts StoryShort2D out/great-zimbabwe-2d-preview.mp4 \
-            --gl=swangle --codec=h264 --crf=18 --pixel-format=yuv420p \
-            --concurrency=2 --props=./public/prep/story2d-props.json \
-            --timeout=1800000 --log=warn
       - name: Upload rendered 2D video and proof frames
         if: always()
         uses: actions/upload-artifact@v4

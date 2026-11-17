@@ -30,7 +30,9 @@
           "x": -3,
           "z": 1,
           "expr": "shock",
-          "act": "point"
+          "act": "point",
+          "to": { "x": -1.8, "z": 1 },
+          "walkAt": 0.08
         }
       ],
       "props": [],
@@ -107,7 +109,7 @@
             "type": "handOver",
             "to": "buyer",
             "at": 0.2,
-            "dur": 0.55,
+            "dur": 0.16,
             "prop": "goldcoin"
           }
         },

@@ -1,18 +1,12 @@
 name: Illustrated 2D story production
 on:
-  push:
-    branches: [reference-style-pass-01]
-    paths:
-      - ".github/workflows/story-2d-video.yml"
-      - "remotion/story_great_zimbabwe_board.json"
-      - "remotion/scripts/make_voice.py"
-      - "remotion/scripts/story_audio.py"
-      - "remotion/src/videos/story/Story2D.tsx"
-      - "remotion/src/videos/story/InkStickman.tsx"
-      - "remotion/src/videos/story/GreatZimbabweBackdrop.tsx"
-      - "remotion/src/videos/story/camera2d.ts"
-      - "remotion/src/Root.tsx"
   workflow_dispatch:
+    inputs:
+      confirm_full_render:
+        description: "I approve a full narrated 2D video render for this branch."
+        required: true
+        type: boolean
+        default: false
 permissions:
   contents: write
 concurrency:
@@ -20,6 +14,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   prep:
+    if: inputs.confirm_full_render == true
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{steps.m.outputs.matrix}}

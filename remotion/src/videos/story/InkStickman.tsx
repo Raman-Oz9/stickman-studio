@@ -27,10 +27,17 @@ const Limb: React.FC<{ a: Vec; b: Vec; c: Vec; w: number; color: string }> = ({ 
   );
 };
 
-const Mitten: React.FC<{ at: Vec; dir: number }> = ({ at, dir }) => (
+const Mitten: React.FC<{ at: Vec; dir: number; grip?: boolean }> = ({ at, dir, grip = false }) => (
   <g transform={`translate(${at[0]} ${at[1]}) rotate(${dir})`} stroke={INK} strokeWidth="5" strokeLinejoin="round">
     <ellipse cx="10" cy="0" rx="17" ry="14" fill="#fbf7ef" />
-    <ellipse cx="6" cy="-13" rx="8" ry="6" fill="#fbf7ef" transform="rotate(-25 6 -13)" />
+    {grip ? (
+      <>
+        <path d="M 0 -8 Q -13 -20 -18 -9 Q -20 1 -8 5" fill="#fbf7ef" />
+        <path d="M 13 -9 Q 25 -12 25 -3 Q 25 2 18 3" fill="none" />
+        <path d="M 13 -1 Q 25 -2 22 7 Q 19 11 12 7" fill="none" />
+        <path d="M 6 7 Q 15 14 8 16" fill="none" />
+      </>
+    ) : <ellipse cx="6" cy="-13" rx="8" ry="6" fill="#fbf7ef" transform="rotate(-25 6 -13)" />}
   </g>
 );
 
@@ -106,7 +113,7 @@ const shade = (hex: string, k: number) => {
 
 export const InkStickman: React.FC<InkStickmanProps> = ({
   x, y, scale = 1, facing = 1, skin, cloth, hair, walk = 0, stand = 1, frontHand = null, backHand = null,
-  expression = "smile", frame = 0, look: lookIn = 0, gaze = null, lean = 0, build = "lean",
+  expression = "smile", frame = 0, look: lookIn = 0, gaze = null, lean = 0, build = "lean", grip = false,
 }) => {
   const wide = build === "stocky" ? 1.14 : 1;
   const breathe = Math.sin(frame / 9) * 2;
@@ -155,7 +162,7 @@ export const InkStickman: React.FC<InkStickmanProps> = ({
       <Limb a={[10, HIP_Y]} b={legF.joint} c={legF.end} w={21} color={jeans} />
       <Shoe at={legF.end} />
       <Limb a={shF} b={armF.joint} c={armF.end} w={13} color={skin} />
-      <Mitten at={armF.end} dir={ang(armF)} />
+      <Mitten at={armF.end} dir={ang(armF)} grip={grip} />
     </g>
   );
 };

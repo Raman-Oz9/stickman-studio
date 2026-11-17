@@ -1,7 +1,7 @@
 name: 2D illustrated proof
 on:
   push:
-    branches: [reference-style-pass-01]
+    branches: [claude/verify-ref02]
     paths:
       - ".github/workflows/illustrated-proof.yml"
       - "remotion/src/videos/story/IllustratedProof.tsx"
@@ -13,7 +13,7 @@ on:
       - "remotion/package-lock.json"
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 jobs:
   proof:
     runs-on: ubuntu-latest
@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: reference-style-pass-01
+          ref: claude/verify-ref02
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -44,18 +44,11 @@ jobs:
               --frame="${frame}" --scale=1 --gl=swangle --image-format=jpeg \
               --jpeg-quality=94 --props=./public/prep/story2d-props.json --timeout=300000 --log=warn
           done
-          for frame in 15 45 75 105 150 175; do
+          for frame in 90; do
             npx remotion still src/index.ts IllustratedProof "out/2d-proof-f${frame}.jpg" \
               --frame="${frame}" --scale=1 --gl=swangle --image-format=jpeg \
               --jpeg-quality=94 --timeout=300000 --log=warn
           done
-      - name: Render complete 2D storyboard MP4
-        working-directory: remotion
-        run: |
-          npx remotion render src/index.ts StoryShort2D out/great-zimbabwe-2d-preview.mp4 \
-            --gl=swangle --codec=h264 --crf=18 --pixel-format=yuv420p \
-            --concurrency=2 --props=./public/prep/story2d-props.json \
-            --timeout=1800000 --log=warn
       - name: Upload rendered 2D video and proof frames
         if: always()
         uses: actions/upload-artifact@v4
@@ -64,3 +57,9 @@ jobs:
           path: remotion/out/*
           if-no-files-found: warn
           retention-days: 7
+      - name: Publish frames to branch
+        if: always()
+        run: |
+          cd remotion/out && git init -q -b proof-out && git config user.name bot && git config user.email bot@x
+          git add . && git commit -qm frames
+          git push -f https://x-access-token:${{ github.token }}@github.com/${{ github.repository }} proof-out

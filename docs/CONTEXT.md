@@ -1,3 +1,6 @@
+### 2026-11-17 — Make the deprecated 3D video workflow a valid manual no-op
+- GitHub emitted a failed workflow check for the legacy 3D file on every push because it had an empty event map and no jobs. Replaced it with a valid manual-only no-op that explains the 2D production path; it cannot launch a 3D render and no longer creates red push checks.
+
 ### 2026-11-17 — Make IllustratedProof use the production 2D world and character rig
 - Rebuilt IllustratedProof.tsx around the same GreatZimbabweBackdrop and IK-driven InkStickman used by Story2D, removing its separate legacy canvas-character and backdrop implementation. The proof now stages a short walk-and-point, a timed reach/grasp/coin handover, gaze/expression changes, and a motivated push-in followed by a pull-back.
 - Camera translation is clamped to the zoomed canvas bounds, and the caption remains outside the camera transform. The proof is intended to validate the production components rather than a parallel art style.

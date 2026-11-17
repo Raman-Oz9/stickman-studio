@@ -1,16 +1,5 @@
-name: Great Zimbabwe 3D narrated test video
-on:
-  push:
-    branches: [reference-style-pass-01]
-    paths:
-      - ".github/workflows/story-3d-video.yml"
-      - "remotion/story_great_zimbabwe_board.json"
-      - "remotion/scripts/make_voice.py"
-      - "remotion/scripts/story_audio.py"
-      - "remotion/src/Root.tsx"
-      - "remotion/src/videos/story/**"
-      - "remotion/src/bridge/**"
-  workflow_dispatch:
+name: DEPRECATED — 3D test pipeline disabled (2D migration)
+on: {}
 permissions:
   contents: read
 concurrency:

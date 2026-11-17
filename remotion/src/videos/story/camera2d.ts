@@ -16,7 +16,7 @@ export const camera2D=({scene,people,u}:Input)=>{
  let from=base,to=base;
  if(scene.move==="push"){from=Math.min(base,.94);to=Math.min(1.55,Math.max(base,from*1.22));}
  else if(scene.move==="pull"){from=Math.min(1.55,Math.max(base,base*1.22));to=base;}
- else if(scene.move==="reveal"){from=.84;to=base;}
+ else if(scene.move==="reveal"){from=1.02;to=1.14;}
  else if(scene.move==="descend"||scene.move==="crane"){from=.88;to=base;}
  else if(scene.move==="track"){from=base*.98;to=base*1.04;}
  const travel=smooth(u),z=mix(from,to,travel);

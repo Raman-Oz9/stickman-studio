@@ -1,3 +1,8 @@
+### 2026-11-17 — Give the opening a visible first-second action and camera reveal
+- The native review of the earlier render showed the opening guide standing still and the reveal camera changing scale too subtly to read as a hook.
+- The opening guide now points toward the monumental city, and the reveal camera uses a clear, controlled push from a full-bleed composition into the landmark. This creates an immediate character-to-world gesture without adding unrelated spectacle.
+- Recheck the first-second native frames for full-bleed edges, readable pointing pose, and safe caption placement before accepting the result.
+
 ### 2026-11-17 — Use the full vertical canvas for the 2D hook
 - Removed the fixed 110px black bars at the top and bottom of the 9:16 Story2D composition. They were wasting screen area and weakening the opening image on phones.
 - Kept the cinematic edge vignette and caption treatment; the environment, characters and action now have the full 1080×1920 canvas available.

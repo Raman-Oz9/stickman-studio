@@ -29,7 +29,8 @@
           "role": "merchant",
           "x": -3,
           "z": 1,
-          "expr": "shock"
+          "expr": "shock",
+          "act": "point"
         }
       ],
       "props": [],

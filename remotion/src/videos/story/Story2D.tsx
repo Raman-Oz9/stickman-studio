@@ -1,5 +1,5 @@
 import React,{useEffect,useMemo,useRef} from "react";
-import {AbsoluteFill,interpolate,useCurrentFrame} from "remotion";
+import {AbsoluteFill,useCurrentFrame} from "remotion";
 import {bodyFront,Pen} from "../bridge/toon";
 import {outfitFor} from "./outfits";
 import {Board,CastDef,sceneAt,totalFrames,FPS} from "./types";

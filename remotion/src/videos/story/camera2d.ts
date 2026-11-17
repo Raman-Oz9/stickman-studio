@@ -22,7 +22,8 @@ export const camera2D=({scene,people,u}:Input)=>{
  const travel=smooth(u),z=mix(from,to,travel);
  // Subject-led reframing: face, upper body or full figure depending on the declared shot.
  const anchorY=shot==="close"?930:shot==="medium"?1080:shot==="high"?1180:shot==="low"?1050:shot==="over"?1120:1260;
- const originY=1920*.58;\n let panX=540-(540+(fx-540)*z),panY=anchorY-(originY+(focusY-originY)*z);
+ const originY=1920*.58;
+ let panX=540-(540+(fx-540)*z),panY=anchorY-(originY+(focusY-originY)*z);
  if(scene.move==="pan"){panX+=mix(65,-65,travel);}
  if(scene.move==="track"&&target){const startX=target.d.x;panX-=mix(-28,28,travel)+(target.x-(540+startX*86))*.22;}
  if(scene.move==="descend"||scene.move==="crane")panY+=mix(-90,25,travel);

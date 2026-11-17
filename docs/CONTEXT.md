@@ -1,3 +1,9 @@
+### 2026-11-17 — Make the Great Zimbabwe 2D opening use its actual world
+- Fixed a mismatch in the storyboard renderer: scenes carrying the `great-zimbabwe` world label were still receiving a generic backdrop selected by scene index, ignoring the scene's world identity.
+- Added a dedicated 9:16 illustrated Great Zimbabwe establishing environment with layered dawn sky, southern-African escarpments and kopjes, a dry-stone enclosure and conical tower, outer homesteads, acacia framing, antelope, birds, a processional path and foreground grasses. Wind and bird motion are deterministic from the Remotion frame.
+- The scene now selects this environment from its explicit world label; unrelated stories retain the existing fallback until their own story-specific environment passes are authored. This is a focused first-world correction, not a claim that universal environment coverage is complete.
+- Extended native-resolution proof sampling to include frames 0, 15 and 30 so the first second is explicitly inspected. Strict TypeScript, native stills and a complete MP4 render remain required before visual acceptance.
+
 ### 2026-11-17 — Stop cancelling the narrated 2D render during active work
 - The first illustrated-2D run successfully prepared narration and rendered all eight frame shards, but its join/assembly job was cancelled before producing the MP4. The run used branch concurrency with `cancel-in-progress: true`; a subsequent push could cancel a healthy in-flight render while its assembly was still running.
 - Changed the 2D workflow concurrency policy to queue newer runs rather than cancel the active production render. This protects the expensive completed shard artifacts and allows assembly/publication to finish. A newer run may wait until the current one completes.

@@ -39,7 +39,7 @@ jobs:
         working-directory: remotion
         run: |
           mkdir -p out
-          for frame in 60 240 570 780 1000 1225 1530; do
+          for frame in 0 15 30 60 240 570 780 1000 1225 1530; do
             npx remotion still src/index.ts StoryShort2D "out/story2d-f${frame}.jpg" \
               --frame="${frame}" --scale=1 --gl=swangle --image-format=jpeg \
               --jpeg-quality=94 --props=./public/prep/story2d-props.json --timeout=300000 --log=warn

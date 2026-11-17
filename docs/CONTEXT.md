@@ -63,3 +63,5 @@ Render stills with the props-test workflow (build a board in `remotion/story_pro
 - 2026-11-16 03:5x — 3D stickman (`rig3d.ts`) with expressive canvas faces, emotion body acting, flat shading (owner rejected: wants original cards).
 - 2026-11-15 22–23 — Kenney 3D characters (rejected), Kenney vehicles/animals/ships/coins/tools/skyscrapers, texture embedding in GLBs, animated Horse.glb, city location (skyscrapers, traffic, lights), crop riders at seat.
 - 2026-11-15 earlier — realm/world architecture, interiors, shop fronts, action layer, establishing camera, fly scenes, Liam voice default.
+
+- 2026-11-17 — Claude: added OpenCode (open-source coding agent) as a third agent via `.github/workflows/opencode.yml`: owner/collaborator comments `/oc <task>` or `/opencode <task>` on an issue or PR make it work on the repo using the GEMINI_API_KEY secret (model google/gemini-3.5-flash, change in the workflow if needed) and push/PR via the workflow GITHUB_TOKEN. Added `AGENTS.md` so every agent reads this file first. Untested until the first `/oc` comment.

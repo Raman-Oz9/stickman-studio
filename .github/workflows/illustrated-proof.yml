@@ -3,7 +3,6 @@ on:
   push:
     branches: [reference-style-pass-01]
     paths:
-      - ".github/workflows/illustrated-proof.yml"
       - "remotion/src/videos/story/IllustratedProof.tsx"
       - "remotion/src/videos/story/Story2D.tsx"
       - "remotion/src/videos/story/InkStickman.tsx"

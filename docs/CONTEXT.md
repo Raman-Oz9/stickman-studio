@@ -1,3 +1,7 @@
+### 2026-11-17 — Stop the proof workflow from retriggering itself
+- Removed the proof workflow file from its own push-path filter. Workflow-only edits remain manually dispatchable, while source changes still trigger the proof. This prevents an edit to the workflow definition from launching a redundant render alongside an already-running proof.
+- Two proof runs (#44046351691 and #44046514488) were already started by the two preceding commits before the self-trigger was removed. They are still-only QA runs; no narrated MP4 render was triggered.
+
 ### 2026-11-17 — Prevent duplicate legacy world-proof runs
 - The former “3D world renderer integration proof” still listened to pushes, but Root.tsx now maps StoryShort to StoryShort2D. It therefore rendered the same 2D composition a second time alongside the dedicated 2D proof workflow. Made the legacy world-proof workflow manual-only to avoid duplicate concurrent CI work while retaining an optional diagnostic entry point.
 - Renamed the proof artifact upload step to reflect its actual contents: native-resolution stills only. The current 2D proof run #44046351691 has passed strict TypeScript and is rendering the requested stills; visual inspection is pending.

@@ -263,7 +263,7 @@ export const Stickman: React.FC<StickmanProps> = ({
         <path d={`M 0 ${SHOULDER_Y - 4} L 0 -440`} stroke={INK} strokeWidth="44" />
         <path d={`M 0 ${SHOULDER_Y - 4} L 0 -440`} stroke={skin} strokeWidth="30" />
         <path d={`M -18 ${SHOULDER_Y - 20} Q 0 ${SHOULDER_Y + 2} 18 ${SHOULDER_Y - 20}`} fill="none" stroke={shadeColor(skin, .68)} strokeWidth="5" opacity=".8" />
-        <g transform={`translate(0 ${breathe * 0.6}) rotate(${look * 4 + tilt}) translate(0 -486) scale(${body.head}) translate(0 486)`}>
+        <g transform={`translate(0 ${breathe * 0.6}) translate(0 -440) rotate(${look * 4 + tilt}) translate(0 440) translate(0 -486) scale(${body.head}) translate(0 486)`}>
           <ellipse cx="-64" cy="-480" rx="13" ry="18" fill={skin} stroke={INK} strokeWidth="7" />
           <ellipse cx="64" cy="-480" rx="13" ry="18" fill={skin} stroke={INK} strokeWidth="7" />
           <path d={headPath} fill={skin} stroke={INK} strokeWidth="10" strokeLinejoin="round" />

@@ -16,10 +16,10 @@ export const camera2D=({scene,people,u}:Input)=>{
  let from=base,to=base;
  if(scene.move==="push"){from=Math.min(base,.94);to=Math.min(1.55,Math.max(base,from*1.22));}
  else if(scene.move==="pull"){from=Math.min(1.55,Math.max(base,base*1.22));to=base;}
- else if(scene.move==="reveal"){from=1.02;to=1.14;}
+ else if(scene.move==="reveal"){from=.92;to=1.32;}
  else if(scene.move==="descend"||scene.move==="crane"){from=.88;to=base;}
  else if(scene.move==="track"){from=base*.98;to=base*1.04;}
- const travel=smooth(u),z=mix(from,to,travel);
+ const travel=smooth(scene.move==="reveal"?Math.min(1,u*3):u),z=mix(from,to,travel);
  // Subject-led reframing: face, upper body or full figure depending on the declared shot.
  const anchorY=shot==="close"?930:shot==="medium"?1080:shot==="high"?1180:shot==="low"?1050:shot==="over"?1120:1260;
  const originY=1920*.58;

@@ -80,6 +80,19 @@ export const GreatZimbabweBackdrop: React.FC<Props> = ({ frame, variant = 0 }) =
         <g transform="translate(850 1415) scale(.48)"><path d="M0 0Q25-25 60-8L78 5 64 16 20 13Z"/><path d="M58-10L70-42 78-40 77-10Z"/><path d="M72-38L64-63M78-38L88-61" fill="none" strokeWidth="4"/><path d="M18 12L14 48M42 12L48 47M62 12L66 47" fill="none" strokeWidth="6"/></g>
       </g>
       <g transform={`translate(${(birds%1500)-200} 560)`} fill="none" stroke="#3f4140" strokeWidth="7" strokeLinecap="round"><path d="M0 0q24-24 48 0 24-24 48 0"/><path d="M110 36q18-18 36 0 18-18 36 0" opacity=".75"/></g>
+      {/* A foreground elephant gives the savanna immediate life and scale. Its trunk sways gently in the dawn breeze. */}
+      <g transform={`translate(855 1435) scale(.92) rotate(${Math.sin(frame/17)*2.2})`} fill="#555044" stroke="#39352e" strokeWidth="13" strokeLinejoin="round" strokeLinecap="round">
+        <ellipse cx="0" cy="0" rx="145" ry="92"/>
+        <path d="M-105-48Q-180-112-220-40Q-245 12-188 72L-145 50Q-165 5-132-4Z"/>
+        <path d="M-125-45Q-145-102-100-119Q-55-118-58-58Z" fill="#706858"/>
+        <path d="M95-45Q155-82 184-25Q198 30 152 54L122 28Q148-8 116-13Z"/>
+        <path d={`M122 8Q205 36 182 118Q170 170 210 183Q245 184 240 150`} fill="none" strokeWidth="30"/>
+        <path d="M-92 48L-100 158Q-103 176-78 176L-45 176Q-28 174-34 153L-30 60Z"/>
+        <path d="M30 65L32 160Q30 180 55 180L88 180Q105 178 95 154L100 48Z"/>
+        <path d="M-188 32Q-228 55-224 91Q-210 108-193 84" fill="#f2dfb8" strokeWidth="7"/>
+        <path d="M-178 39Q-160 66-179 85" fill="none" stroke="#e9d9b8" strokeWidth="8"/>
+        <circle cx="-185" cy="-14" r="7" fill="#211e1b" stroke="none"/>
+      </g>
       {/* Worn ochre processional path leads the eye from the viewer toward the city gate. */}
       <path d="M350 1920Q410 1670 470 1480Q510 1380 545 1320L630 1320Q585 1435 590 1510Q630 1730 720 1920Z" fill="#d8b574" opacity=".88"/>
       <path d="M430 1920Q470 1700 525 1510" fill="none" stroke="#f5d89e" strokeWidth="8" opacity=".6"/>

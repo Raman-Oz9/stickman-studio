@@ -1,3 +1,9 @@
+### 2026-11-17 — Strengthen the first-second composition after native-frame review
+- Native inspection of the successful MP4 exposed an exposed cream strip at frame-left: the camera transform was moving/scaling the entire environment beyond the canvas. Added a full-frame, untransformed Great Zimbabwe environment underlay so the phone frame stays filled during camera movement.
+- Increased the opening guide's on-screen scale and made the reveal move reach its main push within the first second rather than easing almost imperceptibly across the entire four-second scene.
+- Added a large, restrained foreground elephant silhouette with subtle trunk sway to give the savanna an immediate living-world focal element and stronger depth/scale contrast. This is a focused opening-scene hook improvement, not a claim that every scene is finished.
+- Require fresh native frames at 0, 15 and 30 plus full MP4 inspection before visual acceptance.
+
 ### 2026-11-17 — Ensure visual component edits trigger proof and production renders
 - Added the dedicated stickman, story-specific backdrop and 2D camera source files to both workflow path filters. Previously, edits to these imported components could change the rendered result without automatically triggering the proof or narrated production workflow.
 - This closes a CI blind spot so character, environment and camera changes receive the same TypeScript, native-frame and MP4 verification.

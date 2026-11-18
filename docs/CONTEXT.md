@@ -1,3 +1,6 @@
+### 2026-11-18 — Create Caption2D.tsx word-synced caption component
+- Created remotion/src/videos/story/Caption2D.tsx: word-synced caption component displaying 1-3 words at a time in bold white with a thick black outline in the lower-middle area, highlighting the active word in gold. Pure React with zero dependencies. Verified clean TypeScript compilation.
+
 ### 2026-11-18 — Enrich the ocean-floor foreground
 - The underwater still showed an overly empty green-tinted seabed with distant-only reef detail and generic parallax specks.
 - Added a muted seabed material, larger foreground coral fans around the cast and removed the generic ground specks from the ocean-floor preset.

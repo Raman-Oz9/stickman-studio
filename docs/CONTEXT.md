@@ -1,3 +1,8 @@
+### 2026-11-18 — Port reusable village palette and prop art into the 3D pipeline
+- Ported the vivid blue-sky / golden-earth / near-black ink palette from the legacy illustrated pass into the shared 3D world palette in `worldgen.ts`.
+- Ported the reusable chicken-village coop and chalkboard prop concepts into procedural Three.js models in `props3d.ts`, with aliases and default heights. Existing chicken, egg and fire models remain available.
+- The flat 2D village backdrops and inline Story2D prop renderer are not carried into production. Legacy PRs #4, #5 and #6 are superseded by the StoryHybrid/3D work; reusable pieces are consolidated here.
+
 ### 2026-11-18 — Add signature details to deep-space and underwater sets
 - Underwater preset now includes a broken shipwreck frame, hydrothermal vent with animated plume, anglerfish lure light and deterministic rising bubbles alongside the reef, fish and light shafts.
 - Deep-space preset now includes soft layered nebula volumes behind the ringed planet, orbital station, black hole and asteroid belt.

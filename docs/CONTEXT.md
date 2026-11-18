@@ -1,3 +1,8 @@
+### 2026-11-18 — Refine StoryHybrid caption treatment
+- Kept the established white lettering with a heavy ink outline and lower-safe-area placement, while making caption typography respond to scene era: a restrained serif treatment for historical eras and the bold sans treatment for modern/futuristic scenes.
+- Night/space scenes receive a cool restrained glow; all captions now have a subtle translucent backing for contrast, with slightly tighter sizing for longer words.
+- Caption work is limited to the StoryHybrid overlay; character projection and rig code are unchanged. Visual acceptance still depends on native-resolution still review, especially hand/face clearance.
+
 ### 2026-11-18 — Expand 3D era architecture presets
 - Extended the procedural 3D settlement vocabulary with dedicated Viking longhouse/longship dressing, Renaissance palazzo and dome, Victorian terraces and street lamps, 1920s stepped skyline, WWII defensive emplacement, near-future towers/elevated transit, space-age landing pad/habitats, Egyptian pyramidal/obelisk forms, and Roman/Greek civic architecture.
 - Era additions stay inside the established six-colour world palette and are built in the shared `worldgen.ts` 3D environment layer; no flat backdrop or character files were touched.

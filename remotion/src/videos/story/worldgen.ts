@@ -104,7 +104,7 @@ const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
     if(p.terrain!=="ocean")poly(g,[[-90,-.05,0],[-90,-.05,-14],[90,-.05,-14],[90,-.05,0]],P.earth);
   } else if(p.terrain==="canyon"){
     // Tall opposing stratified walls define a real gorge around the river corridor.
-    box(g,190,.5,170,P.canyon,0,-.25,-42);
+    box(g,190,.6,170,P.canyon,0,-.20,-42);
     for(const side of [-1,1]){
       for(let i=0;i<7;i++){
         const z=25-i*18,h=29+hash(i,71)*15,x=side*(29+hash(i,72)*1.8);
@@ -131,7 +131,7 @@ const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
     for(let i=1;i<riverPath.length;i++)riverShape.lineTo(riverPath[i][0],riverPath[i][1]);
     riverShape.closePath();
     const river=new THREE.Mesh(new THREE.ShapeGeometry(riverShape,1),mat(P.sky));
-    river.rotation.x=-Math.PI/2;river.position.y=.04;river.receiveShadow=true;g.add(river);
+    river.rotation.x=-Math.PI/2;river.position.y=.08;river.receiveShadow=true;g.add(river);
     // Small angular talus rocks add scale without obscuring the canyon walls.
     for(let i=0;i<10;i++){
       const side=i%2?1:-1,x=side*(17+hash(i,81)*4),z=18-Math.floor(i/2)*13,r=1.4+hash(i,82)*1.5;

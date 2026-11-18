@@ -4,7 +4,7 @@ import * as THREE from "three";
 
 export type TerrainType = "forest"|"jungle"|"ocean"|"ocean-floor"|"mountain"|"canyon"|"desert"|"ice"|"plain"|"river"|"coast"|"swamp"|"cave"|"savanna";
 export type WeatherType = "clear"|"rain"|"snow"|"fog"|"storm"|"drought"|"wind";
-export type EraType = "stone-age"|"ancient"|"classical"|"medieval"|"early-modern"|"industrial"|"modern"|"viking"|"renaissance"|"victorian"|"1920s"|"ww2"|"near-future"|"space-age"|"egyptian"|"roman"|"greek";
+export type EraType = "stone-age"|"ancient"|"classical"|"medieval"|"early-modern"|"industrial"|"modern"|"viking"|"renaissance"|"victorian"|"1920s"|"ww2"|"near-future"|"space-age"|"space"|"egyptian"|"egypt"|"roman"|"greek"|"china"|"india"|"wild-west"|"pirate"|"ww1";
 export type RegionType = "european"|"african"|"east-asian"|"south-asian"|"middle-eastern"|"mesoamerican";
 export type ArtifactType = "pottery"|"coin"|"tool"|"weapon"|"tablet"|"scroll"|"jewellery"|"bone"|"ruins"|"excavation";
 export type WorldParams = {
@@ -264,12 +264,12 @@ const settlement=(g:THREE.Group,p:WorldParams,t:number)=>{
     box(g,12,2,5,P.shade,0,5,-28);
     for(let i=0;i<18;i++){const side=i%2?1:-1,x=side*(8+(i%5)*2.5),z=4+Math.floor(i/5)*2;const bag=ball(g,.85,P.earth,x,.65,z,1.6,.55,.75);bag.rotation.y=side*.3;}
     for(let i=0;i<7;i++)box(g,1.2,1.2,1.2,P.shade,-18+i*6,.6,13+(i%2)*1.2,.35);
-  } else if(era==="space-age"){
+  } else if(era==="space-age"||era==="space"){
     // Landing apron, habitat domes and a communications mast.
     cylinder(g,22,.45,P.stone,0,.22,-32,48);cylinder(g,17,.08,P.sky,0,.5,-32,48);
     for(let i=0;i<3;i++){const x=-24+i*24;ball(g,6,P.earth,x,4,-45,1.4,.8,1.1);box(g,8,.35,1,P.stone,x,1,-45);}
     cylinder(g,.3,15,P.shade,30,7.5,-28,8);for(let i=0;i<4;i++)box(g,4,.22,.22,P.accent,30,12+i*.7,-28);
-  } else if(era==="egyptian"){
+  } else if(era==="egyptian"||era==="egypt"){
     // Nile-side temple axis, obelisks and broad pyramidal silhouettes.
     for(const x of [-24,24]){
       poly(g,[[x-12,0,-42],[x,20,-42],[x+12,0,-42]],P.earth);
@@ -282,6 +282,39 @@ const settlement=(g:THREE.Group,p:WorldParams,t:number)=>{
     box(g,36,.8,2,P.stone,0,7.8,-22);
     poly(g,[[-18,8.2,-23],[0,13,-23],[18,8.2,-23]],P.earth);
     for(let i=0;i<5;i++)box(g,26-i*3,.45,2,P.stone,0,.3+i*.5,-48-i*1.4);
+  } else if(era==="china"){
+    // Great Wall ridge segment and a layered pagoda roof silhouette.
+    for(let i=0;i<9;i++){const x=-38+i*9;box(g,8,3.8,2.2,P.stone,x,1.9,-38);box(g,1.2,1.1,2.6,P.earth,x,4.35,-38);}
+    for(let level=0;level<4;level++){
+      const y=2+level*3.1,w=13-level*2.1;
+      box(g,w,1.1,w*.72,P.earth,0,y,-20);
+      poly(g,[[-w*.72,y+.55,-20-w*.5],[0,y+2.4,-20-w*.5],[w*.72,y+.55,-20-w*.5]],P.shade);
+    }
+    cylinder(g,.22,4,P.accent,0,14,-20,8);
+  } else if(era==="india"){
+    // Temple mandapa with a stepped shikhara and a broad ceremonial stair.
+    box(g,28,5,20,P.earth,0,2.5,-32);
+    for(let level=0;level<7;level++)box(g,18-level*2.1,1.25,15-level*1.7,P.stone,0,5.6+level*1.25,-32);
+    cylinder(g,2.2,2.5,P.accent,0,14.8,-32,12);
+    for(let i=0;i<7;i++)box(g,2.4,.5,2,P.earth,-7.2+i*2.4,.25,-15-i*.8);
+  } else if(era==="wild-west"){
+    // Frontier main street with timber false-front saloon, porch and hitching rails.
+    box(g,22,8,12,P.earth,0,4,-32);box(g,24,3,1.2,P.stone,0,9.5,-25.8);
+    for(const x of [-8,8]){box(g,.45,3,.45,P.shade,x,1.5,-24);box(g,1,.25,4,P.stone,x,2.9,-24);}
+    for(let i=0;i<5;i++)box(g,2.8,.18,.2,P.shade,-24+i*12,.9,8);
+    for(const x of [-22,22]){cylinder(g,.16,2.4,P.shade,x,1.2,8,8);box(g,3,.14,.16,P.earth,x,2.2,8);}
+  } else if(era==="pirate"){
+    // Harbour fort, timber quay, crane and ship rigging silhouettes.
+    box(g,78,.55,18,P.earth,0,.25,5);
+    for(const x of [-30,30]){box(g,12,9,12,P.stone,x,4.5,-35);box(g,14,.5,14,P.earth,x,9.2,-35);}
+    box(g,1,14,1,P.shade,-5,7,0);box(g,.3,10,.3,P.shade,-5,17,0);
+    poly(g,[[-5,15,0],[8,12,0],[8,4,0],[-5,4,0]],P.sand);
+    for(let i=0;i<8;i++)cylinder(g,.18,3,P.shade,-34+i*9,1.5,8,8);
+  } else if(era==="ww1"){
+    // First World War trench line: earth parapets, duckboards and timber revetments.
+    for(let i=0;i<8;i++){const x=-42+i*12;box(g,10,2.8,3,P.earth,x,1.4,-24+(i%2)*2);box(g,8,.18,2,P.shade,x,.12,-14+(i%2)*2);}
+    for(let i=0;i<16;i++){const x=-30+(i%8)*8,z=3+Math.floor(i/8)*3;const bag=ball(g,.78,P.sand,x,.6,z,1.7,.5,.75);bag.rotation.y=(i%3)*.15;}
+  }
   }
   // Region flavour is layered on the era rather than replacing it.
   if(region==="east-asian"){

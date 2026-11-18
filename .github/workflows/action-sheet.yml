@@ -1,7 +1,7 @@
 name: action sheet proof
 on:
   push:
-    branches: [claude/actions, claude/hybrid, claude/ward]
+    branches: [claude/actions, claude/hybrid, claude/ward, claude/turn]
   workflow_dispatch:
 permissions:
   contents: write
@@ -28,6 +28,11 @@ jobs:
           for f in 0 1 2 3 4; do
             npx remotion still src/index.ts ActionSheet "out/actions-$f.jpg" --frame=$f --scale=1 --gl=swangle --image-format=jpeg --jpeg-quality=92 --timeout=300000 --log=warn || true
           done
+      - name: Render turnaround sheet
+        working-directory: remotion
+        run: |
+          mkdir -p out
+          npx remotion still src/index.ts TurnSheet out/turn.jpg --frame=0 --scale=1 --gl=swangle --image-format=jpeg --jpeg-quality=92 --timeout=300000 --log=warn || true
       - name: Render wardrobe sheets
         working-directory: remotion
         run: |

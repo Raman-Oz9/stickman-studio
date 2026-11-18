@@ -11,14 +11,6 @@ const HIP_Y = -204, SH_Y = -336, SH_X = 40, HEAD_Y = -444, HEAD_R = 64;
 const UPPER = 84, FORE = 82, THIGH = 102, SHIN = 100;
 const mix = (a: number, b: number, t: number) => a + (b - a) * t;
 
-function ik(s: Vec, t: Vec, l1: number, l2: number, bend: 1 | -1): { joint: Vec; end: Vec } {
-  const dx = t[0] - s[0], dy = t[1] - s[1];
-  const dist = Math.max(10, Math.min(Math.hypot(dx, dy), l1 + l2 - 0.5));
-  const base = Math.atan2(dy, dx);
-  const a = Math.acos(Math.max(-1, Math.min(1, (l1 * l1 + dist * dist - l2 * l2) / (2 * l1 * dist)))) * bend;
-  return { joint: [s[0] + Math.cos(base + a) * l1, s[1] + Math.sin(base + a) * l1], end: [s[0] + Math.cos(base) * dist, s[1] + Math.sin(base) * dist] };
-}
-
 const Limb: React.FC<{ a: Vec; b: Vec; c: Vec; w: number; color: string }> = ({ a, b, c, w, color }) => {
   const d = `M ${a[0]} ${a[1]} L ${b[0]} ${b[1]} L ${c[0]} ${c[1]}`;
   return (
@@ -41,10 +33,6 @@ const Mitten: React.FC<{ at: Vec; dir: number; grip?: boolean }> = ({ at, dir, g
       </>
     ) : <ellipse cx="6" cy="-13" rx="8" ry="6" fill="#fbf7ef" transform="rotate(-25 6 -13)" />}
   </g>
-);
-
-const Shoe: React.FC<{ at: Vec; color?: string }> = ({ at, color = "#fbf7ef" }) => (
-  <path d={`M ${at[0] - 20} ${at[1] - 12} L ${at[0] + 8} ${at[1] - 12} Q ${at[0] + 44} ${at[1] - 10} ${at[0] + 46} ${at[1] + 6} L ${at[0] + 46} ${at[1] + 12} L ${at[0] - 20} ${at[1] + 12} Z`} fill={color} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
 );
 
 const Face: React.FC<{ expression: Expression; blink: boolean; look: number; lookY: number }> = ({ expression, blink, look, lookY }) => {
@@ -106,7 +94,7 @@ export type InkStickmanProps = {
   expression?: Expression; frame?: number; look?: number; gaze?: Vec | null; lean?: number;
   build?: "lean" | "stocky"; seed?: number;
   footFront?: Vec | null; footBack?: Vec | null; hipDrop?: number; hipX?: number; rot?: number; headTilt?: number; open?: number;
-  style?: InkStyle; held?: React.ReactNode; heldAng?: number; seat?: boolean; extra?: React.ReactNode;
+  yaw?: number; style?: InkStyle; held?: React.ReactNode; heldAng?: number; seat?: boolean; extra?: React.ReactNode;
 };
 
 const shade = (hex: string, k: number) => {
@@ -115,11 +103,31 @@ const shade = (hex: string, k: number) => {
   return `#${c((n >> 16) & 255)}${c((n >> 8) & 255)}${c(n & 255)}`;
 };
 
+type V3 = [number, number, number];
+const cl = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const sub = (a: V3, b: V3): V3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+const add = (a: V3, b: V3): V3 => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+const mul = (a: V3, k: number): V3 => [a[0] * k, a[1] * k, a[2] * k];
+const dot = (a: V3, b: V3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const len3 = (a: V3) => Math.hypot(a[0], a[1], a[2]);
+const nrm = (a: V3): V3 => { const l = len3(a) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
+// two-bone IK in 3D; the elbow/knee is pushed toward the pole direction
+const ik3 = (R: V3, T: V3, l1: number, l2: number, P: V3): { j: V3; e: V3 } => {
+  const d0 = sub(T, R), dist = Math.max(8, Math.min(len3(d0), l1 + l2 - 0.5)), u = nrm(d0);
+  const a = (l1 * l1 - l2 * l2 + dist * dist) / (2 * dist), h = Math.sqrt(Math.max(0, l1 * l1 - a * a));
+  let pv = sub(P, mul(u, dot(P, u))); if (len3(pv) < 1e-4) pv = [0, 0, 1]; pv = nrm(pv);
+  return { j: add(add(R, mul(u, a)), mul(pv, h)), e: add(R, mul(u, dist)) };
+};
+
+// Full-turn 2.5D rig: a real 3D skeleton (X right, Y up, Z = the way the body faces) rotated by `yaw` about the vertical axis and
+// projected, so arms hang from the shoulders at the sides, legs stand side by side in front view, and the whole figure can face
+// any direction relative to the camera (0 = facing camera, 90 = facing screen-right, 180 = back to camera, 270 = facing left).
 export const InkStickman: React.FC<InkStickmanProps> = ({
-  x, y, scale = 1, facing = 1, skin, cloth, hair: hairIn, walk = 0, stand = 1, frontHand = null, backHand = null,
+  x, y, scale = 1, facing = 1, yaw: yawIn, skin, cloth, hair: hairIn, walk = 0, stand = 1, frontHand = null, backHand = null,
   expression = "smile", frame = 0, look: lookIn = 0, gaze = null, lean = 0, build = "lean", grip = false,
-  footFront = null, footBack = null, hipDrop = 0, hipX = 0, rot = 0, headTilt = 0, open = 0, held = null, heldAng = 0, style: st, seat = false, extra = null,
+  footFront = null, footBack = null, hipDrop = 0, hipX = 0, rot = 0, headTilt = 0, held = null, heldAng = 0, style: st, seat = false, extra = null,
 }) => {
+  const th = (((yawIn ?? facing * 80) % 360) * Math.PI) / 180, cs = Math.cos(th), sn = Math.sin(th);
   const hair = st && coversHair(st.hat) ? undefined : hairIn;
   const wide = build === "stocky" ? 1.14 : 1;
   const breathe = Math.sin(frame / 9) * 2;
@@ -129,59 +137,90 @@ export const InkStickman: React.FC<InkStickmanProps> = ({
   const jeans = "#3d5a86";
   if (st) { cloth = st.top; skin = skin || st.skin; }
   const botC = st?.bottom ?? jeans, legC = st ? (st.bareLegs ? skin : botC) : jeans, armC = st?.sleeves ? cloth : skin, shoeC = st ? st.shoes : "#fbf7ef";
+  const tw = 46 * wide, SHX = tw + 6, HIPX = 24, HIPY3 = -HIP_Y, SHY3 = -SH_Y;
+  const near = sn >= 0 ? -1 : 1;                           // the limb nearest the camera when the body turns sideways
+  const P = (v: V3): Vec => [v[0] * cs + v[2] * sn, -v[1]];
+  const D = (v: V3) => -v[0] * sn + v[2] * cs;
+  const HY = HIPY3 - hipDrop;
+  const lr = (lean * Math.PI) / 180;
+  const shY = HY + (SHY3 - HIPY3) * Math.cos(lr) + breathe * -1, shZ = hipX + (SHY3 - HIPY3) * Math.sin(lr);
+  const shoulder = (s: number): V3 => [s * SHX, shY, shZ];
+  const hip = (s: number): V3 => [s * HIPX, HY, hipX];
 
-  const footF: Vec = footFront ?? [mix(18 + swing * 46, 22, stand), -lift(walk)];
-  const footB: Vec = footBack ?? [mix(-18 - swing * 46, -20, stand), -lift(walk + 0.5)];
-  const HY = HIP_Y + hipDrop;
-  const legF = ik([10 + hipX, HY], footF, THIGH, SHIN, -1);
-  const legB = ik([-10 + hipX, HY], footB, THIGH, SHIN, -1);
-
-  const lr = (lean * Math.PI) / 180, lc = Math.cos(lr), ls = Math.sin(lr);
-  const shAt = (sx: number): Vec => { const dx = sx, dy = SH_Y + breathe - HIP_Y; return [dx * lc - dy * ls + hipX, HIP_Y + dx * ls + dy * lc + hipDrop]; };
-  const shF = shAt(SH_X * wide), shB = shAt(-SH_X * wide);
-  const armF = ik(shF, frontHand ?? [SH_X * wide + 10, SH_Y + 150], UPPER, FORE, 1);
-  const armB = ik(shB, backHand ?? [-SH_X * wide - 6, SH_Y + 152 + swing * 6 * (1 - stand)], UPPER, FORE, 1);
-  const ang = (a: { joint: Vec; end: Vec }) => (Math.atan2(a.end[1] - a.joint[1], a.end[0] - a.joint[0]) * 180) / Math.PI;
+  const hand3 = (v: Vec | null, s: number, hangZ: number): V3 => {
+    if (!v) return [s * (SHX + 12), shY - 156, hangZ];
+    const lx = v[0], Y = -v[1], f = cl(lx / 150), up = cl((Y - SHY3 - 20) / 60);
+    const lat = mix(mix(SHX + 14, 26, f), SHX + 6, up);
+    return [s * lat, Y, lx];
+  };
+  const foot3 = (v: Vec, s: number): V3 => [s * (HIPX + 2 - cl(Math.abs(v[0]) / 160) * 6), -v[1], v[0]];
+  const nearFootRaw = footFront ?? [mix(18 + swing * 46, 22, stand), -lift(walk)];
+  const farFootRaw = footBack ?? [mix(-18 - swing * 46, -20, stand), -lift(walk + 0.5)];
+  const fN = foot3(nearFootRaw, near), fF = foot3(farFootRaw, -near);
+  const legN = ik3(hip(near), fN, THIGH, SHIN, [0, 0.1, 1]), legF = ik3(hip(-near), fF, THIGH, SHIN, [0, 0.1, 1]);
+  const armPole = (s: number): V3 => [s * 0.5, -1, -0.25];
+  const hN = hand3(frontHand, near, swing * 34 * (1 - stand)), hF = hand3(backHand, -near, -swing * 34 * (1 - stand));
+  const armN = ik3(shoulder(near), hN, UPPER, FORE, armPole(near)), armF = ik3(shoulder(-near), hF, UPPER, FORE, armPole(-near));
+  const ang2 = (a: { j: V3; e: V3 }) => { const j = P(a.j), e = P(a.e); return (Math.atan2(e[1] - j[1], e[0] - j[0]) * 180) / Math.PI; };
 
   const gdx = gaze ? gaze[0] : 0, gdy = gaze ? gaze[1] - HEAD_Y : 0;
-  const look = gaze ? Math.max(-1, Math.min(1, gdx / 180)) : lookIn;
-  const lookY = gaze ? Math.max(-1, Math.min(1, gdy / 160)) : 0;
-  const headRot = look * 4 + lookY * 8 + headTilt;
-  const tw = 46 * wide;
+  const look = gaze ? cl(gdx / 180, -1, 1) * sn : lookIn;
+  const lookY = gaze ? cl(gdy / 160, -1, 1) : 0;
+  const headRot = look * 4 + lookY * 8 + headTilt * sn;
+  const sx = Math.sqrt(cs * cs + 0.36 * sn * sn), hs = Math.sqrt(cs * cs + 0.81 * sn * sn);
+  const front = cs > 0.05, back = cs < -0.2;
   const torso = `M ${-tw} ${SH_Y + 6} Q ${-tw - 6} ${SH_Y + 70} ${-tw + 2} ${HIP_Y + 4} L ${tw - 2} ${HIP_Y + 4} Q ${tw + 6} ${SH_Y + 70} ${tw} ${SH_Y + 6} Q 0 ${SH_Y - 12} ${-tw} ${SH_Y + 6} Z`;
+  const headPath = `M 0 ${HEAD_Y - 100} C 62 ${HEAD_Y - 100} 90 ${HEAD_Y - 50} 88 ${HEAD_Y + 10} C 86 ${HEAD_Y + 66} 48 ${HEAD_Y + 94} 0 ${HEAD_Y + 94} C -48 ${HEAD_Y + 94} -86 ${HEAD_Y + 66} -88 ${HEAD_Y + 10} C -90 ${HEAD_Y - 50} -62 ${HEAD_Y - 100} 0 ${HEAD_Y - 100} Z`;
+  const cx0 = hipX * sn, leanS = lean * sn;
+  const hairC = hair ?? st?.hair ?? "#2a1f1a";
+  const poseSgn = sn >= 0 ? 1 : -1;
+
+  const limb = (a: { j: V3; e: V3 }, s: number, isFront: boolean) => {
+    const R = P(shoulder(s)), J = P(a.j), E = P(a.e);
+    return <g key={"arm" + s}><Limb a={R} b={J} c={E} w={13} color={isFront ? armC : shade(armC, 0.92)} />
+      {isFront && held ? <g transform={`translate(${E[0]} ${E[1]}) scale(${poseSgn} 1) rotate(${heldAng})`}>{held}</g> : null}
+      <Mitten at={E} dir={ang2(a)} grip={isFront ? grip : false} /></g>;
+  };
+  const leg = (l: { j: V3; e: V3 }, s: number, color: string, shoe: string, key: string) => {
+    const R = P(hip(s)), J = P(l.j), E = P(l.e), a = Math.abs(sn), fw = P([0, 0, 1]);
+    return <g key={key}><Limb a={R} b={J} c={E} w={21} color={color} />
+      <ellipse cx={E[0] + fw[0] * 16} cy={E[1] + 4} rx={17 + 30 * a} ry={13} fill={shoe} stroke={INK} strokeWidth="5.5" /></g>;
+  };
+  const arms = [{ a: armN, s: near, f: true }, { a: armF, s: -near, f: false }].sort((p, q) => D(p.a.e) - D(q.a.e));
+  const legsOrder = D(legN.e) < D(legF.e) ? [[legN, near, 0.85], [legF, -near, 1]] as const : [[legF, -near, 0.85], [legN, near, 1]] as const;
+  const firstBehind = D(arms[0].a.e) < -8;
+  const bpBehind = cs > -0.3;
 
   return (
-    <g transform={`translate(${x} ${y}) scale(${scale * facing} ${scale}) rotate(${rot})`}>
+    <g transform={`translate(${x} ${y}) scale(${scale}) rotate(${rot})`}>
       <GarmentDefs />
-      <ellipse cx="0" cy="6" rx="82" ry="14" fill="#2b2128" opacity=".22" />
-      {seat ? <g stroke={INK} strokeWidth="6" strokeLinejoin="round" strokeLinecap="round"><path d={`M ${hipX - 70} ${HY + 14} H ${hipX + 40} V ${HY + 30} H ${hipX - 70} Z`} fill="#9a6a42" /><path d={`M ${hipX - 62} ${HY + 30} V 0 M ${hipX + 32} ${HY + 30} V 0 M ${hipX - 66} ${HY + 14} V ${HY - 150}`} fill="none" /></g> : null}
-      <Limb a={shB} b={armB.joint} c={armB.end} w={13} color={shade(armC, 0.9)} />
-      <Mitten at={armB.end} dir={ang(armB)} />
-      <Limb a={[-10 + hipX, HY]} b={legB.joint} c={legB.end} w={21} color={shade(legC, 0.85)} />
-      <Shoe at={legB.end} color={shade(shoeC, 0.9)} />
-      <g transform={`translate(${hipX} ${hipDrop}) rotate(${lean} 0 ${HIP_Y})`}>
-        {st ? <Backpack st={st} /> : null}
+      <ellipse cx={cx0} cy="6" rx={70 + 12 * Math.abs(sn)} ry="14" fill="#2b2128" opacity=".22" />
+      {seat ? <g stroke={INK} strokeWidth="6" strokeLinejoin="round" strokeLinecap="round"><rect x={cx0 - 52 - 14 * Math.abs(sn)} y={-HY + 14} width={104 + 28 * Math.abs(sn)} height="16" rx="5" fill="#9a6a42" /><path d={`M ${cx0 - 44} ${-HY + 30} V 0 M ${cx0 + 44} ${-HY + 30} V 0`} fill="none" />{Math.abs(cs) < 0.9 ? <path d={`M ${cx0 - 50 * poseSgn} ${-HY + 14} V ${-HY - 150}`} fill="none" /> : null}</g> : null}
+      {firstBehind ? limb(arms[0].a, arms[0].s, arms[0].f) : null}
+      {legsOrder.map(([l, s, k], i) => leg(l, s, shade(legC, k), shade(shoeC, k), "l" + i))}
+      {st && bpBehind ? <g transform={`translate(${-58 * sn} ${hipDrop})`}><Backpack st={st} /></g> : null}
+      <g transform={`translate(${cx0} ${hipDrop}) rotate(${leanS} 0 ${HIP_Y}) scale(${sx} 1)`}>
         <path d={torso} fill={cloth} stroke={INK} strokeWidth="6" strokeLinejoin="round" />
         {st ? <Shine d={torso} amt={st.shine} /> : null}
-        {st ? <TorsoExtras st={st} tw={tw} /> : null}
+        {st && !back ? <TorsoExtras st={st} tw={tw} /> : null}
         <path d={`M ${-tw + 4} ${HIP_Y - 6} Q 0 ${HIP_Y + 6} ${tw - 4} ${HIP_Y - 6}`} fill="none" stroke={shade(cloth, 0.7)} strokeWidth="5" />
-        <path d={`M -18 ${SH_Y + 4} Q 0 ${SH_Y + 22} 18 ${SH_Y + 4}`} fill="none" stroke={shade(cloth, 0.7)} strokeWidth="5" />
-        <path d="M 0 -288 l 10 10 -10 10 -10 -10 Z" fill="#e3b15d" stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
-        <g transform={`translate(0 ${breathe * 0.5}) translate(0 ${SH_Y}) rotate(${headRot}) translate(0 ${-SH_Y})`}>
-          <ellipse cx="-84" cy={HEAD_Y + 6} rx="10" ry="15" fill={skin} stroke={INK} strokeWidth="5" />
-          <ellipse cx="84" cy={HEAD_Y + 6} rx="10" ry="15" fill={skin} stroke={INK} strokeWidth="5" />
-          <path d={`M 0 ${HEAD_Y - 100} C 62 ${HEAD_Y - 100} 90 ${HEAD_Y - 50} 88 ${HEAD_Y + 10} C 86 ${HEAD_Y + 66} 48 ${HEAD_Y + 94} 0 ${HEAD_Y + 94} C -48 ${HEAD_Y + 94} -86 ${HEAD_Y + 66} -88 ${HEAD_Y + 10} C -90 ${HEAD_Y - 50} -62 ${HEAD_Y - 100} 0 ${HEAD_Y - 100} Z`} fill={skin} stroke={INK} strokeWidth="7" strokeLinejoin="round" />
-          {hair ? <g transform={`translate(0 ${HEAD_Y}) scale(1.38 1.5) translate(0 430)`}><path d="M -63 -438 C -70 -472 -48 -500 -18 -500 C 2 -524 39 -512 51 -485 C 69 -477 70 -452 63 -438 Q 37 -455 19 -457 Q -2 -449 -17 -461 Q -36 -447 -63 -438 Z" fill={hair} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" /><path d="M -25 -483 Q 7 -509 42 -484 Q 14 -492 0 -469" fill="none" stroke="#fff3d5" strokeWidth="4" strokeLinecap="round" opacity=".28" /></g> : null}
-          <g transform={`translate(0 ${HEAD_Y}) scale(1.32) translate(0 ${-HEAD_Y})`}><Face expression={expression} blink={blink} look={look} lookY={lookY} /></g>
-          {st ? <HatLayer hat={st.hat} color={st.hatColor} accent={st.accent} /> : null}
+        {!back ? <path d={`M -18 ${SH_Y + 4} Q 0 ${SH_Y + 22} 18 ${SH_Y + 4}`} fill="none" stroke={shade(cloth, 0.7)} strokeWidth="5" /> : <path d={`M 0 ${SH_Y + 6} V ${HIP_Y - 10}`} fill="none" stroke={shade(cloth, 0.75)} strokeWidth="4" />}
+        <g transform={`scale(${1 / sx} 1)`}>
+          <g transform={`translate(0 ${breathe * 0.5}) translate(0 ${SH_Y}) rotate(${headRot}) translate(0 ${-SH_Y}) scale(${hs} 1)`}>
+            <ellipse cx={-84 * Math.abs(cs)} cy={HEAD_Y + 6} rx="10" ry="15" fill={skin} stroke={INK} strokeWidth="5" />
+            <ellipse cx={84 * Math.abs(cs)} cy={HEAD_Y + 6} rx="10" ry="15" fill={skin} stroke={INK} strokeWidth="5" />
+            <path d={headPath} fill={back ? hairC : skin} stroke={INK} strokeWidth="7" strokeLinejoin="round" />
+            {back ? <path d={`M -70 ${HEAD_Y + 40} Q 0 ${HEAD_Y + 70} 70 ${HEAD_Y + 40}`} fill="none" stroke={shade(hairC, 0.6)} strokeWidth="5" /> : null}
+            {hair && !back ? <g transform={`translate(0 ${HEAD_Y}) scale(1.38 1.5) translate(0 430)`}><path d="M -63 -438 C -70 -472 -48 -500 -18 -500 C 2 -524 39 -512 51 -485 C 69 -477 70 -452 63 -438 Q 37 -455 19 -457 Q -2 -449 -17 -461 Q -36 -447 -63 -438 Z" fill={hair} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" /><path d="M -25 -483 Q 7 -509 42 -484 Q 14 -492 0 -469" fill="none" stroke="#fff3d5" strokeWidth="4" strokeLinecap="round" opacity=".28" /></g> : null}
+            {!back ? <g transform={`translate(${sn * 44} 0) translate(0 ${HEAD_Y}) scale(${Math.max(0.34, cs) * 1.32} 1.32) translate(0 ${-HEAD_Y})`}><Face expression={expression} blink={blink} look={look} lookY={lookY} /></g> : null}
+            {st ? <HatLayer hat={st.hat} color={st.hatColor} accent={st.accent} /> : null}
+          </g>
         </g>
       </g>
-      <Limb a={[10 + hipX, HY]} b={legF.joint} c={legF.end} w={21} color={legC} />
-      <Shoe at={legF.end} color={shoeC} />
-      {st ? <LowerGarment st={st} tw={tw} /> : null}
-      <Limb a={shF} b={armF.joint} c={armF.end} w={13} color={armC} />
-      {held ? <g transform={`translate(${armF.end[0]} ${armF.end[1]}) rotate(${heldAng})`}>{held}</g> : null}
-      <Mitten at={armF.end} dir={ang(armF)} grip={grip} />
+      {st && !bpBehind ? <g transform={`translate(0 ${hipDrop})`}><Backpack st={st} /></g> : null}
+      {st ? <g transform={`translate(${cx0} ${hipDrop}) scale(${sx} 1)`}><LowerGarment st={st} tw={tw} /></g> : null}
+      {!firstBehind ? limb(arms[0].a, arms[0].s, arms[0].f) : null}
+      {limb(arms[1].a, arms[1].s, arms[1].f)}
       {extra}
     </g>
   );

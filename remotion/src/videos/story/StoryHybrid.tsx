@@ -41,6 +41,7 @@ const Cast2D: React.FC<{ board: Board; f: number }> = ({ board, f }) => {
   cam.position.copy(c.pos); cam.up.set(0, 1, 0); cam.lookAt(c.look); cam.rotateZ(c.roll); cam.updateProjectionMatrix(); cam.updateMatrixWorld();
   const proj = (x: number, y: number, z: number) => { const v = new THREE.Vector3(x, y, z).project(cam); return { x: (v.x * 0.5 + 0.5) * 1080, y: (-v.y * 0.5 + 0.5) * 1920, behind: v.z > 1 }; };
 
+  const rq = new THREE.Vector3(1, 0, 0).applyQuaternion(cam.quaternion), rl = Math.hypot(rq.x, rq.z) || 1, rightXZ: [number, number] = [rq.x / rl, rq.z / rl];
   type Who = { d: CastDef; x: number; z: number; idx: number; extra: boolean; moving: boolean };
   const who: Who[] = s.cast.map((d, idx) => { const p = posOf(d, u); return { d, x: p.x, z: p.z, idx, extra: false, moving: p.moving }; });
   const F = focusOf(s);
@@ -60,11 +61,17 @@ const Cast2D: React.FC<{ board: Board; f: number }> = ({ board, f }) => {
     <svg viewBox="0 0 1080 1920" width="1080" height="1920" style={{ position: "absolute", inset: 0, overflow: "visible", pointerEvents: "none", filter: golden ? "sepia(.25) saturate(1.15) brightness(.97)" : "saturate(1.06) contrast(1.03)" }}>
       {placed.map((w) => {
         const o = outfitFor(w.d.role, w.idx, s.era);
-        const other = placed.find((q) => q !== w && !q.extra);
-        const toward = w.moving && w.d.to ? (proj(w.d.to.x, 0, w.d.to.z).x - w.g.x) : other ? other.g.x - w.g.x : 540 - w.g.x;
-        const facing = (toward >= 0 ? 1 : -1) as 1 | -1;
+        const hv = ((): [number, number] => {
+          if (w.d.to && w.moving) return [w.d.to.x - w.d.x, w.d.to.z - w.d.z];
+          const other = placed.filter((q) => q !== w && !q.extra).sort((a, b) => Math.hypot(a.x - w.x, a.z - w.z) - Math.hypot(b.x - w.x, b.z - w.z))[0];
+          if (other && Math.hypot(other.x - w.x, other.z - w.z) > 0.05) return [other.x - w.x, other.z - w.z];
+          return [NaN, NaN];
+        })();
+        const tcx = c.pos.x - w.x, tcz = c.pos.z - w.z, tl = Math.hypot(tcx, tcz) || 1, tc: [number, number] = [tcx / tl, tcz / tl];
+        let yaw = (w.idx % 2 ? -1 : 1) * 28;                       // idle: a natural three-quarter turn toward the lens
+        if (!Number.isNaN(hv[0])) { const hl = Math.hypot(hv[0], hv[1]) || 1, hx = hv[0] / hl, hz = hv[1] / hl; yaw = (Math.atan2(hx * rightXZ[0] + hz * rightXZ[1], hx * tc[0] + hz * tc[1]) * 180) / Math.PI; }
         const pf = w.extra ? { verb: w.moving ? "walk" : "talk", p: u, t, prop: null, holdProp: null } : castPerf(w.d, s, u, t);
-        return <Performer2D key={w.d.id + w.idx} x={w.g.x} y={w.g.y} scale={w.k} facing={facing} skin={o.skin ?? "#f6ead9"} cloth={o.dress ?? o.jacket} hair={o.hair} ink={inkStyleOf(w.d.role, w.idx, s.era, resolveRole(w.d.role, s.era))}
+        return <Performer2D key={w.d.id + w.idx} x={w.g.x} y={w.g.y} scale={w.k} yaw={yaw} skin={o.skin ?? "#f6ead9"} cloth={o.dress ?? o.jacket} hair={o.hair} ink={inkStyleOf(w.d.role, w.idx, s.era, resolveRole(w.d.role, s.era))}
           verb={pf.verb} p={pf.p} t={pf.t} phase={t * 1.15 + w.idx * 0.17} frame={f + w.idx * 13} prop={pf.prop} holdProp={pf.holdProp}
           expr={w.d.expr ? EXPR[w.d.expr] ?? null : null} build={w.idx % 2 ? "stocky" : "lean"} seed={w.idx * 17 + 7} />;
       })}

@@ -1,3 +1,8 @@
+### 2026-11-18 — Fix scene-grade uniform type mismatch
+- The new scene-aware grading in `world.ts` lerps Three.js vector uniforms; the first CI run exposed that its target values were incorrectly typed as `THREE.Color`.
+- Replaced those targets with normalized RGB `THREE.Vector3` values, preserving the intended warm/cool grade adjustments while matching the uniform types.
+- The initial strict TypeScript run failed on this issue; the updated branch is being rechecked. No visual pass is claimed yet.
+
 ### 2026-11-18 — Add `accessory` prop to InkStickman.tsx
 - Added `accessory` prop (`"none" | "glasses" | "monocle" | "crown" | "helmet" | "turban" | "headwrap" | "hat" | "beard" | "moustache"`) to `InkStickman.tsx`, drawing each accessory in clean ink outline style inside the head group and hiding facial accessories when `back` is true. Verified clean TypeScript compilation.
 ### 2026-11-18 — Add `hairStyle` prop to InkStickman.tsx

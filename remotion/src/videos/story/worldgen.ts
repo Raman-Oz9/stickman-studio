@@ -500,10 +500,170 @@ const cityWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
   }
 };
 
+const grandCanyonWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
+  box(g,260,0.5,260,"#a03a28",0,-0.25,-45);
+  box(g,16,0.35,220,"#4a88b8",0,-0.1,-20);
+  for(let i=0;i<7;i++){
+    const z=-10-i*18;
+    const h1=4+i*1.5;
+    const h2=8+i*2;
+    box(g,35,h1,14,i%2===0?"#b84a39":"#c86a4f",-55,h1/2,z);
+    box(g,35,h2,14,i%2!==0?"#9e3a24":"#d9825b",55,h2/2,z);
+    box(g,36,0.5,15,"#713220",-55,h1,z);
+    box(g,36,0.5,15,"#713220",55,h2,z);
+  }
+  for(let i=0;i<14;i++){
+    const x=(hash(i,100)-0.5)*80, z=-5-hash(i,101)*70;
+    if(Math.abs(x)<12) continue;
+    ball(g,0.6+hash(i,102)*0.8,"#8a5a4a",x,0.4,z,1.3,0.7,1.1);
+  }
+  for(let i=0;i<8;i++){
+    const x=(hash(i,103)-0.5)*70, z=-10-hash(i,104)*50;
+    if(Math.abs(x)<14) continue;
+    const h=2+hash(i,105)*1.5;
+    cylinder(g,0.22,h,"#4f9a52",x,h/2,z,6);
+  }
+};
+
+const coneMesh=(g:THREE.Group,r:number,h:number,c:string,x:number,y:number,z:number,seg=7)=>{const m=new THREE.Mesh(new THREE.ConeGeometry(r,h,seg),mat(c));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;g.add(m);return m;};
+const mountainsWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
+  box(g,260,0.5,260,"#6b7a5a",0,-0.25,-45);
+  for(let i=0;i<9;i++){
+    const x=-80+i*20, h=22+hash(i,110)*18, r=12+hash(i,111)*8;
+    poly(g,[[x-r,0,-50],[x,h,-50-r],[x+r,0,-50]],i%2===0?"#7b7f8e":"#646975");
+    poly(g,[[x-r*0.35,h*0.7,-50-r*0.35],[x,h,-50-r],[x+r*0.35,h*0.7,-50-r*0.35]],"#f4f7ff");
+  }
+  for(let i=0;i<35;i++){
+    const x=(hash(i,115)-0.5)*100, z=-4-hash(i,116)*60, s=0.8+hash(i,117)*0.6;
+    for(let j=0;j<3;j++){
+      coneMesh(g,1.3*s-j*0.3,1.8*s,"#2f7a46",x,(1.6+j*1.1)*s,z,7);
+    }
+    cylinder(g,0.14*s,1.3*s,"#5a3b1e",x,0.65*s,z,6);
+  }
+  for(let i=0;i<15;i++){
+    ball(g,0.8+hash(i,118)*0.9,"#8a8f9c",(hash(i,119)-0.5)*80,0.4,-6-hash(i,120)*50,1.4,0.8,1.2);
+  }
+};
+
+const volcanoWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
+  box(g,260,0.5,260,"#242220",0,-0.25,-45);
+  const vx=0, vz=-65, vr=28, vh=32;
+  const volcanoMesh=new THREE.Mesh(new THREE.ConeGeometry(vr,vh,9),mat("#332b28"));
+  volcanoMesh.position.set(vx,vh/2,vz);
+  volcanoMesh.castShadow=true; volcanoMesh.receiveShadow=true;
+  g.add(volcanoMesh);
+  ball(g,6,"#ff4500",vx,vh-0.5,vz,1,0.2,1);
+  for(let i=0;i<4;i++){
+    const angle=i*Math.PI/2;
+    box(g,2.5,vh*0.8,0.8,"#ff8c00",vx+Math.cos(angle)*(vr*0.5),vh*0.4,vz+Math.sin(angle)*(vr*0.5));
+  }
+  for(let i=0;i<20;i++){
+    ball(g,1+hash(i,130)*1.2,"#1a1918",(hash(i,131)-0.5)*90,0.5,-5-hash(i,132)*60,1.5,0.9,1.3);
+  }
+  for(let i=0;i<6;i++){
+    const puff=ball(g,1.5+hash(i,135)*0.8,P.shade,vx+(hash(i,136)-0.5)*4,vh+2+i*3,vz+(hash(i,137)-0.5)*4,1.2,1,1.2);
+    puff.userData.smokeParticle={phase:i*1.8,baseY:vh+2+i*3};
+  }
+};
+
+const glacierWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
+  box(g,260,0.5,260,"#eaf5ff",0,-0.25,-45);
+  for(let i=0;i<11;i++){
+    const x=-85+i*17, h=12+hash(i,140)*16;
+    box(g,18,h,14,i%2===0?"#bfe3ff":"#a9d6f5",x,h/2,-55);
+    box(g,19,0.6,15,"#d9f0ff",x,h,-55);
+  }
+  for(let i=0;i<15;i++){
+    const x=(hash(i,145)-0.5)*90, z=-6-hash(i,146)*55, h=3+hash(i,147)*5;
+    cylinder(g,1.2+hash(i,148)*1.5,h,"#8ab4f8",x,h/2,z,5);
+  }
+  for(let i=0;i<10;i++){
+    ball(g,1+hash(i,149),"#c9e2ff",(hash(i,150)-0.5)*70,0.4,-4-hash(i,151)*40,1.6,0.7,1.3);
+  }
+};
+
+const desertDunesWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
+  for(let i=0;i<30;i++){
+    const r=16+hash(i,160)*80, a=hash(i,161)*6.283, w=14+hash(i,162)*26;
+    const m=ball(g,1,i%3===0?"#e9c887":i%3===1?"#dcb774":"#c9a05b",Math.cos(a)*r,0,Math.sin(a)*r-15,w,2.5+hash(i,163)*4,w*0.7);
+    m.rotation.z=hash(i,164)*3;
+  }
+  for(let i=0;i<18;i++){
+    const x=(hash(i,165)-0.5)*70, z=-6-hash(i,166)*50, h=2+hash(i,167)*1.8;
+    cylinder(g,0.28,h,"#4f9a52",x,h/2,z,7);
+    cylinder(g,0.14,0.9,"#4f9a52",x+0.5,h*0.6,z,6);
+    cylinder(g,0.14,0.9,"#4f9a52",x-0.5,h*0.45,z,6);
+  }
+  for(let i=0;i<14;i++){
+    ball(g,0.6+hash(i,168)*0.8,"#b8996a",(hash(i,169)-0.5)*60,0.3,-4-hash(i,170)*40,1.3,0.6,1.2);
+  }
+};
+
+const jungleWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
+  box(g,260,0.5,260,"#3f8f3a",0,-0.25,-45);
+  for(let i=0;i<40;i++){
+    const x=(hash(i,180)-0.5)*90, z=-5-hash(i,181)*60, h=4+hash(i,182)*5;
+    cylinder(g,0.22,h,"#6b4a2a",x,h/2,z,8);
+    const canopy=ball(g,2.8,i%2===0?"#2f8a3a":"#3fa04a",x,h,z,1.5,0.8,1.5);
+    canopy.userData.sway={phase:hash(i,183)*6.28,amp:0.03};
+  }
+  for(let i=0;i<20;i++){
+    const x=(hash(i,185)-0.5)*70, z=-4-hash(i,186)*50;
+    ball(g,0.8+hash(i,187)*0.7,"#4a6b42",x,0.4,z,1.4,0.7,1.2);
+  }
+  for(let i=0;i<12;i++){
+    const x=(hash(i,188)-0.5)*60, z=-8-hash(i,189)*40;
+    cylinder(g,0.06,3.5,"#255c25",x,3,z,5);
+  }
+};
+
+const savannaWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
+  box(g,260,0.5,260,"#c9b86a",0,-0.25,-45);
+  for(let i=0;i<22;i++){
+    const x=(hash(i,190)-0.5)*90, z=-6-hash(i,191)*65;
+    cylinder(g,0.25,3.5,"#8a6a4a",x,1.75,z,8);
+    const canopy=ball(g,3.2,"#6f9a3a",x,3.6,z,2.2,0.4,2.2);
+    canopy.userData.sway={phase:hash(i,192)*6.28,amp:0.02};
+  }
+  for(let i=0;i<120;i++){
+    box(g,0.06,0.8+hash(i,195)*0.5,0.06,"#d9c65a",(hash(i,196)-0.5)*80,0.4,-2-hash(i,197)*55,(hash(i,198)-0.5)*0.4);
+  }
+  for(let i=0;i<12;i++){
+    ball(g,1.2+hash(i,199)*1.1,"#a89b82",(hash(i,200)-0.5)*70,0.5,-5-hash(i,201)*50,1.5,0.6,1.2);
+  }
+};
+
 export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
   const p: WorldParams={season:"summer",timeOfDay:"dawn",weather:"clear",era:"medieval",region:"african",...params};
-  const g=new THREE.Group();g.name=p.mapMode?"HistoricalMapWorld":p.kind==="ocean"?"DeepOceanWorld":p.kind==="rome"?"RomeWorld":p.kind==="greece"?"GreeceWorld":p.kind==="egypt"?"EgyptWorld":p.kind==="china"?"ChinaWorld":p.kind==="city"?"CityWorld":"ProceduralWorld";
-  if(p.mapMode){mapLayer(g,p,t);g.scale.set(.5,1,.72);}else if(p.kind==="ocean"){
+  const k = p.kind ?? "";
+  const isGrandCanyon = k === "grand-canyon" || k === "canyon" || k === "grandcanyon";
+  const isMountains = k === "mountain" || k === "mountains" || k === "snow-caps" || k === "alpine";
+  const isVolcano = k === "volcano";
+  const isGlacier = k === "glacier" || k === "arctic" || k === "ice" || k === "polar";
+  const isDesert = k === "desert" || k === "desert-dunes" || k === "dunes";
+  const isJungle = k === "jungle" || k === "rainforest";
+  const isSavanna = k === "savanna" || k === "plains";
+
+  const g=new THREE.Group();
+  g.name=p.mapMode?"HistoricalMapWorld"
+    : p.kind==="ocean"?"DeepOceanWorld"
+    : p.kind==="rome"?"RomeWorld"
+    : p.kind==="greece"?"GreeceWorld"
+    : p.kind==="egypt"?"EgyptWorld"
+    : p.kind==="china"?"ChinaWorld"
+    : p.kind==="city"?"CityWorld"
+    : isGrandCanyon?"GrandCanyonWorld"
+    : isMountains?"MountainsWorld"
+    : isVolcano?"VolcanoWorld"
+    : isGlacier?"GlacierWorld"
+    : isDesert?"DesertDunesWorld"
+    : isJungle?"JungleWorld"
+    : isSavanna?"SavannaWorld"
+    :"ProceduralWorld";
+
+  if(p.mapMode){
+    mapLayer(g,p,t);g.scale.set(.5,1,.72);
+  }else if(p.kind==="ocean"){
     oceanWorld(g,p,t);
   }else if(p.kind==="rome"){
     romeWorld(g,p,t);
@@ -515,6 +675,20 @@ export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
     chinaWorld(g,p,t);
   }else if(p.kind==="city"){
     cityWorld(g,p,t);
+  }else if(isGrandCanyon){
+    grandCanyonWorld(g,p,t);
+  }else if(isMountains){
+    mountainsWorld(g,p,t);
+  }else if(isVolcano){
+    volcanoWorld(g,p,t);
+  }else if(isGlacier){
+    glacierWorld(g,p,t);
+  }else if(isDesert){
+    desertDunesWorld(g,p,t);
+  }else if(isJungle){
+    jungleWorld(g,p,t);
+  }else if(isSavanna){
+    savannaWorld(g,p,t);
   }else{
     terrain(g,p,t);
     settlement(g,p,t);

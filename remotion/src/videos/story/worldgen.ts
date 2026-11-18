@@ -90,29 +90,34 @@ const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
     for(let i=0;i<46;i++){const x=(hash(i,4)-.5)*170,z=-5-hash(i,5)*105;const m=box(g,2+hash(i,6)*9,.035,.24,i%4===0?P.accent:P.sky,x,.19,z);m.userData.waveMark={phase:hash(i,7)*6.28,baseY:.19};}
     if(p.terrain!=="ocean")poly(g,[[-90,-.05,0],[-90,-.05,-14],[90,-.05,-14],[90,-.05,0]],P.earth);
   } else if(p.terrain==="canyon"){
-    // Grand-canyon scale walls: stepped, stratified mesas frame a winding river gorge.
-    box(g,190,.5,170,P.earth,0,-.25,-42);
+    // Tall opposing stratified walls define a real gorge around the river corridor.
+    box(g,190,.5,170,P.stone,0,-.25,-42);
     for(const side of [-1,1]){
-      for(let i=0;i<8;i++){
-        const x=side*(48+i*2.8),h=18+hash(i,side+30)*20,z=-42-hash(i,side+40)*34,w=14+hash(i,side+50)*9;
-        const cliff=poly(g,[[x-w,0,z+24],[x-w*.72,h*.72,z],[x,h,z-16],[x+w*.72,h*.72,z],[x+w,0,z+24]],i%2?P.stone:P.shade);
-        cliff.userData.canyonWall={side,index:i};
-        for(let layer=0;layer<4;layer++){
-          const yy=3+layer*3.7, inset=layer*.8;
-          box(g,w*1.45-inset,.42,1.1,layer%2?P.earth:P.stone,x,yy,z+12-layer*3);
+      for(let i=0;i<7;i++){
+        const z=25-i*18,h=29+hash(i,71)*15,x=side*(29+hash(i,72)*1.8);
+        const wall=box(g,3.2,h,22,i%3===0?P.shade:P.stone,x,h/2,z);
+        wall.userData.canyonWall={side,index:i};
+        // Exposed horizontal strata on the inward-facing wall surface.
+        const faceX=x-side*1.72;
+        for(let layer=0;layer<6;layer++){
+          const yy=4+layer*4.1+hash(i,layer+73)*.7;
+          box(g,1.1,.52,20,layer%3===0?P.earth:layer%2?P.reef:P.stone,faceX,yy,z);
         }
+        box(g,4,.9,22,i%2?P.earth:P.reef,x-side*.25,h+.35,z);
       }
     }
-    // Meandering river ribbon at the gorge floor, visible from elevated camera angles.
-    for(let i=0;i<18;i++){
-      const z=12-i*6,x=Math.sin(i*.34)*17;
-      const bend=box(g,13,.16,7,P.sky,x,.02,z);bend.rotation.y=Math.sin(i*.34)*.22;
+    // A distant closing escarpment gives the gorge depth instead of a flat horizon.
+    box(g,64,31,3,P.shade,0,15.5,-103);
+    for(let layer=0;layer<7;layer++)box(g,66,.55,1.2,layer%2?P.earth:P.reef,0,3+layer*4.1,-101.2);
+    // Meandering river ribbon, built from overlapping segments for a continuous readable channel.
+    for(let i=0;i<22;i++){
+      const z=23-i*6.8,x=Math.sin(i*.24)*8;
+      const bend=box(g,9,.16,8.2,P.sky,x,.03,z);bend.rotation.y=-Math.sin(i*.24)*.18;
     }
-    // Foreground hoodoos and rim rocks give the canyon a strong near-field scale cue.
-    for(let i=0;i<9;i++){
-      const x=-42+i*10.5,h=7+hash(i,61)*9;
-      cylinder(g,2.3,h*.55,P.earth,x,h*.275,-7,7);
-      ball(g,3.6,P.reef,x,h*.62,-7,1.35,.48,1.05);
+    // Small angular talus rocks add scale without obscuring the canyon walls.
+    for(let i=0;i<10;i++){
+      const side=i%2?1:-1,x=side*(17+hash(i,81)*4),z=18-Math.floor(i/2)*13,r=1.4+hash(i,82)*1.5;
+      const rock=ball(g,r,i%3?P.earth:P.reef,x,r*.45,z,1.5,.8,1.1);rock.rotation.y=hash(i,83)*Math.PI;
     }
   } else if(p.terrain==="city"){
     // A real street grid with sidewalks, marked lanes, junction crossings and street furniture.

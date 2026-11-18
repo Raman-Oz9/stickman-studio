@@ -106,6 +106,9 @@
 - Both: update this file on every change; never claim "works" without viewing rendered frames; never send the owner a video that has not been frame-checked.
 ## CHANGELOG
 
+### 2026-11-18 — Add deep-ocean world preset in worldgen.ts
+- Added deep-ocean world preset in `remotion/src/videos/story/worldgen.ts` exposed via `WorldParams world.kind="ocean"` (blue fog gradient, light shafts, drifting bubbles, seabed with coral/rock, fish schools, a shipwreck, a hydrothermal vent glow, and an anglerfish light). Verified clean TypeScript compilation.
+
 ### 2026-11-18 — Add 10 more action verbs to pose2d.ts
 - Added 10 more action verbs (`row`, `swim`, `fish`, `ride`, `stretch`, `sneeze`, `scratchHead`, `count`, `measure`, `spy`) to `VERBS` and `VERB_ALIASES` in `remotion/src/videos/story/pose2d.ts` with full-body articulated ink style poses. Verified clean TypeScript compilation.
 

@@ -11,6 +11,7 @@ export type WorldParams = {
   terrain: TerrainType; climate?: string; weather?: WeatherType; season?: "spring"|"summer"|"autumn"|"winter";
   timeOfDay?: "dawn"|"noon"|"dusk"|"night"; era?: EraType; region?: RegionType; mapMode?: boolean;
   seed?: number; accentBeat?: number; accentEnabled?: boolean; label?: string; artifact?: ArtifactType;
+  kind?: string;
 };
 const P = { earth:"#b99a6a", stone:"#71685c", shade:"#403c39", green:"#718b4c", sky:"#a9c7cf", accent:"#d2a34a" } as const;
 const MAP = { paper:"#e5d5ae", ink:"#554632", land:"#899967", water:"#86aeb8", line:"#66513a", accent:"#c18b3d" } as const;
@@ -235,10 +236,84 @@ export const drawArtifact=(type:ArtifactType,t=0):THREE.Group=>{
   return g;
 };
 
+const oceanWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
+  box(g,260,1,260,"#122030",0,-0.75,-45);
+  for(let i=0;i<24;i++){
+    const x=(hash(i,70)-.5)*140, z=-10-hash(i,71)*70, r=2+hash(i,72)*5;
+    const isCoral=i%3===0;
+    const col=isCoral?(i%2===0?"#e65c5c":"#9b5de5"):"#2c3540";
+    const rock=ball(g,r,col,x,r*0.3,z,1.3,0.6,1.2);
+    rock.rotation.z=hash(i,73)*0.2;
+    if(isCoral){
+      const branch=ball(g,r*0.5,"#f59e35",x+1,r*0.6,z,0.6,1.4,0.6);
+      branch.rotation.z=-0.3;
+      g.add(branch);
+    }
+  }
+  const wreckGroup=new THREE.Group();
+  wreckGroup.position.set(-22,0,-38);
+  box(wreckGroup,12,3.5,5,"#3b2416",0,1.7,0);
+  const mast=cylinder(wreckGroup,0.35,8,"#24160d",-2,4,0,6);
+  mast.rotation.z=0.4;
+  mast.rotation.x=0.2;
+  for(let k=0;k<5;k++){
+    box(wreckGroup,0.4,4,5.2,"#4a301f",-5+k*2.5,2,0,0.2);
+  }
+  g.add(wreckGroup);
+
+  const ventX=28, ventZ=-42;
+  cylinder(g,2.5,4,"#1a242f",ventX,2,ventZ,8);
+  const ventCore=new THREE.Mesh(new THREE.IcosahedronGeometry(1.2,0),new THREE.MeshBasicMaterial({color:"#00f0ff"}));
+  ventCore.position.set(ventX,4.2,ventZ);
+  ventCore.userData.ventGlow={phase:1.5};
+  g.add(ventCore);
+  for(let i=0;i<8;i++){
+    const pPart=new THREE.Mesh(new THREE.IcosahedronGeometry(0.4+hash(i,75)*0.3,0),new THREE.MeshBasicMaterial({color:"#00f0ff",transparent:true,opacity:0.4}));
+    pPart.position.set(ventX+(hash(i,76)-.5)*1.5,5+i*1.2,ventZ+(hash(i,77)-.5)*1.5);
+    pPart.userData.bubbleParticle={baseX:ventX+(hash(i,76)-.5)*1.5,baseY:5+i*1.2,baseZ:ventZ+(hash(i,77)-.5)*1.5,speed:2.5+hash(i,78),phase:i*0.8};
+    g.add(pPart);
+  }
+
+  const afX=-10, afY=3.2, afZ=-28;
+  ball(g,1.2,"#1c2229",afX,afY,afZ,1.4,1.1,1.6);
+  const lureRod=box(g,0.08,1.8,0.08,"#111822",afX-0.6,afY+1.2,afZ-0.5,0.5);
+  const lureBulb=new THREE.Mesh(new THREE.IcosahedronGeometry(0.35,0),new THREE.MeshBasicMaterial({color:"#80e5ff"}));
+  lureBulb.position.set(afX-1.2,afY+2.1,afZ-0.8);
+  lureBulb.userData.anglerLure={baseY:afY+2.1,phase:0.5};
+  g.add(lureRod,lureBulb);
+
+  for(let school=0;school<3;school++){
+    const sX=-40+school*35, sZ=-25-school*15, sY=4+school*2;
+    for(let f=0;f<10;f++){
+      const fx=sX+(hash(school*10+f,80)-.5)*6, fz=sZ+(hash(school*10+f,81)-.5)*6, fy=sY+(hash(school*10+f,82)-.5)*3;
+      const fish=box(g,0.6,0.25,0.3,f%2===0?"#4cc9f0":"#4361ee",fx,fy,fz);
+      fish.userData.fishParticle={baseX:fx,baseY:fy,baseZ:fz,speed:1.2+hash(f,83)*0.8,radius:4+hash(f,84)*3,phase:f*0.6};
+    }
+  }
+
+  for(let i=0;i<45;i++){
+    const bx=(hash(i,90)-.5)*120, bz=-10-hash(i,91)*65, by=hash(i,92)*15;
+    const bMesh=new THREE.Mesh(new THREE.IcosahedronGeometry(0.15+hash(i,93)*0.25,0),new THREE.MeshBasicMaterial({color:"#80e5ff",transparent:true,opacity:0.65}));
+    bMesh.position.set(bx,by,bz);
+    bMesh.userData.bubbleParticle={baseX:bx,baseY:by,baseZ:bz,speed:0.8+hash(i,94)*1.2,phase:hash(i,95)*6.28};
+    g.add(bMesh);
+  }
+
+  for(let i=0;i<10;i++){
+    const lx=-70+i*15, lz=-15-hash(i,96)*50;
+    const shaft=new THREE.Mesh(new THREE.BoxGeometry(3,25,3),new THREE.MeshBasicMaterial({color:"#80e5ff",transparent:true,opacity:0.12}));
+    shaft.position.set(lx,12,lz);
+    shaft.rotation.z=0.15;
+    g.add(shaft);
+  }
+};
+
 export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
   const p: WorldParams={season:"summer",timeOfDay:"dawn",weather:"clear",era:"medieval",region:"african",...params};
-  const g=new THREE.Group();g.name=p.mapMode?"HistoricalMapWorld":"ProceduralWorld";
-  if(p.mapMode){mapLayer(g,p,t);g.scale.set(.5,1,.72);}else{
+  const g=new THREE.Group();g.name=p.mapMode?"HistoricalMapWorld":p.kind==="ocean"?"DeepOceanWorld":"ProceduralWorld";
+  if(p.mapMode){mapLayer(g,p,t);g.scale.set(.5,1,.72);}else if(p.kind==="ocean"){
+    oceanWorld(g,p,t);
+  }else{
     terrain(g,p,t);
     settlement(g,p,t);
     if(p.artifact){const a=drawArtifact(p.artifact,t);a.position.set(0,0,5);g.add(a);}
@@ -258,5 +333,5 @@ export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
   g.userData.worldParams=p;g.userData.time=t;return g;
 };
 export const animateWorld=(g:THREE.Group,t:number)=>{
-  g.traverse(o=>{const routeIndex=o.userData.routeIndex as number|undefined;if(routeIndex!==undefined)o.visible=routeIndex<Math.floor(clamp(t/3)*26);const s=o.userData.sway as {phase:number;amp:number}|undefined;if(s)o.rotation.z=Math.sin(t*1.3+s.phase)*s.amp;const smoke=o.userData.smokeParticle as {phase:number;baseY:number}|undefined;if(smoke){o.position.y=smoke.baseY+((t*1.5+smoke.phase)%5);o.scale.setScalar(.7+((t*.35+smoke.phase)%1)*.5);}const w=o.userData.weatherParticle as {kind:string;baseX:number;baseY:number;baseZ:number;phase:number;index:number}|undefined;if(w){if(w.kind==="rain"||w.kind==="storm")o.position.y=2+((w.baseY-2-t*(w.kind==="storm"?14:8))%14+14)%14;else if(w.kind==="snow")o.position.y=2+((w.baseY-2-t*.8)%14+14)%14;else if(w.kind==="fog"){o.position.x=w.baseX+Math.sin(t*.12+w.phase)*2;o.position.y=w.baseY+Math.sin(t*.2+w.phase)*.2;}else o.position.x=w.baseX+Math.sin(t*.7+w.phase)*.8;}});
+  g.traverse(o=>{const routeIndex=o.userData.routeIndex as number|undefined;if(routeIndex!==undefined)o.visible=routeIndex<Math.floor(clamp(t/3)*26);const s=o.userData.sway as {phase:number;amp:number}|undefined;if(s)o.rotation.z=Math.sin(t*1.3+s.phase)*s.amp;const smoke=o.userData.smokeParticle as {phase:number;baseY:number}|undefined;if(smoke){o.position.y=smoke.baseY+((t*1.5+smoke.phase)%5);o.scale.setScalar(.7+((t*.35+smoke.phase)%1)*.5);}const w=o.userData.weatherParticle as {kind:string;baseX:number;baseY:number;baseZ:number;phase:number;index:number}|undefined;if(w){if(w.kind==="rain"||w.kind==="storm")o.position.y=2+((w.baseY-2-t*(w.kind==="storm"?14:8))%14+14)%14;else if(w.kind==="snow")o.position.y=2+((w.baseY-2-t*.8)%14+14)%14;else if(w.kind==="fog"){o.position.x=w.baseX+Math.sin(t*.12+w.phase)*2;o.position.y=w.baseY+Math.sin(t*.2+w.phase)*.2;}else o.position.x=w.baseX+Math.sin(t*.7+w.phase)*.8;}const fish=o.userData.fishParticle as {baseX:number;baseY:number;baseZ:number;speed:number;radius:number;phase:number}|undefined;if(fish){o.position.x=fish.baseX+Math.sin(t*fish.speed+fish.phase)*fish.radius;o.position.z=fish.baseZ+Math.cos(t*fish.speed*0.7+fish.phase)*fish.radius*0.6;}const bubble=o.userData.bubbleParticle as {baseX:number;baseY:number;baseZ:number;speed:number;phase:number}|undefined;if(bubble){o.position.y=((bubble.baseY+t*bubble.speed+bubble.phase)%18);o.position.x=bubble.baseX+Math.sin(t*0.8+bubble.phase)*0.5;}const glow=o.userData.ventGlow as {phase:number}|undefined;if(glow){const sc=1+0.25*Math.sin(t*3+glow.phase);o.scale.set(sc,sc,sc);}const lure=o.userData.anglerLure as {baseY:number;phase:number}|undefined;if(lure){o.position.y=lure.baseY+Math.sin(t*2+lure.phase)*0.3;}});
 };

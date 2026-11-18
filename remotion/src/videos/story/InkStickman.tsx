@@ -150,7 +150,7 @@ export const InkStickman: React.FC<InkStickmanProps> = ({
   const hand3 = (v: Vec | null, s: number, hangZ: number): V3 => {
     if (!v) return [s * (SHX + 12), shY - 156, hangZ];
     const lx = v[0], Y = -v[1], f = cl(lx / 150), up = cl((Y - SHY3 - 20) / 60);
-    const lat = mix(mix(SHX + 14, 26, f), SHX + 6, up);
+    const lat = mix(mix(SHX + 14, 26, f), SHX + 46, up);
     return [s * lat, Y, lx];
   };
   const foot3 = (v: Vec, s: number): V3 => [s * (HIPX + 2 - cl(Math.abs(v[0]) / 160) * 6), -v[1], v[0]];

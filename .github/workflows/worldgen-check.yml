@@ -43,6 +43,7 @@ jobs:
                 {
                   "dur": 3,
                   "shot": "wide",
+                  "extras": 0,
                   "world": { "terrain": "ocean-floor", "era": "modern", "region": "african", "timeOfDay": "noon", "weather": "clear", "seed": 18 },
                   "cast": [{ "id": "explorer", "role": "explorer", "x": 0, "z": 0, "expr": "neutral" }],
                   "caption": "Ocean floor environment"
@@ -50,7 +51,8 @@ jobs:
                 {
                   "dur": 3,
                   "shot": "wide",
-                  "world": { "terrain": "canyon", "era": "modern", "region": "african", "timeOfDay": "dusk", "weather": "clear", "seed": 19 },
+                  "extras": 0,
+                  "world": { "terrain": "canyon", "era": "stone-age", "region": "african", "timeOfDay": "dusk", "weather": "clear", "seed": 19 },
                   "cast": [{ "id": "explorer", "role": "explorer", "x": 0, "z": 0, "expr": "neutral" }],
                   "caption": "Canyon environment"
                 }

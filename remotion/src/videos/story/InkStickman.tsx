@@ -5,7 +5,7 @@ import type { Expression, Vec } from "./Stickman2D";
 // white mitten hands, straight jeans legs, white sneakers. Local space: origin = ground between
 // the feet, +x = forward, -y = up. Two-bone IK puts hands exactly on targets; knees bend forward.
 const INK = "#1d1a20";
-const HIP_Y = -204, SH_Y = -336, SH_X = 40, HEAD_Y = -430, HEAD_R = 64;
+const HIP_Y = -204, SH_Y = -336, SH_X = 40, HEAD_Y = -444, HEAD_R = 64;
 const UPPER = 84, FORE = 82, THIGH = 102, SHIN = 100;
 const mix = (a: number, b: number, t: number) => a + (b - a) * t;
 
@@ -159,11 +159,11 @@ export const InkStickman: React.FC<InkStickmanProps> = ({
         <path d={`M -18 ${SH_Y + 4} Q 0 ${SH_Y + 22} 18 ${SH_Y + 4}`} fill="none" stroke={shade(cloth, 0.7)} strokeWidth="5" />
         <path d="M 0 -288 l 10 10 -10 10 -10 -10 Z" fill="#e3b15d" stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
         <g transform={`translate(0 ${breathe * 0.5}) translate(0 ${SH_Y}) rotate(${headRot}) translate(0 ${-SH_Y})`}>
-          <ellipse cx="-62" cy={HEAD_Y + 2} rx="9" ry="13" fill={skin} stroke={INK} strokeWidth="5" />
-          <ellipse cx="62" cy={HEAD_Y + 2} rx="9" ry="13" fill={skin} stroke={INK} strokeWidth="5" />
-          <circle cx="0" cy={HEAD_Y} r={HEAD_R} fill={skin} stroke={INK} strokeWidth="6.5" />
-          {hair ? <g><path d="M -63 -438 C -70 -472 -48 -500 -18 -500 C 2 -524 39 -512 51 -485 C 69 -477 70 -452 63 -438 Q 37 -455 19 -457 Q -2 -449 -17 -461 Q -36 -447 -63 -438 Z" fill={hair} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" /><path d="M -25 -483 Q 7 -509 42 -484 Q 14 -492 0 -469" fill="none" stroke="#fff3d5" strokeWidth="4" strokeLinecap="round" opacity=".28" /></g> : null}
-          <Face expression={expression} blink={blink} look={look} lookY={lookY} />
+          <ellipse cx="-84" cy={HEAD_Y + 6} rx="10" ry="15" fill={skin} stroke={INK} strokeWidth="5" />
+          <ellipse cx="84" cy={HEAD_Y + 6} rx="10" ry="15" fill={skin} stroke={INK} strokeWidth="5" />
+          <path d={`M 0 ${HEAD_Y - 100} C 62 ${HEAD_Y - 100} 90 ${HEAD_Y - 50} 88 ${HEAD_Y + 10} C 86 ${HEAD_Y + 66} 48 ${HEAD_Y + 94} 0 ${HEAD_Y + 94} C -48 ${HEAD_Y + 94} -86 ${HEAD_Y + 66} -88 ${HEAD_Y + 10} C -90 ${HEAD_Y - 50} -62 ${HEAD_Y - 100} 0 ${HEAD_Y - 100} Z`} fill={skin} stroke={INK} strokeWidth="7" strokeLinejoin="round" />
+          {hair ? <g transform={`translate(0 ${HEAD_Y}) scale(1.38 1.5) translate(0 430)`}><path d="M -63 -438 C -70 -472 -48 -500 -18 -500 C 2 -524 39 -512 51 -485 C 69 -477 70 -452 63 -438 Q 37 -455 19 -457 Q -2 -449 -17 -461 Q -36 -447 -63 -438 Z" fill={hair} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" /><path d="M -25 -483 Q 7 -509 42 -484 Q 14 -492 0 -469" fill="none" stroke="#fff3d5" strokeWidth="4" strokeLinecap="round" opacity=".28" /></g> : null}
+          <g transform={`translate(0 ${HEAD_Y}) scale(1.32) translate(0 ${-HEAD_Y})`}><Face expression={expression} blink={blink} look={look} lookY={lookY} /></g>
         </g>
       </g>
       <Limb a={[10 + hipX, HY]} b={legF.joint} c={legF.end} w={21} color={jeans} />

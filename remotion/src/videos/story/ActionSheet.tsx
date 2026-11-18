@@ -15,13 +15,13 @@ export const ActionSheet: React.FC = () => {
   return (
     <AbsoluteFill style={{ background: "#e9d9b5" }}>
       {verbs.map((v, i) => {
-        const cx = 180 + (i % 3) * 360, cy = 470 + Math.floor(i / 3) * 450;
+        const cx = 180 + (i % 3) * 360, cy = 330 + Math.floor(i / 3) * 440;
         const t = TIMES[v] ?? 1.1, p = v === "pickUp" ? 0.55 : v === "place" ? 0.3 : v === "throw" ? 0.55 : v === "fall" ? 0.8 : 0.6;
         return (
           <svg key={v} viewBox="0 0 1080 1920" width="1080" height="1920" style={{ position: "absolute", inset: 0 }}>
             <rect x={cx - 170} y={cy - 235} width={340} height={430} rx="14" fill="#f6ecd3" stroke="#1d1a20" strokeWidth="3" />
             <line x1={cx - 160} y1={cy + 150} x2={cx + 160} y2={cy + 150} stroke="#8a7a58" strokeWidth="3" />
-            <g transform={`translate(${cx - 120} ${cy + 150}) scale(0.5)`}>
+            <g transform={`translate(${cx - 90} ${cy + 150}) scale(0.5)`}>
               <Performer2D x={170} y={0} scale={1} facing={1} skin={o.skin ?? "#f6ead9"} cloth={o.dress ?? o.jacket} hair={o.hair} verb={v} p={p} t={t} frame={20} target={[260, -330]} />
             </g>
             <text x={cx} y={cy + 185} textAnchor="middle" fontSize="30" fontFamily="Arial Black,sans-serif" fill="#1d1a20">{v}</text>

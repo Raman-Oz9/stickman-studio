@@ -1,3 +1,8 @@
+### 2026-11-18 — Add transport infrastructure to 3D world presets
+- Added city street grids with lane markings, junction crossings, sidewalks, street furniture and mid-rise blocks; railway track pairs with sleepers/platform/canopy; airport runway markings, terminal and control tower; and harbour quay, water inlet, containers, bollards and gantry cranes.
+- These are static 3D route/set pieces. Existing `PropDef.from/to` and `props3d.ts` vehicle models remain the mechanism for staging moving cars, trains, aircraft and ships along authored scene coordinates; no new autonomous traffic system is claimed.
+- Static source delimiter checks pass. TypeScript and StoryHybrid render QA remain pending.
+
 ### 2026-11-18 — Extend 3D era coverage to China, India and frontier settings
 - Added Great Wall/pagoda, Indian temple, Wild West frontier street, pirate harbour/rigging, and WWI trench-set silhouettes. Added `space` and `egypt` aliases alongside the explicit `space-age` and `egyptian` era names.
 - Kept all new geometry in `worldgen.ts` and within the shared palette. No character/action or legacy 2D backdrop files changed.

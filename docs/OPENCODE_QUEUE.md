@@ -2,7 +2,7 @@
 A scheduled workflow (`.github/workflows/opencode-loop.yml`) takes the FIRST line starting with `- [ ]`, marks it `[~]`, runs OpenCode on it, opens a PR, then marks it `[x]`.
 Owner/Claude/ChatGPT: add tasks at the bottom (one line each, self-contained, scoped to 1-3 files). Always: read AGENTS.md, docs/REFERENCE_VIDEO_V2.md, run `cd remotion && npm install && npx tsc --noEmit` before finishing, log in docs/CONTEXT.md.
 
-- [ ] In remotion/src/videos/story/InkStickman.tsx add a `hairStyle` prop ("short"|"bun"|"afro"|"long"|"cap"|"bald"|"curly"|"braids") and draw each style in ink outline over the head; keep existing `hair` colour prop; do not change body geometry.
+- [~] In remotion/src/videos/story/InkStickman.tsx add a `hairStyle` prop ("short"|"bun"|"afro"|"long"|"cap"|"bald"|"curly"|"braids") and draw each style in ink outline over the head; keep existing `hair` colour prop; do not change body geometry.
 - [ ] In remotion/src/videos/story/InkStickman.tsx add an `accessory` prop ("none"|"glasses"|"monocle"|"crown"|"helmet"|"turban"|"headwrap"|"hat"|"beard"|"moustache") drawn on the head/face; ink outline style.
 - [ ] In remotion/src/videos/story/Props2D.tsx add 20 more hand-held prop icons (anvil-free, small ones): telescope done; add torch variants, hourglass, compass, trumpet, drum, lute, fishing rod, net, plate of meat, jug, quill+inkpot, key ring, magnifier, lantern, whistle, bell, candle, paintbrush, spoon, wheel. Same grip-origin convention.
 - [ ] Create remotion/src/videos/story/Caption2D.tsx: word-synced caption component (props: words:{w:string,t0:number,t1:number}[], frame, fps) showing 1-3 words at a time, bold white with thick black outline, lower-middle, active word highlighted in gold. Pure React, no deps.

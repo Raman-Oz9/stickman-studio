@@ -1,3 +1,8 @@
+### 2026-11-18 — Give chicken-village nouns dedicated 2D prop drawings (ChatGPT)
+- Extended the Story2D inline prop renderer so chicken/hen, egg, coop, fire/campfire and chalkboard nouns receive recognisable ink-outlined SVG illustrations instead of falling through to the generic fallback prop.
+- Kept the existing ivory, basket and coin drawings intact. No character rig or camera logic changed.
+- This is a source-level pass only; compile and native-frame QA are still required on PR #6.
+
 ### 2026-11-18 — Add scene-cued chicken-village environment plates (ChatGPT)
 - Added `ChickenVillageBackdrop.tsx`, a dedicated 9:16 illustrated village environment with converging cobbled street, tall red-roof/red-shutter houses, timber coops and fences, readable chickens, crow mascot, chalkboard lesson insert, overhead coop rows, gold-coin composition, and blue-night firelight/logs.
 - Wired the environment into `Story2D.tsx` using an explicit `world.label="chicken-village"` or chicken/egg/rooster/coop/hen story cues. Great Zimbabwe and unrelated boards keep their existing render paths; character, IK and camera code remain untouched.

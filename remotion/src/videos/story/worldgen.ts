@@ -2,7 +2,7 @@
 // All geometry is assembled from flat primitives; drawWorld(params,t) is deterministic for a given time.
 import * as THREE from "three";
 
-export type TerrainType = "forest"|"jungle"|"ocean"|"ocean-floor"|"mountain"|"canyon"|"desert"|"ice"|"plain"|"river"|"coast"|"swamp"|"cave"|"savanna";
+export type TerrainType = "forest"|"jungle"|"ocean"|"ocean-floor"|"mountain"|"canyon"|"desert"|"ice"|"plain"|"river"|"coast"|"swamp"|"cave"|"savanna"|"city"|"railway"|"airport"|"harbour";
 export type WeatherType = "clear"|"rain"|"snow"|"fog"|"storm"|"drought"|"wind";
 export type EraType = "stone-age"|"ancient"|"classical"|"medieval"|"early-modern"|"industrial"|"modern"|"viking"|"renaissance"|"victorian"|"1920s"|"ww2"|"near-future"|"space-age"|"space"|"egyptian"|"egypt"|"roman"|"greek"|"china"|"india"|"wild-west"|"pirate"|"ww1";
 export type RegionType = "european"|"african"|"east-asian"|"south-asian"|"middle-eastern"|"mesoamerican";
@@ -95,6 +95,51 @@ const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
       cylinder(g,2.3,h*.55,P.earth,x,h*.275,-7,7);
       ball(g,3.6,P.reef,x,h*.62,-7,1.35,.48,1.05);
     }
+  } else if(p.terrain==="city"){
+    // A real street grid with sidewalks, marked lanes, junction crossings and street furniture.
+    box(g,180,.22,180,P.shade,0,-.08,-30);
+    for(const z of [-76,-30,16]){
+      box(g,180,.16,15,P.stone,0,.04,z);
+      box(g,180,.05,8,P.shade,0,.14,z);
+      for(let x=-84;x<=84;x+=12)box(g,5,.035,.18,P.sky,x,.18,z);
+      for(const x of [-92,92]){box(g,2.2,4.8,2.2,P.shade,x,2.4,z-10);ball(g,.8,P.accent,x,5,z-10,.8,1.2,.8);}
+    }
+    for(const x of [-60,0,60]){
+      box(g,14,.18,180,P.stone,x,.03,-30);
+      for(const z of [-30,16,62])for(let k=0;k<7;k++)box(g,1.5,.04,.55,P.sky,x-5.2+k*1.7,.15,z);
+    }
+    // Mid-rise blocks and glass-fronted corner buildings.
+    for(let i=0;i<10;i++){const x=-78+(i%5)*39,z=-92+Math.floor(i/5)*116,h=12+hash(i,91)*22;box(g,18,h,16,i%2?P.stone:P.earth,x,h/2,z);for(let y=2;y<h-1;y+=3)for(let dx=-6;dx<=6;dx+=4)box(g,2,1.5,.12,P.sky,x+dx,y,z+8.1);}
+  } else if(p.terrain==="railway"){
+    // Twin steel rails, closely spaced sleepers, ballast, platform and a station canopy.
+    box(g,150,.28,42,P.stone,0,-.08,-35);
+    for(const x of [-2.2,2.2])box(g,.22,.24,150,P.sky,x,.18,-35);
+    for(let z=-108;z<40;z+=2.4)box(g,7,.18,.65,P.earth,0,.04,z);
+    box(g,18,.55,100,P.earth,18,.28,-35);box(g,20,.2,100,P.sky,18,.68,-35);
+    for(const x of [9,27])for(let z=-82;z<10;z+=12){cylinder(g,.18,5,P.shade,x,2.5,z,8);box(g,2,.18,1,P.shade,x,5,z);}
+    box(g,26,.35,88,P.stone,18,5.2,-35);
+    for(let i=0;i<8;i++)box(g,3,.16,1.8,P.accent,18,5.45,-74+i*11);
+  } else if(p.terrain==="airport"){
+    // Runway markings, taxiway, terminal and control tower give aircraft a readable 3D stage.
+    box(g,170,.22,72,P.shade,0,-.08,-45);
+    box(g,4,.035,130,P.sky,0,.06,-45);
+    for(let z=-104;z<20;z+=12)box(g,1.4,.04,5,P.sky,0,.08,z);
+    for(const x of [-68,68])for(let z=-92;z<10;z+=18)box(g,1.8,.12,1.8,P.accent,x,.12,z);
+    box(g,76,8,18,P.stone,0,4,35);box(g,80,.6,20,P.earth,0,8.3,35);
+    for(let x=-30;x<=30;x+=10)box(g,5,2.2,.2,P.sky,x,4.8,25.8);
+    box(g,10,28,10,P.earth,52,14,20);box(g,14,2,14,P.stone,52,29,20);
+    cylinder(g,.35,7,P.shade,52,33,20,8);
+  } else if(p.terrain==="harbour"){
+    // Quay, bollards, container stacks and gantry crane beside a broad sea inlet.
+    box(g,170,.6,56,P.earth,0,.1,-12);
+    box(g,180,.25,76,P.sky,0,-.18,-80);
+    for(let i=0;i<8;i++){const x=-72+(i%4)*48,z=-20-Math.floor(i/4)*22;box(g,18,6,10,i%2?P.reef:P.stone,x,3,z);box(g,18.3,.3,10.3,P.accent,x,6.15,z);}
+    for(const x of [-62,62]){
+      box(g,.8,26,.8,P.shade,x,13,-36);box(g,28,.8,.8,P.shade,x/2,25,-36);
+      box(g,.5,18,.5,P.shade,x/2,16,-36);
+    }
+    for(let i=0;i<10;i++)cylinder(g,.38,1.2,P.shade,-80+i*18,.6,18,8);
+    for(let i=0;i<24;i++){const x=-82+i*7,z=-90-hash(i,93)*42;const wave=box(g,3,.035,.22,P.sky,x,.0,z);wave.userData.waveMark={phase:hash(i,94)*6.28,baseY:0};}
   } else if(p.terrain==="mountain"){
     for(let i=0;i<9;i++){const x=-75+i*18,h=18+hash(i,2)*22;poly(g,[[x-18,0,-48],[x,h,-78],[x+18,0,-48]],i%2?P.stone:P.shade);if(p.season==="winter"||p.climate==="polar")poly(g,[[x-5,h*.72,-76],[x,h,-78],[x+5,h*.72,-76]],P.sky);}
   } else if(p.terrain==="desert"){

@@ -28,6 +28,14 @@ jobs:
           for f in 0 1 2 3 4; do
             npx remotion still src/index.ts ActionSheet "out/actions-$f.jpg" --frame=$f --scale=1 --gl=swangle --image-format=jpeg --jpeg-quality=92 --timeout=300000 --log=warn || true
           done
+      - name: Render story stills with generic performer
+        working-directory: remotion
+        run: |
+          mkdir -p public/prep out
+          python3 -c "import json; json.dump({'board':json.load(open('story_actions_board.json'))},open('public/prep/actions-props.json','w'))"
+          for f in 45 135 225 315 405 495 585 675; do
+            npx remotion still src/index.ts StoryShort2D "out/story-$f.jpg" --frame=$f --scale=0.5 --gl=swangle --image-format=jpeg --jpeg-quality=90 --props=./public/prep/actions-props.json --timeout=300000 --log=warn || true
+          done
       - name: Publish frames to branch
         if: always()
         run: |

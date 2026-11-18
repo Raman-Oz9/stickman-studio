@@ -86,9 +86,86 @@ const Face: React.FC<{ expression: Expression; blink: boolean; look: number; loo
   );
 };
 
+const AccessoryLayer: React.FC<{ accessory?: string; back: boolean; hairC: string }> = ({ accessory, back, hairC }) => {
+  if (!accessory || accessory === "none") return null;
+  const isFacial = ["glasses", "monocle", "beard", "moustache"].includes(accessory);
+  if (isFacial && back) return null;
+
+  switch (accessory) {
+    case "glasses":
+      return (
+        <g stroke={INK} strokeWidth="5" strokeLinejoin="round">
+          <circle cx={-24} cy={HEAD_Y - 8} r="15" fill="url(#inkGlass)" />
+          <circle cx={24} cy={HEAD_Y - 8} r="15" fill="url(#inkGlass)" />
+          <path d={`M -9 ${HEAD_Y - 8} H 9`} fill="none" />
+          <path d={`M -39 ${HEAD_Y - 8} Q -55 ${HEAD_Y - 14} -70 ${HEAD_Y - 2} M 39 ${HEAD_Y - 8} Q 55 ${HEAD_Y - 14} 70 ${HEAD_Y - 2}`} fill="none" />
+        </g>
+      );
+    case "monocle":
+      return (
+        <g stroke={INK} strokeWidth="5" strokeLinejoin="round">
+          <circle cx={24} cy={HEAD_Y - 8} r="16" fill="url(#inkGlass)" />
+          <path d={`M 38 ${HEAD_Y + 2} Q 52 ${HEAD_Y + 50} 34 ${HEAD_Y + 110}`} fill="none" />
+        </g>
+      );
+    case "crown":
+      return (
+        <g stroke={INK} strokeWidth="5.5" strokeLinejoin="round" strokeLinecap="round">
+          <path d={`M -52 ${HEAD_Y - 70} L -58 ${HEAD_Y - 120} L -26 ${HEAD_Y - 96} L 0 ${HEAD_Y - 132} L 26 ${HEAD_Y - 96} L 58 ${HEAD_Y - 120} L 52 ${HEAD_Y - 70} Q 0 ${HEAD_Y - 60} -52 ${HEAD_Y - 70} Z`} fill="#f1c24f" />
+          <circle cx="0" cy={HEAD_Y - 82} r="6" fill="#d2362e" />
+        </g>
+      );
+    case "helmet":
+      return (
+        <g stroke={INK} strokeWidth="5.5" strokeLinejoin="round" strokeLinecap="round">
+          <path d={`M -84 ${HEAD_Y - 10} Q -88 ${HEAD_Y - 110} 0 ${HEAD_Y - 112} Q 88 ${HEAD_Y - 110} 84 ${HEAD_Y - 10} L 66 ${HEAD_Y - 24} Q 0 ${HEAD_Y - 36} -66 ${HEAD_Y - 24} Z`} fill="url(#inkMetal)" />
+          <path d={`M -4 ${HEAD_Y - 112} Q 0 ${HEAD_Y - 136} 34 ${HEAD_Y - 128} Q 12 ${HEAD_Y - 118} 6 ${HEAD_Y - 110}`} fill="#c0353a" />
+        </g>
+      );
+    case "turban":
+      return (
+        <g stroke={INK} strokeWidth="5.5" strokeLinejoin="round" strokeLinecap="round">
+          <path d={`M -84 ${HEAD_Y - 10} Q -90 ${HEAD_Y - 112} 0 ${HEAD_Y - 116} Q 90 ${HEAD_Y - 112} 84 ${HEAD_Y - 10} Q 0 ${HEAD_Y - 44} -84 ${HEAD_Y - 10} Z`} fill="#f4efe2" />
+          <path d={`M -74 ${HEAD_Y - 38} Q 0 ${HEAD_Y - 76} 78 ${HEAD_Y - 28} M -64 ${HEAD_Y - 66} Q 0 ${HEAD_Y - 98} 70 ${HEAD_Y - 62}`} fill="none" strokeWidth="4" />
+          <circle cx="0" cy={HEAD_Y - 70} r="8" fill="#d2362e" />
+        </g>
+      );
+    case "headwrap":
+      return (
+        <g stroke={INK} strokeWidth="5.5" strokeLinejoin="round" strokeLinecap="round">
+          <path d={`M -88 ${HEAD_Y - 30} Q 0 ${HEAD_Y - 56} 88 ${HEAD_Y - 30} L 84 ${HEAD_Y - 8} Q 0 ${HEAD_Y - 32} -84 ${HEAD_Y - 8} Z`} fill={hairC} />
+          <path d={`M 50 ${HEAD_Y - 36} Q 88 ${HEAD_Y - 20} 104 ${HEAD_Y + 10} Q 92 ${HEAD_Y + 30} 74 ${HEAD_Y + 10} Z`} fill={hairC} />
+        </g>
+      );
+    case "hat":
+      return (
+        <g stroke={INK} strokeWidth="5.5" strokeLinejoin="round" strokeLinecap="round">
+          <path d={`M -82 ${HEAD_Y - 24} Q -82 ${HEAD_Y - 96} 0 ${HEAD_Y - 96} Q 82 ${HEAD_Y - 96} 82 ${HEAD_Y - 24} Q 0 ${HEAD_Y - 42} -82 ${HEAD_Y - 24} Z`} fill={hairC} />
+          <path d={`M -94 ${HEAD_Y - 24} Q 0 ${HEAD_Y - 36} 94 ${HEAD_Y - 24} L 90 ${HEAD_Y - 16} Q 0 ${HEAD_Y - 28} -90 ${HEAD_Y - 16} Z`} fill={shade(hairC, 0.85)} />
+        </g>
+      );
+    case "beard":
+      return (
+        <g stroke={INK} strokeWidth="5.5" strokeLinejoin="round" strokeLinecap="round">
+          <path d={`M -38 ${HEAD_Y + 22} Q 0 ${HEAD_Y + 12} 38 ${HEAD_Y + 22} Q 52 ${HEAD_Y + 54} 34 ${HEAD_Y + 84} Q 0 ${HEAD_Y + 98} -34 ${HEAD_Y + 84} Q -52 ${HEAD_Y + 54} -38 ${HEAD_Y + 22} Z`} fill={hairC} />
+        </g>
+      );
+    case "moustache":
+      return (
+        <g stroke={INK} strokeWidth="5.5" strokeLinejoin="round" strokeLinecap="round">
+          <path d={`M -30 ${HEAD_Y + 18} Q -12 ${HEAD_Y + 10} 0 ${HEAD_Y + 22} Q 12 ${HEAD_Y + 10} 30 ${HEAD_Y + 18} Q 12 ${HEAD_Y + 34} 0 ${HEAD_Y + 22} Q -12 ${HEAD_Y + 34} -30 ${HEAD_Y + 18} Z`} fill={hairC} />
+        </g>
+      );
+    default:
+      return null;
+  }
+};
+
 export type InkStickmanProps = {
   x: number; y: number; scale?: number; facing?: 1 | -1;
   skin: string; cloth: string; trim?: string; hair?: string;
+  hairStyle?: "short" | "bun" | "afro" | "long" | "cap" | "bald" | "curly" | "braids";
+  accessory?: "none" | "glasses" | "monocle" | "crown" | "helmet" | "turban" | "headwrap" | "hat" | "beard" | "moustache";
   walk?: number; stand?: number;
   frontHand?: Vec | null; backHand?: Vec | null; grip?: boolean;
   expression?: Expression; frame?: number; look?: number; gaze?: Vec | null; lean?: number;
@@ -123,12 +200,14 @@ const ik3 = (R: V3, T: V3, l1: number, l2: number, P: V3): { j: V3; e: V3 } => {
 // projected, so arms hang from the shoulders at the sides, legs stand side by side in front view, and the whole figure can face
 // any direction relative to the camera (0 = facing camera, 90 = facing screen-right, 180 = back to camera, 270 = facing left).
 export const InkStickman: React.FC<InkStickmanProps> = ({
-  x, y, scale = 1, facing = 1, yaw: yawIn, skin, cloth, hair: hairIn, walk = 0, stand = 1, frontHand = null, backHand = null,
+  x, y, scale = 1, facing = 1, yaw: yawIn, skin, cloth, hair: hairIn, hairStyle, accessory, walk = 0, stand = 1, frontHand = null, backHand = null,
   expression = "smile", frame = 0, look: lookIn = 0, gaze = null, lean = 0, build = "lean", grip = false,
   footFront = null, footBack = null, hipDrop = 0, hipX = 0, rot = 0, headTilt = 0, held = null, heldAng = 0, style: st, seat = false, extra = null,
 }) => {
   const th = (((yawIn ?? facing * 80) % 360) * Math.PI) / 180, cs = Math.cos(th), sn = Math.sin(th);
   const hair = st && coversHair(st.hat) ? undefined : hairIn;
+  const acc = accessory ?? (st as any)?.accessory ?? "none";
+  const hidesHair = ["crown", "helmet", "turban", "headwrap", "hat"].includes(acc) || (st ? coversHair(st.hat) : false);
   const wide = build === "stocky" ? 1.14 : 1;
   const breathe = Math.sin(frame / 9) * 2;
   const blink = frame % 100 < 4;
@@ -172,7 +251,8 @@ export const InkStickman: React.FC<InkStickmanProps> = ({
   const torso = `M ${-tw} ${SH_Y + 6} Q ${-tw - 6} ${SH_Y + 70} ${-tw + 2} ${HIP_Y + 4} L ${tw - 2} ${HIP_Y + 4} Q ${tw + 6} ${SH_Y + 70} ${tw} ${SH_Y + 6} Q 0 ${SH_Y - 12} ${-tw} ${SH_Y + 6} Z`;
   const headPath = `M 0 ${HEAD_Y - 100} C 62 ${HEAD_Y - 100} 90 ${HEAD_Y - 50} 88 ${HEAD_Y + 10} C 86 ${HEAD_Y + 66} 48 ${HEAD_Y + 94} 0 ${HEAD_Y + 94} C -48 ${HEAD_Y + 94} -86 ${HEAD_Y + 66} -88 ${HEAD_Y + 10} C -90 ${HEAD_Y - 50} -62 ${HEAD_Y - 100} 0 ${HEAD_Y - 100} Z`;
   const cx0 = hipX * sn, leanS = lean * sn;
-  const hairC = hair ?? st?.hair ?? "#2a1f1a";
+  const hairC = hairIn ?? st?.hair ?? "#2a1f1a";
+  const styleHair = hairStyle ?? "short";
   const poseSgn = sn >= 0 ? 1 : -1;
 
   const limb = (a: { j: V3; e: V3 }, s: number, isFront: boolean) => {
@@ -211,9 +291,46 @@ export const InkStickman: React.FC<InkStickmanProps> = ({
             <ellipse cx={84 * Math.abs(cs)} cy={HEAD_Y + 6} rx="10" ry="15" fill={skin} stroke={INK} strokeWidth="5" />
             <path d={headPath} fill={back ? hairC : skin} stroke={INK} strokeWidth="7" strokeLinejoin="round" />
             {back ? <path d={`M -70 ${HEAD_Y + 40} Q 0 ${HEAD_Y + 70} 70 ${HEAD_Y + 40}`} fill="none" stroke={shade(hairC, 0.6)} strokeWidth="5" /> : null}
-            {hair && !back ? <g transform={`translate(0 ${HEAD_Y}) scale(1.38 1.5) translate(0 430)`}><path d="M -63 -438 C -70 -472 -48 -500 -18 -500 C 2 -524 39 -512 51 -485 C 69 -477 70 -452 63 -438 Q 37 -455 19 -457 Q -2 -449 -17 -461 Q -36 -447 -63 -438 Z" fill={hair} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" /><path d="M -25 -483 Q 7 -509 42 -484 Q 14 -492 0 -469" fill="none" stroke="#fff3d5" strokeWidth="4" strokeLinecap="round" opacity=".28" /></g> : null}
+             {styleHair !== "bald" && !back && !hidesHair ? (
+               <g transform={`translate(0 ${HEAD_Y}) scale(1.38 1.5) translate(0 430)`}>
+                 {styleHair === "bun" ? (
+                   <>
+                     <path d="M -63 -438 C -70 -472 -48 -500 -18 -500 C 2 -524 39 -512 51 -485 C 69 -477 70 -452 63 -438 Q 37 -455 19 -457 Q -2 -449 -17 -461 Q -36 -447 -63 -438 Z" fill={hairC} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+                     <ellipse cx="25" cy="-525" rx="16" ry="14" fill={hairC} stroke={INK} strokeWidth="5.5" />
+                   </>
+                 ) : styleHair === "afro" ? (
+                   <path d="M -55 -450 C -80 -530 -40 -560 0 -560 C 40 -560 80 -530 55 -450 C 75 -420 75 -390 50 -400 C 65 -440 40 -480 0 -480 C -40 -480 -65 -440 -50 -400 C -75 -390 -75 -420 -55 -450 Z" fill={hairC} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+                 ) : styleHair === "long" ? (
+                   <path d="M -63 -438 C -70 -472 -48 -500 -18 -500 C 2 -524 39 -512 51 -485 C 69 -477 70 -452 63 -438 L 72 -340 C 75 -300 68 -270 55 -250 L 42 -250 C 55 -280 62 -310 58 -350 L 51 -485 L -51 -485 L -58 -350 C -62 -310 -55 -280 -42 -250 L -55 -250 C -68 -270 -75 -300 -72 -340 Z" fill={hairC} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+                 ) : styleHair === "cap" ? (
+                   <>
+                     <path d="M -60 -460 C -65 -500 -40 -520 0 -520 C 40 -520 65 -500 60 -460 Z" fill={hairC} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+                     <path d="M -55 -460 Q 15 -485 78 -450 C 82 -442 70 -440 Q 10 -462 -52 -450 Z" fill={hairC} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+                   </>
+                 ) : styleHair === "curly" ? (
+                   <>
+                     <path d="M -63 -438 C -75 -500 -35 -540 0 -540 C 35 -540 75 -500 63 -438 Q 48 -475 25 -465 Q 0 -495 -25 -465 Q -48 -475 -63 -438 Z" fill={hairC} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+                     <circle cx="-30" cy="-510" r="14" fill={hairC} stroke={INK} strokeWidth="4.5" />
+                     <circle cx="5" cy="-535" r="15" fill={hairC} stroke={INK} strokeWidth="4.5" />
+                     <circle cx="35" cy="-510" r="14" fill={hairC} stroke={INK} strokeWidth="4.5" />
+                   </>
+                 ) : styleHair === "braids" ? (
+                   <>
+                     <path d="M -63 -438 C -70 -472 -48 -500 -18 -500 C 2 -524 39 -512 51 -485 C 69 -477 70 -452 63 -438 Z" fill={hairC} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+                     <path d="M -58 -460 C -75 -430 -72 -330 -65 -270 C -62 -250 -55 -250 -58 -280 C -62 -330 -65 -410 -52 -455 Z" fill={hairC} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+                     <path d="M 58 -460 C 75 -430 72 -330 65 -270 C 62 -250 55 -250 58 -280 C 62 -330 65 -410 52 -455 Z" fill={hairC} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+                   </>
+                 ) : (
+                   <>
+                     <path d="M -63 -438 C -70 -472 -48 -500 -18 -500 C 2 -524 39 -512 51 -485 C 69 -477 70 -452 63 -438 Q 37 -455 19 -457 Q -2 -449 -17 -461 Q -36 -447 -63 -438 Z" fill={hairC} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+                     <path d="M -25 -483 Q 7 -509 42 -484 Q 14 -492 0 -469" fill="none" stroke="#fff3d5" strokeWidth="4" strokeLinecap="round" opacity=".28" />
+                   </>
+                 )}
+               </g>
+             ) : null}
             {!back ? <g transform={`translate(${sn * 44} 0) translate(0 ${HEAD_Y}) scale(${Math.max(0.34, cs) * 1.32} 1.32) translate(0 ${-HEAD_Y})`}><Face expression={expression} blink={blink} look={look} lookY={lookY} /></g> : null}
             {st ? <HatLayer hat={st.hat} color={st.hatColor} accent={st.accent} /> : null}
+            <AccessoryLayer accessory={acc} back={back} hairC={hairC} />
           </g>
         </g>
       </g>

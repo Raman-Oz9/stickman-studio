@@ -1,3 +1,8 @@
+### 2026-11-18 — Remove canyon settlement clutter and shape the rear ridge
+- The first canyon revision made the opposing walls visible, but the rear escarpment still read as a flat retaining wall and the stone-age dressing added unrelated ground blocks.
+- Replaced the rear wall with a jagged natural ridge and suppressed terrestrial settlement dressing for canyon scenes as well as open-water scenes.
+- The canyon proof now focuses on the gorge, strata and river rather than buildings or props.
+
 ### 2026-11-18 — Create Caption2D.tsx word-synced caption component
 - Created remotion/src/videos/story/Caption2D.tsx: word-synced caption component displaying 1-3 words at a time in bold white with a thick black outline in the lower-middle area, highlighting the active word in gold. Pure React with zero dependencies. Verified clean TypeScript compilation.
 

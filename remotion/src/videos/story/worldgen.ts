@@ -12,7 +12,7 @@ export type WorldParams = {
   timeOfDay?: "dawn"|"noon"|"dusk"|"night"; era?: EraType; region?: RegionType; mapMode?: boolean;
   seed?: number; accentBeat?: number; accentEnabled?: boolean; label?: string; artifact?: ArtifactType;
 };
-const P = { earth:"#F4C65A", stone:"#D98D3D", shade:"#171717", green:"#2F806B", sky:"#55BCEB", accent:"#F1C24F", deep:"#174d68", reef:"#D47755", coral:"#DF9B70", sand:"#F7D16A", seabed:"#C9B58C" } as const;
+const P = { earth:"#F4C65A", stone:"#D98D3D", shade:"#171717", green:"#2F806B", sky:"#55BCEB", accent:"#F1C24F", deep:"#174d68", reef:"#D47755", coral:"#DF9B70", sand:"#F7D16A", seabed:"#C9B58C", canyon:"#A85F42" } as const;
 const MAP = { paper:"#e5d5ae", ink:"#554632", land:"#899967", water:"#86aeb8", line:"#66513a", accent:"#c18b3d" } as const;
 const hash = (n:number,s:number)=>{const x=Math.sin(n*127.1+s*311.7)*43758.5453;return x-Math.floor(x);};
 const clamp=(x:number,a=0,b=1)=>Math.max(a,Math.min(b,x));
@@ -104,7 +104,7 @@ const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
     if(p.terrain!=="ocean")poly(g,[[-90,-.05,0],[-90,-.05,-14],[90,-.05,-14],[90,-.05,0]],P.earth);
   } else if(p.terrain==="canyon"){
     // Tall opposing stratified walls define a real gorge around the river corridor.
-    box(g,190,.5,170,P.stone,0,-.25,-42);
+    box(g,190,.5,170,P.canyon,0,-.25,-42);
     for(const side of [-1,1]){
       for(let i=0;i<7;i++){
         const z=25-i*18,h=29+hash(i,71)*15,x=side*(29+hash(i,72)*1.8);
@@ -217,7 +217,7 @@ const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
     }
   }
   // near / mid / far parallax markers remain spatially separated for the camera.
-  if(p.terrain!=="ocean-floor")for(let i=0;i<18;i++){const z=-5-i*3.2;const x=(hash(i,30)-.5)*(12+i*4);const m=box(g,.12,.08,.12,P.shade,x,.04,z);m.userData.parallax=.18+i*.025;}
+  if(p.terrain!=="ocean-floor"&&p.terrain!=="canyon")for(let i=0;i<18;i++){const z=-5-i*3.2;const x=(hash(i,30)-.5)*(12+i*4);const m=box(g,.12,.08,.12,P.shade,x,.04,z);m.userData.parallax=.18+i*.025;}
 };
 const settlement=(g:THREE.Group,p:WorldParams,t:number)=>{
   const era=p.era??"medieval",region=p.region??"african";

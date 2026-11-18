@@ -122,11 +122,16 @@ const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
     // A broken, jagged rear escarpment closes the valley without reading as a flat wall.
     poly(g,[[62,0,-105],[62,24,-105],[40,38,-105],[18,29,-105],[-5,42,-105],[-25,27,-105],[-45,35,-105],[-62,24,-105],[-62,0,-105]],P.stone);
     for(let layer=0;layer<5;layer++)box(g,118,.48,1.1,layer%2?P.earth:P.reef,0,4+layer*5.4,-104.2);
-    // Meandering river ribbon, built from overlapping segments for a continuous readable channel.
-    for(let i=0;i<22;i++){
-      const z=23-i*6.8,x=Math.sin(i*.24)*8;
-      const bend=box(g,9,.16,8.2,P.sky,x,.03,z);bend.rotation.y=-Math.sin(i*.24)*.18;
-    }
+    // Smooth winding river ribbon as one triangulated shape, avoiding a stair-stepped row of boxes.
+    const riverShape=new THREE.Shape();
+    const riverPath:[number,number][]=[];
+    for(let i=0;i<=44;i++){const z=24-i*3.25,x=Math.sin(i*.12)*8.5;riverPath.push([x-5,-z]);}
+    for(let i=44;i>=0;i--){const z=24-i*3.25,x=Math.sin(i*.12)*8.5;riverPath.push([x+5,-z]);}
+    riverShape.moveTo(riverPath[0][0],riverPath[0][1]);
+    for(let i=1;i<riverPath.length;i++)riverShape.lineTo(riverPath[i][0],riverPath[i][1]);
+    riverShape.closePath();
+    const river=new THREE.Mesh(new THREE.ShapeGeometry(riverShape,1),mat(P.sky));
+    river.rotation.x=-Math.PI/2;river.position.y=.04;river.receiveShadow=true;g.add(river);
     // Small angular talus rocks add scale without obscuring the canyon walls.
     for(let i=0;i<10;i++){
       const side=i%2?1:-1,x=side*(17+hash(i,81)*4),z=18-Math.floor(i/2)*13,r=1.4+hash(i,82)*1.5;

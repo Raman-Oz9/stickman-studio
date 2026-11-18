@@ -131,7 +131,7 @@ const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
     for(let i=1;i<riverPath.length;i++)riverShape.lineTo(riverPath[i][0],riverPath[i][1]);
     riverShape.closePath();
     const river=new THREE.Mesh(new THREE.ShapeGeometry(riverShape,1),mat(P.sky));
-    river.rotation.x=-Math.PI/2;river.position.y=.08;river.receiveShadow=true;g.add(river);
+    river.rotation.x=-Math.PI/2;river.position.y=.16;river.receiveShadow=true;g.add(river);
     // Small angular talus rocks add scale without obscuring the canyon walls.
     for(let i=0;i<10;i++){
       const side=i%2?1:-1,x=side*(17+hash(i,81)*4),z=18-Math.floor(i/2)*13,r=1.4+hash(i,82)*1.5;

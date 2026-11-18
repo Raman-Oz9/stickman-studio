@@ -89,6 +89,7 @@ const Face: React.FC<{ expression: Expression; blink: boolean; look: number; loo
 export type InkStickmanProps = {
   x: number; y: number; scale?: number; facing?: 1 | -1;
   skin: string; cloth: string; trim?: string; hair?: string;
+  hairStyle?: "short" | "bun" | "afro" | "long" | "cap" | "bald" | "curly" | "braids";
   walk?: number; stand?: number;
   frontHand?: Vec | null; backHand?: Vec | null; grip?: boolean;
   expression?: Expression; frame?: number; look?: number; gaze?: Vec | null; lean?: number;
@@ -123,7 +124,7 @@ const ik3 = (R: V3, T: V3, l1: number, l2: number, P: V3): { j: V3; e: V3 } => {
 // projected, so arms hang from the shoulders at the sides, legs stand side by side in front view, and the whole figure can face
 // any direction relative to the camera (0 = facing camera, 90 = facing screen-right, 180 = back to camera, 270 = facing left).
 export const InkStickman: React.FC<InkStickmanProps> = ({
-  x, y, scale = 1, facing = 1, yaw: yawIn, skin, cloth, hair: hairIn, walk = 0, stand = 1, frontHand = null, backHand = null,
+  x, y, scale = 1, facing = 1, yaw: yawIn, skin, cloth, hair: hairIn, hairStyle, walk = 0, stand = 1, frontHand = null, backHand = null,
   expression = "smile", frame = 0, look: lookIn = 0, gaze = null, lean = 0, build = "lean", grip = false,
   footFront = null, footBack = null, hipDrop = 0, hipX = 0, rot = 0, headTilt = 0, held = null, heldAng = 0, style: st, seat = false, extra = null,
 }) => {
@@ -172,7 +173,8 @@ export const InkStickman: React.FC<InkStickmanProps> = ({
   const torso = `M ${-tw} ${SH_Y + 6} Q ${-tw - 6} ${SH_Y + 70} ${-tw + 2} ${HIP_Y + 4} L ${tw - 2} ${HIP_Y + 4} Q ${tw + 6} ${SH_Y + 70} ${tw} ${SH_Y + 6} Q 0 ${SH_Y - 12} ${-tw} ${SH_Y + 6} Z`;
   const headPath = `M 0 ${HEAD_Y - 100} C 62 ${HEAD_Y - 100} 90 ${HEAD_Y - 50} 88 ${HEAD_Y + 10} C 86 ${HEAD_Y + 66} 48 ${HEAD_Y + 94} 0 ${HEAD_Y + 94} C -48 ${HEAD_Y + 94} -86 ${HEAD_Y + 66} -88 ${HEAD_Y + 10} C -90 ${HEAD_Y - 50} -62 ${HEAD_Y - 100} 0 ${HEAD_Y - 100} Z`;
   const cx0 = hipX * sn, leanS = lean * sn;
-  const hairC = hair ?? st?.hair ?? "#2a1f1a";
+  const hairC = hairIn ?? st?.hair ?? "#2a1f1a";
+  const styleHair = hairStyle ?? "short";
   const poseSgn = sn >= 0 ? 1 : -1;
 
   const limb = (a: { j: V3; e: V3 }, s: number, isFront: boolean) => {
@@ -211,7 +213,43 @@ export const InkStickman: React.FC<InkStickmanProps> = ({
             <ellipse cx={84 * Math.abs(cs)} cy={HEAD_Y + 6} rx="10" ry="15" fill={skin} stroke={INK} strokeWidth="5" />
             <path d={headPath} fill={back ? hairC : skin} stroke={INK} strokeWidth="7" strokeLinejoin="round" />
             {back ? <path d={`M -70 ${HEAD_Y + 40} Q 0 ${HEAD_Y + 70} 70 ${HEAD_Y + 40}`} fill="none" stroke={shade(hairC, 0.6)} strokeWidth="5" /> : null}
-            {hair && !back ? <g transform={`translate(0 ${HEAD_Y}) scale(1.38 1.5) translate(0 430)`}><path d="M -63 -438 C -70 -472 -48 -500 -18 -500 C 2 -524 39 -512 51 -485 C 69 -477 70 -452 63 -438 Q 37 -455 19 -457 Q -2 -449 -17 -461 Q -36 -447 -63 -438 Z" fill={hair} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" /><path d="M -25 -483 Q 7 -509 42 -484 Q 14 -492 0 -469" fill="none" stroke="#fff3d5" strokeWidth="4" strokeLinecap="round" opacity=".28" /></g> : null}
+             {styleHair !== "bald" && !back ? (
+               <g transform={`translate(0 ${HEAD_Y}) scale(1.38 1.5) translate(0 430)`}>
+                 {styleHair === "bun" ? (
+                   <>
+                     <path d="M -63 -438 C -70 -472 -48 -500 -18 -500 C 2 -524 39 -512 51 -485 C 69 -477 70 -452 63 -438 Q 37 -455 19 -457 Q -2 -449 -17 -461 Q -36 -447 -63 -438 Z" fill={hairC} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+                     <ellipse cx="25" cy="-525" rx="16" ry="14" fill={hairC} stroke={INK} strokeWidth="5.5" />
+                   </>
+                 ) : styleHair === "afro" ? (
+                   <path d="M -55 -450 C -80 -530 -40 -560 0 -560 C 40 -560 80 -530 55 -450 C 75 -420 75 -390 50 -400 C 65 -440 40 -480 0 -480 C -40 -480 -65 -440 -50 -400 C -75 -390 -75 -420 -55 -450 Z" fill={hairC} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+                 ) : styleHair === "long" ? (
+                   <path d="M -63 -438 C -70 -472 -48 -500 -18 -500 C 2 -524 39 -512 51 -485 C 69 -477 70 -452 63 -438 L 72 -340 C 75 -300 68 -270 55 -250 L 42 -250 C 55 -280 62 -310 58 -350 L 51 -485 L -51 -485 L -58 -350 C -62 -310 -55 -280 -42 -250 L -55 -250 C -68 -270 -75 -300 -72 -340 Z" fill={hairC} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+                 ) : styleHair === "cap" ? (
+                   <>
+                     <path d="M -60 -460 C -65 -500 -40 -520 0 -520 C 40 -520 65 -500 60 -460 Z" fill={hairC} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+                     <path d="M -55 -460 Q 15 -485 78 -450 C 82 -442 70 -440 Q 10 -462 -52 -450 Z" fill={hairC} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+                   </>
+                 ) : styleHair === "curly" ? (
+                   <>
+                     <path d="M -63 -438 C -75 -500 -35 -540 0 -540 C 35 -540 75 -500 63 -438 Q 48 -475 25 -465 Q 0 -495 -25 -465 Q -48 -475 -63 -438 Z" fill={hairC} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+                     <circle cx="-30" cy="-510" r="14" fill={hairC} stroke={INK} strokeWidth="4.5" />
+                     <circle cx="5" cy="-535" r="15" fill={hairC} stroke={INK} strokeWidth="4.5" />
+                     <circle cx="35" cy="-510" r="14" fill={hairC} stroke={INK} strokeWidth="4.5" />
+                   </>
+                 ) : styleHair === "braids" ? (
+                   <>
+                     <path d="M -63 -438 C -70 -472 -48 -500 -18 -500 C 2 -524 39 -512 51 -485 C 69 -477 70 -452 63 -438 Z" fill={hairC} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+                     <path d="M -58 -460 C -75 -430 -72 -330 -65 -270 C -62 -250 -55 -250 -58 -280 C -62 -330 -65 -410 -52 -455 Z" fill={hairC} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+                     <path d="M 58 -460 C 75 -430 72 -330 65 -270 C 62 -250 55 -250 58 -280 C 62 -330 65 -410 52 -455 Z" fill={hairC} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+                   </>
+                 ) : (
+                   <>
+                     <path d="M -63 -438 C -70 -472 -48 -500 -18 -500 C 2 -524 39 -512 51 -485 C 69 -477 70 -452 63 -438 Q 37 -455 19 -457 Q -2 -449 -17 -461 Q -36 -447 -63 -438 Z" fill={hairC} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+                     <path d="M -25 -483 Q 7 -509 42 -484 Q 14 -492 0 -469" fill="none" stroke="#fff3d5" strokeWidth="4" strokeLinecap="round" opacity=".28" />
+                   </>
+                 )}
+               </g>
+             ) : null}
             {!back ? <g transform={`translate(${sn * 44} 0) translate(0 ${HEAD_Y}) scale(${Math.max(0.34, cs) * 1.32} 1.32) translate(0 ${-HEAD_Y})`}><Face expression={expression} blink={blink} look={look} lookY={lookY} /></g> : null}
             {st ? <HatLayer hat={st.hat} color={st.hatColor} accent={st.accent} /> : null}
           </g>

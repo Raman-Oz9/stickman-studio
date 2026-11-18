@@ -1,3 +1,8 @@
+### 2026-11-18 — Expand 3D era architecture presets
+- Extended the procedural 3D settlement vocabulary with dedicated Viking longhouse/longship dressing, Renaissance palazzo and dome, Victorian terraces and street lamps, 1920s stepped skyline, WWII defensive emplacement, near-future towers/elevated transit, space-age landing pad/habitats, Egyptian pyramidal/obelisk forms, and Roman/Greek civic architecture.
+- Era additions stay inside the established six-colour world palette and are built in the shared `worldgen.ts` 3D environment layer; no flat backdrop or character files were touched.
+- These are procedural first-pass silhouettes. Strict TypeScript and native StoryHybrid still review remain required; historical accuracy, camera framing and lighting need visual QA.
+
 ### 2026-11-18 — Add 3D ocean-floor and canyon environment sets (ChatGPT)
 - Followed the Nov 18 owner handoff: production world is Three.js StoryWorld rendered through StoryHybrid; Story2D remains legacy and was not changed in this pass. Character rig, pose/action system, wardrobe and Claude QA files were left untouched.
 - Extended `worldgen.ts` with dedicated `ocean-floor` and `canyon` terrain presets. Ocean-floor dressing includes sandy seabed, rock scatter, branching coral, small animated fish schools, translucent light shafts and an animated translucent water sheet. Open-water/coast/river scenes now have a broader water body and animated wave marks. Canyon dressing adds stratified opposing cliff walls, a winding river and foreground hoodoo forms.

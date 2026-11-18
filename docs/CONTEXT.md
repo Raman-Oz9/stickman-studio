@@ -1,3 +1,6 @@
+### 2026-11-18 — Add 20 hand-held prop icons to Props2D.tsx
+- Added 20 hand-held 2D prop icons (torch variants, hourglass, compass, trumpet, drum, lute, fishing rod, net, plate of meat, jug, quill+inkpot, key ring, magnifier, lantern, whistle, bell, candle, paintbrush, spoon, wheel) in clean ink outline style following the grip-origin convention `(0,0)`. Verified clean TypeScript compilation.
+
 ### 2026-11-18 — Fix scene-grade uniform type mismatch
 - The new scene-aware grading in `world.ts` lerps Three.js vector uniforms; the first CI run exposed that its target values were incorrectly typed as `THREE.Color`.
 - Replaced those targets with normalized RGB `THREE.Vector3` values, preserving the intended warm/cool grade adjustments while matching the uniform types.

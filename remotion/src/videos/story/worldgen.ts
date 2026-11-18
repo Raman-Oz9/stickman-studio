@@ -64,7 +64,6 @@ const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
     }
     const water=new THREE.Mesh(new THREE.PlaneGeometry(180,150,24,18),new THREE.MeshPhongMaterial({color:"#4c9eae",transparent:true,opacity:.24,shininess:90,side:THREE.DoubleSide,depthWrite:false}));
     water.rotation.x=-Math.PI/2;water.position.set(0,17,-34);water.userData.waveSurface=true;g.add(water);
-    box(g,180,.25,150,P.deep,0,17.2,-34);
   } else if(p.terrain==="ocean"||p.terrain==="river"||p.terrain==="coast"){
     // Open-water scenes get a real broad water body with layered wave crests, not a thin blue strip.
     const water=box(g,180,.55,120,P.sky,0,-.12,-38);

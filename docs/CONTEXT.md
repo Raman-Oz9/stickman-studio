@@ -1,3 +1,7 @@
+### 2026-11-18 — Fix scene-grade uniform type mismatch
+- The new era/season/weather grade in `world.ts` interpolated Three.js `Color` uniforms with `Vector3` values, causing strict TypeScript errors. Replaced those interpolation targets with `THREE.Color` instances; the numerical grade values and blend weights are unchanged.
+- The first production-branch proof run caught this issue before any environment renders ran. A rerun is required to confirm the typecheck and inspect both native-resolution world frames.
+
 ### 2026-11-18 — Final synced-branch 3D proof passed
 - After syncing the latest main wardrobe/OpenCode changes, workflow run `44269012189` completed successfully: Remotion dependency install, strict `npx tsc --noEmit`, and both native-resolution worldgen proof renders passed.
 - Inspected the resulting 1080×1920 ocean-floor and canyon stills from that run. The underwater preset has its own deep-water grade, light shafts, fish, rocks and foreground reef; the canyon preset has a rust floor, a continuous blue river above the floor plane, stratified gorge walls and a distant ridge.

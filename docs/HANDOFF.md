@@ -17,3 +17,12 @@ Owner decision (Nov 18): **WORLD = real 3D** (Three.js StoryWorld: terrain, real
 
 ## Rules
 No barrels. Full-body humans that act every verb. Check stills before sending video. Update docs/CONTEXT.md on every change. Small commits.
+
+## WORLD BIBLE (owner request Nov 18, 04:00): everything in the human world, in 3D, whatever the script says
+- **Not one location.** Every scene picks its own place AND era AND weather. Places: cities (modern, medieval, ancient Rome/Greece/Egypt/China, futuristic), villages, farms, seas/oceans (real 3D water + ships, underwater), mountains, grand canyon, deserts, jungles, ice/arctic, caves/mines, airports, railway stations/tracks, highways, harbours, space (planets, stations, black holes).
+- **Eras**: stone age, ancient (Egypt, Greece, Rome, China, India), medieval, Viking, Renaissance, pirate age, Victorian, 1920s, wild west, WW1/WW2, modern, near future, space age. Era drives: buildings, vehicles, props, and the 2D cast's outfit (`inkOutfit.ts` + `outfits.ts` ERA table).
+- **Weather/season** everywhere: summer, winter/snow, rain, storm, fog, wind, night/dawn/dusk (`env`, `season`, `tod` in scenes).
+- **Vehicles/objects are real 3D**: cars, trucks, buses, trains on rails, planes, helicopters, ships, boats, carts, chariots, tanks, bikes, rockets. They must NOT always drive sideways: camera orbits/tracks/flies over them from front, back, above, low angle; vehicles drive along paths (roads, rails, air lanes) not across the screen.
+- **Animals** in 3D, matching biome/era. **Tools/tech**: calculators, phones, computers, books, scrolls, pens, instruments... held by the 2D cast (Props2D) and 3D set dressing (props3d).
+- **Any noun**: if the library has it, use it; if not, the engine AUTO-GENERATES it: planner (Gemini) emits a 3D `models` recipe (already supported in plan_story.py step 7) and an SVG hand-icon for held items (`icons` field, TODO). Never show a placeholder tile.
+- **Cinematic look**: depth-of-field blur (LensBlur), bloom, colour grade per era/weather, shiny outfits (gradient + specular on garments, metals), film grain, soft shadows, vignette; camera always moving (push, pull, orbit, crane, tracking).

@@ -1,3 +1,8 @@
+### 2026-11-18 — Add scene-cued chicken-village environment plates (ChatGPT)
+- Added `ChickenVillageBackdrop.tsx`, a dedicated 9:16 illustrated village environment with converging cobbled street, tall red-roof/red-shutter houses, timber coops and fences, readable chickens, crow mascot, chalkboard lesson insert, overhead coop rows, gold-coin composition, and blue-night firelight/logs.
+- Wired the environment into `Story2D.tsx` using an explicit `world.label="chicken-village"` or chicken/egg/rooster/coop/hen story cues. Great Zimbabwe and unrelated boards keep their existing render paths; character, IK and camera code remain untouched.
+- The scene plates are a first implementation pass, not visually accepted. Run strict TypeScript and native-resolution still renders on this branch, then inspect the frames against the owner reference before merging. The chicken village is selected by story text; a dedicated authored chicken-village board with deliberate scene beats is still needed for reliable shot-by-shot coverage.
+
 ### 2026-11-17 — Verify the rebuilt IllustratedProof at native resolution
 - Run #44047109990 passed strict TypeScript and all native-resolution still renders at 1080×1920. Downloaded and inspected proof frames 15, 45, 75, 105, 150 and 175.
 - The opening frames show the guide walking and pointing; frame 105 shows both IK-driven hands meeting on the coin; frame 150 shows the coin remaining at the receiver's waist. The push-in and pull-back keep the illustrated canvas full-bleed without the previous edge seams.

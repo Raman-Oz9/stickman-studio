@@ -12,7 +12,7 @@ export type WorldParams = {
   timeOfDay?: "dawn"|"noon"|"dusk"|"night"; era?: EraType; region?: RegionType; mapMode?: boolean;
   seed?: number; accentBeat?: number; accentEnabled?: boolean; label?: string; artifact?: ArtifactType;
 };
-const P = { earth:"#b99a6a", stone:"#71685c", shade:"#403c39", green:"#718b4c", sky:"#a9c7cf", accent:"#d2a34a", deep:"#174d68", reef:"#d47755", coral:"#df9b70", sand:"#d5bd8b" } as const;
+const P = { earth:"#F4C65A", stone:"#D98D3D", shade:"#171717", green:"#2F806B", sky:"#55BCEB", accent:"#F1C24F", deep:"#174d68", reef:"#D47755", coral:"#DF9B70", sand:"#F7D16A" } as const;
 const MAP = { paper:"#e5d5ae", ink:"#554632", land:"#899967", water:"#86aeb8", line:"#66513a", accent:"#c18b3d" } as const;
 const hash = (n:number,s:number)=>{const x=Math.sin(n*127.1+s*311.7)*43758.5453;return x-Math.floor(x);};
 const clamp=(x:number,a=0,b=1)=>Math.max(a,Math.min(b,x));

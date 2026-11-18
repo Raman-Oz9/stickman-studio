@@ -1,3 +1,8 @@
+### 2026-11-18 — Rebuild canyon geometry after native-resolution review
+- The first proof render showed the canyon's side walls were outside the useful camera framing and the oversized hoodoos dominated the shot.
+- Rebuilt the set around tall opposing stratified cliff walls, a closing rear escarpment, a continuous overlapping river ribbon and smaller talus rocks.
+- The revised layout is intended to read as a gorge from the default StoryHybrid wide shot; new native-resolution frames are required before visual acceptance.
+
 ### 2026-11-18 — Refine underwater atmosphere and portrait-frame proof
 - Native-resolution proof stills exposed a terrestrial sky treatment on the ocean-floor preset. Added a deep teal underwater sky gradient, cooler underwater key/fill light and nearer teal fog while preserving night treatment.
 - Tightened the StoryHybrid cast overlay to clip projected people to the portrait frame, preventing off-frame extras from leaking beyond the composition.

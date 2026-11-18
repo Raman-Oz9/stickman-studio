@@ -502,7 +502,8 @@ export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
   const g=new THREE.Group();g.name=p.mapMode?"HistoricalMapWorld":"ProceduralWorld";
   if(p.mapMode){mapLayer(g,p,t);g.scale.set(.5,1,.72);}else if(p.terrain==="space"){spaceSet(g,p,t);}else{
     terrain(g,p,t);
-    settlement(g,p,t);
+    // Open-water and seabed presets must not inherit terrestrial era buildings or regional huts.
+    if(p.terrain!=="ocean"&&p.terrain!=="ocean-floor") settlement(g,p,t);
     if(p.artifact){const a=drawArtifact(p.artifact,t);a.position.set(0,0,5);g.add(a);}
     if(p.timeOfDay==="night"){ball(g,3,P.sky,40,34,-70);}
     if(p.timeOfDay==="dawn"||p.timeOfDay==="dusk")ball(g,2.8,p.accentEnabled?P.accent:P.sky,34,26,-68);

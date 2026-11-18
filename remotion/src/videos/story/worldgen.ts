@@ -93,7 +93,7 @@ const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
     for(let i=0;i<9;i++){
       const x=-42+i*10.5,h=7+hash(i,61)*9;
       cylinder(g,2.3,h*.55,P.earth,x,h*.275,-7,7);
-      ball(g,3.6,P.red,x,h*.62,-7,1.35,.48,1.05);
+      ball(g,3.6,P.reef,x,h*.62,-7,1.35,.48,1.05);
     }
   } else if(p.terrain==="mountain"){
     for(let i=0;i<9;i++){const x=-75+i*18,h=18+hash(i,2)*22;poly(g,[[x-18,0,-48],[x,h,-78],[x+18,0,-48]],i%2?P.stone:P.shade);if(p.season==="winter"||p.climate==="polar")poly(g,[[x-5,h*.72,-76],[x,h,-78],[x+5,h*.72,-76]],P.sky);}
@@ -235,10 +235,10 @@ const settlement=(g:THREE.Group,p:WorldParams,t:number)=>{
     box(g,34,7,13,P.earth,0,3.5,-28);
     poly(g,[[-20,7,-35],[0,14,-35],[20,7,-35]],P.shade);
     poly(g,[[-20,7,-21],[0,14,-21],[20,7,-21]],P.shade);
-    for(let i=0;i<9;i++){const x=-15+i*3.75;box(g,.35,7,.35,P.stone,x,3.5,-35);cylinder(g,.48,.16,i%2?P.accent:P.red,x,2.3,-35,10);}
+    for(let i=0;i<9;i++){const x=-15+i*3.75;box(g,.35,7,.35,P.stone,x,3.5,-35);cylinder(g,.48,.16,i%2?P.accent:P.reef,x,2.3,-35,10);}
     // A beached longship silhouette and its mast.
     const hull=poly(g,[[-17,.5,4],[-12,2,0],[12,2,0],[17,.5,4],[0,.2,8]],P.earth);
-    box(g,.32,10,.32,P.shade,0,5,3);poly(g,[[-.1,9,3],[5,7,3],[5,2,3],[-.1,2,3]],P.cream);
+    box(g,.32,10,.32,P.shade,0,5,3);poly(g,[[-.1,9,3],[5,7,3],[5,2,3],[-.1,2,3]],P.sand);
     for(let i=0;i<7;i++)cylinder(g,.12,.7,P.accent,-12+i*4,2.1,1,8);
     void hull;
   } else if(era==="renaissance"){

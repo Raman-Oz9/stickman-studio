@@ -4,7 +4,7 @@ import * as THREE from "three";
 
 export type TerrainType = "forest"|"jungle"|"ocean"|"ocean-floor"|"mountain"|"canyon"|"desert"|"ice"|"plain"|"river"|"coast"|"swamp"|"cave"|"savanna";
 export type WeatherType = "clear"|"rain"|"snow"|"fog"|"storm"|"drought"|"wind";
-export type EraType = "stone-age"|"ancient"|"classical"|"medieval"|"early-modern"|"industrial"|"modern";
+export type EraType = "stone-age"|"ancient"|"classical"|"medieval"|"early-modern"|"industrial"|"modern"|"viking"|"renaissance"|"victorian"|"1920s"|"ww2"|"near-future"|"space-age"|"egyptian"|"roman"|"greek";
 export type RegionType = "european"|"african"|"east-asian"|"south-asian"|"middle-eastern"|"mesoamerican";
 export type ArtifactType = "pottery"|"coin"|"tool"|"weapon"|"tablet"|"scroll"|"jewellery"|"bone"|"ruins"|"excavation";
 export type WorldParams = {
@@ -216,9 +216,72 @@ const settlement=(g:THREE.Group,p:WorldParams,t:number)=>{
     for(let i=0;i<3;i++){const x=-22+i*22;box(g,15,9,10,P.earth,x,4.5,-28);box(g,16,.55,11,P.stone,x,9.25,-28);}
     for(let i=0;i<3;i++){const x=-25+i*24;cylinder(g,1.25,15,P.shade,x,14,-32,8);const smoke=ball(g,1.1,P.sky,x,22,-32,1.3,1,1);smoke.userData.smokeParticle={phase:i*2.1,baseY:22};}
     box(g,90,.3,9,P.sky,0,.05,12);
-  } else if(era==="modern"){
-    for(let i=0;i<7;i++){const x=-30+i*10,h=10+hash(i,7)*18;box(g,8,h,8,P.stone,x,h/2,-30);for(let y=2;y<h-1;y+=2)for(let z=-3;z<=3;z+=2)box(g,.8,1,.08,P.sky,x+z,y,-25.9);}
+  } else if(era==="modern"||era==="1920s"||era==="near-future"){
+    for(let i=0;i<7;i++){
+      const x=-30+i*10,h=era==="1920s"?14+hash(i,7)*20:era==="near-future"?24+hash(i,7)*28:10+hash(i,7)*18;
+      box(g,8,h,8,P.stone,x,h/2,-30);
+      for(let y=2;y<h-1;y+=2)for(let z=-3;z<=3;z+=2)box(g,.8,1,.08,P.sky,x+z,y,-25.9);
+      if(era==="1920s")for(let tier=0;tier<3;tier++)box(g,8-tier*1.6,1.2,8-tier*1.6,P.earth,x,h+tier*1.2,-30);
+      if(era==="near-future"){box(g,7,.18,3,P.green,x,h+.2,-30);cylinder(g,.12,3,P.accent,x,h+1.7,-30,8);}
+    }
     box(g,90,.22,7,P.shade,0,.1,10);
+    if(era==="near-future"){
+      // Elevated transit spine and two support pylons make the skyline feel connected and inhabited.
+      box(g,100,.55,3,P.shade,0,8,-48);for(const x of [-38,0,38])box(g,1,8,1,P.stone,x,4,-48);
+      for(let i=0;i<8;i++)box(g,3,.16,2,P.sky,-35+i*10,8.4,-48);
+    }
+  } else if(era==="viking"){
+    // Timber longhouse, carved gable ends and a shield line.
+    box(g,34,7,13,P.earth,0,3.5,-28);
+    poly(g,[[-20,7,-35],[0,14,-35],[20,7,-35]],P.shade);
+    poly(g,[[-20,7,-21],[0,14,-21],[20,7,-21]],P.shade);
+    for(let i=0;i<9;i++){const x=-15+i*3.75;box(g,.35,7,.35,P.stone,x,3.5,-35);cylinder(g,.48,.16,i%2?P.accent:P.red,x,2.3,-35,10);}
+    // A beached longship silhouette and its mast.
+    const hull=poly(g,[[-17,.5,4],[-12,2,0],[12,2,0],[17,.5,4],[0,.2,8]],P.earth);
+    box(g,.32,10,.32,P.shade,0,5,3);poly(g,[[-.1,9,3],[5,7,3],[5,2,3],[-.1,2,3]],P.cream);
+    for(let i=0;i<7;i++)cylinder(g,.12,.7,P.accent,-12+i*4,2.1,1,8);
+    void hull;
+  } else if(era==="renaissance"){
+    // Palazzo facade, repeated arches and a central dome.
+    box(g,46,13,10,P.earth,0,6.5,-34);
+    for(let i=0;i<7;i++){const x=-20+i*6.6;cylinder(g,.42,8,P.stone,x,4,-28,12);box(g,5,.55,1.1,P.stone,x,8.3,-28);}
+    box(g,49,.9,12,P.stone,0,13.4,-34);
+    cylinder(g,7,2,P.stone,0,14.8,-34,20);ball(g,6,P.earth,0,18,-34,1,1.1,1);
+    for(let i=0;i<5;i++)box(g,1.4,2.4,.3,P.sky,-16+i*8,3,-28);
+  } else if(era==="victorian"){
+    // Narrow terraced houses, chimney pots, bay windows and cast-iron street lamps.
+    for(let i=0;i<5;i++){
+      const x=-30+i*15,h=10+hash(i,81)*4;
+      box(g,12,h,9,i%2?P.earth:P.stone,x,h/2,-34);
+      poly(g,[[x-6,h,-39],[x,h+5,-39],[x+6,h,-39]],P.shade);
+      for(let y=2;y<h-1;y+=2)box(g,1.3,1.1,.12,P.sky,x-3,y,-29.4);
+      box(g,1.4,4,1.4,P.shade,x+3,h+2,-36);
+    }
+    for(const x of [-24,24]){cylinder(g,.12,6,P.shade,x,3,3,8);ball(g,.48,P.accent,x,6.2,3,.7,1.2,.7);}
+  } else if(era==="ww2"){
+    // Defensive concrete emplacement, sandbag lines and a shallow zig-zag trench.
+    box(g,24,5,12,P.stone,0,2.5,-35);
+    box(g,12,2,5,P.shade,0,5,-28);
+    for(let i=0;i<18;i++){const side=i%2?1:-1,x=side*(8+(i%5)*2.5),z=4+Math.floor(i/5)*2;const bag=ball(g,.85,P.earth,x,.65,z,1.6,.55,.75);bag.rotation.y=side*.3;}
+    for(let i=0;i<7;i++)box(g,1.2,1.2,1.2,P.shade,-18+i*6,.6,13+(i%2)*1.2,.35);
+  } else if(era==="space-age"){
+    // Landing apron, habitat domes and a communications mast.
+    cylinder(g,22,.45,P.stone,0,.22,-32,48);cylinder(g,17,.08,P.sky,0,.5,-32,48);
+    for(let i=0;i<3;i++){const x=-24+i*24;ball(g,6,P.earth,x,4,-45,1.4,.8,1.1);box(g,8,.35,1,P.stone,x,1,-45);}
+    cylinder(g,.3,15,P.shade,30,7.5,-28,8);for(let i=0;i<4;i++)box(g,4,.22,.22,P.accent,30,12+i*.7,-28);
+  } else if(era==="egyptian"){
+    // Nile-side temple axis, obelisks and broad pyramidal silhouettes.
+    for(const x of [-24,24]){
+      poly(g,[[x-12,0,-42],[x,20,-42],[x+12,0,-42]],P.earth);
+      cylinder(g,.85,11,P.stone,x,5.5,-18,8);poly(g,[[x-.85,11,-18],[x,15,-18],[x+.85,11,-18]],P.accent);
+    }
+    box(g,90,.18,7,P.sky,0,.02,12);
+  } else if(era==="roman"||era==="greek"){
+    box(g,34,1,18,P.earth,0,.5,-28);
+    for(let i=0;i<9;i++){const x=-15+i*3.75;cylinder(g,.48,7,P.stone,x,4,-22,10);}
+    box(g,36,.8,2,P.stone,0,7.8,-22);
+    poly(g,[[-18,8.2,-23],[0,13,-23],[18,8.2,-23]],P.earth);
+    for(let i=0;i<5;i++)box(g,26-i*3,.45,2,P.stone,0,.3+i*.5,-48-i*1.4);
   }
   // Region flavour is layered on the era rather than replacing it.
   if(region==="east-asian"){

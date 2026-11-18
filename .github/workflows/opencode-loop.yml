@@ -1,0 +1,71 @@
+name: opencode-loop
+# Non-stop OpenCode: every 20 minutes take the next task from docs/OPENCODE_QUEUE.md, do it, open a PR.
+on:
+  schedule:
+    - cron: "*/20 * * * *"
+  workflow_dispatch:
+concurrency:
+  group: opencode-loop
+  cancel-in-progress: false
+env:
+  MODELS: google/gemini-3.5-flash google/gemini-2.5-flash google/gemini-3.5-flash-lite
+jobs:
+  loop:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: main, fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Pick next task
+        id: pick
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          OPEN=$(gh pr list --state open --search "head:opencode/" --json number --jq length)
+          if [ "$OPEN" -ge 3 ]; then echo "3+ open OpenCode PRs, waiting for review"; echo "task=" >> $GITHUB_OUTPUT; exit 0; fi
+          LINE=$(grep -n -m1 '^- \[ \]' docs/OPENCODE_QUEUE.md || true)
+          if [ -z "$LINE" ]; then echo "queue empty"; echo "task=" >> $GITHUB_OUTPUT; exit 0; fi
+          N=${LINE%%:*}; TASK=${LINE#*:- [ ] }
+          echo "n=$N" >> $GITHUB_OUTPUT
+          { echo "task<<EOF_T"; echo "$TASK"; echo "EOF_T"; } >> $GITHUB_OUTPUT
+          sed -i "${N}s/^- \[ \]/- [~]/" docs/OPENCODE_QUEUE.md
+          git config user.name opencode-agent; git config user.email opencode-agent@users.noreply.github.com
+          git add docs/OPENCODE_QUEUE.md; git commit -qm "queue: start task $N"; git push -q origin main
+      - name: Run OpenCode
+        if: steps.pick.outputs.task != ''
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          TASK: ${{ steps.pick.outputs.task }}
+        run: |
+          npm install -g opencode-ai
+          PROMPT="You are the OpenCode agent on stickman-studio. Read AGENTS.md, docs/CONTEXT.md and docs/REFERENCE_VIDEO_V2.md first. Task: ${TASK}. Rules: full-body articulated humans (no barrels), clean ink style, small focused change. When done run: cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit and fix every error. Append a line to docs/CONTEXT.md describing what you changed."
+          for M in $MODELS; do
+            echo "== model $M" | tee /tmp/oc.txt
+            opencode run --model "$M" "$PROMPT" 2>&1 | tee -a /tmp/oc.txt
+            if ! grep -q "Error:" /tmp/oc.txt; then break; fi
+          done
+      - name: PR and tick queue
+        if: always() && steps.pick.outputs.task != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          N: ${{ steps.pick.outputs.n }}
+          TASK: ${{ steps.pick.outputs.task }}
+        run: |
+          git config user.name opencode-agent; git config user.email opencode-agent@users.noreply.github.com
+          git checkout -q -- docs/OPENCODE_QUEUE.md 2>/dev/null || true
+          rm -rf remotion/node_modules
+          if [ -n "$(git status --porcelain)" ]; then
+            BR="opencode/task-${N}-${GITHUB_RUN_ID}"
+            git checkout -q -b "$BR"; git add -A; git commit -qm "OpenCode: ${TASK:0:70}"
+            git push -q origin "$BR"
+            gh pr create --base main --head "$BR" --title "OpenCode: ${TASK:0:70}" --body "Queue task ${N}. Review stills before merging." || true
+            DONE="x"
+          else DONE="!"; fi
+          git fetch -q origin main; git checkout -q main; git reset -q --hard origin/main
+          sed -i "${N}s/^- \[~\]/- [${DONE}]/" docs/OPENCODE_QUEUE.md
+          git add docs/OPENCODE_QUEUE.md; git commit -qm "queue: task $N ${DONE}"; git push -q origin main

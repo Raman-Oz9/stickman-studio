@@ -131,6 +131,9 @@
 - Both: update this file on every change; never claim "works" without viewing rendered frames; never send the owner a video that has not been frame-checked.
 ## CHANGELOG
 
+### 2026-11-18 — Add `hairStyle` prop to InkStickman.tsx
+- Added `hairStyle` prop supporting `"short" | "bun" | "afro" | "long" | "cap" | "bald" | "curly" | "braids"` to `InkStickman.tsx`, drawing each style in ink outline over the head while keeping the existing `hair` color prop and preserving body geometry. Verified clean TypeScript compilation.
+
 ### 2026-11-16 — Great Zimbabwe dimensional world pass 09 (terrain, settlement life and camera)
 - Expanded the savanna ground plane and added layered southern-African escarpment peaks, granite kopjes, distant acacia silhouettes and wind-driven grass/tree sway.
 - Expanded the Great Zimbabwe settlement beyond its monumental wall with an outer ring of residential compounds, a processional road, four market stalls, visible goods and animated hearth smoke.

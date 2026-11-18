@@ -154,14 +154,14 @@ export class StoryWorld {
     const eraGrade = String(s.world?.era ?? s.era ?? "").toLowerCase();
     const coldEra = /viking|ww1|ww2|space|near-future/.test(eraGrade);
     const warmEra = /ancient|egypt|roman|greek|renaissance|wild-west|pirate/.test(eraGrade);
-    if (coldEra) { TONE.uLitCol.value.lerp(new THREE.Vector3(0.663, 0.780, 0.812), 0.14); TONE.uShadeCol.value.lerp(new THREE.Vector3(0.090, 0.302, 0.408), 0.12); }
-    else if (warmEra) { TONE.uLitCol.value.lerp(new THREE.Vector3(0.824, 0.639, 0.290), 0.13); TONE.uShadeCol.value.lerp(new THREE.Vector3(0.251, 0.235, 0.224), 0.1); }
-    if (se === "winter") { TONE.uLitCol.value.lerp(new THREE.Vector3(0.663, 0.780, 0.812), 0.18); TONE.uSat.value *= 0.9; }
-    else if (se === "autumn") { TONE.uLitCol.value.lerp(new THREE.Vector3(0.824, 0.639, 0.290), 0.16); TONE.uSat.value *= 1.04; }
-    else if (se === "spring") { TONE.uLitCol.value.lerp(new THREE.Vector3(0.443, 0.545, 0.298), 0.1); TONE.uSat.value *= 1.04; }
+    if (coldEra) { TONE.uLitCol.value.lerp(new THREE.Color(0.663, 0.780, 0.812), 0.14); TONE.uShadeCol.value.lerp(new THREE.Color(0.090, 0.302, 0.408), 0.12); }
+    else if (warmEra) { TONE.uLitCol.value.lerp(new THREE.Color(0.824, 0.639, 0.290), 0.13); TONE.uShadeCol.value.lerp(new THREE.Color(0.251, 0.235, 0.224), 0.1); }
+    if (se === "winter") { TONE.uLitCol.value.lerp(new THREE.Color(0.663, 0.780, 0.812), 0.18); TONE.uSat.value *= 0.9; }
+    else if (se === "autumn") { TONE.uLitCol.value.lerp(new THREE.Color(0.824, 0.639, 0.290), 0.16); TONE.uSat.value *= 1.04; }
+    else if (se === "spring") { TONE.uLitCol.value.lerp(new THREE.Color(0.443, 0.545, 0.298), 0.1); TONE.uSat.value *= 1.04; }
     const wet = (s.env ?? []).includes("rain") || (s.env ?? []).includes("storm") || s.world?.weather === "rain" || s.world?.weather === "storm";
-    if (wet) { TONE.uLitCol.value.lerp(new THREE.Vector3(0.663, 0.780, 0.812), 0.08); TONE.uSat.value *= 0.88; }
-    if (s.world?.weather === "drought") { TONE.uLitCol.value.lerp(new THREE.Vector3(0.725, 0.604, 0.416), 0.18); TONE.uSat.value *= 0.92; }
+    if (wet) { TONE.uLitCol.value.lerp(new THREE.Color(0.663, 0.780, 0.812), 0.08); TONE.uSat.value *= 0.88; }
+    if (s.world?.weather === "drought") { TONE.uLitCol.value.lerp(new THREE.Color(0.725, 0.604, 0.416), 0.18); TONE.uSat.value *= 0.92; }
     TONE.uLitCol.value.multiplyScalar(Math.max(0.5, E.dim)); TONE.uShadeCol.value.multiplyScalar(Math.max(0.55, E.dim));
     CHAR.uCharTint.value.set(...L.charTint); CHAR.uCharShade.value = L.charShade; CHAR.uGrad.value = L.charGrad; CHAR.uBodyGrad.value = L.bodyGrad; CHAR.uSideTint.value.set(...L.sideTint);
     const su = this.skyMat.uniforms;

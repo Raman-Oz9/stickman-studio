@@ -91,7 +91,7 @@ VEHICLES = ["pirate ship","sailboat","steamship","submarine","helicopter","motor
 ANIMALS = ["horse","camel","elephant","lion","wolf","sheep","deer","rabbit","goat","tiger","bear","parrot","eagle","duck","owl","penguin","shark","whale","snake","frog","dragon","donkey","cow","pig","dog","cat","chicken","hen","fish"]
 WEAPONS = ["sword","knife","dagger","axe","spear","bow","arrow","pistol","gun","rifle","shotgun","cannon","shield","mace","club","hammer","bomb","grenade","torch","trident","katana"]
 THINGS = ["coins","coin","gold","money","purse","wallet","bag","mango","apple","tree","seed","egg","crown","key","castle","house","bread","book","heart","flower","phone","cake","treasure","chest","gem","diamond","jewel","barrel","crate","fire","pumpkin","carrot","fountain","tent","statue","bridge","windmill","well","ring"]
-ERAKW = [("roman|rome|caesar|gladiator|legion", "roman"), ("greek|greece|athens|sparta|zeus", "greek"), ("cowboy|wild west|sheriff|saloon|outlaw", "wildwest"), ("viking", "viking"), ("pharaoh|egypt|pyramid", "egypt"),
+ERAKW = [("roman|rome|caesar|gladiator|legion", "roman"), ("greek|greece|athens|sparta|zeus|alexander|macedon|troy|achilles|hellen", "greek"), ("persian|persia|babylon|darius|mesopotamia|assyria|ottoman|caliph", "arabian"), ("cowboy|wild west|sheriff|saloon|outlaw", "wildwest"), ("viking", "viking"), ("pharaoh|egypt|pyramid", "egypt"),
          ("samurai|shogun|ninja|feudal japan", "samurai"), ("pirate", "pirate"), ("astronaut", "space"), ("world war|ww2|wwii", "ww2"), ("1920|prohibition|gangster|speakeasy", "1920s"), ("victorian", "victorian"),
          ("sultan|arabian|caravan", "arabian"), ("maharaja", "india"), ("caveman|stone age|prehistoric", "prehistoric"), ("dynasty|ancient china|emperor of china", "china")]
 ALIASW = {"airplane": "plane", "spaceship": "rocket", "motorcycle": "motorcycle", "hen": "chicken", "wallet": "purse", "bag": "purse", "money": "coins", "gold": "coins", "jewel": "gem", "diamond": "gem", "treasure": "treasure chest", "chest": "treasure chest", "coin": "coins", "gun": "pistol", "katana": "sword", "carriage": "wagon", "yacht": "sailboat"}
@@ -457,6 +457,22 @@ def clean(b):
     b["models"] = lib
     return b
 
+ARMY = r"\b(army|armies|soldiers?|troops?|legions?|warriors?|men marched|invad\w+|battle|siege|conquer\w*|crush\w*|march\w*)\b"
+CROWD = r"\b(crowd|people|villagers|citizens|priests|worshipp?ers|merchants|pilgrims|workers|nobles|courtiers|city|cities|market)\b"
+def crowds(b, script):
+    """Armies, priests, crowds: plural nouns get a visible group (extras in the scene's era dress) and era follows the story."""
+    era = None
+    for sc in b["scenes"]:
+        t = (sc.get("narration") or sc.get("caption") or "").lower()
+        for pat, e in ERAKW:
+            if re.search(pat, t): era = e
+        if era and not sc.get("era"): sc["era"] = era
+        if re.search(ARMY, t): sc["extras"] = max(int(sc.get("extras") or 0), 10); sc["extrasRole"] = "soldier"
+        elif re.search(CROWD, t): sc["extras"] = max(int(sc.get("extras") or 0), 8); sc["extrasRole"] = "townsfolk"
+    for sc in b["scenes"]:
+        if not sc.get("era") and era: sc["era"] = era
+    return b
+
 if __name__ == "__main__":
     script = open(sys.argv[1]).read()
     b = llm(script)
@@ -464,5 +480,6 @@ if __name__ == "__main__":
     if not b or not b.get("scenes"):
         b, src = heuristic(script), "heuristic"
     b = drop_worn(fly_pass(clean(establish(enrich_world(enrich_actions(enrich(split_clauses(b))))))))
+    b = crowds(b, script)
     json.dump(b, open(sys.argv[2], "w"), indent=1)
     print(f"{src}: {len(b['scenes'])} scenes, {sum(s['dur'] for s in b['scenes']):.0f}s -> {sys.argv[2]}")

@@ -1,7 +1,7 @@
 name: action sheet proof
 on:
   push:
-    branches: [claude/actions, claude/hybrid, claude/ward, claude/turn]
+    branches: ["claude/**"]
   workflow_dispatch:
 permissions:
   contents: write

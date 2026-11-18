@@ -45,16 +45,24 @@ const Cast2D: React.FC<{ board: Board; f: number }> = ({ board, f }) => {
   type Who = { d: CastDef; x: number; z: number; idx: number; extra: boolean; moving: boolean };
   const who: Who[] = s.cast.map((d, idx) => { const p = posOf(d, u); return { d, x: p.x, z: p.z, idx, extra: false, moving: p.moving }; });
   const F = focusOf(s);
-  for (let k = 0; k < (s.extras ?? 4); k++) {
-    const a = hh(k, 20) * Math.PI * 2, r = 8 + hh(k, 21) * 3.5, ex = F.x * 0.3 + Math.sin(a) * r, ez = F.z * 0.3 + Math.cos(a) * r;
-    if (Math.hypot(ex - c.pos.x, ez - c.pos.z) < 6.5) continue;
-    const drift = 1.2 + hh(k, 22) * 2.2, hd = a + (hh(k, 23) - 0.5) * 1.4, w0 = hh(k, 24) * 0.42, kk = Math.min(1, Math.max(0, (u - w0) / (0.96 - w0))), e = kk * kk * (3 - 2 * kk);
-    who.push({ d: { id: "x" + k, role: "townsfolk", x: ex, z: ez, expr: "smile" } as CastDef, x: ex + Math.cos(hd) * drift * e, z: ez + Math.sin(hd) * drift * e, idx: 20 + k, extra: true, moving: kk > 0.001 && kk < 0.999 });
+  const nEx = Math.min(14, s.extras ?? 4), eRole = s.extrasRole ?? "townsfolk", rank = eRole === "soldier";
+  for (let k = 0; k < nEx; k++) {
+    let ex: number, ez: number, hd: number, drift: number, w0: number;
+    if (rank) {   // an army stands in ranks behind and beside the leads, facing the same way they march
+      const row = Math.floor(k / 5), col = k % 5;
+      ex = F.x - 4 + col * 2 + (hh(k, 40) - 0.5) * 0.5; ez = F.z - 3.2 - row * 1.8 + (hh(k, 41) - 0.5) * 0.4; hd = Math.PI * 0.5; drift = 2.2; w0 = 0.1;
+    } else {
+      const a = hh(k, 20) * Math.PI * 2, r = 5.5 + hh(k, 21) * 4; ex = F.x * 0.3 + Math.sin(a) * r; ez = F.z * 0.3 + Math.cos(a) * r; hd = a + (hh(k, 23) - 0.5) * 1.4; drift = 1.2 + hh(k, 22) * 2.2; w0 = hh(k, 24) * 0.42;
+    }
+    if (Math.hypot(ex - c.pos.x, ez - c.pos.z) < 4.5) continue;
+    const kk = Math.min(1, Math.max(0, (u - w0) / (0.96 - w0))), e = kk * kk * (3 - 2 * kk);
+    who.push({ d: { id: "x" + k, role: eRole, x: ex, z: ez, expr: rank ? "stern" : "smile" } as CastDef, x: ex + Math.cos(hd) * drift * e, z: ez + Math.sin(hd) * drift * e, idx: 20 + k, extra: true, moving: kk > 0.001 && kk < 0.999 });
   }
   const placed = who.map((w) => {
     const g = proj(w.x, 0, w.z), g1 = proj(w.x, 1, w.z), sc = (w.d.scale ?? 1) * (ROLE_SCALE[w.d.role] ?? 1);
     const pxm = Math.abs(g.y - g1.y);
-    return { ...w, g, k: (pxm * 1.75 * sc) / CHAR_UNITS, depth: c.pos.distanceTo(new THREE.Vector3(w.x, 0, w.z)) };
+    let kk0 = (pxm * 1.75 * sc) / CHAR_UNITS; if (g.y > 500) kk0 = Math.min(kk0, (g.y - 110) / CHAR_UNITS); kk0 = Math.min(kk0, 2.4);
+    return { ...w, g, k: kk0, depth: c.pos.distanceTo(new THREE.Vector3(w.x, 0, w.z)) };
   }).filter((w) => !w.g.behind && w.k > 0.05 && w.g.x > -400 && w.g.x < 1480).sort((a, b) => b.depth - a.depth);
   const golden = (s.light ?? (s.tod === "dawn" || s.tod === "dusk" ? "golden" : "day")) === "golden";
   return (

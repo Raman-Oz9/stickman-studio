@@ -167,10 +167,16 @@ export class StoryWorld {
     const su = this.skyMat.uniforms;
     K.sky.c.forEach((h, k) => untone(h, su["c" + k].value));
     const e = K.sky.e.map((d) => THREE.MathUtils.degToRad(d)); su.e.value.set(e[1], e[2], e[3], e[4]);
+    const underwater = s.world?.terrain === "ocean-floor";
+    if (underwater) {
+      ["#073044", "#0b4b62", "#146c7e", "#4d99a4", "#a3c9c6"].forEach((h, k) => untone(h, su["c" + k].value));
+      this.hemi.color.set("#69b4c5"); this.hemi.groundColor.set("#174b5a"); this.sun.color.set("#b2e2e5");
+      this.hemi.intensity *= 0.82; this.sun.intensity *= 0.58;
+    }
     if (E.night) { for (let k = 0; k < 5; k++) { const cv = su["c" + k].value as THREE.Color; cv.multiplyScalar(E.space ? 0.02 : 0.16).lerp(new THREE.Color(E.space ? "#020410" : "#0b1236"), 0.55); } }
     else if (E.dim < 0.95) for (let k = 0; k < 5; k++) (su["c" + k].value as THREE.Color).multiplyScalar(E.dim * 0.8).lerp(new THREE.Color("#4a5468"), 0.35);
     this.sky.position.copy(cam.position);
-    untone(L.fog, this.fog.color); this.fog.near = L.fogNear; this.fog.far = L.fogFar; if (E.night) this.fog.color.set(E.space ? "#020410" : "#0b1236"); else if (E.dim < 0.95) this.fog.color.lerp(new THREE.Color("#4a5468"), 0.5); this.fog.near *= E.fogK; this.fog.far *= E.fogK; scene.fog = this.fog; scene.background = null;
+    untone(L.fog, this.fog.color); this.fog.near = L.fogNear; this.fog.far = L.fogFar; if (E.night) this.fog.color.set(E.space ? "#020410" : "#0b1236"); else if (E.dim < 0.95) this.fog.color.lerp(new THREE.Color("#4a5468"), 0.5); if (underwater && !E.night) { this.fog.color.set("#286477"); this.fog.near = 18; this.fog.far = 260; } this.fog.near *= E.fogK; this.fog.far *= E.fogK; scene.fog = this.fog; scene.background = null;
     if (bk && !ik) { this.fog.color.set(FOGB[bk]); this.fog.near = bk === "swamp" ? 25 : 120; this.fog.far = bk === "swamp" ? 260 : 1700; }
     if (ik) { this.fog.color.set(FOG[ik]); this.fog.near = 18; this.fog.far = 80; }
 

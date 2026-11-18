@@ -1,3 +1,8 @@
+### 2026-11-18 — Grade the 3D world per era, season and weather
+- In `world.ts`, added restrained scene-driven tone grading: historical eras lean warm, Viking/war/space/future eras lean cool, winter shifts cooler and slightly desaturates, autumn warms, spring lifts green, and rain/storm/drought adjust saturation and tint.
+- In `worldgen.ts`, drought now emits deterministic drifting dust particles in addition to the grade. Existing rain, storm, snow, fog and wind paths remain intact.
+- This changes the 3D world lighting/material treatment only; the 2D ink character overlay remains separate. Visual review is required to ensure each grade remains subtle and readable.
+
 ### 2026-11-18 — Add transport infrastructure to 3D world presets
 - Added city street grids with lane markings, junction crossings, sidewalks, street furniture and mid-rise blocks; railway track pairs with sleepers/platform/canopy; airport runway markings, terminal and control tower; and harbour quay, water inlet, containers, bollards and gantry cranes.
 - These are static 3D route/set pieces. Existing `PropDef.from/to` and `props3d.ts` vehicle models remain the mechanism for staging moving cars, trains, aircraft and ships along authored scene coordinates; no new autonomous traffic system is claimed.

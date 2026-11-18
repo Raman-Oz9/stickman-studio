@@ -1,3 +1,8 @@
+### 2026-11-18 — Add production-branch 3D worldgen verification workflow
+- Added `.github/workflows/worldgen-check.yml`, which runs the strict Remotion TypeScript check for the 3D story pipeline and renders native-resolution proof stills for both the ocean-floor and canyon presets.
+- The proof workflow uses the current PR branch/PR target instead of checking out the obsolete `reference-style-pass-01` branch used by the older world-render workflow.
+- CI results and rendered frames must still be inspected before claiming the environments are validated; this commit adds the verification path, not a claim that it has passed.
+
 ### 2026-11-18 — Port reusable village palette and prop art into the 3D pipeline
 - Ported the vivid blue-sky / golden-earth / near-black ink palette from the legacy illustrated pass into the shared 3D world palette in `worldgen.ts`.
 - Ported the reusable chicken-village coop and chalkboard prop concepts into procedural Three.js models in `props3d.ts`, with aliases and default heights. Existing chicken, egg and fire models remain available.

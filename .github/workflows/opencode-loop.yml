@@ -30,7 +30,7 @@ jobs:
           if [ "$OPEN" -ge 3 ]; then echo "3+ open OpenCode PRs, waiting for review"; echo "task=" >> $GITHUB_OUTPUT; exit 0; fi
           LINE=$(grep -n -m1 '^- \[ \]' docs/OPENCODE_QUEUE.md || true)
           if [ -z "$LINE" ]; then echo "queue empty"; echo "task=" >> $GITHUB_OUTPUT; exit 0; fi
-          N=${LINE%%:*}; TASK=${LINE#*:- [ ] }
+          N=${LINE%%:*}; TASK=$(printf "%s" "$LINE" | cut -d: -f2- | sed "s/^- \[ \] //")
           echo "n=$N" >> $GITHUB_OUTPUT
           { echo "task<<EOF_T"; echo "$TASK"; echo "EOF_T"; } >> $GITHUB_OUTPUT
           sed -i "${N}s/^- \[ \]/- [~]/" docs/OPENCODE_QUEUE.md

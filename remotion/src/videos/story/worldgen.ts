@@ -308,11 +308,129 @@ const oceanWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
   }
 };
 
+const romeWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
+  box(g,260,0.5,260,P.stone,0,-0.25,-45);
+  for(let i=0;i<6;i++){
+    const z=-15-i*10;
+    for(const x of [-16, 16]){
+      cylinder(g,0.55,7.5,P.stone,x,3.75,z,10);
+      box(g,1.4,0.4,1.4,P.earth,x,7.7,z);
+      box(g,1.5,0.3,1.5,P.earth,x,0.2,z);
+    }
+    box(g,34,0.6,1.2,P.stone,0,7.9,z);
+  }
+  const cx=0, cz=-65, rx=28, rz=18;
+  for(let i=0;i<20;i++){
+    const a = i/20*Math.PI, x = cx + Math.cos(a)*rx, z = cz + Math.sin(a)*rz;
+    const arch = box(g,2.8,8,1.2,P.stone,x,4,z);
+    arch.rotation.y = -a;
+    box(g,1.6,4.5,1.4,P.shade,x,2.2,z);
+  }
+  box(g,16,9,6,P.stone,0,4.5,-38);
+  box(g,7,5.5,6.2,P.shade,0,2.75,-38);
+  box(g,18,0.8,7,P.earth,0,9.2,-38);
+};
+
+const greeceWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
+  box(g,260,0.5,260,P.earth,0,-0.25,-45);
+  box(g,260,0.3,90,P.sky,0,-0.12,35);
+  for(let i=0;i<20;i++){
+    const x=(hash(i,30)-.5)*200, z=20+hash(i,31)*40;
+    const m=box(g,3+hash(i,32)*6,.025,.2,P.sky,x,0,z);
+    m.position.x+=Math.sin(t*1.5+i)*.2;
+  }
+  box(g,32,1.2,42,P.stone,0,0.6,-38);
+  box(g,28,0.8,38,P.stone,0,1.5,-38);
+  for(let i=0;i<7;i++){
+    const x=-12+i*4;
+    cylinder(g,0.48,6.5,P.stone,x,5,-19,10);
+    cylinder(g,0.48,6.5,P.stone,x,5,-57,10);
+  }
+  for(let i=0;i<9;i++){
+    const z=-21-i*4.5;
+    cylinder(g,0.48,6.5,P.stone,-14,5,z,10);
+    cylinder(g,0.48,6.5,P.stone,14,5,z,10);
+  }
+  box(g,30,0.8,40,P.stone,0,8.4,-38);
+  poly(g,[[-16,8.8,-18],[0,13,-18],[16,8.8,-18]],P.earth);
+  poly(g,[[-16,8.8,-58],[0,13,-58],[16,8.8,-58]],P.earth);
+  for(let i=0;i<12;i++){
+    const x=-65+i*11, z=-15-hash(i,40)*30, s=0.8+hash(i,41)*0.5;
+    cylinder(g,0.35*s,3.2*s,P.shade,x,1.6*s,z,7);
+    const crown=ball(g,2.6*s,P.green,x,3.6*s,z,1.5,0.8,1.4);
+    crown.userData.sway={phase:hash(i,42)*6.28,amp:0.03};
+  }
+};
+
+const egyptWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
+  box(g,260,0.5,260,P.earth,0,-0.25,-45);
+  box(g,260,0.2,35,P.sky,0,-0.05,-15);
+  for(let i=0;i<25;i++){
+    const x=(hash(i,50)-.5)*220, z=-22+hash(i,51)*14;
+    const m=box(g,4+hash(i,52)*8,.02,.15,P.stone,x,0,z);
+    m.position.x+=Math.sin(t+i)*.15;
+  }
+  const pyrs=[{x:-35,z:-75,s:22},{x:30,z:-90,s:28},{x:65,z:-65,s:16}];
+  for(const pyrInfo of pyrs){
+    const pyrMesh=new THREE.Mesh(new THREE.ConeGeometry(pyrInfo.s,pyrInfo.s*0.75,4),mat(P.stone));
+    pyrMesh.position.set(pyrInfo.x,pyrInfo.s*0.375,pyrInfo.z);
+    pyrMesh.rotation.y=Math.PI/4;
+    pyrMesh.castShadow=true; pyrMesh.receiveShadow=true;
+    g.add(pyrMesh);
+  }
+  cylinder(g,0.6,14,P.stone,0,7,-32,6);
+  poly(g,[[-0.5,14,-0.5],[0,15.8,0],[0.5,14,0.5]],P.earth);
+  for(let i=0;i<8;i++){
+    const x=-50+i*15, z=i%2===0?-28:-2;
+    cylinder(g,0.3,5,P.shade,x,2.5,z,7);
+    for(let f=0.5;f<Math.PI*2;f+=Math.PI/3){
+      const leaf=box(g,3,0.05,0.8,P.green,x+Math.cos(f)*1.2,5.2,z+Math.sin(f)*1.2,0.3);
+      leaf.rotation.y=f;
+    }
+  }
+};
+
+const chinaWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
+  box(g,260,0.5,260,P.green,0,-0.25,-45);
+  for(let i=0;i<9;i++){
+    const x=-90+i*22, h=15+hash(i,60)*25;
+    poly(g,[[x-20,0,-60],[x,h,-90],[x+20,0,-60]],i%2?P.stone:P.green);
+  }
+  for(let i=0;i<14;i++){
+    const x=-70+i*10.5, z=-35-Math.sin(i*0.4)*15, h=4+Math.sin(i*0.5)*3;
+    box(g,11,h,3.2,P.stone,x,h/2,z);
+    if(i%4===0){
+      box(g,5,h+4,5,P.earth,x,(h+4)/2,z);
+      box(g,5.4,1,5.4,P.stone,x,h+4.5,z);
+    }
+    for(let b=0;b<3;b++){
+      box(g,1.2,0.8,0.8,P.shade,x-3+b*3,h+0.6,z-1.2);
+      box(g,1.2,0.8,0.8,P.shade,x-3+b*3,h+0.6,z+1.2);
+    }
+  }
+  const px=35, pz=-40;
+  for(let tier=0;tier<5;tier++){
+    const w=5-tier*0.6, h=2;
+    box(g,w,h,w,tier%2===0?P.stone:P.earth,px,tier*2.2+1,pz);
+    box(g,w+1.4,0.35,w+1.4,P.shade,px,tier*2.2+2.1,pz);
+  }
+  cylinder(g,0.15,3,P.stone,px,12.5,pz,6);
+  ball(g,0.4,P.accent,px,14,pz);
+};
+
 export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
   const p: WorldParams={season:"summer",timeOfDay:"dawn",weather:"clear",era:"medieval",region:"african",...params};
-  const g=new THREE.Group();g.name=p.mapMode?"HistoricalMapWorld":p.kind==="ocean"?"DeepOceanWorld":"ProceduralWorld";
+  const g=new THREE.Group();g.name=p.mapMode?"HistoricalMapWorld":p.kind==="ocean"?"DeepOceanWorld":p.kind==="rome"?"RomeWorld":p.kind==="greece"?"GreeceWorld":p.kind==="egypt"?"EgyptWorld":p.kind==="china"?"ChinaWorld":"ProceduralWorld";
   if(p.mapMode){mapLayer(g,p,t);g.scale.set(.5,1,.72);}else if(p.kind==="ocean"){
     oceanWorld(g,p,t);
+  }else if(p.kind==="rome"){
+    romeWorld(g,p,t);
+  }else if(p.kind==="greece"){
+    greeceWorld(g,p,t);
+  }else if(p.kind==="egypt"){
+    egyptWorld(g,p,t);
+  }else if(p.kind==="china"){
+    chinaWorld(g,p,t);
   }else{
     terrain(g,p,t);
     settlement(g,p,t);

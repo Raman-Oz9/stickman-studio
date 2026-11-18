@@ -56,16 +56,28 @@ export const IllustratedProof: React.FC = () => {
 
   const zoomStart = [1.04, 1.06, 1.12, 1.12, 1.28][scene];
   const zoomEnd = [1.18, 1.27, 1.34, 1.26, 1.05][scene];
-  const zoom = mix(zoomStart, zoomEnd, ease(p));
+  // The pottery beat gets a deliberate wide → hand/object close-up → context reveal,
+  // rather than sharing the same one-way zoom curve as the other action scenes.
+  const zoom = scene === 4
+    ? p < .62
+      ? mix(1.08, 1.34, ease(p / .62))
+      : mix(1.34, 1.10, ease((p - .62) / .38))
+    : mix(zoomStart, zoomEnd, ease(p));
   const panStartX = [-10, -25, -48, -20, 35][scene];
   const panEndX = [-30, -38, -72, 24, 0][scene];
   const panStartY = [-12, -20, -35, -24, -50][scene];
   const panEndY = [-42, -55, -88, -44, 0][scene];
+  const potteryPanX = p < .62
+    ? mix(24, -118, ease(p / .62))
+    : mix(-118, 0, ease((p - .62) / .38));
+  const potteryPanY = p < .62
+    ? mix(-10, -168, ease(p / .62))
+    : mix(-168, 0, ease((p - .62) / .38));
   const maxPanX = 540 * (zoom - 1);
   const maxPanYTop = 1920 * .58 * (zoom - 1);
   const maxPanYBottom = (1920 - 1920 * .58) * (zoom - 1);
-  const panX = clamp(mix(panStartX, panEndX, ease(p)), -maxPanX, maxPanX);
-  const panY = clamp(mix(panStartY, panEndY, ease(p)), -maxPanYBottom, maxPanYTop);
+  const panX = clamp(scene === 4 ? potteryPanX : mix(panStartX, panEndX, ease(p)), -maxPanX, maxPanX);
+  const panY = clamp(scene === 4 ? potteryPanY : mix(panStartY, panEndY, ease(p)), -maxPanYBottom, maxPanYTop);
   const cameraStyle: React.CSSProperties = {
     position: "absolute", inset: 0,
     transform: "translate(" + panX + "px," + panY + "px) scale(" + zoom + ")",
@@ -149,7 +161,7 @@ export const IllustratedProof: React.FC = () => {
           <>
             <CraftTable x={500} y={1510} width={500} />
             <PotteryVessel x={potWorld[0]} y={potWorld[1]} scale={.9} rotation={-3 + Math.sin(p * Math.PI) * 3} />
-            <Actor roleIndex={2} x={360} y={1510} scale={1.08} facing={1} yaw={90}
+            <Actor role="worker" roleIndex={2} x={360} y={1510} scale={1.08} facing={1} yaw={90}
               frame={frame} t={t} phase={phase} verb="place" p={p} prop="pottery"
               handTarget={placeHand} target={[240, -130]} gaze={[230, -150]}
               expr={p < .62 ? "focused" : "joy"} grip={p < .64} renderHeld={false} />

@@ -1,3 +1,9 @@
+### 2026-11-18 — Preserve artisan identity and direct the pottery set-down
+- Native proof run #44266965234 passed strict TypeScript and all 1080×1920 still renders. Inspected the published artifact at native resolution; the ledger shows progressive pen strokes, the shovel blade reaches the excavation patch, and the pottery vessel aligns with the foreground table surface.
+- The final pottery performer omitted its role and therefore used the default merchant wardrobe instead of the worker identity used for writing and digging. Explicitly set the pottery performer to the same worker role.
+- Reworked the pottery shot camera into a three-phase move: establish the workbench, push toward the hand/vessel during placement, then pull back to reveal the completed set-down. Pan remains clamped to the full-bleed canvas bounds.
+- Added native proof frames 540 and 570 to inspect the mid-contact and set-down/release beats rather than judging only the opening reach and final pose. Strict TypeScript and these additional stills are pending on this commit.
+
 ### 2026-11-18 — Fix the pottery placement support plane and verify the walk beat
 - Run #44266210169 passed strict TypeScript and all 1080×1920 still renders. Inspected the five-action proof at native resolution: coin handover is clear, writing shows a moving pen and progressive ink strokes, and the shovel blade reaches the excavation hole.
 - Visual review found the finished pot sat in front of the workbench rather than on a tabletop. Added a foreground craft table and aligned the pot base to its surface; writing, digging and placing now share one consistent artisan identity.
@@ -116,12 +122,11 @@
 - Avoid collisions: ChatGPT owns `worldgen.ts`, `IllustratedProof.tsx`, boards/sample scripts for new world types. Claude owns `world.ts` mounts/actions, `props3d.ts` models, camera shot logic unless coordinated here. If both need `camera.ts`/`world.ts`, write the intent in this file first, make small commits, rebase on `main` before pushing.
 - Both: update this file on every change; never claim "works" without viewing rendered frames; never send the owner a video that has not been frame-checked.
 ## Current state — 2026-11-18
-- GitHub shows PR #1 was merged by Raman-Oz9 on 2026-11-17. It cannot be kept open/unmerged after that merge. The existing `reference-style-pass-01` branch is being continued as a review branch; further changes need a new draft PR.
-- The production `StoryShort` composition still maps to `StoryHybrid`. The 2D `StoryShort2D` and `IllustratedProof` compositions are verification targets only; the default production path is not switched until multiple 2D scenes pass repeated native-resolution QA.
-- The latest five-action proof run (#44266210169) passed strict TypeScript and native still rendering. Native 1080×1920 review confirms hand-to-hand coin contact, pen-on-ledger writing with progressive ink strokes, and shovel-to-soil contact. The pot support plane was visibly wrong and is being corrected with a foreground craft table; frame 45 is being added to verify the walk cycle. The environments remain authored SVG rather than final painterly art.
-- A separate full Story video workflow (#44261318870) was already running on main before this change. This work did not start or cancel it.
-- No full production MP4 is approved by this migration task. Keep further verification to strict typecheck and native stills until the 2D replacement is accepted.
-
+- PR #1 was merged by Raman-Oz9 on 2026-11-17. It cannot be reopened or kept unmerged; the existing `reference-style-pass-01` branch remains the working review branch. No replacement PR is created in this pass.
+- The production `StoryShort` composition still maps to `StoryHybrid`. `StoryShort2D` and `IllustratedProof` remain verification targets until multiple representative 2D scenes pass repeated native-resolution visual QA.
+- Latest verified proof run #44266965234 passed strict TypeScript and all still renders. Its artifact contains 21 native 1080×1920 JPEGs. Reviewed the storyboard opening/map/trade frames and proof frames 315, 375, 435, 495 and 585: progressive pen strokes, shovel-blade-to-soil contact and the pottery vessel aligned to the foreground table are visible. Review also found that the pottery performer had fallen back to the merchant outfit, breaking artisan identity continuity; the role is corrected in the current commit, with two additional mid-placement QA frames added. The follow-up run is pending.
+- Environments are still authored SVG illustrations with gradients, patterns and grain rather than the richer painted reference quality. The five-action proof is a useful interaction slice, not production-wide 2D acceptance; broader scene coverage, more organic environmental detail and repeated camera/character QA remain.
+- No full production MP4 is approved by this migration task. Continue with strict typecheck and native stills only until the 2D replacement meets the visual acceptance criteria.
 
 ## CHANGELOG
 

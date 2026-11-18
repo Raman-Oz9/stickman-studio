@@ -106,6 +106,9 @@
 - Both: update this file on every change; never claim "works" without viewing rendered frames; never send the owner a video that has not been frame-checked.
 ## CHANGELOG
 
+### 2026-11-18 — Add stone-age and ancient-era props in props3d.ts
+- Added procedural 3D recipes and aliases in `remotion/src/videos/story/props3d.ts` for cave fire, woolly mammoth, spear hunters' tools, huts, Egyptian obelisk and sphinx, Roman aqueduct, chariot, and galley/ship, Greek temple and trireme, Chinese junk and pagoda, medieval castle, cart, and catapult, and Viking longship. Verified clean TypeScript compilation with `npx tsc --noEmit`.
+
 ### 2026-11-18 — Add railway, station, airport, and harbour sets in worldgen.ts
 - Added procedural set pieces in `remotion/src/videos/story/worldgen.ts` supporting `world.kind` for railway/station (tracks with sleepers, platform, station building, animated train), airport (runway with lights/markings, terminal, control tower, animated planes), and harbour (quays, wooden piers, gantry cranes, stacked shipping containers, cargo ship). Verified clean TypeScript compilation with `npx tsc --noEmit`.
 

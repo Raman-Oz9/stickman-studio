@@ -332,6 +332,49 @@ Object.assign(PROC, { banknote, dollar, cash: cashstack, cashstack });
 Object.assign(DEFAULT_H, { banknote: 0.5, dollar: 0.5, cash: 0.3, cashstack: 0.3 });
 Object.assign(ALIAS, { note: "banknote", notes: "banknote", bill: "banknote", bills: "banknote", money: "cashstack", papermoney: "cashstack", currency: "cashstack", naira: "banknote", dollars: "cashstack", cashbag: "moneybag", stackofcash: "cashstack" });
 
+// Stone-age and ancient-era props
+const cavefire = () => grp(mk(B(1.2, 0.15, 1.2), "#3a2f2a", 0, 0.08, 0), ...[0, 1, 2, 3, 4].map(i => mk(C(0.08, 0.09, 0.6, 6), "#5a3a22", Math.cos(i*1.25)*0.3, 0.15, Math.sin(i*1.25)*0.3, 1, 1, 1, 0.4, 0, (i%2?0.5:-0.5))), mk(new THREE.ConeGeometry(0.35, 0.8, 10), "#f06a1e", 0, 0.5, 0), mk(new THREE.ConeGeometry(0.2, 0.6, 10), "#ffd23a", 0, 0.4, 0.05));
+const mammoth = () => quad2({ body: "#6b5442", mane: "#543d2b", L: 1.5, H: 1.6, legH: 0.65, neck: 0.5, headL: 1.4, ears: "big", tail: "short", trunk: true, tusks: true, legR: 0.14, fluff: true });
+const huntingtools = () => grp(mk(C(0.025, 0.03, 1.6, 8), "#6b3f1c", 0, 0.8, 0), mk(new THREE.ConeGeometry(0.06, 0.25, 4), STEEL, 0, 1.65, 0, 1, 1, 0.4), mk(B(0.18, 0.06, 0.22), "#5a3a22", 0.4, 0.5, 0), mk(new THREE.ConeGeometry(0.08, 0.2, 4), "#cfd6dd", 0.52, 0.55, 0, 1, 1, 1, 0, 0, -1.2));
+const hut = () => grp(mk(C(1.1, 1.3, 1.2, 16), "#b08d57", 0, 0.6, 0), mk(cone(1.4, 1.1, 16), "#6e4e2b", 0, 1.75, 0), mk(B(0.35, 0.65, 0.08), "#4a3520", 0, 0.32, 1.0));
+const obelisk = () => grp(mk(C(0.4, 0.5, 3.8, 4), "#d9d0c1", 0, 1.9, 0, 1, 1, 1, 0, Math.PI / 4), mk(cone(0.42, 0.7, 4), "#d9d0c1", 0, 4.15, 0, 1, 1, 1, 0, Math.PI / 4));
+const sphinx = () => grp(mk(B(1.6, 1.0, 3.2), "#d4c3a3", 0, 0.5, 0), mk(S(0.7, 14, 10), "#d4c3a3", 0, 1.3, 1.3), mk(B(1.1, 0.2, 0.6), "#234975", 0, 1.55, 1.1, 1, 1, 1, -0.2), mk(B(1.4, 0.15, 1.8), "#c8b797", 0, 0.08, 0));
+const aqueduct = () => grp(mk(B(3.6, 0.5, 1.4), "#b8b2a5", 0, 2.25, 0), mk(B(3.4, 0.2, 1.2), "#b8b2a5", 0, 1.95, 0), ...[-1.2, 0, 1.2].map(x => grp(mk(B(0.6, 1.8, 1.1), "#b8b2a5", x, 1.0, 0), mk(C(0.4, 0.4, 1.2, 12), "#1a1a20", x, 0.8, 0, 1, 1, 1, Math.PI / 2))));
+const romanship = () => grp(hull("#8a5a2b", 4.0), mk(C(0.05, 0.05, 3.2, 8), "#5a3a22", 0, 2.0, 0), mk(B(0.04, 2.2, 1.8), "#f4f2ec", 0.05, 2.2, 0), ...[-1.2, -0.4, 0.4, 1.2].map(z => mk(B(0.3, 0.08, 0.08), "#3a2a1a", 0.65, 0.6, z)), mk(new THREE.ConeGeometry(0.5, 1.2, 4), "#c0353a", 0, 0.8, 2.1, 1, 1, 1, Math.PI / 2));
+const greektemple = () => grp(mk(B(4.2, 0.3, 2.8), "#f5f0e6", 0, 0.15, 0), mk(B(3.8, 0.2, 2.4), "#f5f0e6", 0, 2.5, 0), mk(cone(2.3, 1.2, 4), "#c0353a", 0, 3.3, 0, 1, 1, 0.5, 0, Math.PI / 4), ...([-1.6, -0.8, 0, 0.8, 1.6].flatMap(x => [-1.1, 1.1].map(z => mk(C(0.12, 0.14, 2.2, 12), "#faf6ed", x, 1.3, z)))));
+const trireme = () => grp(hull("#7a4f28", 4.4), mk(C(0.05, 0.05, 3.6, 8), "#4a2f1a", 0, 2.2, -0.2), mk(B(0.04, 2.6, 2.0), "#faf6ed", 0.02, 2.3, -0.2), ...([-1.5, -0.7, 0.1, 0.9].map(z => mk(B(0.8, 0.06, 0.08), "#d2362e", 0.55, 0.9, z))), mk(new THREE.ConeGeometry(0.55, 1.4, 4), "#b8863a", 0, 0.85, 2.3, 1, 1, 1, Math.PI / 2));
+const junk = () => grp(hull("#8a5a2b", 3.8), mk(B(3.4, 0.9, 1.5), "#a06a3a", 0, 0.8, 0), mk(C(0.06, 0.06, 3.8, 8), "#5a3a22", -0.4, 2.2, -0.4), mk(C(0.05, 0.05, 3.2, 8), "#5a3a22", 0.5, 1.9, 0.8), mk(B(0.06, 2.6, 1.8), "#e8d4a0", -0.38, 2.4, -0.4), mk(B(0.06, 2.2, 1.5), "#e8d4a0", 0.48, 2.1, 0.8));
+const pagoda = () => { const g = new THREE.Group(); const c = "#c0353a", w = "#f4f0e6"; for (let i = 0; i < 4; i++) { const y = 0.5 + i * 0.9; g.add(mk(B(1.8 - i * 0.2, 0.75, 1.8 - i * 0.2), w, 0, y, 0)); g.add(mk(B(2.2 - i * 0.2, 0.14, 2.2 - i * 0.2), c, 0, y + 0.42, 0)); } g.add(mk(C(0.05, 0.05, 1.0, 8), GOLD, 0, 4.1, 0), mk(S(0.15), GOLD, 0, 4.6, 0)); return g; };
+const catapult = withWheels(grp(mk(B(1.0, 0.4, 1.8), "#6b3f1c", 0, 0.5, 0), mk(C(0.08, 0.08, 1.4, 8), "#4a2f1a", 0, 1.1, -0.4, 1, 1, 1, Math.PI / 2), mk(B(0.15, 1.8, 0.15), "#8a5a2b", 0, 1.2, 0.3, 1, 1, 1, -0.4), mk(S(0.35, 10, 8), "#2a2a30", 0, 2.0, 0.7)), [[0.55, 0.4], [-0.55, 0.4], [0.55, -0.4], [-0.55, -0.4]], 0.35, 0.12);
+const vikinglongship = () => grp(hull("#5a3b2a", 4.2), mk(new THREE.ConeGeometry(0.4, 1.2, 4), "#8a5a2b", 0, 0.7, 2.2, 1, 1, 1, Math.PI / 2), mk(new THREE.ConeGeometry(0.4, 1.2, 4), "#8a5a2b", 0, 0.7, -2.2, 1, 1, 1, -Math.PI / 2), mk(C(0.05, 0.05, 3.4, 8), "#3a2414", 0, 1.9, 0), mk(B(0.04, 2.2, 1.8), "#d2362e", 0.02, 2.0, 0), ...([-1.6, -0.8, 0, 0.8, 1.6].map(z => mk(C(0.12, 0.12, 0.15, 12), "#f5c32c", 0.72, 0.45, z, 1, 1, 1, Math.PI / 2))));
+
+Object.assign(PROC, { cavefire, mammoth, huntingtools, hut, obelisk, sphinx, aqueduct, romanship, greektemple, trireme, junk, pagoda, catapult, vikinglongship });
+Object.assign(DEFAULT_H, { cavefire: 0.9, mammoth: 2.8, huntingtools: 0.8, hut: 2.5, obelisk: 4.5, sphinx: 2.2, aqueduct: 3.5, romanship: 4.0, greektemple: 5.0, trireme: 4.2, junk: 4.0, pagoda: 5.5, catapult: 1.8, vikinglongship: 4.2 });
+Object.assign(ALIAS, {
+  "cave fire": "cavefire",
+  "woolly mammoth": "mammoth",
+  mammoths: "mammoth",
+  "spear hunters tools": "huntingtools",
+  "hunting tools": "huntingtools",
+  "hunter tools": "huntingtools",
+  huts: "hut",
+  stonehut: "hut",
+  mudhut: "hut",
+  roundhouse: "hut",
+  "egyptian obelisk": "obelisk",
+  "egyptian sphinx": "sphinx",
+  "roman aqueduct": "aqueduct",
+  "roman ship": "romanship",
+  galley: "romanship",
+  "greek temple": "greektemple",
+  "chinese junk": "junk",
+  "viking longship": "vikinglongship",
+  longship: "vikinglongship",
+  catapults: "catapult"
+});
+for (const k of ["mammoth", "romanship", "trireme", "junk", "vikinglongship", "catapult"]) ORIENT.add(k);
+Object.assign(SADDLE, { mammoth: 0.65, romanship: 0.5, trireme: 0.5, junk: 0.5, vikinglongship: 0.5 });
+
 // ---- real (Kenney CC0) models override the hand-built ones whenever the kit is loaded; hand-built stay as fallback ----
 const VEH: Record<string, [string, number, number]> = {   // canon: [kenney file, height m, saddle]
   car: ["sedan", 1.5, 0.5], sedan: ["sedan", 1.5, 0.5], oldcar: ["vehicle-vintage-racer", 1.3, 0.5], taxi: ["taxi", 1.5, 0.5], policecar: ["police", 1.6, 0.5], suv: ["suv", 1.9, 0.5], van: ["van", 2.1, 0.5],

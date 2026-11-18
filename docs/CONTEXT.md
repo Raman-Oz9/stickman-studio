@@ -1,3 +1,8 @@
+### 2026-11-18 — Add signature details to deep-space and underwater sets
+- Underwater preset now includes a broken shipwreck frame, hydrothermal vent with animated plume, anglerfish lure light and deterministic rising bubbles alongside the reef, fish and light shafts.
+- Deep-space preset now includes soft layered nebula volumes behind the ringed planet, orbital station, black hole and asteroid belt.
+- Added bubble/plume motion as pure functions of scene time so arbitrary frame seeking remains deterministic. Still requires native-resolution render review and strict typecheck.
+
 ### 2026-11-18 — Add a dedicated deep-space 3D set
 - Added a `space` terrain preset in `worldgen.ts`: deterministic starfield, ringed planet, orbital station with solar wings, black hole/accretion disc and a moving asteroid belt. It bypasses the terrestrial ground/settlement generator so space scenes do not inherit a floor.
 - Planet, disc and asteroid motion are functions of scene time for frame-exact seeking; existing `env: ["space"]` effects continue to provide the camera-relative star/planet lighting layer.

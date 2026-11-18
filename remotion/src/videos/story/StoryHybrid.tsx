@@ -112,7 +112,7 @@ export const StoryHybrid: React.FC = () => {
         <Inner kit={kit} board={board} />
       </ThreeCanvas>
       <Cast2D board={board} f={f} />
-      {cap ? <div style={{ position: "absolute", left: 52, right: 52, bottom: 228, textAlign: "center", fontFamily: captionFont, fontWeight: 900, fontSize: cap.length > 12 ? 66 : 76, lineHeight: 1.06, letterSpacing: historicCaption ? "0.5px" : "-0.8px", color: "#fff", WebkitTextStroke: "9px #17131b", paintOrder: "stroke fill", textShadow: captionGlow, padding: "7px 18px 10px", borderRadius: 12, background: "rgba(15,19,24,.24)", boxShadow: "0 5px 18px rgba(0,0,0,.12)", transform: `scale(${popK.toFixed(3)})` }}>{cap}</div> : null}
+      {cap ? <div style={{ position: "absolute", left: 0, right: 0, bottom: 228, display: "flex", justifyContent: "center", padding: "0 52px", pointerEvents: "none" }}><span style={{ display: "inline-block", maxWidth: "100%", textAlign: "center", fontFamily: captionFont, fontWeight: 900, fontSize: cap.length > 12 ? 66 : 76, lineHeight: 1.06, letterSpacing: historicCaption ? "0.5px" : "-0.8px", color: "#fff", WebkitTextStroke: "9px #17131b", paintOrder: "stroke fill", textShadow: captionGlow, padding: "7px 18px 10px", borderRadius: 12, background: "rgba(15,19,24,.24)", boxShadow: "0 5px 18px rgba(0,0,0,.12)", transform: `scale(${popK.toFixed(3)})` }}>{cap}</span></div> : null}
     </AbsoluteFill>
   );
 };

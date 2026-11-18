@@ -1,3 +1,8 @@
+### 2026-11-18 — Smooth the canyon river channel
+- The rendered river still showed the hard stair-step joins from separate box segments.
+- Replaced the segmented strip with a single triangulated winding ShapeGeometry ribbon so its banks read as one continuous channel.
+- This is a geometry-only refinement; final approval still depends on the latest proof render.
+
 ### 2026-11-18 — Remove canyon settlement clutter and shape the rear ridge
 - The first canyon revision made the opposing walls visible, but the rear escarpment still read as a flat retaining wall and the stone-age dressing added unrelated ground blocks.
 - Replaced the rear wall with a jagged natural ridge and suppressed terrestrial settlement dressing for canyon scenes as well as open-water scenes.

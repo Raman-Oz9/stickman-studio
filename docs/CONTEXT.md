@@ -1,3 +1,8 @@
+### 2026-11-18 — Add a dedicated deep-space 3D set
+- Added a `space` terrain preset in `worldgen.ts`: deterministic starfield, ringed planet, orbital station with solar wings, black hole/accretion disc and a moving asteroid belt. It bypasses the terrestrial ground/settlement generator so space scenes do not inherit a floor.
+- Planet, disc and asteroid motion are functions of scene time for frame-exact seeking; existing `env: ["space"]` effects continue to provide the camera-relative star/planet lighting layer.
+- This is a reusable 3D set preset, not yet visually approved. TypeScript and native StoryHybrid stills remain required.
+
 ### 2026-11-18 — Grade the 3D world per era, season and weather
 - In `world.ts`, added restrained scene-driven tone grading: historical eras lean warm, Viking/war/space/future eras lean cool, winter shifts cooler and slightly desaturates, autumn warms, spring lifts green, and rain/storm/drought adjust saturation and tint.
 - In `worldgen.ts`, drought now emits deterministic drifting dust particles in addition to the grade. Existing rain, storm, snow, fog and wind paths remain intact.

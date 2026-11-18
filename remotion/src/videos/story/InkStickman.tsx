@@ -99,6 +99,7 @@ const Face: React.FC<{ expression: Expression; blink: boolean; look: number; loo
 export type InkStickmanProps = {
   x: number; y: number; scale?: number; facing?: 1 | -1;
   skin: string; cloth: string; trim?: string; hair?: string;
+  hairStyle?: "short" | "bun" | "afro" | "long" | "cap" | "bald" | "curly" | "braids";
   walk?: number; stand?: number;
   frontHand?: Vec | null; backHand?: Vec | null; grip?: boolean;
   expression?: Expression; frame?: number; look?: number; gaze?: Vec | null; lean?: number;
@@ -112,7 +113,7 @@ const shade = (hex: string, k: number) => {
 };
 
 export const InkStickman: React.FC<InkStickmanProps> = ({
-  x, y, scale = 1, facing = 1, skin, cloth, hair, walk = 0, stand = 1, frontHand = null, backHand = null,
+  x, y, scale = 1, facing = 1, skin, cloth, hair, hairStyle, walk = 0, stand = 1, frontHand = null, backHand = null,
   expression = "smile", frame = 0, look: lookIn = 0, gaze = null, lean = 0, build = "lean", grip = false,
 }) => {
   const wide = build === "stocky" ? 1.14 : 1;
@@ -121,6 +122,69 @@ export const InkStickman: React.FC<InkStickmanProps> = ({
   const swing = Math.sin(walk * Math.PI * 2);
   const lift = (p: number) => Math.max(0, Math.sin(p * Math.PI * 2)) * 30 * (1 - stand);
   const jeans = "#3d5a86";
+
+  const renderHair = () => {
+    const style = hairStyle ?? (hair ? "short" : "bald");
+    if (style === "bald") return null;
+    const col = hair ?? "#2a1f1a";
+    switch (style) {
+      case "bun":
+        return (
+          <g>
+            <path d="M -63 -438 C -70 -472 -48 -500 -18 -500 C 2 -524 39 -512 51 -485 C 69 -477 70 -452 63 -438 Z" fill={col} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+            <circle cx="15" cy="-528" r="16" fill={col} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+            <path d="M 5 -522 Q 15 -532 25 -522" fill="none" stroke="#fff3d5" strokeWidth="3.5" strokeLinecap="round" opacity=".35" />
+          </g>
+        );
+      case "afro":
+        return (
+          <g>
+            <ellipse cx="0" cy="-480" rx="72" ry="64" fill={col} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+            <path d="M -45 -520 Q -15 -545 15 -530 Q 45 -540 60 -500 Q 75 -470 60 -440 Q 25 -420 -10 -435 Q -55 -430 -65 -465 Z" fill="none" stroke="#fff3d5" strokeWidth="4" strokeLinecap="round" opacity=".25" />
+          </g>
+        );
+      case "long":
+        return (
+          <g>
+            <path d="M -63 -438 C -70 -472 -48 -500 -18 -500 C 2 -524 39 -512 51 -485 C 69 -477 70 -452 63 -438 Z" fill={col} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+            <path d="M -65 -438 L -72 -340 C -75 -300 -60 -280 -45 -290 L -35 -400 Z" fill={col} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+            <path d="M 65 -438 L 72 -340 C 75 -300 60 -280 45 -290 L 35 -400 Z" fill={col} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+            <path d="M -25 -483 Q 7 -509 42 -484" fill="none" stroke="#fff3d5" strokeWidth="4" strokeLinecap="round" opacity=".28" />
+          </g>
+        );
+      case "cap":
+        return (
+          <g>
+            <path d="M -65 -440 C -68 -490 -30 -505 0 -505 C 30 -505 68 -490 65 -440 Z" fill={col} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+            <path d="M 2 -470 L 68 -455 L 60 -438 Z" fill={col} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+          </g>
+        );
+      case "curly":
+        return (
+          <g>
+            <path d="M -65 -445 Q -75 -485 -40 -505 Q 0 -525 40 -505 Q 75 -485 65 -445 Q 75 -425 55 -415 Q 15 -425 0 -410 Q -45 -425 -65 -445 Z" fill={col} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+            <path d="M -35 -490 Q -10 -505 15 -490 M -50 -460 Q -25 -475 0 -460 Q 25 -475 45 -460" fill="none" stroke="#fff3d5" strokeWidth="3.5" strokeLinecap="round" opacity=".3" />
+          </g>
+        );
+      case "braids":
+        return (
+          <g>
+            <path d="M -63 -438 C -70 -472 -48 -500 -18 -500 C 2 -524 39 -512 51 -485 C 69 -477 70 -452 63 -438 Z" fill={col} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+            <path d="M -60 -430 L -68 -320 Q -64 -300 -58 -320 L -52 -430 Z" fill={col} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+            <path d="M 60 -430 L 68 -320 Q 64 -300 58 -320 L 52 -430 Z" fill={col} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+            <path d="M -66 -360 L -56 -350 M -64 -390 L -54 -380 M 66 -360 L 56 -350 M 64 -390 L 54 -380" fill="none" stroke={INK} strokeWidth="4" strokeLinecap="round" />
+          </g>
+        );
+      case "short":
+      default:
+        return (
+          <g>
+            <path d="M -63 -438 C -70 -472 -48 -500 -18 -500 C 2 -524 39 -512 51 -485 C 69 -477 70 -452 63 -438 Q 37 -455 19 -457 Q -2 -449 -17 -461 Q -36 -447 -63 -438 Z" fill={col} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+            <path d="M -25 -483 Q 7 -509 42 -484 Q 14 -492 0 -469" fill="none" stroke="#fff3d5" strokeWidth="4" strokeLinecap="round" opacity=".28" />
+          </g>
+        );
+    }
+  };
 
   const footF: Vec = [mix(18 + swing * 46, 22, stand), -lift(walk)];
   const footB: Vec = [mix(-18 - swing * 46, -20, stand), -lift(walk + 0.5)];
@@ -155,7 +219,7 @@ export const InkStickman: React.FC<InkStickmanProps> = ({
           <ellipse cx="-62" cy={HEAD_Y + 2} rx="9" ry="13" fill={skin} stroke={INK} strokeWidth="5" />
           <ellipse cx="62" cy={HEAD_Y + 2} rx="9" ry="13" fill={skin} stroke={INK} strokeWidth="5" />
           <circle cx="0" cy={HEAD_Y} r={HEAD_R} fill={skin} stroke={INK} strokeWidth="6.5" />
-          {hair ? <g><path d="M -63 -438 C -70 -472 -48 -500 -18 -500 C 2 -524 39 -512 51 -485 C 69 -477 70 -452 63 -438 Q 37 -455 19 -457 Q -2 -449 -17 -461 Q -36 -447 -63 -438 Z" fill={hair} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" /><path d="M -25 -483 Q 7 -509 42 -484 Q 14 -492 0 -469" fill="none" stroke="#fff3d5" strokeWidth="4" strokeLinecap="round" opacity=".28" /></g> : null}
+           {renderHair()}
           <Face expression={expression} blink={blink} look={look} lookY={lookY} />
         </g>
       </g>

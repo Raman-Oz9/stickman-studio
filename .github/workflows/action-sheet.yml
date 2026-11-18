@@ -1,7 +1,7 @@
 name: action sheet proof
 on:
   push:
-    branches: [claude/actions]
+    branches: [claude/actions, claude/hybrid]
   workflow_dispatch:
 permissions:
   contents: write
@@ -35,6 +35,12 @@ jobs:
           python3 -c "import json; json.dump({'board':json.load(open('story_actions_board.json'))},open('public/prep/actions-props.json','w'))"
           for f in 45 135 225 315 405 495 585 675; do
             npx remotion still src/index.ts StoryShort2D "out/story-$f.jpg" --frame=$f --scale=0.5 --gl=swangle --image-format=jpeg --jpeg-quality=90 --props=./public/prep/actions-props.json --timeout=300000 --log=warn || true
+          done
+      - name: Render HYBRID (3D world + 2D cast) stills
+        working-directory: remotion
+        run: |
+          for f in 45 135 225 315 405 495 585 675; do
+            npx remotion still src/index.ts StoryHybrid "out/hyb-$f.jpg" --frame=$f --scale=0.5 --gl=swangle --image-format=jpeg --jpeg-quality=90 --props=./public/prep/actions-props.json --timeout=600000 --log=warn || true
           done
       - name: Publish frames to branch
         if: always()

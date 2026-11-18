@@ -27,7 +27,7 @@ const makeBloom = () => {
 };
 const fwd = new THREE.Vector3();
 
-const Inner: React.FC<{ kit: Kit; board: Board }> = ({ kit, board }) => {
+export const Inner: React.FC<{ kit: Kit; board: Board }> = ({ kit, board }) => {
   const f = useCurrentFrame();
   const { camera, scene } = useThree();
   const world = useMemo(() => new StoryWorld(kit, board.models), [kit, board]);

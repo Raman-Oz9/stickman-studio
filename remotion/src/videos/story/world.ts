@@ -27,6 +27,8 @@ const hh = (i: number, s = 0) => { const v = Math.sin(i * 127.1 + s * 311.7) * 4
 const ROLE_SCALE: Record<string, number> = { kid: 0.72, girl: 0.74 };
 
 export class StoryWorld {
+  /** hybrid mode: the 2D ink cast is drawn by an overlay, so the 3D world skips its own characters */
+  static hideCast = false;
   root = new THREE.Group();
   private pool = new Pool();
   private p3: Props3D; private rigs!: Rigs; private hv = new THREE.Vector3();
@@ -171,6 +173,7 @@ export class StoryWorld {
     }
 
     const put = (d: CastDef, idx: number, extra: boolean) => {
+      if (StoryWorld.hideCast) return;
       const o = outfitFor(d.role, d.v ?? idx, s.era), who: Who = { i: idx + (extra ? 300 : 0), o, okey: `${d.role}${d.v ?? idx}${s.era ?? ""}` };
       const sc2 = d.scale ?? ROLE_SCALE[d.role] ?? 1;
       const swapT = d.at2 != null ? d.at2 * n / FPS : 1e9;

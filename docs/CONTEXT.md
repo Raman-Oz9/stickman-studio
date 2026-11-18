@@ -106,6 +106,9 @@
 - Both: update this file on every change; never claim "works" without viewing rendered frames; never send the owner a video that has not been frame-checked.
 ## CHANGELOG
 
+### 2026-11-18 — Add `accessory` prop to InkStickman.tsx
+- Added `accessory` prop (`"none" | "glasses" | "monocle" | "crown" | "helmet" | "turban" | "headwrap" | "hat" | "beard" | "moustache"`) to `InkStickman.tsx`, drawing each accessory in clean ink outline style inside the head group and hiding facial accessories when `back` is true. Verified clean TypeScript compilation.
+
 ### 2026-11-18 — Add `hairStyle` prop to InkStickman.tsx
 - Added `hairStyle` prop supporting `"short" | "bun" | "afro" | "long" | "cap" | "bald" | "curly" | "braids"` to `InkStickman.tsx`, drawing each style in ink outline over the head while keeping the existing `hair` color prop and preserving body geometry. Verified clean TypeScript compilation.
 

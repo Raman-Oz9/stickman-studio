@@ -150,6 +150,18 @@ export class StoryWorld {
     this.sun.shadow.bias = L.bias; this.sun.shadow.normalBias = L.normalBias * (Rr / 12);
     TONE.uLitCol.value.set(...L.lit); TONE.uShadeCol.value.set(...L.shade); TONE.uShadeLift.value.set(...L.lift);
     TONE.uLambert.value = L.lambert; TONE.uSideK.value = L.sideK; TONE.uTerm.value = L.term; TONE.uBounce.value.set(...K.bounce); TONE.uSat.value = K.sat;
+    // Scene-aware grade: the same physical set gets a different film response by era, season and weather.
+    const eraGrade = String(s.world?.era ?? s.era ?? "").toLowerCase();
+    const coldEra = /viking|ww1|ww2|space|near-future/.test(eraGrade);
+    const warmEra = /ancient|egypt|roman|greek|renaissance|wild-west|pirate/.test(eraGrade);
+    if (coldEra) { TONE.uLitCol.value.lerp(new THREE.Color("#a9c7cf"), 0.14); TONE.uShadeCol.value.lerp(new THREE.Color("#174d68"), 0.12); }
+    else if (warmEra) { TONE.uLitCol.value.lerp(new THREE.Color("#d2a34a"), 0.13); TONE.uShadeCol.value.lerp(new THREE.Color("#403c39"), 0.1); }
+    if (se === "winter") { TONE.uLitCol.value.lerp(new THREE.Color("#a9c7cf"), 0.18); TONE.uSat.value *= 0.9; }
+    else if (se === "autumn") { TONE.uLitCol.value.lerp(new THREE.Color("#d2a34a"), 0.16); TONE.uSat.value *= 1.04; }
+    else if (se === "spring") { TONE.uLitCol.value.lerp(new THREE.Color("#718b4c"), 0.1); TONE.uSat.value *= 1.04; }
+    const wet = (s.env ?? []).includes("rain") || (s.env ?? []).includes("storm") || s.world?.weather === "rain" || s.world?.weather === "storm";
+    if (wet) { TONE.uLitCol.value.lerp(new THREE.Color("#a9c7cf"), 0.08); TONE.uSat.value *= 0.88; }
+    if (s.world?.weather === "drought") { TONE.uLitCol.value.lerp(new THREE.Color("#b99a6a"), 0.18); TONE.uSat.value *= 0.92; }
     TONE.uLitCol.value.multiplyScalar(Math.max(0.5, E.dim)); TONE.uShadeCol.value.multiplyScalar(Math.max(0.55, E.dim));
     CHAR.uCharTint.value.set(...L.charTint); CHAR.uCharShade.value = L.charShade; CHAR.uGrad.value = L.charGrad; CHAR.uBodyGrad.value = L.bodyGrad; CHAR.uSideTint.value.set(...L.sideTint);
     const su = this.skyMat.uniforms;

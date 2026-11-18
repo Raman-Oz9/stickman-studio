@@ -8,14 +8,15 @@ export type PerformerProps = {
   x: number; y: number; scale?: number; facing: 1 | -1;
   skin: string; cloth: string; hair?: string; build?: "lean" | "stocky"; seed?: number;
   verb: Verb; p: number; t: number; frame: number; phase?: number;
-  prop?: string | null; target?: Vec | null; expr?: Expression | null; gaze?: Vec | null;
+  prop?: string | null; holdProp?: string | null; target?: Vec | null; expr?: Expression | null; gaze?: Vec | null;
 };
 
 // One generic performer: any verb -> pose -> articulated ink stickman with its prop in hand.
-export const Performer2D: React.FC<PerformerProps> = ({ x, y, scale = 1, facing, skin, cloth, hair, build, seed, verb, p, t, frame, phase, prop, target, expr, gaze }) => {
+export const Performer2D: React.FC<PerformerProps> = ({ x, y, scale = 1, facing, skin, cloth, hair, build, seed, verb, p, t, frame, phase, prop, holdProp, target, expr, gaze }) => {
   const ph = phase ?? t * 1.15;
   const o = useMemo(() => perform({ verb, p, t, phase: ph, prop, target }), [verb, p, t, ph, prop, target]);
-  const held = o.hold ? <PropIcon name={o.hold.prop} /> : null;
+  const hp = o.hold?.prop ?? holdProp ?? null;
+  const held = hp ? <PropIcon name={hp} /> : null;
   const fly = o.fly ? (() => { const k = o.fly!.p; const px = o.fly!.from[0] + (o.fly!.to[0] - o.fly!.from[0]) * k; const py = o.fly!.from[1] + (o.fly!.to[1] - o.fly!.from[1]) * k - Math.sin(k * Math.PI) * 90; return <g transform={`translate(${px} ${py}) rotate(${k * 540})`}><PropIcon name={o.fly!.prop} /></g>; })() : null;
   return (
     <InkStickman

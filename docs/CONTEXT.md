@@ -1,3 +1,9 @@
+### 2026-11-18 — Final synced-branch 3D proof passed
+- After syncing the latest main wardrobe/OpenCode changes, workflow run `44269012189` completed successfully: Remotion dependency install, strict `npx tsc --noEmit`, and both native-resolution worldgen proof renders passed.
+- Inspected the resulting 1080×1920 ocean-floor and canyon stills from that run. The underwater preset has its own deep-water grade, light shafts, fish, rocks and foreground reef; the canyon preset has a rust floor, a continuous blue river above the floor plane, stratified gorge walls and a distant ridge.
+- The StoryHybrid cast overlay is clipped to the portrait frame, avoiding the earlier off-frame character spill.
+- PR #7 remains a draft. This validates the two environment proof frames, not a complete rendered story or final video.
+
 ### 2026-11-18 — Record verified 3D worldgen proof and main sync
 - Production proof workflow run `44268655476` completed successfully: dependency install, `npx tsc --noEmit`, and native-resolution still renders for the ocean-floor and canyon presets all passed.
 - Inspected both generated 1080×1920 stills. The ocean-floor frame shows the underwater gradient, light shafts, fish, rocks and foreground coral; the canyon frame shows the rust floor, continuous blue river, opposing stratified walls and rear ridge.

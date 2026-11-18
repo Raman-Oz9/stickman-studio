@@ -1,0 +1,79 @@
+name: 3D worldgen typecheck and render proof
+on:
+  push:
+    branches:
+      - chatgpt/ocean-floor-canyon-worlds-20261118
+    paths:
+      - "remotion/src/videos/story/**"
+      - "remotion/src/bridge/**"
+      - "remotion/package.json"
+      - ".github/workflows/worldgen-check.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "remotion/src/videos/story/**"
+      - "remotion/src/bridge/**"
+      - "remotion/package.json"
+      - ".github/workflows/worldgen-check.yml"
+permissions:
+  contents: read
+jobs:
+  proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install Remotion dependencies
+        working-directory: remotion
+        run: npm install --no-audit --no-fund
+      - name: Strict TypeScript check
+        working-directory: remotion
+        run: npx tsc --noEmit
+      - name: Prepare ocean-floor and canyon proof board
+        run: |
+          mkdir -p remotion/public/prep
+          cat > remotion/public/prep/worldgen-proof-props.json <<'JSON'
+          {
+            "board": {
+              "title": "3D World Generation Proof",
+              "scenes": [
+                {
+                  "dur": 3,
+                  "shot": "wide",
+                  "world": { "terrain": "ocean-floor", "era": "modern", "region": "african", "timeOfDay": "noon", "weather": "clear", "seed": 18 },
+                  "cast": [{ "id": "explorer", "role": "explorer", "x": 0, "z": 0, "expr": "neutral" }],
+                  "caption": "Ocean floor environment"
+                },
+                {
+                  "dur": 3,
+                  "shot": "wide",
+                  "world": { "terrain": "canyon", "era": "modern", "region": "african", "timeOfDay": "dusk", "weather": "clear", "seed": 19 },
+                  "cast": [{ "id": "explorer", "role": "explorer", "x": 0, "z": 0, "expr": "neutral" }],
+                  "caption": "Canyon environment"
+                }
+              ]
+            },
+            "post": { "dpr": 0.75 }
+          }
+          JSON
+      - name: Render native-resolution environment proof frames
+        working-directory: remotion
+        run: |
+          mkdir -p out
+          for frame in 30 120; do
+            npx remotion still src/index.ts StoryShort "out/worldgen-f${frame}.jpg" \
+              --frame="${frame}" --scale=1 --gl=swangle --image-format=jpeg \
+              --jpeg-quality=94 --props=./public/prep/worldgen-proof-props.json \
+              --timeout=600000 --log=warn
+          done
+      - name: Upload typecheck and world render evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: 3d-worldgen-proof
+          path: remotion/out/*
+          if-no-files-found: warn
+          retention-days: 7

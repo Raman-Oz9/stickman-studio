@@ -106,6 +106,9 @@
 - Both: update this file on every change; never claim "works" without viewing rendered frames; never send the owner a video that has not been frame-checked.
 ## CHANGELOG
 
+### 2026-11-18 — Add railway, station, airport, and harbour sets in worldgen.ts
+- Added procedural set pieces in `remotion/src/videos/story/worldgen.ts` supporting `world.kind` for railway/station (tracks with sleepers, platform, station building, animated train), airport (runway with lights/markings, terminal, control tower, animated planes), and harbour (quays, wooden piers, gantry cranes, stacked shipping containers, cargo ship). Verified clean TypeScript compilation with `npx tsc --noEmit`.
+
 ### 2026-11-18 — Add terrain set pieces (grand canyon, mountains, volcano, glacier, desert dunes, jungle, savanna) in worldgen.ts
 - Added 7 world set pieces in `remotion/src/videos/story/worldgen.ts` supporting `world.kind` for grand canyon (layered red strata, river), mountains with snow caps, volcano with lava crater/flows, glacier/arctic with icebergs, desert dunes with cacti, jungle with palms, and savanna with acacia trees, complete with biome-appropriate props and weather support. Verified clean TypeScript compilation with `npx tsc --noEmit`.
 

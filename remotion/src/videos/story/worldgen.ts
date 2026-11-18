@@ -633,6 +633,123 @@ const savannaWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
   }
 };
 
+const railwayWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
+  box(g,260,0.5,260,P.green,0,-0.25,-45);
+  for(let z=-80; z<=20; z+=1.5){
+    box(g,4.2,0.18,0.6,P.shade,0,0.05,z);
+  }
+  for(const x of [-1.2, 1.2]){
+    box(g,0.22,0.32,105,P.stone,x,0.18,-30);
+  }
+  box(g,8,0.7,90,P.stone,7.5,0.35,-30);
+  box(g,22,6,12,P.earth,14,3,-40);
+  poly(g,[[3,6,-46],[14,10,-46],[25,6,-46]],P.stone);
+  for(let z=-70; z<=10; z+=15){
+    cylinder(g,0.2,4,P.shade,4,2,z,6);
+    box(g,6,0.25,3.5,P.earth,4,4.1,z);
+  }
+  for(let z=-50; z<=0; z+=20){
+    box(g,3,0.5,0.8,P.shade,8,0.8,z);
+    box(g,0.3,1.2,0.8,P.shade,9.2,1.2,z);
+  }
+  const trainGroup=new THREE.Group();
+  trainGroup.name="Train";
+  box(g,3.2,3.2,7,P.shade,0,1.8,-15);
+  cylinder(g,1.4,5,P.earth,0,2.2,-13,10);
+  cylinder(g,0.3,2.5,P.shade,0,4.5,-15,6);
+  ball(g,1.1,P.sky,0,2.8,-11);
+  for(const x of [-1.7, 1.7]) for(const z of [-17, -13, -9]){
+    cylinder(g,0.7,0.3,P.stone,x,0.7,z,10);
+  }
+  for(let i=1; i<=3; i++){
+    const cz=-15 - i*8.5;
+    box(g,3.1,2.8,7.8,P.earth,0,1.7,cz);
+    for(const x of [-1.6, 1.6]) for(const z of [cz-2.5, cz+2.5]){
+      cylinder(g,0.6,0.3,P.stone,x,0.6,z,8);
+    }
+    for(const wx of [-1.55, 1.55]) for(const wz of [cz-1.5, cz, cz+1.5]){
+      box(g,0.1,0.8,0.8,P.sky,wx,2.2,wz);
+    }
+  }
+  trainGroup.userData.trainAnim={speed:6, range:60};
+  g.add(trainGroup);
+};
+
+const airportWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
+  box(g,260,0.5,260,P.stone,0,-0.25,-45);
+  box(g,36,0.06,180,P.shade,0,0,-30);
+  for(let z=-110; z<=40; z+=6){
+    box(g,0.8,0.08,3.5,P.sky,0,0.04,z);
+  }
+  for(let z=-110; z<=40; z+=12){
+    for(const x of [-17, 17]){
+      cylinder(g,0.2,0.4,P.accent,x,0.2,z,6);
+      ball(g,0.25,P.sky,x,0.5,z);
+    }
+  }
+  box(g,55,10,22,P.sky,35,5,-55);
+  for(let x=15; x<=55; x+=6){
+    for(let y=2; y<=8; y+=2.5){
+      box(g,4,1.8,0.2,P.stone,x,y,-43.9);
+    }
+  }
+  cylinder(g,2.2,22,P.stone,-35,11,-65,10);
+  box(g,7,4.5,7,P.sky,-35,22,-65);
+  cylinder(g,0.8,3,P.shade,-35,25.5,-65,8);
+  const planeGroup=new THREE.Group();
+  planeGroup.name="Plane";
+  box(g,4.5,3.2,16,P.sky,0,2.5,-20);
+  box(g,22,0.3,4.5,P.stone,0,2.5,-20);
+  poly(g,[[0,2.5,-27],[0,6.5,-25],[0,2.5,-23]],P.stone);
+  box(g,7,0.2,2,P.stone,0,2.6,-27);
+  for(const x of [-6, 6]){
+    cylinder(g,0.8,3.5,P.shade,x,2.2,-20,8);
+  }
+  planeGroup.userData.planeAnim={speed:12, range:120};
+  g.add(planeGroup);
+};
+
+const harbourWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
+  box(g,260,0.3,90,P.sky,0,-0.12,35);
+  for(let i=0;i<25;i++){
+    const x=(hash(i,90)-.5)*200, z=15+hash(i,91)*40;
+    const m=box(g,3+hash(i,92)*6,.02,.18,P.sky,x,0,z);
+    m.position.x+=Math.sin(t*1.3+i)*.2;
+  }
+  box(g,260,0.8,120,P.stone,0,0.4,-35);
+  for(let x=-90; x<=90; x+=30){
+    box(g,8,0.9,35,P.earth,x,0.45,10);
+    for(const px of [x-3.5, x+3.5]) for(const pz of [-5, 10, 25]){
+      cylinder(g,0.4,3,P.shade,px,-1.2,pz,8);
+    }
+  }
+  for(const cx of [-45, 45]){
+    const crane=new THREE.Group();
+    box(g,3,18,3,P.accent,cx,9,-5);
+    box(g,16,2.5,3,P.accent,cx+6,17,-5);
+    cylinder(g,0.2,12,P.shade,cx+12,11,-5,6);
+    box(g,4,1.5,4,P.shade,cx+12,5,-5);
+    crane.userData.craneSway={phase:cx};
+    g.add(crane);
+  }
+  const containerColors=["#e65c5c","#4cc9f0","#f72585","#4361ee","#f8961e","#43aa8b"];
+  for(let i=0; i<16; i++){
+    const cx=-70+(i%6)*12, cz=-35+Math.floor(i/6)*8, stackH=1+(i%3);
+    for(let h=0; h<stackH; h++){
+      const col=containerColors[(i+h)%containerColors.length];
+      box(g,6,2.2,3,col,cx,1.1+h*2.2,cz);
+    }
+  }
+  const ship=new THREE.Group();
+  ship.position.set(0,0.2,28);
+  box(ship,45,4,12,P.shade,0,2,0);
+  box(ship,15,5,10,P.stone,-12,6.5,0);
+  for(let k=-18; k<=12; k+=6){
+    box(ship,5,3.5,4,containerColors[(k+18)%containerColors.length],k,5.5,0);
+  }
+  g.add(ship);
+};
+
 export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
   const p: WorldParams={season:"summer",timeOfDay:"dawn",weather:"clear",era:"medieval",region:"african",...params};
   const k = p.kind ?? "";
@@ -643,6 +760,9 @@ export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
   const isDesert = k === "desert" || k === "desert-dunes" || k === "dunes";
   const isJungle = k === "jungle" || k === "rainforest";
   const isSavanna = k === "savanna" || k === "plains";
+  const isRailway = k === "railway" || k === "train" || k === "station";
+  const isAirport = k === "airport" || k === "runway" || k === "plane";
+  const isHarbour = k === "harbour" || k === "port" || k === "dock";
 
   const g=new THREE.Group();
   g.name=p.mapMode?"HistoricalMapWorld"
@@ -652,6 +772,9 @@ export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
     : p.kind==="egypt"?"EgyptWorld"
     : p.kind==="china"?"ChinaWorld"
     : p.kind==="city"?"CityWorld"
+    : isRailway?"RailwayWorld"
+    : isAirport?"AirportWorld"
+    : isHarbour?"HarbourWorld"
     : isGrandCanyon?"GrandCanyonWorld"
     : isMountains?"MountainsWorld"
     : isVolcano?"VolcanoWorld"
@@ -675,6 +798,12 @@ export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
     chinaWorld(g,p,t);
   }else if(p.kind==="city"){
     cityWorld(g,p,t);
+  }else if(isRailway){
+    railwayWorld(g,p,t);
+  }else if(isAirport){
+    airportWorld(g,p,t);
+  }else if(isHarbour){
+    harbourWorld(g,p,t);
   }else if(isGrandCanyon){
     grandCanyonWorld(g,p,t);
   }else if(isMountains){
@@ -709,5 +838,5 @@ export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
   g.userData.worldParams=p;g.userData.time=t;return g;
 };
 export const animateWorld=(g:THREE.Group,t:number)=>{
-  g.traverse(o=>{const routeIndex=o.userData.routeIndex as number|undefined;if(routeIndex!==undefined)o.visible=routeIndex<Math.floor(clamp(t/3)*26);const s=o.userData.sway as {phase:number;amp:number}|undefined;if(s)o.rotation.z=Math.sin(t*1.3+s.phase)*s.amp;const smoke=o.userData.smokeParticle as {phase:number;baseY:number}|undefined;if(smoke){o.position.y=smoke.baseY+((t*1.5+smoke.phase)%5);o.scale.setScalar(.7+((t*.35+smoke.phase)%1)*.5);}const w=o.userData.weatherParticle as {kind:string;baseX:number;baseY:number;baseZ:number;phase:number;index:number}|undefined;if(w){if(w.kind==="rain"||w.kind==="storm")o.position.y=2+((w.baseY-2-t*(w.kind==="storm"?14:8))%14+14)%14;else if(w.kind==="snow")o.position.y=2+((w.baseY-2-t*.8)%14+14)%14;else if(w.kind==="fog"){o.position.x=w.baseX+Math.sin(t*.12+w.phase)*2;o.position.y=w.baseY+Math.sin(t*.2+w.phase)*.2;}else o.position.x=w.baseX+Math.sin(t*.7+w.phase)*.8;}const fish=o.userData.fishParticle as {baseX:number;baseY:number;baseZ:number;speed:number;radius:number;phase:number}|undefined;if(fish){o.position.x=fish.baseX+Math.sin(t*fish.speed+fish.phase)*fish.radius;o.position.z=fish.baseZ+Math.cos(t*fish.speed*0.7+fish.phase)*fish.radius*0.6;}const bubble=o.userData.bubbleParticle as {baseX:number;baseY:number;baseZ:number;speed:number;phase:number}|undefined;if(bubble){o.position.y=((bubble.baseY+t*bubble.speed+bubble.phase)%18);o.position.x=bubble.baseX+Math.sin(t*0.8+bubble.phase)*0.5;}const glow=o.userData.ventGlow as {phase:number}|undefined;if(glow){const sc=1+0.25*Math.sin(t*3+glow.phase);o.scale.set(sc,sc,sc);}const lure=o.userData.anglerLure as {baseY:number;phase:number}|undefined;if(lure){o.position.y=lure.baseY+Math.sin(t*2+lure.phase)*0.3;}});
+  g.traverse(o=>{const routeIndex=o.userData.routeIndex as number|undefined;if(routeIndex!==undefined)o.visible=routeIndex<Math.floor(clamp(t/3)*26);const s=o.userData.sway as {phase:number;amp:number}|undefined;if(s)o.rotation.z=Math.sin(t*1.3+s.phase)*s.amp;const smoke=o.userData.smokeParticle as {phase:number;baseY:number}|undefined;if(smoke){o.position.y=smoke.baseY+((t*1.5+smoke.phase)%5);o.scale.setScalar(.7+((t*.35+smoke.phase)%1)*.5);}const w=o.userData.weatherParticle as {kind:string;baseX:number;baseY:number;baseZ:number;phase:number;index:number}|undefined;if(w){if(w.kind==="rain"||w.kind==="storm")o.position.y=2+((w.baseY-2-t*(w.kind==="storm"?14:8))%14+14)%14;else if(w.kind==="snow")o.position.y=2+((w.baseY-2-t*.8)%14+14)%14;else if(w.kind==="fog"){o.position.x=w.baseX+Math.sin(t*.12+w.phase)*2;o.position.y=w.baseY+Math.sin(t*.2+w.phase)*.2;}else o.position.x=w.baseX+Math.sin(t*.7+w.phase)*.8;}const fish=o.userData.fishParticle as {baseX:number;baseY:number;baseZ:number;speed:number;radius:number;phase:number}|undefined;if(fish){o.position.x=fish.baseX+Math.sin(t*fish.speed+fish.phase)*fish.radius;o.position.z=fish.baseZ+Math.cos(t*fish.speed*0.7+fish.phase)*fish.radius*0.6;}const bubble=o.userData.bubbleParticle as {baseX:number;baseY:number;baseZ:number;speed:number;phase:number}|undefined;if(bubble){o.position.y=((bubble.baseY+t*bubble.speed+bubble.phase)%18);o.position.x=bubble.baseX+Math.sin(t*0.8+bubble.phase)*0.5;}const glow=o.userData.ventGlow as {phase:number}|undefined;if(glow){const sc=1+0.25*Math.sin(t*3+glow.phase);o.scale.set(sc,sc,sc);}const lure=o.userData.anglerLure as {baseY:number;phase:number}|undefined;if(lure){o.position.y=lure.baseY+Math.sin(t*2+lure.phase)*0.3;}const train=o.userData.trainAnim as {speed:number;range:number}|undefined;if(train){o.position.z=-15+Math.sin(t*0.6)*18;}const plane=o.userData.planeAnim as {speed:number;range:number}|undefined;if(plane){o.position.z=-20+((t*plane.speed)%plane.range);}const crane=o.userData.craneSway as {phase:number}|undefined;if(crane){o.rotation.y=Math.sin(t*0.4+crane.phase)*0.12;}});
 };

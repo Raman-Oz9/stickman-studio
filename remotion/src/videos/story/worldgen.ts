@@ -2,7 +2,7 @@
 // All geometry is assembled from flat primitives; drawWorld(params,t) is deterministic for a given time.
 import * as THREE from "three";
 
-export type TerrainType = "forest"|"jungle"|"ocean"|"mountain"|"desert"|"ice"|"plain"|"river"|"coast"|"swamp"|"cave"|"savanna";
+export type TerrainType = "forest"|"jungle"|"ocean"|"ocean-floor"|"mountain"|"canyon"|"desert"|"ice"|"plain"|"river"|"coast"|"swamp"|"cave"|"savanna";
 export type WeatherType = "clear"|"rain"|"snow"|"fog"|"storm"|"drought"|"wind";
 export type EraType = "stone-age"|"ancient"|"classical"|"medieval"|"early-modern"|"industrial"|"modern";
 export type RegionType = "european"|"african"|"east-asian"|"south-asian"|"middle-eastern"|"mesoamerican";
@@ -12,7 +12,7 @@ export type WorldParams = {
   timeOfDay?: "dawn"|"noon"|"dusk"|"night"; era?: EraType; region?: RegionType; mapMode?: boolean;
   seed?: number; accentBeat?: number; accentEnabled?: boolean; label?: string; artifact?: ArtifactType;
 };
-const P = { earth:"#b99a6a", stone:"#71685c", shade:"#403c39", green:"#718b4c", sky:"#a9c7cf", accent:"#d2a34a" } as const;
+const P = { earth:"#b99a6a", stone:"#71685c", shade:"#403c39", green:"#718b4c", sky:"#a9c7cf", accent:"#d2a34a", deep:"#174d68", reef:"#d47755", coral:"#df9b70", sand:"#d5bd8b" } as const;
 const MAP = { paper:"#e5d5ae", ink:"#554632", land:"#899967", water:"#86aeb8", line:"#66513a", accent:"#c18b3d" } as const;
 const hash = (n:number,s:number)=>{const x=Math.sin(n*127.1+s*311.7)*43758.5453;return x-Math.floor(x);};
 const clamp=(x:number,a=0,b=1)=>Math.max(a,Math.min(b,x));
@@ -25,10 +25,77 @@ const poly=(g:THREE.Group,pts:[number,number,number][],c:string)=>{const v:numbe
 const seasonGround=(p:WorldParams)=>p.season==="winter"?P.sky:p.season==="spring"?P.green:P.earth;
 const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
   const ground=(p.weather==="rain"||p.weather==="storm")?P.shade:seasonGround(p);box(g,260,0.5,260,ground,0,-0.25,-45);
-  if(p.terrain==="ocean"||p.terrain==="river"||p.terrain==="coast"){
-    box(g,180,0.3,65,P.sky,0,-0.12,-38);
-    for(let i=0;i<32;i++){const x=(hash(i,4)-.5)*150,z=-15-hash(i,5)*60;const m=box(g,2+hash(i,6)*7,.025,.18,P.sky,x,-.0,z);m.position.x+=Math.sin(t*1.2+i)*.18;}
+  if(p.terrain==="ocean-floor"){
+    // The cast stands on a broad sandy seabed; a translucent animated surface and light shafts
+    // establish that the whole set is submerged rather than a flat blue floor.
+    box(g,180,.55,150,P.sand,0,-.28,-34);
+    for(let i=0;i<16;i++){
+      const x=(hash(i,4)-.5)*145,z=-8-hash(i,5)*105,r=1.2+hash(i,6)*3.2;
+      const rock=ball(g,r,i%3===0?P.shade:P.stone,x,r*.32,z,1.2,.65,1.05);
+      rock.rotation.y=hash(i,7)*Math.PI;
+    }
+    // Coral fans and branching reef clusters, with a restrained warm accent.
+    for(let i=0;i<24;i++){
+      const x=(hash(i,14)-.5)*140,z=-8-hash(i,15)*105,h=1.4+hash(i,16)*4.2;
+      const stem=cylinder(g,.12+hash(i,17)*.12,h*.55,i%3===0?P.reef:P.coral,x,h*.275,z,7);
+      stem.rotation.z=(hash(i,18)-.5)*.35;
+      for(let b=0;b<3;b++){
+        const branch=cylinder(g,.07,.8+hash(i,b+20)*1.2,P.coral,x+(b-1)*.42,h*.55,z,6);
+        branch.rotation.z=(b-1)*.48;
+      }
+      for(let k=0;k<3;k++)ball(g,.24,i%2?P.reef:P.green,x+(k-1)*.38,h*.65,z,.75,1.35,.75);
+    }
+    // Small schools of fish animate as groups, staying inside the underwater scene.
+    for(let school=0;school<4;school++){
+      const sg=new THREE.Group();
+      for(let j=0;j<7;j++){
+        const fish=ball(sg,.42,j%3===0?P.accent:P.sky,j*.85,.0,(j%2)*.34,.95,.42,.5);
+        fish.rotation.y=Math.PI/2;
+        poly(sg,[[j*.85-.28,0,-.12],[j*.85-.85,.3,-.12],[j*.85-.85,-.3,-.12]],P.reef);
+      }
+      sg.position.set(-58+school*38,3+school%2*2,-22-school*17);
+      sg.userData.swim={phase:school*1.7,baseX:sg.position.x,baseY:sg.position.y};
+      g.add(sg);
+    }
+    // Soft shafts from the bright surface, plus a gently moving translucent wave sheet.
+    for(let i=0;i<7;i++){
+      const x=-68+i*22, ray=new THREE.Mesh(new THREE.ConeGeometry(3.2,18,8,1,true),new THREE.MeshBasicMaterial({color:"#b8e5e9",transparent:true,opacity:.075,depthWrite:false,side:THREE.DoubleSide}));
+      ray.position.set(x,8,-42);ray.rotation.z=(i-3)*-.035;ray.userData.ray={phase:i*.8};g.add(ray);
+    }
+    const water=new THREE.Mesh(new THREE.PlaneGeometry(180,150,24,18),new THREE.MeshPhongMaterial({color:"#4c9eae",transparent:true,opacity:.24,shininess:90,side:THREE.DoubleSide,depthWrite:false}));
+    water.rotation.x=-Math.PI/2;water.position.set(0,17,-34);water.userData.waveSurface=true;g.add(water);
+    box(g,180,.25,150,P.deep,0,17.2,-34);
+  } else if(p.terrain==="ocean"||p.terrain==="river"||p.terrain==="coast"){
+    // Open-water scenes get a real broad water body with layered wave crests, not a thin blue strip.
+    const water=box(g,180,.55,120,P.sky,0,-.12,-38);
+    water.userData.waterWave={phase:0,baseY:-.12};
+    for(let i=0;i<46;i++){const x=(hash(i,4)-.5)*170,z=-5-hash(i,5)*105;const m=box(g,2+hash(i,6)*9,.035,.24,i%4===0?P.accent:P.sky,x,.19,z);m.userData.waveMark={phase:hash(i,7)*6.28,baseY:.19};}
     if(p.terrain!=="ocean")poly(g,[[-90,-.05,0],[-90,-.05,-14],[90,-.05,-14],[90,-.05,0]],P.earth);
+  } else if(p.terrain==="canyon"){
+    // Grand-canyon scale walls: stepped, stratified mesas frame a winding river gorge.
+    box(g,190,.5,170,P.earth,0,-.25,-42);
+    for(const side of [-1,1]){
+      for(let i=0;i<8;i++){
+        const x=side*(48+i*2.8),h=18+hash(i,side+30)*20,z=-42-hash(i,side+40)*34,w=14+hash(i,side+50)*9;
+        const cliff=poly(g,[[x-w,0,z+24],[x-w*.72,h*.72,z],[x,h,z-16],[x+w*.72,h*.72,z],[x+w,0,z+24]],i%2?P.stone:P.shade);
+        cliff.userData.canyonWall={side,index:i};
+        for(let layer=0;layer<4;layer++){
+          const yy=3+layer*3.7, inset=layer*.8;
+          box(g,w*1.45-inset,.42,1.1,layer%2?P.earth:P.stone,x,yy,z+12-layer*3);
+        }
+      }
+    }
+    // Meandering river ribbon at the gorge floor, visible from elevated camera angles.
+    for(let i=0;i<18;i++){
+      const z=12-i*6,x=Math.sin(i*.34)*17;
+      const bend=box(g,13,.16,7,P.sky,x,.02,z);bend.rotation.y=Math.sin(i*.34)*.22;
+    }
+    // Foreground hoodoos and rim rocks give the canyon a strong near-field scale cue.
+    for(let i=0;i<9;i++){
+      const x=-42+i*10.5,h=7+hash(i,61)*9;
+      cylinder(g,2.3,h*.55,P.earth,x,h*.275,-7,7);
+      ball(g,3.6,P.red,x,h*.62,-7,1.35,.48,1.05);
+    }
   } else if(p.terrain==="mountain"){
     for(let i=0;i<9;i++){const x=-75+i*18,h=18+hash(i,2)*22;poly(g,[[x-18,0,-48],[x,h,-78],[x+18,0,-48]],i%2?P.stone:P.shade);if(p.season==="winter"||p.climate==="polar")poly(g,[[x-5,h*.72,-76],[x,h,-78],[x+5,h*.72,-76]],P.sky);}
   } else if(p.terrain==="desert"){
@@ -258,5 +325,5 @@ export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
   g.userData.worldParams=p;g.userData.time=t;return g;
 };
 export const animateWorld=(g:THREE.Group,t:number)=>{
-  g.traverse(o=>{const routeIndex=o.userData.routeIndex as number|undefined;if(routeIndex!==undefined)o.visible=routeIndex<Math.floor(clamp(t/3)*26);const s=o.userData.sway as {phase:number;amp:number}|undefined;if(s)o.rotation.z=Math.sin(t*1.3+s.phase)*s.amp;const smoke=o.userData.smokeParticle as {phase:number;baseY:number}|undefined;if(smoke){o.position.y=smoke.baseY+((t*1.5+smoke.phase)%5);o.scale.setScalar(.7+((t*.35+smoke.phase)%1)*.5);}const w=o.userData.weatherParticle as {kind:string;baseX:number;baseY:number;baseZ:number;phase:number;index:number}|undefined;if(w){if(w.kind==="rain"||w.kind==="storm")o.position.y=2+((w.baseY-2-t*(w.kind==="storm"?14:8))%14+14)%14;else if(w.kind==="snow")o.position.y=2+((w.baseY-2-t*.8)%14+14)%14;else if(w.kind==="fog"){o.position.x=w.baseX+Math.sin(t*.12+w.phase)*2;o.position.y=w.baseY+Math.sin(t*.2+w.phase)*.2;}else o.position.x=w.baseX+Math.sin(t*.7+w.phase)*.8;}});
+  g.traverse(o=>{const swim=o.userData.swim as {phase:number;baseX:number;baseY:number}|undefined;if(swim){o.position.x=swim.baseX+Math.sin(t*.55+swim.phase)*2.2;o.position.y=swim.baseY+Math.sin(t*1.3+swim.phase)*.35;o.rotation.y=Math.sin(t*.4+swim.phase)*.12;}const ray=o.userData.ray as {phase:number}|undefined;if(ray)o.material instanceof THREE.Material&&(o.material as THREE.MeshBasicMaterial).opacity=.055+.025*(.5+.5*Math.sin(t*.7+ray.phase));const wave=o.userData.waveSurface as boolean|undefined;if(wave&&o instanceof THREE.Mesh){const a=o.geometry as THREE.PlaneGeometry,pos=a.attributes.position;for(let i=0;i<pos.count;i++){const x=pos.getX(i),y=pos.getY(i);pos.setZ(i,Math.sin(x*.12+t*.8)*.18+Math.cos(y*.1-t*.6)*.12);}pos.needsUpdate=true;a.computeVertexNormals();}const water=o.userData.waterWave as {phase:number;baseY:number}|undefined;if(water)o.position.y=water.baseY+Math.sin(t*.8+water.phase)*.08;const mark=o.userData.waveMark as {phase:number;baseY:number}|undefined;if(mark)o.position.y=mark.baseY+Math.sin(t*.9+mark.phase)*.035;const routeIndex=o.userData.routeIndex as number|undefined;if(routeIndex!==undefined)o.visible=routeIndex<Math.floor(clamp(t/3)*26);const s=o.userData.sway as {phase:number;amp:number}|undefined;if(s)o.rotation.z=Math.sin(t*1.3+s.phase)*s.amp;const smoke=o.userData.smokeParticle as {phase:number;baseY:number}|undefined;if(smoke){o.position.y=smoke.baseY+((t*1.5+smoke.phase)%5);o.scale.setScalar(.7+((t*.35+smoke.phase)%1)*.5);}const w=o.userData.weatherParticle as {kind:string;baseX:number;baseY:number;baseZ:number;phase:number;index:number}|undefined;if(w){if(w.kind==="rain"||w.kind==="storm")o.position.y=2+((w.baseY-2-t*(w.kind==="storm"?14:8))%14+14)%14;else if(w.kind==="snow")o.position.y=2+((w.baseY-2-t*.8)%14+14)%14;else if(w.kind==="fog"){o.position.x=w.baseX+Math.sin(t*.12+w.phase)*2;o.position.y=w.baseY+Math.sin(t*.2+w.phase)*.2;}else o.position.x=w.baseX+Math.sin(t*.7+w.phase)*.8;}});
 };

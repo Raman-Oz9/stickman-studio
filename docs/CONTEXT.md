@@ -1,3 +1,6 @@
+### 2026-11-18 — Add era-specific costume entries in outfits.ts
+- Added complete era costume mappings and palette entries in `remotion/src/videos/story/outfits.ts` for roman, greek, egypt, china, viking, samurai, medieval, space, and ocean-explorer with distinct cloth/trim/skin/hair palettes while preserving the `outfitFor` signature. Verified clean TypeScript compilation.
+
 ### 2026-11-18 — Keep the river visible above the raised canyon floor
 - The raised rust floor resolved the z-fighting, but the new still showed the river plane hidden just below the overlay's top surface.
 - Lifted the river ribbon above the canyon floor so the water remains clearly visible after the depth correction.

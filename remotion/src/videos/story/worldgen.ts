@@ -315,7 +315,6 @@ const settlement=(g:THREE.Group,p:WorldParams,t:number)=>{
     for(let i=0;i<8;i++){const x=-42+i*12;box(g,10,2.8,3,P.earth,x,1.4,-24+(i%2)*2);box(g,8,.18,2,P.shade,x,.12,-14+(i%2)*2);}
     for(let i=0;i<16;i++){const x=-30+(i%8)*8,z=3+Math.floor(i/8)*3;const bag=ball(g,.78,P.sand,x,.6,z,1.7,.5,.75);bag.rotation.y=(i%3)*.15;}
   }
-  }
   // Region flavour is layered on the era rather than replacing it.
   if(region==="east-asian"){
     for(let i=0;i<3;i++){const x=-23+i*23;box(g,8,5,7,P.earth,x,2.5,-43);poly(g,[[x-6,5,-47],[x-4,6.8,-47],[x,6.1,-47],[x+4,6.8,-47],[x+6,5,-47]],P.stone);}

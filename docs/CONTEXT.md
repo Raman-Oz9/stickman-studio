@@ -106,6 +106,9 @@
 - Both: update this file on every change; never claim "works" without viewing rendered frames; never send the owner a video that has not been frame-checked.
 ## CHANGELOG
 
+### 2026-11-18 — Add 3D city generator in worldgen.ts
+- Added 3D city generator in `remotion/src/videos/story/worldgen.ts` supporting `world.kind="city"` with eras `"modern" | "futuristic" | "medieval" | "ancient"`, featuring grid streets, varied height building blocks (skyscrapers, timber houses, columns/temples), road markings, street lamps, pavements, and deterministic behavior by seed. Verified clean TypeScript compilation with `npx tsc --noEmit`.
+
 ### 2026-11-18 — Add ancient-history world presets in worldgen.ts
 - Added ancient-history world presets in `remotion/src/videos/story/worldgen.ts` for Rome (`world.kind="rome"`: forum columns, colosseum arch), Greece (`world.kind="greece"`: classical temple, olive trees, sea), Egypt (`world.kind="egypt"`: pyramids, obelisk, Nile river), and China (`world.kind="china"`: great wall segment, pagoda). Verified clean TypeScript compilation with `npx tsc --noEmit`.
 

@@ -4,7 +4,7 @@ import * as THREE from "three";
 
 export type TerrainType = "forest"|"jungle"|"ocean"|"mountain"|"desert"|"ice"|"plain"|"river"|"coast"|"swamp"|"cave"|"savanna";
 export type WeatherType = "clear"|"rain"|"snow"|"fog"|"storm"|"drought"|"wind";
-export type EraType = "stone-age"|"ancient"|"classical"|"medieval"|"early-modern"|"industrial"|"modern";
+export type EraType = "stone-age"|"ancient"|"classical"|"medieval"|"early-modern"|"industrial"|"modern"|"futuristic";
 export type RegionType = "european"|"african"|"east-asian"|"south-asian"|"middle-eastern"|"mesoamerican";
 export type ArtifactType = "pottery"|"coin"|"tool"|"weapon"|"tablet"|"scroll"|"jewellery"|"bone"|"ruins"|"excavation";
 export type WorldParams = {
@@ -418,9 +418,91 @@ const chinaWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
   ball(g,0.4,P.accent,px,14,pz);
 };
 
+const cityWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
+  const era = p.era ?? "modern";
+  const seed = p.seed ?? 1337;
+  box(g, 260, 0.4, 260, P.stone, 0, -0.2, -45);
+
+  const gridSize = 4;
+  const spacing = 22;
+  const roadWidth = 6;
+
+  for(let xi = -gridSize; xi <= gridSize; xi++){
+    for(let zi = -gridSize; zi <= gridSize; zi++){
+      const blockX = xi * spacing;
+      const blockZ = -30 + zi * spacing;
+      const hSeed = hash(xi * 51 + zi * 103, seed);
+
+      box(g, spacing - 1.5, 0.25, spacing - 1.5, P.earth, blockX, 0.125, blockZ);
+
+      if(xi < gridSize){
+        const roadX = blockX + spacing / 2;
+        box(g, roadWidth, 0.05, spacing - 1.5, P.shade, roadX, 0.025, blockZ);
+        for(let d = -spacing/2 + 2; d < spacing/2 - 2; d += 3){
+          box(g, 0.4, 0.06, 1.2, P.sky, roadX, 0.05, blockZ + d);
+        }
+        box(g, 0.8, 0.35, spacing - 1.5, P.stone, blockX + spacing/2 - roadWidth/2 - 0.4, 0.175, blockZ);
+        box(g, 0.8, 0.35, spacing - 1.5, P.stone, blockX + spacing/2 + roadWidth/2 + 0.4, 0.175, blockZ);
+        if(zi % 2 === 0){
+          const lampX = roadX;
+          const lampZ = blockZ - spacing/2 + 2;
+          cylinder(g, 0.15, 4.5, P.shade, lampX, 2.25, lampZ, 6);
+          ball(g, 0.35, P.sky, lampX, 4.6, lampZ);
+        }
+      }
+
+      const buildingWidth = spacing - 3.5;
+      const buildingDepth = spacing - 3.5;
+
+      if(era === "modern"){
+        const bHeight = 8 + hSeed * 22;
+        box(g, buildingWidth, bHeight, buildingDepth, P.stone, blockX, bHeight/2, blockZ);
+        for(let y = 2; y < bHeight - 1; y += 2.5){
+          for(let wx = -buildingWidth/2 + 1.5; wx <= buildingWidth/2 - 1.5; wx += 2.5){
+            box(g, 1.2, 1.2, 0.1, P.sky, blockX + wx, y, blockZ + buildingDepth/2 + 0.05);
+            box(g, 1.2, 1.2, 0.1, P.sky, blockX + wx, y, blockZ - buildingDepth/2 - 0.05);
+          }
+        }
+      } else if(era === "futuristic"){
+        const bHeight = 12 + hSeed * 30;
+        box(g, buildingWidth * 0.9, bHeight, buildingDepth * 0.9, P.shade, blockX, bHeight/2, blockZ);
+        const spireHeight = bHeight + 4;
+        cylinder(g, 0.4, spireHeight, P.accent, blockX, spireHeight/2, blockZ, 8);
+        ball(g, 1.2, P.sky, blockX, spireHeight, blockZ);
+        for(let ry = 4; ry < bHeight; ry += 5){
+          box(g, buildingWidth + 0.8, 0.4, buildingDepth + 0.8, P.accent, blockX, ry, blockZ);
+        }
+      } else if(era === "medieval"){
+        const bHeight = 3 + hSeed * 4;
+        box(g, buildingWidth * 0.85, bHeight, buildingDepth * 0.85, P.earth, blockX, bHeight/2, blockZ);
+        poly(g, [
+          [blockX - buildingWidth*0.45, bHeight, blockZ - buildingDepth*0.45],
+          [blockX, bHeight + 2.5, blockZ],
+          [blockX + buildingWidth*0.45, bHeight, blockZ - buildingDepth*0.45]
+        ], P.stone);
+        poly(g, [
+          [blockX - buildingWidth*0.45, bHeight, blockZ + buildingDepth*0.45],
+          [blockX, bHeight + 2.5, blockZ],
+          [blockX + buildingWidth*0.45, bHeight, blockZ + buildingDepth*0.45]
+        ], P.stone);
+      } else if(era === "ancient"){
+        const bHeight = 4 + hSeed * 6;
+        box(g, buildingWidth * 0.8, bHeight, buildingDepth * 0.8, P.stone, blockX, bHeight/2, blockZ);
+        for(const cxOffset of [-buildingWidth*0.3, buildingWidth*0.3]){
+          cylinder(g, 0.35, bHeight, P.earth, blockX + cxOffset, bHeight/2, blockZ + buildingDepth*0.45, 8);
+        }
+        box(g, buildingWidth, 0.6, buildingDepth + 1, P.earth, blockX, bHeight + 0.3, blockZ);
+      } else {
+        const bHeight = 6 + hSeed * 15;
+        box(g, buildingWidth, bHeight, buildingDepth, P.stone, blockX, bHeight/2, blockZ);
+      }
+    }
+  }
+};
+
 export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
   const p: WorldParams={season:"summer",timeOfDay:"dawn",weather:"clear",era:"medieval",region:"african",...params};
-  const g=new THREE.Group();g.name=p.mapMode?"HistoricalMapWorld":p.kind==="ocean"?"DeepOceanWorld":p.kind==="rome"?"RomeWorld":p.kind==="greece"?"GreeceWorld":p.kind==="egypt"?"EgyptWorld":p.kind==="china"?"ChinaWorld":"ProceduralWorld";
+  const g=new THREE.Group();g.name=p.mapMode?"HistoricalMapWorld":p.kind==="ocean"?"DeepOceanWorld":p.kind==="rome"?"RomeWorld":p.kind==="greece"?"GreeceWorld":p.kind==="egypt"?"EgyptWorld":p.kind==="china"?"ChinaWorld":p.kind==="city"?"CityWorld":"ProceduralWorld";
   if(p.mapMode){mapLayer(g,p,t);g.scale.set(.5,1,.72);}else if(p.kind==="ocean"){
     oceanWorld(g,p,t);
   }else if(p.kind==="rome"){
@@ -431,6 +513,8 @@ export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
     egyptWorld(g,p,t);
   }else if(p.kind==="china"){
     chinaWorld(g,p,t);
+  }else if(p.kind==="city"){
+    cityWorld(g,p,t);
   }else{
     terrain(g,p,t);
     settlement(g,p,t);

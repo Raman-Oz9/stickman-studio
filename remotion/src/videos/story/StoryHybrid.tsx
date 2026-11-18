@@ -14,7 +14,8 @@ import { Board, CastDef, SceneDef, sceneAt, totalFrames, FPS } from "./types";
 import { camAt, focusOf } from "./camera";
 import { Performer2D } from "./Performer2D";
 import { castPerf } from "./castPerf";
-import { outfitFor } from "./outfits";
+import { outfitFor, resolveRole } from "./outfits";
+import { inkStyleOf } from "./inkOutfit";
 import type { Expression } from "./Stickman2D";
 
 StoryWorld.hideCast = true;
@@ -63,7 +64,7 @@ const Cast2D: React.FC<{ board: Board; f: number }> = ({ board, f }) => {
         const toward = w.moving && w.d.to ? (proj(w.d.to.x, 0, w.d.to.z).x - w.g.x) : other ? other.g.x - w.g.x : 540 - w.g.x;
         const facing = (toward >= 0 ? 1 : -1) as 1 | -1;
         const pf = w.extra ? { verb: w.moving ? "walk" : "talk", p: u, t, prop: null, holdProp: null } : castPerf(w.d, s, u, t);
-        return <Performer2D key={w.d.id + w.idx} x={w.g.x} y={w.g.y} scale={w.k} facing={facing} skin={o.skin ?? "#f6ead9"} cloth={o.dress ?? o.jacket} hair={o.hair}
+        return <Performer2D key={w.d.id + w.idx} x={w.g.x} y={w.g.y} scale={w.k} facing={facing} skin={o.skin ?? "#f6ead9"} cloth={o.dress ?? o.jacket} hair={o.hair} ink={inkStyleOf(w.d.role, w.idx, s.era, resolveRole(w.d.role, s.era))}
           verb={pf.verb} p={pf.p} t={pf.t} phase={t * 1.15 + w.idx * 0.17} frame={f + w.idx * 13} prop={pf.prop} holdProp={pf.holdProp}
           expr={w.d.expr ? EXPR[w.d.expr] ?? null : null} build={w.idx % 2 ? "stocky" : "lean"} seed={w.idx * 17 + 7} />;
       })}

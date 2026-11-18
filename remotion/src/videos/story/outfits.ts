@@ -125,6 +125,7 @@ const ERA: Record<string, Record<string, string>> = {
   prehistoric: { man: "caveman", peasant: "caveman", townsfolk: "caveman", soldier: "caveman", guard: "caveman", king: "caveman", woman: "caveman", kid: "kid" },
   china: { king: "emperor_china", man: "japanese_commoner", peasant: "japanese_commoner", townsfolk: "japanese_commoner" },
 };
+export const resolveRole = (role: string, era?: string): string => { const base = ALIAS[role] ?? role; return (era && ERA[era]?.[base]) || base; };
 export const outfitFor = (role: string, v = 0, era?: string): Outfit => {
   const base = ALIAS[role] ?? role;
   const r = (era && ERA[era]?.[base]) || base;

@@ -1,3 +1,10 @@
+### 2026-11-18 — Expand the 2D illustrated proof into five acted scenes
+- PR #1 was already merged by the repository owner on 2026-11-17; further reviewable work must use a new PR rather than pretending PR #1 remains open.
+- Added reusable illustrated market, workshop and quarry environments with layered scenery, masonry/wood textures, warm light, subtle grain, smoke/fire motion and parallax drift. Savanna and stone-city shots continue to use the established Great Zimbabwe backdrop.
+- Added reusable story props for a gold handover, a ruled ledger with progressive ink strokes, a contact-driven dig site and a shaped pottery vessel.
+- Extended Performer2D with optional IK hand targets, grip overrides and held-prop visibility control. Existing pose2d verbs and InkStickman IK remain the source of movement; no character rig or production renderer was replaced.
+- Expanded IllustratedProof from 6 seconds to 20 seconds: walk/point, coin handover, writing, digging and placing pottery. StoryShort remains on StoryHybrid until repeated 2D visual QA passes.
+- Expanded native-resolution proof sampling to ten action beats. Strict TypeScript and new stills are pending; this change does not start or cancel a full production video render.
 ### 2026-11-17 — Verify the rebuilt IllustratedProof at native resolution
 - Run #44047109990 passed strict TypeScript and all native-resolution still renders at 1080×1920. Downloaded and inspected proof frames 15, 45, 75, 105, 150 and 175.
 - The opening frames show the guide walking and pointing; frame 105 shows both IK-driven hands meeting on the coin; frame 150 shows the coin remaining at the receiver's waist. The push-in and pull-back keep the illustrated canvas full-bleed without the previous edge seams.
@@ -100,10 +107,18 @@
 > (what changed, why, what is still broken). Newest entry goes at the top of the CHANGELOG. Keep "Current state" truthful — do not oversell.
 
 ## 0. TWO AIs WORK HERE (owner told us to combine) — protocol
-- **ChatGPT** (commits as Raman-Oz9; branch `reference-style-pass-01`, PR #1: `worldgen.ts` procedural world generator, historical map mode, Great Zimbabwe sample) and **Claude** (this file's author; has shell + can dispatch Actions and view frames) share this repo.
+- **ChatGPT** (commits as Raman-Oz9; branch `reference-style-pass-01` (PR #1 merged; further work needs a new PR): `worldgen.ts` procedural world generator, historical map mode, Great Zimbabwe sample) and **Claude** (this file's author; has shell + can dispatch Actions and view frames) share this repo.
 - ChatGPT cannot dispatch workflows or typecheck locally; Claude can. So: Claude verifies ChatGPT's branch on a copy (`claude/verify-*`, merged with main), dispatches the stills test, views frames, and writes results into the CHANGELOG. Claude does not push to ChatGPT's branch unless it fixes a compile error and says so here.
 - Avoid collisions: ChatGPT owns `worldgen.ts`, `IllustratedProof.tsx`, boards/sample scripts for new world types. Claude owns `world.ts` mounts/actions, `props3d.ts` models, camera shot logic unless coordinated here. If both need `camera.ts`/`world.ts`, write the intent in this file first, make small commits, rebase on `main` before pushing.
 - Both: update this file on every change; never claim "works" without viewing rendered frames; never send the owner a video that has not been frame-checked.
+## Current state — 2026-11-18
+- GitHub shows PR #1 was merged by Raman-Oz9 on 2026-11-17. It cannot be kept open/unmerged after that merge. The existing `reference-style-pass-01` branch is being continued as a review branch; further changes need a new draft PR.
+- The production `StoryShort` composition still maps to `StoryHybrid`. The 2D `StoryShort2D` and `IllustratedProof` compositions are verification targets only; the default production path is not switched until multiple 2D scenes pass repeated native-resolution QA.
+- The latest 2D proof run inspected in this session (#44264291315) passed strict TypeScript and native still rendering. Native 1080×1920 review confirms a readable hand-to-hand coin contact, but the Great Zimbabwe environment is still largely flat authored SVG and the proof did not yet demonstrate writing, digging or placing. The new five-action proof is pending CI and visual review.
+- A separate full Story video workflow (#44261318870) was already running on main before this change. This work did not start or cancel it.
+- No full production MP4 is approved by this migration task. Keep further verification to strict typecheck and native stills until the 2D replacement is accepted.
+
+
 ## CHANGELOG
 
 ### 2026-11-18 — Add `accessory` prop to InkStickman.tsx

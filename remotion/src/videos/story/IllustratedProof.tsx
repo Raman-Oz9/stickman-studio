@@ -1,177 +1,165 @@
 import React, { useMemo } from "react";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
-import type { Outfit } from "../bridge/toon";
-import { GreatZimbabweBackdrop } from "./GreatZimbabweBackdrop";
-import { InkStickman } from "./InkStickman";
-import { outfitFor } from "./outfits";
+import { Performer2D } from "./Performer2D";
+import { outfitFor, resolveRole } from "./outfits";
+import { inkStyleOf } from "./inkOutfit";
 import type { Expression, Vec } from "./Stickman2D";
+import { IllustratedWorld2D } from "./IllustratedWorld2D";
+import type { IllustratedWorldKind } from "./IllustratedWorld2D";
+import { DigPatch, Ledger, PotteryVessel, TradeCoin } from "./IllustratedProps2D";
 
-const clamp = (v: number) => Math.max(0, Math.min(1, v));
+const clamp = (v: number, min = 0, max = 1) => Math.max(min, Math.min(max, v));
 const ease = (v: number) => { const t = clamp(v); return t * t * (3 - 2 * t); };
 const mix = (a: number, b: number, t: number) => a + (b - a) * t;
 const mixVec = (a: Vec, b: Vec, t: number): Vec => [mix(a[0], b[0], t), mix(a[1], b[1], t)];
-const SCALE = 1.04;
-const FEET_Y = 1510;
-const REST: Vec = [50, -165];
-const POINT: Vec = [160, -250];
-const CARRY: Vec = [40, -190];
-const CONTACT: Vec = [540, 1185];
-
-const toLocal = (x: number, y: number, facing: 1 | -1, world: Vec): Vec =>
-  [(world[0] - x) / (SCALE * facing), (world[1] - y) / SCALE];
-const toWorld = (x: number, y: number, facing: 1 | -1, local: Vec): Vec =>
-  [x + local[0] * SCALE * facing, y + local[1] * SCALE];
-
-type ActorProps = {
-  outfit: Outfit;
-  x: number;
-  facing: 1 | -1;
-  frame: number;
-  moving: boolean;
-  hand: Vec;
-  gaze: Vec;
-  grip: boolean;
-  expression: Expression;
+const toWorld = (x: number, y: number, scale: number, yaw: number, local: Vec): Vec => {
+  const s = Math.sin(yaw * Math.PI / 180);
+  return [x + local[0] * scale * s, y + local[1] * scale];
+};
+const toLocal = (x: number, y: number, scale: number, yaw: number, world: Vec): Vec => {
+  const s = Math.sin(yaw * Math.PI / 180);
+  return [(world[0] - x) / (scale * (Math.abs(s) < .001 ? 1 : s)), (world[1] - y) / scale];
 };
 
-const Actor: React.FC<ActorProps> = ({ outfit, x, facing, frame, moving, hand, gaze, grip, expression }) => (
-  <svg viewBox="0 0 1080 1920" width="100%" height="100%" style={{ position: "absolute", inset: 0, overflow: "visible", pointerEvents: "none" }}>
-    <InkStickman
-      x={x}
-      y={FEET_Y}
-      scale={SCALE}
-      facing={facing}
-      skin={outfit.skin ?? "#9b674d"}
-      cloth={outfit.dress ?? outfit.jacket ?? "#b5653f"}
-      hair={outfit.hair}
-      walk={frame / 24}
-      stand={moving ? 0 : 1}
-      frontHand={hand}
-      gaze={gaze}
-      grip={grip}
-      expression={expression}
-      frame={frame}
-      build="lean"
-    />
-  </svg>
-);
+type ActorProps = {
+  roleIndex: number; x: number; y: number; scale: number; facing: 1 | -1; yaw: number;
+  frame: number; t: number; phase: number; verb: string; p: number; prop?: string | null;
+  handTarget?: Vec | null; target?: Vec | null; gaze?: Vec | null; expr: Expression;
+  grip: boolean; renderHeld?: boolean; build?: "lean" | "stocky";
+};
+
+const Actor: React.FC<ActorProps> = ({ roleIndex, x, y, scale, facing, yaw, frame, t, phase, verb, p, prop, handTarget, target, gaze, expr, grip, renderHeld = true, build = "lean" }) => {
+  const outfit = useMemo(() => outfitFor("merchant", roleIndex, "medieval"), [roleIndex]);
+  const ink = useMemo(() => inkStyleOf("merchant", roleIndex, "medieval", resolveRole("merchant", "medieval")), [roleIndex]);
+  return (
+    <svg viewBox="0 0 1080 1920" width="100%" height="100%" style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "visible" }}>
+      <Performer2D
+        x={x} y={y} scale={scale} facing={facing} yaw={yaw}
+        skin={ink.skin} cloth={ink.top} hair={outfit.hair} ink={ink}
+        build={build} seed={roleIndex * 17 + 7} frame={frame}
+        verb={verb} p={p} t={t} phase={phase} prop={prop}
+        target={target ?? null} gaze={gaze ?? null} expr={expr}
+        handTarget={handTarget ?? null} gripOverride={grip} renderHeld={renderHeld}
+      />
+    </svg>
+  );
+};
 
 export const IllustratedProof: React.FC = () => {
   const frame = useCurrentFrame();
-  const giverOutfit = useMemo(() => outfitFor("merchant", 0, "medieval"), []);
-  const receiverOutfit = useMemo(() => outfitFor("merchant", 1, "medieval"), []);
+  const scene = Math.min(4, Math.floor(frame / 120));
+  const local = frame - scene * 120;
+  const p = clamp(local / 119);
+  const t = frame / 30;
+  const phase = t * 1.15;
+  const kind: IllustratedWorldKind = scene === 0 ? "savanna" : scene === 1 ? "market" : scene === 2 || scene === 4 ? "workshop" : "quarry";
 
-  // The guide walks into the scene and points at the city before the trade action begins.
-  const walk = ease(frame / 38);
-  const giverX = mix(320, 390, walk);
-  const receiverX = 690;
-
-  const giverContact = toLocal(giverX, FEET_Y, 1, CONTACT);
-  const receiverContact = toLocal(receiverX, FEET_Y, -1, CONTACT);
-  const pointOut = frame < 28
-    ? mixVec(REST, POINT, ease(frame / 12))
-    : mixVec(POINT, REST, ease((frame - 28) / 16));
-  const reachGiver = ease((frame - 48) / 26) * (1 - ease((frame - 110) / 16));
-  const giverHand = frame < 44 ? pointOut : mixVec(REST, giverContact, reachGiver);
-
-  const reachReceiver = ease((frame - 70) / 24);
-  const carryReceiver = ease((frame - 112) / 18);
-  const receiverReach = mixVec(REST, receiverContact, reachReceiver);
-  const receiverHand = mixVec(receiverReach, CARRY, carryReceiver);
-
-  const giverWorld = toWorld(giverX, FEET_Y, 1, giverHand);
-  const receiverWorld = toWorld(receiverX, FEET_Y, -1, receiverHand);
-  const transfer = ease((frame - 84) / 28);
-  const coinWorld: Vec = [
-    mix(giverWorld[0], receiverWorld[0], transfer),
-    mix(giverWorld[1], receiverWorld[1], transfer) - Math.sin(transfer * Math.PI) * 18,
-  ];
-
-  const giverGaze = toLocal(giverX, FEET_Y, 1, coinWorld);
-  const receiverGaze = toLocal(receiverX, FEET_Y, -1, coinWorld);
-  const push = ease(frame / 88);
-  const pull = ease((frame - 112) / 68);
-  const zoom = mix(1.02, 1.28, push * (1 - pull));
-  const rawPanX = -24 * ease((frame - 84) / 28) * (1 - ease((frame - 120) / 28));
-  const rawPanY = -42 * push * (1 - pull);
+  const zoomStart = [1.04, 1.06, 1.12, 1.12, 1.28][scene];
+  const zoomEnd = [1.18, 1.27, 1.34, 1.26, 1.05][scene];
+  const zoom = mix(zoomStart, zoomEnd, ease(p));
+  const panStartX = [-10, -25, -48, -20, 35][scene];
+  const panEndX = [-30, -38, -72, 24, 0][scene];
+  const panStartY = [-12, -20, -35, -24, -50][scene];
+  const panEndY = [-42, -55, -88, -44, 0][scene];
   const maxPanX = 540 * (zoom - 1);
-  const maxPanYTop = 1920 * 0.58 * (zoom - 1);
-  const maxPanYBottom = (1920 - 1920 * 0.58) * (zoom - 1);
-  const panX = Math.max(-maxPanX, Math.min(maxPanX, rawPanX));
-  const panY = Math.max(-maxPanYBottom, Math.min(maxPanYTop, rawPanY));
+  const maxPanYTop = 1920 * .58 * (zoom - 1);
+  const maxPanYBottom = (1920 - 1920 * .58) * (zoom - 1);
+  const panX = clamp(mix(panStartX, panEndX, ease(p)), -maxPanX, maxPanX);
+  const panY = clamp(mix(panStartY, panEndY, ease(p)), -maxPanYBottom, maxPanYTop);
+  const cameraStyle: React.CSSProperties = {
+    position: "absolute", inset: 0,
+    transform: "translate(" + panX + "px," + panY + "px) scale(" + zoom + ")",
+    transformOrigin: "50% 58%",
+    filter: "saturate(1.08) contrast(1.07) brightness(1.025)",
+  };
 
-  const coinOpacity = clamp((frame - 66) / 8);
-  const caption = frame < 42 ? "A CITY OF STONE" : frame < 130 ? "GOLD • IVORY • TRADE" : "A KINGDOM CONNECTED";
-  const giverExpression: Expression = frame < 30 ? "focused" : frame < 92 ? "smile" : "joy";
-  const receiverExpression: Expression = frame < 82 ? "focused" : frame < 112 ? "shock" : "joy";
+  const giverX = 350, receiverX = 730, tradeY = 1510, actorScale = 1;
+  const rest: Vec = [16, -176], carry: Vec = [40, -190], contact: Vec = [540, 1260];
+  const giverContact = toLocal(giverX, tradeY, actorScale, 90, contact);
+  const receiverContact = toLocal(receiverX, tradeY, actorScale, 270, contact);
+  const giverReach = ease((p - .08) / .22);
+  const giverRetract = ease((p - .72) / .18);
+  const giverHand = mixVec(rest, giverContact, giverReach * (1 - giverRetract));
+  const receiverReach = ease((p - .24) / .22);
+  const receiverAtContact = mixVec(rest, receiverContact, receiverReach);
+  const receiverCarry = ease((p - .68) / .16);
+  const receiverHand = mixVec(receiverAtContact, carry, receiverCarry);
+  const giverWorld = toWorld(giverX, tradeY, actorScale, 90, giverHand);
+  const receiverWorld = toWorld(receiverX, tradeY, actorScale, 270, receiverHand);
+  const transfer = ease((p - .4) / .3);
+  const coinBase = p < .4 ? giverWorld : p < .7 ? mixVec(giverWorld, receiverWorld, transfer) : receiverWorld;
+  const coinWorld: Vec = [coinBase[0], coinBase[1] - Math.sin(transfer * Math.PI) * 16];
+  const giverGaze = toLocal(giverX, tradeY, actorScale, 90, coinWorld);
+  const receiverGaze = toLocal(receiverX, tradeY, actorScale, 270, coinWorld);
+
+  const writeHand: Vec = [130 + p * 140, -250 + Math.sin(p * Math.PI * 4) * 5];
+  const digK = Math.abs(Math.sin(t * 4.2));
+  const digHand: Vec = [112, -250 + digK * 30];
+  const placeReach = ease(p / .58);
+  const placeReturn = ease((p - .76) / .18);
+  const placeHand = mixVec(mixVec([140, -250], [250, -190], placeReach), [40, -190], placeReturn);
+  const placeHandWorld = toWorld(360, 1510, 1, 90, placeHand);
+  const placeRelease = ease((p - .62) / .12);
+  const potWorld: Vec = [mix(placeHandWorld[0] + 24, 700, placeRelease), mix(placeHandWorld[1] + 95, 1415, placeRelease)];
+
+  const captions = ["A CITY OF STONE", "GOLD • IVORY • TRADE", "WORDS BECOME RECORDS", "STONE FROM THE EARTH", "CRAFTED BY HAND"];
+  const caption = captions[scene];
 
   return (
-    <AbsoluteFill style={{ background: "#b88e5d", overflow: "hidden" }}>
-      <div style={{
-        position: "absolute",
-        inset: 0,
-        transform: "translate(" + panX + "px," + panY + "px) scale(" + zoom + ")",
-        transformOrigin: "50% 58%",
-        filter: "saturate(1.12) contrast(1.06) brightness(1.04)",
-      }}>
-        <GreatZimbabweBackdrop frame={frame} variant={2} />
-        <Actor
-          outfit={giverOutfit}
-          x={giverX}
-          facing={1}
-          frame={frame}
-          moving={frame < 38}
-          hand={giverHand}
-          gaze={giverGaze}
-          grip={frame >= 82 && frame < 112}
-          expression={giverExpression}
-        />
-        <Actor
-          outfit={receiverOutfit}
-          x={receiverX}
-          facing={-1}
-          frame={frame + 9}
-          moving={false}
-          hand={receiverHand}
-          gaze={receiverGaze}
-          grip={frame >= 100}
-          expression={receiverExpression}
-        />
-        {frame >= 66 ? (
-          <svg width="88" height="88" viewBox="0 0 88 88" style={{
-            position: "absolute",
-            left: coinWorld[0] - 44,
-            top: coinWorld[1] - 44,
-            opacity: coinOpacity,
-            transform: "rotate(" + (frame * 2.2) + "deg)",
-            pointerEvents: "none",
-          }}>
-            <ellipse cx="44" cy="75" rx="28" ry="8" fill="#33241c" opacity=".28" />
-            <circle cx="44" cy="43" r="29" fill="#8e5424" stroke="#3c2b23" strokeWidth="6" />
-            <circle cx="44" cy="41" r="22" fill="#f2c65d" stroke="#fff0b0" strokeWidth="3" />
-            <path d="M35 28H52L57 39 49 45 55 56H37L31 45 39 38Z" fill="#d99b35" stroke="#9c682c" strokeWidth="2" />
-            <path d="M29 26Q42 16 55 25" fill="none" stroke="#fff7d6" strokeWidth="3" strokeLinecap="round" opacity=".9" />
-          </svg>
+    <AbsoluteFill style={{ background: "#263b40", overflow: "hidden" }}>
+      <div style={cameraStyle}>
+        <IllustratedWorld2D frame={frame} kind={kind} />
+        {scene === 0 ? (
+          <Actor roleIndex={0} x={mix(250, 405, ease(local / 72))} y={1510} scale={1.14} facing={1} yaw={90}
+            frame={frame} t={t} phase={phase} verb={local < 72 ? "walk" : "point"} p={local < 72 ? local / 72 : .65}
+            target={[260, -320]} gaze={[250, -410]} expr={local < 82 ? "focused" : "joy"} grip={false} />
+        ) : null}
+        {scene === 1 ? (
+          <>
+            <Actor roleIndex={0} x={giverX} y={tradeY} scale={1.04} facing={1} yaw={90}
+              frame={frame} t={t} phase={phase} verb="handOver" p={p} prop="goldcoin"
+              handTarget={giverHand} target={giverContact} gaze={giverGaze}
+              expr={p < .45 ? "focused" : "joy"} grip={p > .36 && p < .76} renderHeld={false} />
+            <Actor roleIndex={1} x={receiverX} y={tradeY} scale={1.04} facing={-1} yaw={270}
+              frame={frame + 7} t={t} phase={phase + .15} verb="receive" p={p} prop="goldcoin"
+              handTarget={receiverHand} target={receiverContact} gaze={receiverGaze}
+              expr={p < .55 ? "focused" : "joy"} grip={p > .62} renderHeld={false} />
+            {p > .18 ? <TradeCoin x={coinWorld[0]} y={coinWorld[1]} size={82} rotation={frame * 2.2} /> : null}
+          </>
+        ) : null}
+        {scene === 2 ? (
+          <>
+            <Ledger x={390} y={1150} progress={p} />
+            <Actor roleIndex={2} x={320} y={1510} scale={1.08} facing={1} yaw={90}
+              frame={frame} t={t} phase={phase} verb="write" p={p} prop="quill"
+              handTarget={writeHand} target={[230, -270]} gaze={[210, -330]}
+              expr="focused" grip={true} renderHeld={true} />
+          </>
+        ) : null}
+        {scene === 3 ? (
+          <>
+            <DigPatch x={370} y={1360} progress={p} frame={local} />
+            <Actor roleIndex={1} x={330} y={1510} scale={1.08} facing={1} yaw={90}
+              frame={frame} t={t} phase={phase} verb="dig" p={p} prop="shovel"
+              handTarget={digHand} target={[240, -90]} gaze={[230, -120]}
+              expr="focused" grip={true} renderHeld={true} />
+          </>
+        ) : null}
+        {scene === 4 ? (
+          <>
+            <PotteryVessel x={potWorld[0]} y={potWorld[1]} scale={.9} rotation={-3 + Math.sin(p * Math.PI) * 3} />
+            <Actor roleIndex={2} x={360} y={1510} scale={1.08} facing={1} yaw={90}
+              frame={frame} t={t} phase={phase} verb="place" p={p} prop="pottery"
+              handTarget={placeHand} target={[240, -130]} gaze={[230, -150]}
+              expr={p < .62 ? "focused" : "joy"} grip={p < .64} renderHeld={false} />
+          </>
         ) : null}
       </div>
+      <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "radial-gradient(ellipse at 50% 50%, rgba(10,8,13,0) 52%, rgba(10,8,13,.22) 100%)" }} />
       <div style={{
-        position: "absolute",
-        inset: 0,
-        background: "radial-gradient(ellipse at 50% 48%, rgba(12,8,14,0) 48%, rgba(12,8,14,.24) 100%)",
-        pointerEvents: "none",
-      }} />
-      <div style={{
-        position: "absolute",
-        left: 54,
-        right: 54,
-        bottom: 150,
-        textAlign: "center",
-        fontFamily: "Arial Black, Impact, sans-serif",
-        fontWeight: 900,
-        fontSize: 54,
-        color: "#fff",
-        WebkitTextStroke: "8px #211923",
-        paintOrder: "stroke fill",
+        position: "absolute", left: 54, right: 54, bottom: 112, textAlign: "center",
+        fontFamily: "Arial Black, Impact, sans-serif", fontWeight: 900, fontSize: 52, lineHeight: 1.05,
+        color: "#fff", WebkitTextStroke: "8px #211923", paintOrder: "stroke fill",
         textShadow: "0 6px 0 rgba(0,0,0,.32)",
       }}>{caption}</div>
     </AbsoluteFill>

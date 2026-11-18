@@ -14,7 +14,7 @@ export const Root: React.FC = () => (
   <>
     <Composition id="StoryShort2D" component={StoryShort2D} durationInFrames={totalFrames(DEMO)} fps={30} width={1080} height={1920}
       calculateMetadata={async ({ props }) => ({ durationInFrames: totalFrames(((props as { board?: typeof DEMO }).board) ?? DEMO) })} />
-    <Composition id="IllustratedProof" component={IllustratedProof} durationInFrames={180} fps={30} width={1080} height={1920} />
+    <Composition id="IllustratedProof" component={IllustratedProof} durationInFrames={600} fps={30} width={1080} height={1920} />
     <Composition id="StoryHybrid" component={StoryHybrid} durationInFrames={totalFrames(DEMO)} fps={30} width={1080} height={1920}
       calculateMetadata={async ({ props }) => ({ durationInFrames: totalFrames(((props as { board?: typeof DEMO }).board) ?? DEMO) })} />
     <Composition id="WardrobeSheet" component={WardrobeSheet} durationInFrames={WARD_PAGES} fps={30} width={1080} height={1920} />

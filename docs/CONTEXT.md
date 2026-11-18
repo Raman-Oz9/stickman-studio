@@ -106,6 +106,9 @@
 - Both: update this file on every change; never claim "works" without viewing rendered frames; never send the owner a video that has not been frame-checked.
 ## CHANGELOG
 
+### 2026-11-18 — Add 3D traffic system in traffic.ts for city worlds
+- Created `remotion/src/videos/story/traffic.ts` driving cars, buses, and trucks along city road lanes with junction stopping, trains along a rail loop, and planes/helicopters along air lanes using `props3d` recipes. Integrated `update(t)` into `world.ts` for scenes with `world.kind="city"`. Verified clean TypeScript compilation with `npx tsc --noEmit`.
+
 ### 2026-11-18 — Add 3D city generator in worldgen.ts
 - Added 3D city generator in `remotion/src/videos/story/worldgen.ts` supporting `world.kind="city"` with eras `"modern" | "futuristic" | "medieval" | "ancient"`, featuring grid streets, varied height building blocks (skyscrapers, timber houses, columns/temples), road markings, street lamps, pavements, and deterministic behavior by seed. Verified clean TypeScript compilation with `npx tsc --noEmit`.
 

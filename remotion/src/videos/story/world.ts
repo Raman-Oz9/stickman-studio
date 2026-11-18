@@ -22,6 +22,7 @@ import { outfitFor } from "./outfits";
 import { camAt, focusOf } from "./camera";
 import { Effects } from "./effects";
 import { drawWorld, animateWorld } from "./worldgen";
+import { update as updateTraffic } from "./traffic";
 
 const hh = (i: number, s = 0) => { const v = Math.sin(i * 127.1 + s * 311.7) * 43758.5453; return v - Math.floor(v); };
 const ROLE_SCALE: Record<string, number> = { kid: 0.72, girl: 0.74 };
@@ -97,8 +98,8 @@ export class StoryWorld {
     const dur = n / FPS;
     // Optional world preset is an independent environment layer; character/action code below is unchanged.
     const worldKey = s.world ? JSON.stringify(s.world) : "";
-    this.worldLayers.forEach((g, key) => { g.visible = !!worldKey && key === worldKey; if (g.visible) animateWorld(g, t); });
-    if (worldKey) { let wg = this.worldLayers.get(worldKey); if (!wg) { wg = drawWorld(s.world!, 0); this.root.add(wg); this.worldLayers.set(worldKey, wg); } wg.visible = true; animateWorld(wg, t); }
+    this.worldLayers.forEach((g, key) => { g.visible = !!worldKey && key === worldKey; if (g.visible) { animateWorld(g, t); const wp = g.userData.worldParams as any; if (wp?.kind === "city") updateTraffic(g, t); } });
+    if (worldKey) { let wg = this.worldLayers.get(worldKey); if (!wg) { wg = drawWorld(s.world!, 0); this.root.add(wg); this.worldLayers.set(worldKey, wg); } wg.visible = true; animateWorld(wg, t); if (s.world?.kind === "city") { updateTraffic(wg, t); } }
     const posOf = (d: CastDef) => {
       if (!d.to) return { x: d.x, z: d.z, moving: false, dist: 0, dx: 0, dz: 0 };
       const w0 = d.walkAt ?? 0, k = Math.min(1, Math.max(0, (u - w0) / Math.max(0.05, 0.96 - w0))), e = d.act === "run" ? (k < 0.08 ? k * k / 0.16 : k - 0.04) / 0.96 : k * k * (3 - 2 * k);   // sprints keep full speed (no slow ease)

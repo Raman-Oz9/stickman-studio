@@ -12,7 +12,7 @@ export type WorldParams = {
   timeOfDay?: "dawn"|"noon"|"dusk"|"night"; era?: EraType; region?: RegionType; mapMode?: boolean;
   seed?: number; accentBeat?: number; accentEnabled?: boolean; label?: string; artifact?: ArtifactType;
 };
-const P = { earth:"#F4C65A", stone:"#D98D3D", shade:"#171717", green:"#2F806B", sky:"#55BCEB", accent:"#F1C24F", deep:"#174d68", reef:"#D47755", coral:"#DF9B70", sand:"#F7D16A" } as const;
+const P = { earth:"#F4C65A", stone:"#D98D3D", shade:"#171717", green:"#2F806B", sky:"#55BCEB", accent:"#F1C24F", deep:"#174d68", reef:"#D47755", coral:"#DF9B70", sand:"#F7D16A", seabed:"#C9B58C" } as const;
 const MAP = { paper:"#e5d5ae", ink:"#554632", land:"#899967", water:"#86aeb8", line:"#66513a", accent:"#c18b3d" } as const;
 const hash = (n:number,s:number)=>{const x=Math.sin(n*127.1+s*311.7)*43758.5453;return x-Math.floor(x);};
 const clamp=(x:number,a=0,b=1)=>Math.max(a,Math.min(b,x));
@@ -24,11 +24,11 @@ const cylinder=(g:THREE.Group,r:number,h:number,c:string,x:number,y:number,z:num
 const poly=(g:THREE.Group,pts:[number,number,number][],c:string)=>{const v:number[]=[];for(let i=1;i<pts.length-1;i++)v.push(...pts[0],...pts[i],...pts[i+1]);const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.Float32BufferAttribute(v,3));geo.computeVertexNormals();const m=new THREE.Mesh(geo,mat(c));g.add(m);return m;};
 const seasonGround=(p:WorldParams)=>p.season==="winter"?P.sky:p.season==="spring"?P.green:P.earth;
 const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
-  const ground=p.terrain==="ocean-floor"?P.sand:(p.weather==="rain"||p.weather==="storm")?P.shade:seasonGround(p);box(g,260,0.5,260,ground,0,-0.25,-45);
+  const ground=p.terrain==="ocean-floor"?P.seabed:(p.weather==="rain"||p.weather==="storm")?P.shade:seasonGround(p);box(g,260,0.5,260,ground,0,-0.25,-45);
   if(p.terrain==="ocean-floor"){
     // The cast stands on a broad sandy seabed; a translucent animated surface and light shafts
     // establish that the whole set is submerged rather than a flat blue floor.
-    box(g,180,.55,150,P.sand,0,-.28,-34);
+    box(g,180,.55,150,P.seabed,0,-.28,-34);
     for(let i=0;i<16;i++){
       const x=(hash(i,4)-.5)*145,z=-8-hash(i,5)*105,r=1.2+hash(i,6)*3.2;
       const rock=ball(g,r,i%3===0?P.shade:P.stone,x,r*.32,z,1.2,.65,1.05);
@@ -44,6 +44,19 @@ const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
         branch.rotation.z=(b-1)*.48;
       }
       for(let k=0;k<3;k++)ball(g,.24,i%2?P.reef:P.green,x+(k-1)*.38,h*.65,z,.75,1.35,.75);
+    }
+    // Foreground coral fans create a readable reef silhouette around the explorer.
+    for(let i=0;i<5;i++){
+      const x=-24+i*12,z=-7-(i%2)*9,h=6.5+hash(i,48)*2.2;
+      ball(g,1.7,P.reef,x,.65,z,1.55,.55,1.25);
+      cylinder(g,.28,h*.62,i%2?P.coral:P.reef,x,h*.31,z,8);
+      for(let b=0;b<4;b++){
+        const side=b%2?1:-1, yy=h*.48+(b>>1)*.65;
+        const branch=cylinder(g,.16,2.4,P.coral,x+side*.8,yy,z,7);
+        branch.rotation.z=-side*.48;
+        ball(g,.34,P.reef,x+side*1.5,yy+1.05,z,.8,1.25,.8);
+      }
+      for(let k=0;k<4;k++)ball(g,.32,k%2?P.accent:P.green,x+(k-1.5)*.55,h*.65,z,.8,1.3,.8);
     }
     // Broken shipwreck timbers and a hydrothermal vent make the seabed feel explorable.
     const wreck=new THREE.Group();wreck.position.set(-48,0,-92);
@@ -199,7 +212,7 @@ const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
     }
   }
   // near / mid / far parallax markers remain spatially separated for the camera.
-  for(let i=0;i<18;i++){const z=-5-i*3.2;const x=(hash(i,30)-.5)*(12+i*4);const m=box(g,.12,.08,.12,P.shade,x,.04,z);m.userData.parallax=.18+i*.025;}
+  if(p.terrain!=="ocean-floor")for(let i=0;i<18;i++){const z=-5-i*3.2;const x=(hash(i,30)-.5)*(12+i*4);const m=box(g,.12,.08,.12,P.shade,x,.04,z);m.userData.parallax=.18+i*.025;}
 };
 const settlement=(g:THREE.Group,p:WorldParams,t:number)=>{
   const era=p.era??"medieval",region=p.region??"african";

@@ -106,6 +106,9 @@
 - Both: update this file on every change; never claim "works" without viewing rendered frames; never send the owner a video that has not been frame-checked.
 ## CHANGELOG
 
+### 2026-11-18 — Add era-specific costume entries in outfits.ts
+- Added complete era costume mappings and palette entries in `remotion/src/videos/story/outfits.ts` for roman, greek, egypt, china, viking, samurai, medieval, space, and ocean-explorer with distinct cloth/trim/skin/hair palettes while preserving the `outfitFor` signature. Verified clean TypeScript compilation.
+
 ### 2026-11-18 — Create Caption2D.tsx word-synced caption component
 - Created remotion/src/videos/story/Caption2D.tsx: word-synced caption component displaying 1-3 words at a time in bold white with a thick black outline in the lower-middle area, highlighting the active word in gold. Pure React with zero dependencies. Verified clean TypeScript compilation.
 

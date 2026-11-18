@@ -1,3 +1,10 @@
+### 2026-11-18 — Record verified 3D worldgen proof and main sync
+- Production proof workflow run `44268655476` completed successfully: dependency install, `npx tsc --noEmit`, and native-resolution still renders for the ocean-floor and canyon presets all passed.
+- Inspected both generated 1080×1920 stills. The ocean-floor frame shows the underwater gradient, light shafts, fish, rocks and foreground coral; the canyon frame shows the rust floor, continuous blue river, opposing stratified walls and rear ridge.
+- The final river-height correction is included in that successful proof run. A second run against the subsequently merged main wardrobe updates has also passed TypeScript and is finishing its duplicate render/upload step.
+- The branch has been synced with the latest `main` updates, including `outfits.ts`, `Caption2D.tsx`, `Props2D.tsx`, `InkStickman.tsx` and the OpenCode queue. It is currently 0 commits behind `main`; PR #7 remains a draft and is not merged.
+- These are two proof stills, not a full-story animation review or final video approval.
+
 ### 2026-11-18 — Add era-specific costume entries in outfits.ts
 - Added complete era costume mappings and palette entries in `remotion/src/videos/story/outfits.ts` for roman, greek, egypt, china, viking, samurai, medieval, space, and ocean-explorer with distinct cloth/trim/skin/hair palettes while preserving the `outfitFor` signature. Verified clean TypeScript compilation.
 

@@ -119,9 +119,9 @@ const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
         box(g,4,.9,22,i%2?P.earth:P.reef,x-side*.25,h+.35,z);
       }
     }
-    // A distant closing escarpment gives the gorge depth instead of a flat horizon.
-    box(g,64,31,3,P.shade,0,15.5,-103);
-    for(let layer=0;layer<7;layer++)box(g,66,.55,1.2,layer%2?P.earth:P.reef,0,3+layer*4.1,-101.2);
+    // A broken, jagged rear escarpment closes the valley without reading as a flat wall.
+    poly(g,[[62,0,-105],[62,24,-105],[40,38,-105],[18,29,-105],[-5,42,-105],[-25,27,-105],[-45,35,-105],[-62,24,-105],[-62,0,-105]],P.stone);
+    for(let layer=0;layer<5;layer++)box(g,118,.48,1.1,layer%2?P.earth:P.reef,0,4+layer*5.4,-104.2);
     // Meandering river ribbon, built from overlapping segments for a continuous readable channel.
     for(let i=0;i<22;i++){
       const z=23-i*6.8,x=Math.sin(i*.24)*8;
@@ -521,7 +521,7 @@ export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
   if(p.mapMode){mapLayer(g,p,t);g.scale.set(.5,1,.72);}else if(p.terrain==="space"){spaceSet(g,p,t);}else{
     terrain(g,p,t);
     // Open-water and seabed presets must not inherit terrestrial era buildings or regional huts.
-    if(p.terrain!=="ocean"&&p.terrain!=="ocean-floor") settlement(g,p,t);
+    if(p.terrain!=="ocean"&&p.terrain!=="ocean-floor"&&p.terrain!=="canyon") settlement(g,p,t);
     if(p.artifact){const a=drawArtifact(p.artifact,t);a.position.set(0,0,5);g.add(a);}
     if(p.timeOfDay==="night"){ball(g,3,P.sky,40,34,-70);}
     if(p.timeOfDay==="dawn"||p.timeOfDay==="dusk")ball(g,2.8,p.accentEnabled?P.accent:P.sky,34,26,-68);

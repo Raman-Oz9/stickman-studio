@@ -1,3 +1,8 @@
+### 2026-11-18 — Keep the river visible above the raised canyon floor
+- The raised rust floor resolved the z-fighting, but the new still showed the river plane hidden just below the overlay's top surface.
+- Lifted the river ribbon above the canyon floor so the water remains clearly visible after the depth correction.
+- The final proof run will verify both the rust floor and the continuous blue river together.
+
 ### 2026-11-18 — Resolve canyon floor z-fighting
 - The proof still showed the generic yellow base ground through the rust canyon overlay because both surfaces were coplanar.
 - Lifted the canyon floor overlay slightly above the shared ground plane and raised the river ribbon above that surface to prevent z-fighting/occlusion.

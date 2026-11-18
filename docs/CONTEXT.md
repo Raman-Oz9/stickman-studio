@@ -1,3 +1,8 @@
+### 2026-11-18 — Extend 3D era coverage to China, India and frontier settings
+- Added Great Wall/pagoda, Indian temple, Wild West frontier street, pirate harbour/rigging, and WWI trench-set silhouettes. Added `space` and `egypt` aliases alongside the explicit `space-age` and `egyptian` era names.
+- Kept all new geometry in `worldgen.ts` and within the shared palette. No character/action or legacy 2D backdrop files changed.
+- Static delimiter/palette-reference checks pass. This is not a substitute for the required project TypeScript check or rendered visual QA, which remain pending.
+
 ### 2026-11-18 — Refine StoryHybrid caption treatment
 - Kept the established white lettering with a heavy ink outline and lower-safe-area placement, while making caption typography respond to scene era: a restrained serif treatment for historical eras and the bold sans treatment for modern/futuristic scenes.
 - Night/space scenes receive a cool restrained glow; all captions now have a subtle translucent backing for contrast, with slightly tighter sizing for longer words.

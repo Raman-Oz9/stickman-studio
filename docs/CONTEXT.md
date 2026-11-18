@@ -1,3 +1,8 @@
+### 2026-11-18 — Resolve canyon floor z-fighting
+- The proof still showed the generic yellow base ground through the rust canyon overlay because both surfaces were coplanar.
+- Lifted the canyon floor overlay slightly above the shared ground plane and raised the river ribbon above that surface to prevent z-fighting/occlusion.
+- Strict TypeScript and native-resolution stills are being rerun for this correction.
+
 ### 2026-11-18 — Warm the canyon floor and remove generic specks
 - The canyon proof still carried generic parallax dots that read as rendering noise on the open ground, and the floor skewed too yellow.
 - Added a dedicated rust-red canyon floor tone and disabled generic parallax markers for canyon scenes.

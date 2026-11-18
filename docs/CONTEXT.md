@@ -1,3 +1,8 @@
+### 2026-11-18 — Warm the canyon floor and remove generic specks
+- The canyon proof still carried generic parallax dots that read as rendering noise on the open ground, and the floor skewed too yellow.
+- Added a dedicated rust-red canyon floor tone and disabled generic parallax markers for canyon scenes.
+- The smooth-river proof render will confirm the complete updated canyon composition.
+
 ### 2026-11-18 — Smooth the canyon river channel
 - The rendered river still showed the hard stair-step joins from separate box segments.
 - Replaced the segmented strip with a single triangulated winding ShapeGeometry ribbon so its banks read as one continuous channel.

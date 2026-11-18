@@ -55,10 +55,10 @@ const Cast2D: React.FC<{ board: Board; f: number }> = ({ board, f }) => {
     const g = proj(w.x, 0, w.z), g1 = proj(w.x, 1, w.z), sc = (w.d.scale ?? 1) * (ROLE_SCALE[w.d.role] ?? 1);
     const pxm = Math.abs(g.y - g1.y);
     return { ...w, g, k: (pxm * 1.75 * sc) / CHAR_UNITS, depth: c.pos.distanceTo(new THREE.Vector3(w.x, 0, w.z)) };
-  }).filter((w) => !w.g.behind && w.k > 0.05 && w.g.x > -400 && w.g.x < 1480).sort((a, b) => b.depth - a.depth);
+  }).filter((w) => !w.g.behind && w.k > 0.05 && w.g.x > -400 && w.g.x < 1480 && w.g.y > 0 && w.g.y < 1920).sort((a, b) => b.depth - a.depth);
   const golden = (s.light ?? (s.tod === "dawn" || s.tod === "dusk" ? "golden" : "day")) === "golden";
   return (
-    <svg viewBox="0 0 1080 1920" width="1080" height="1920" style={{ position: "absolute", inset: 0, overflow: "visible", pointerEvents: "none", filter: golden ? "sepia(.25) saturate(1.15) brightness(.97)" : "saturate(1.06) contrast(1.03)" }}>
+    <svg viewBox="0 0 1080 1920" width="1080" height="1920" style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none", filter: golden ? "sepia(.25) saturate(1.15) brightness(.97)" : "saturate(1.06) contrast(1.03)" }}>
       {placed.map((w) => {
         const o = outfitFor(w.d.role, w.idx, s.era);
         const hv = ((): [number, number] => {

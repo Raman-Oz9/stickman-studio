@@ -27,6 +27,7 @@ export const VERBS = [
   "idle", "talk", "walk", "run", "point", "wave", "cheer", "nod", "clap", "shrug", "think", "cry", "shout", "salute", "bow", "pray", "hug",
   "pickUp", "carry", "place", "handOver", "receive", "drink", "eat", "read", "write", "type", "look", "dig", "hammer", "chop", "push", "pull", "open", "lean", "climb",
   "throw", "swing", "stab", "shoot", "aim", "block", "sit", "kneel", "lie", "sleep", "fall", "jump", "dance", "sneak", "stir", "pour", "show", "lift", "knock", "paint",
+  "row", "swim", "fish", "ride", "stretch", "sneeze", "scratchHead", "count", "measure", "spy",
 ] as const;
 
 // Spoken verbs -> library verb (used by the planner and by Story2D for boards that only carry loose words).
@@ -54,13 +55,23 @@ export const VERB_ALIASES: [RegExp, Verb][] = [
   [/\b(eat|ate|eating|feast|bite|chew|dine|taste|hungry|food)/, "eat"],
   [/\b(read|reading|study|studied|scroll|learn|learned)/, "read"],
   [/\b(write|wrote|written|draw|drew|sign|signed|record|note|paint|painted|carve|carved|inscri)/, "write"],
-  [/\b(type|typed|code|coding|program|invent|invented|design|designed|calculate|calculat)/, "type"],
+  [/\b(type|typed|code|coding|program|invent|invented|design|designed)/, "type"],
   [/\b(look|looked|watch|watched|stare|stared|gaze|observe|spot|spotted|search|scan|discover|found|find|saw|see)/, "look"],
   [/\b(dig|dug|mine|mined|excavat|farm|farmed|harvest|plow|till)/, "dig"],
   [/\b(build|built|hammer|forge|forged|craft|crafted|repair|fix|fixed|construct|made|make|work|worked)/, "hammer"],
   [/\b(chop|cut|cutting|saw|slice|harvest|log)/, "chop"],
   [/\b(push|pushed|shove|shoved|roll|rolled|drag|dragged)/, "push"],
-  [/\b(pull|pulled|tow|towed|yank|row|rowed|paddle)/, "pull"],
+  [/\b(pull|pulled|tow|towed|yank|paddle)/, "pull"],
+  [/\b(row|rowed)/, "row"],
+  [/\b(swim|swam|swimming)/, "swim"],
+  [/\b(fish|fished|fishing)/, "fish"],
+  [/\b(ride|rode|riding)/, "ride"],
+  [/\b(stretch|stretched|stretching|yawn|yawned)/, "stretch"],
+  [/\b(sneeze|sneezed|sneezing|cough|coughed)/, "sneeze"],
+  [/\b(scratch|scratched|scratching|scratch head)/, "scratchHead"],
+  [/\b(count|counted|counting)/, "count"],
+  [/\b(measure|measured|measuring)/, "measure"],
+  [/\b(spy|spied|spying|peep|peeped)/, "spy"],
   [/\b(open|opened|unlock|unlocked|enter|entered|knock|knocked)/, "open"],
   [/\b(climb|climbed|scale|scaled|ascend|ascended|mount|mounted)/, "climb"],
   [/\b(throw|threw|toss|tossed|hurl|hurled|launch|launched|cast|fling|kick|kicked)/, "throw"],
@@ -250,6 +261,64 @@ export const perform = ({ verb, p, t, phase, prop, target }: PerformIn): Pose =>
     }
     case "jump": {
       const h = Math.max(0, Math.sin(Math.min(1, ((t * 1.6) % 1)) * Math.PI)); o.dy = -h * 110; o.footF = [26, -h * 90]; o.footB = [-24, -h * 60 - 20 * h]; o.handF = [66, -470]; o.handB = [-10, -470]; o.expr = "shock"; break;
+    }
+    case "row": {
+      const k = Math.sin(t * 6) * 0.5 + 0.5, a = win(p, 0, 0.15);
+      o.lean = mix(-15, 15, k) * a; o.hipDrop = 10 * a;
+      o.handF = mv(HANG_F, [110 + k * 30, -250 - k * 30], a);
+      o.handB = mv(HANG_B, [90 + k * 30, -230 - k * 30], a);
+      o.hold = { prop: prop ?? "oar", ang: -30 + k * 40 }; o.grip = true; o.expr = "focused"; break;
+    }
+    case "swim": {
+      const sw = Math.sin(t * 8);
+      o.rot = -70; o.dy = -30 + sw * 10; o.dx = 20;
+      o.handF = [80 + sw * 40, -200 + sw * 20]; o.handB = [40 - sw * 40, -200 - sw * 20];
+      o.footF = [30, -40 + sw * 15]; o.footB = [-30, -40 - sw * 15]; o.expr = "joy"; break;
+    }
+    case "fish": {
+      const cast = Math.sin(t * 4) * 0.5 + 0.5, a = win(p, 0, 0.2);
+      o.handF = mv(HANG_F, [140 - cast * 50, -420 + cast * 100], a);
+      o.handB = mv(HANG_B, [90, -260], a);
+      o.hold = { prop: prop ?? "fishingRod", ang: -45 + cast * 30 }; o.grip = true; o.expr = "focused"; o.lean = -6; break;
+    }
+    case "ride": {
+      const b = Math.abs(Math.sin(t * 8));
+      o.hipDrop = 70; o.hipX = -10; o.dy = -b * 16;
+      o.footF = [40, -30 - b * 10]; o.footB = [10, -30 - b * 10];
+      o.handF = [90, -240]; o.handB = [50, -220]; o.grip = true; o.expr = "smile"; o.headTilt = b * 3; break;
+    }
+    case "stretch": {
+      const a = win(p, 0, 0.25);
+      o.handF = mv(HANG_F, [30, -500], a); o.handB = mv(HANG_B, [-10, -500], a);
+      o.lean = -15 * a; o.headTilt = -10 * a; o.expr = "joy"; break;
+    }
+    case "sneeze": {
+      const a = pulse(p, 0, 0.2, 0.7, 1);
+      o.lean = 18 * a; o.headTilt = 22 * a; o.handF = mv(HANG_F, [70, -360], a); o.handB = mv(HANG_B, [40, -350], a); o.expr = "shock"; break;
+    }
+    case "scratchHead": {
+      const a = win(p, 0, 0.2);
+      o.handF = mv(HANG_F, [10 + Math.sin(t * 16) * 8, -460], a);
+      o.handB = mv(HANG_B, [30, -240], a);
+      o.headTilt = -8 * a; o.expr = "focused"; o.lean = -4; break;
+    }
+    case "count": {
+      const a = win(p, 0, 0.2);
+      o.handF = mv(HANG_F, [70 + Math.sin(t * 6) * 6, -320], a);
+      o.handB = mv(HANG_B, [40, -280], a);
+      o.expr = "focused"; o.headTilt = 5; break;
+    }
+    case "measure": {
+      const a = win(p, 0, 0.2);
+      o.handF = mv(HANG_F, [110, -300], a);
+      o.handB = mv(HANG_B, [40, -300], a);
+      o.hold = prop ? { prop, ang: 0 } : null; o.grip = true; o.expr = "focused"; o.gaze = [75, -300]; break;
+    }
+    case "spy": {
+      const a = win(p, 0, 0.2);
+      o.handF = mv(HANG_F, [60, -420], a);
+      o.handB = mv(HANG_B, [30, -250], a);
+      o.hold = { prop: prop ?? "spyglass", ang: -10 }; o.grip = true; o.expr = "focused"; o.headTilt = -5; o.gaze = tg; break;
     }
     default: { o.handF = HANG_F; o.handB = HANG_B; break; }
   }

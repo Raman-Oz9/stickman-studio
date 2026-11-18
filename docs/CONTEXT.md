@@ -106,6 +106,9 @@
 - Both: update this file on every change; never claim "works" without viewing rendered frames; never send the owner a video that has not been frame-checked.
 ## CHANGELOG
 
+### 2026-11-18 — Add 10 more action verbs to pose2d.ts
+- Added 10 more action verbs (`row`, `swim`, `fish`, `ride`, `stretch`, `sneeze`, `scratchHead`, `count`, `measure`, `spy`) to `VERBS` and `VERB_ALIASES` in `remotion/src/videos/story/pose2d.ts` with full-body articulated ink style poses. Verified clean TypeScript compilation.
+
 ### 2026-11-18 — Add era-specific costume entries in outfits.ts
 - Added complete era costume mappings and palette entries in `remotion/src/videos/story/outfits.ts` for roman, greek, egypt, china, viking, samurai, medieval, space, and ocean-explorer with distinct cloth/trim/skin/hair palettes while preserving the `outfitFor` signature. Verified clean TypeScript compilation.
 

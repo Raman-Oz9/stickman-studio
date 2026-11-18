@@ -1,3 +1,8 @@
+### 2026-11-18 — Add 3D ocean-floor and canyon environment sets (ChatGPT)
+- Followed the Nov 18 owner handoff: production world is Three.js StoryWorld rendered through StoryHybrid; Story2D remains legacy and was not changed in this pass. Character rig, pose/action system, wardrobe and Claude QA files were left untouched.
+- Extended `worldgen.ts` with dedicated `ocean-floor` and `canyon` terrain presets. Ocean-floor dressing includes sandy seabed, rock scatter, branching coral, small animated fish schools, translucent light shafts and an animated translucent water sheet. Open-water/coast/river scenes now have a broader water body and animated wave marks. Canyon dressing adds stratified opposing cliff walls, a winding river and foreground hoodoo forms.
+- This is an incremental set-dressing pass, not universal world coverage or visual acceptance. Strict `cd remotion && npx tsc --noEmit` and native-resolution StoryHybrid still review are still required. No video is claimed.
+
 ### 2026-11-17 — Verify the rebuilt IllustratedProof at native resolution
 - Run #44047109990 passed strict TypeScript and all native-resolution still renders at 1080×1920. Downloaded and inspected proof frames 15, 45, 75, 105, 150 and 175.
 - The opening frames show the guide walking and pointing; frame 105 shows both IK-driven hands meeting on the coin; frame 150 shows the coin remaining at the receiver's waist. The push-in and pull-back keep the illustrated canvas full-bleed without the previous edge seams.

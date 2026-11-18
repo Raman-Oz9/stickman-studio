@@ -6,7 +6,7 @@ import { inkStyleOf } from "./inkOutfit";
 import type { Expression, Vec } from "./Stickman2D";
 import { IllustratedWorld2D } from "./IllustratedWorld2D";
 import type { IllustratedWorldKind } from "./IllustratedWorld2D";
-import { DigPatch, Ledger, PotteryVessel, TradeCoin } from "./IllustratedProps2D";
+import { CraftTable, DigPatch, Ledger, PotteryVessel, TradeCoin } from "./IllustratedProps2D";
 
 const clamp = (v: number, min = 0, max = 1) => Math.max(min, Math.min(max, v));
 const ease = (v: number) => { const t = clamp(v); return t * t * (3 - 2 * t); };
@@ -22,15 +22,15 @@ const toLocal = (x: number, y: number, scale: number, yaw: number, world: Vec): 
 };
 
 type ActorProps = {
-  roleIndex: number; x: number; y: number; scale: number; facing: 1 | -1; yaw: number;
+  role?: string; roleIndex: number; x: number; y: number; scale: number; facing: 1 | -1; yaw: number;
   frame: number; t: number; phase: number; verb: string; p: number; prop?: string | null;
   handTarget?: Vec | null; target?: Vec | null; gaze?: Vec | null; expr: Expression;
   grip: boolean; renderHeld?: boolean; build?: "lean" | "stocky";
 };
 
-const Actor: React.FC<ActorProps> = ({ roleIndex, x, y, scale, facing, yaw, frame, t, phase, verb, p, prop, handTarget, target, gaze, expr, grip, renderHeld = true, build = "lean" }) => {
-  const outfit = useMemo(() => outfitFor("merchant", roleIndex, "medieval"), [roleIndex]);
-  const ink = useMemo(() => inkStyleOf("merchant", roleIndex, "medieval", resolveRole("merchant", "medieval")), [roleIndex]);
+const Actor: React.FC<ActorProps> = ({ role = "merchant", roleIndex, x, y, scale, facing, yaw, frame, t, phase, verb, p, prop, handTarget, target, gaze, expr, grip, renderHeld = true, build = "lean" }) => {
+  const outfit = useMemo(() => outfitFor(role, roleIndex, "medieval"), [role, roleIndex]);
+  const ink = useMemo(() => inkStyleOf(role, roleIndex, "medieval", resolveRole(role, "medieval")), [role, roleIndex]);
   return (
     <svg viewBox="0 0 1080 1920" width="100%" height="100%" style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "visible" }}>
       <Performer2D
@@ -100,7 +100,7 @@ export const IllustratedProof: React.FC = () => {
   const placeHand = mixVec(mixVec([140, -250], [250, -190], placeReach), [40, -190], placeReturn);
   const placeHandWorld = toWorld(360, 1510, 1, 90, placeHand);
   const placeRelease = ease((p - .62) / .12);
-  const potWorld: Vec = [mix(placeHandWorld[0] + 24, 700, placeRelease), mix(placeHandWorld[1] + 95, 1415, placeRelease)];
+  const potWorld: Vec = [mix(placeHandWorld[0] + 24, 640, placeRelease), mix(placeHandWorld[1] + 95, 1423, placeRelease)];
 
   const captions = ["A CITY OF STONE", "GOLD • IVORY • TRADE", "WORDS BECOME RECORDS", "STONE FROM THE EARTH", "CRAFTED BY HAND"];
   const caption = captions[scene];
@@ -130,7 +130,7 @@ export const IllustratedProof: React.FC = () => {
         {scene === 2 ? (
           <>
             <Ledger x={390} y={1150} progress={p} />
-            <Actor roleIndex={2} x={320} y={1510} scale={1.08} facing={1} yaw={90}
+            <Actor role="worker" roleIndex={2} x={320} y={1510} scale={1.08} facing={1} yaw={90}
               frame={frame} t={t} phase={phase} verb="write" p={p} prop="quill"
               handTarget={writeHand} target={[230, -270]} gaze={[210, -330]}
               expr="focused" grip={true} renderHeld={true} />
@@ -139,7 +139,7 @@ export const IllustratedProof: React.FC = () => {
         {scene === 3 ? (
           <>
             <DigPatch x={370} y={1360} progress={p} frame={local} />
-            <Actor roleIndex={1} x={330} y={1510} scale={1.08} facing={1} yaw={90}
+            <Actor role="worker" roleIndex={2} x={330} y={1510} scale={1.08} facing={1} yaw={90}
               frame={frame} t={t} phase={phase} verb="dig" p={p} prop="shovel"
               handTarget={digHand} target={[240, -90]} gaze={[230, -120]}
               expr="focused" grip={true} renderHeld={true} />
@@ -147,6 +147,7 @@ export const IllustratedProof: React.FC = () => {
         ) : null}
         {scene === 4 ? (
           <>
+            <CraftTable x={500} y={1510} width={500} />
             <PotteryVessel x={potWorld[0]} y={potWorld[1]} scale={.9} rotation={-3 + Math.sin(p * Math.PI) * 3} />
             <Actor roleIndex={2} x={360} y={1510} scale={1.08} facing={1} yaw={90}
               frame={frame} t={t} phase={phase} verb="place" p={p} prop="pottery"

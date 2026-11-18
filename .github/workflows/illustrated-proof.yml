@@ -50,7 +50,7 @@ jobs:
               --frame="${frame}" --scale=1 --gl=swangle --image-format=jpeg \
               --jpeg-quality=94 --props=./public/prep/story2d-props.json --timeout=300000 --log=warn
           done
-          for frame in 15 75 135 195 255 315 375 435 495 585; do
+          for frame in 15 45 75 135 195 255 315 375 435 495 585; do
             npx remotion still src/index.ts IllustratedProof "out/2d-proof-f${frame}.jpg" \
               --frame="${frame}" --scale=1 --gl=swangle --image-format=jpeg \
               --jpeg-quality=94 --timeout=300000 --log=warn

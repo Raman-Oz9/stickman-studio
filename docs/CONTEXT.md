@@ -1,3 +1,7 @@
+### 2026-11-18 — Fix the pottery placement support plane and verify the walk beat
+- Run #44266210169 passed strict TypeScript and all 1080×1920 still renders. Inspected the five-action proof at native resolution: coin handover is clear, writing shows a moving pen and progressive ink strokes, and the shovel blade reaches the excavation hole.
+- Visual review found the finished pot sat in front of the workbench rather than on a tabletop. Added a foreground craft table and aligned the pot base to its surface; writing, digging and placing now share one consistent artisan identity.
+- Added frame 45 to the still set so the walk cycle can be checked between the opening and point pose. The new still run is pending; background art is still authored SVG and needs richer painterly texture/depth before production migration.
 ### 2026-11-18 — Expand the 2D illustrated proof into five acted scenes
 - PR #1 was already merged by the repository owner on 2026-11-17; further reviewable work must use a new PR rather than pretending PR #1 remains open.
 - Added reusable illustrated market, workshop and quarry environments with layered scenery, masonry/wood textures, warm light, subtle grain, smoke/fire motion and parallax drift. Savanna and stone-city shots continue to use the established Great Zimbabwe backdrop.
@@ -114,7 +118,7 @@
 ## Current state — 2026-11-18
 - GitHub shows PR #1 was merged by Raman-Oz9 on 2026-11-17. It cannot be kept open/unmerged after that merge. The existing `reference-style-pass-01` branch is being continued as a review branch; further changes need a new draft PR.
 - The production `StoryShort` composition still maps to `StoryHybrid`. The 2D `StoryShort2D` and `IllustratedProof` compositions are verification targets only; the default production path is not switched until multiple 2D scenes pass repeated native-resolution QA.
-- The latest 2D proof run inspected in this session (#44264291315) passed strict TypeScript and native still rendering. Native 1080×1920 review confirms a readable hand-to-hand coin contact, but the Great Zimbabwe environment is still largely flat authored SVG and the proof did not yet demonstrate writing, digging or placing. The new five-action proof is pending CI and visual review.
+- The latest five-action proof run (#44266210169) passed strict TypeScript and native still rendering. Native 1080×1920 review confirms hand-to-hand coin contact, pen-on-ledger writing with progressive ink strokes, and shovel-to-soil contact. The pot support plane was visibly wrong and is being corrected with a foreground craft table; frame 45 is being added to verify the walk cycle. The environments remain authored SVG rather than final painterly art.
 - A separate full Story video workflow (#44261318870) was already running on main before this change. This work did not start or cancel it.
 - No full production MP4 is approved by this migration task. Keep further verification to strict typecheck and native stills until the 2D replacement is accepted.
 

@@ -73,3 +73,14 @@ export const PotteryVessel: React.FC<{ x: number; y: number; scale?: number; rot
     <path d="M130 50Q148 100 131 145" fill="none" stroke="#703d32" strokeWidth="6" strokeLinecap="round" opacity=".42" />
   </svg>
 );
+
+export const CraftTable: React.FC<{ x: number; y: number; width?: number }> = ({ x, y, width = 500 }) => (
+  <svg viewBox="0 0 500 250" width={width} height={width / 2} style={{ position: "absolute", left: x, top: y, overflow: "visible" }}>
+    <ellipse cx="250" cy="235" rx="235" ry="15" fill="#211b20" opacity=".24" />
+    <path d="M8 4H492L470 42H30Z" fill="#b27a49" stroke="#292128" strokeWidth="9" />
+    <path d="M30 42H470V158H30Z" fill="#684631" stroke="#292128" strokeWidth="9" />
+    <path d="M64 158H112V242H64ZM388 158H436V242H388Z" fill="#54392e" stroke="#292128" strokeWidth="8" />
+    <path d="M24 18H476M45 58H455" stroke="#e4bb7c" strokeWidth="5" opacity=".58" />
+    <path d="M50 92H450M50 126H450" stroke="#3e2d28" strokeWidth="3" opacity=".35" />
+  </svg>
+);

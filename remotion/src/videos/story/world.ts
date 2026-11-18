@@ -150,15 +150,33 @@ export class StoryWorld {
     this.sun.shadow.bias = L.bias; this.sun.shadow.normalBias = L.normalBias * (Rr / 12);
     TONE.uLitCol.value.set(...L.lit); TONE.uShadeCol.value.set(...L.shade); TONE.uShadeLift.value.set(...L.lift);
     TONE.uLambert.value = L.lambert; TONE.uSideK.value = L.sideK; TONE.uTerm.value = L.term; TONE.uBounce.value.set(...K.bounce); TONE.uSat.value = K.sat;
+    // Scene-aware grade: the same physical set gets a different film response by era, season and weather.
+    const eraGrade = String(s.world?.era ?? s.era ?? "").toLowerCase();
+    const coldEra = /viking|ww1|ww2|space|near-future/.test(eraGrade);
+    const warmEra = /ancient|egypt|roman|greek|renaissance|wild-west|pirate/.test(eraGrade);
+    if (coldEra) { TONE.uLitCol.value.lerp(new THREE.Vector3(0.663, 0.780, 0.812), 0.14); TONE.uShadeCol.value.lerp(new THREE.Vector3(0.090, 0.302, 0.408), 0.12); }
+    else if (warmEra) { TONE.uLitCol.value.lerp(new THREE.Vector3(0.824, 0.639, 0.290), 0.13); TONE.uShadeCol.value.lerp(new THREE.Vector3(0.251, 0.235, 0.224), 0.1); }
+    if (se === "winter") { TONE.uLitCol.value.lerp(new THREE.Vector3(0.663, 0.780, 0.812), 0.18); TONE.uSat.value *= 0.9; }
+    else if (se === "autumn") { TONE.uLitCol.value.lerp(new THREE.Vector3(0.824, 0.639, 0.290), 0.16); TONE.uSat.value *= 1.04; }
+    else if (se === "spring") { TONE.uLitCol.value.lerp(new THREE.Vector3(0.443, 0.545, 0.298), 0.1); TONE.uSat.value *= 1.04; }
+    const wet = (s.env ?? []).includes("rain") || (s.env ?? []).includes("storm") || s.world?.weather === "rain" || s.world?.weather === "storm";
+    if (wet) { TONE.uLitCol.value.lerp(new THREE.Vector3(0.663, 0.780, 0.812), 0.08); TONE.uSat.value *= 0.88; }
+    if (s.world?.weather === "drought") { TONE.uLitCol.value.lerp(new THREE.Vector3(0.725, 0.604, 0.416), 0.18); TONE.uSat.value *= 0.92; }
     TONE.uLitCol.value.multiplyScalar(Math.max(0.5, E.dim)); TONE.uShadeCol.value.multiplyScalar(Math.max(0.55, E.dim));
     CHAR.uCharTint.value.set(...L.charTint); CHAR.uCharShade.value = L.charShade; CHAR.uGrad.value = L.charGrad; CHAR.uBodyGrad.value = L.bodyGrad; CHAR.uSideTint.value.set(...L.sideTint);
     const su = this.skyMat.uniforms;
     K.sky.c.forEach((h, k) => untone(h, su["c" + k].value));
     const e = K.sky.e.map((d) => THREE.MathUtils.degToRad(d)); su.e.value.set(e[1], e[2], e[3], e[4]);
+    const underwater = s.world?.terrain === "ocean-floor";
+    if (underwater) {
+      ["#073044", "#0b4b62", "#146c7e", "#4d99a4", "#a3c9c6"].forEach((h, k) => untone(h, su["c" + k].value));
+      this.hemi.color.set("#69b4c5"); this.hemi.groundColor.set("#174b5a"); this.sun.color.set("#b2e2e5");
+      this.hemi.intensity *= 0.82; this.sun.intensity *= 0.58;
+    }
     if (E.night) { for (let k = 0; k < 5; k++) { const cv = su["c" + k].value as THREE.Color; cv.multiplyScalar(E.space ? 0.02 : 0.16).lerp(new THREE.Color(E.space ? "#020410" : "#0b1236"), 0.55); } }
     else if (E.dim < 0.95) for (let k = 0; k < 5; k++) (su["c" + k].value as THREE.Color).multiplyScalar(E.dim * 0.8).lerp(new THREE.Color("#4a5468"), 0.35);
     this.sky.position.copy(cam.position);
-    untone(L.fog, this.fog.color); this.fog.near = L.fogNear; this.fog.far = L.fogFar; if (E.night) this.fog.color.set(E.space ? "#020410" : "#0b1236"); else if (E.dim < 0.95) this.fog.color.lerp(new THREE.Color("#4a5468"), 0.5); this.fog.near *= E.fogK; this.fog.far *= E.fogK; scene.fog = this.fog; scene.background = null;
+    untone(L.fog, this.fog.color); this.fog.near = L.fogNear; this.fog.far = L.fogFar; if (E.night) this.fog.color.set(E.space ? "#020410" : "#0b1236"); else if (E.dim < 0.95) this.fog.color.lerp(new THREE.Color("#4a5468"), 0.5); if (underwater && !E.night) { this.fog.color.set("#286477"); this.fog.near = 18; this.fog.far = 260; } this.fog.near *= E.fogK; this.fog.far *= E.fogK; scene.fog = this.fog; scene.background = null;
     if (bk && !ik) { this.fog.color.set(FOGB[bk]); this.fog.near = bk === "swamp" ? 25 : 120; this.fog.far = bk === "swamp" ? 260 : 1700; }
     if (ik) { this.fog.color.set(FOG[ik]); this.fog.near = 18; this.fog.far = 80; }
 

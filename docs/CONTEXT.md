@@ -106,6 +106,9 @@
 - Both: update this file on every change; never claim "works" without viewing rendered frames; never send the owner a video that has not been frame-checked.
 ## CHANGELOG
 
+### 2026-11-18 — Add 20 hand-held prop icons to Props2D.tsx
+- Added 20 hand-held 2D prop icons (torch variants, hourglass, compass, trumpet, drum, lute, fishing rod, net, plate of meat, jug, quill+inkpot, key ring, magnifier, lantern, whistle, bell, candle, paintbrush, spoon, wheel) in clean ink outline style following the grip-origin convention `(0,0)`. Verified clean TypeScript compilation.
+
 ### 2026-11-18 — Add `accessory` prop to InkStickman.tsx
 - Added `accessory` prop (`"none" | "glasses" | "monocle" | "crown" | "helmet" | "turban" | "headwrap" | "hat" | "beard" | "moustache"`) to `InkStickman.tsx`, drawing each accessory in clean ink outline style inside the head group and hiding facial accessories when `back` is true. Verified clean TypeScript compilation.
 

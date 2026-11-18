@@ -1,3 +1,9 @@
+### 2026-11-18 — Refine underwater atmosphere and portrait-frame proof
+- Native-resolution proof stills exposed a terrestrial sky treatment on the ocean-floor preset. Added a deep teal underwater sky gradient, cooler underwater key/fill light and nearer teal fog while preserving night treatment.
+- Tightened the StoryHybrid cast overlay to clip projected people to the portrait frame, preventing off-frame extras from leaking beyond the composition.
+- Updated the proof board to suppress background extras and use low-profile stone-age dressing for the canyon shot so the terrain silhouettes remain visible.
+- These are render-driven refinements; the revised native-resolution proof stills must be inspected before visual approval.
+
 ### 2026-11-18 — Keep land settlements out of underwater and open-ocean sets
 - `drawWorld` previously layered the default era/region settlement onto every non-space terrain, which would place huts or buildings on the seabed and open water.
 - Suppressed terrestrial settlement generation for `ocean` and `ocean-floor`; coastal and river settlements remain available.

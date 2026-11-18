@@ -1,6 +1,6 @@
 ### 2026-11-18 — Fix scene-grade uniform type mismatch
-- The new era/season/weather grade in `world.ts` interpolated Three.js `Color` uniforms with `Vector3` values, causing strict TypeScript errors. Replaced those interpolation targets with `THREE.Color` instances; the numerical grade values and blend weights are unchanged.
-- The first production-branch proof run caught this issue before any environment renders ran. A rerun is required to confirm the typecheck and inspect both native-resolution world frames.
+- The era/season/weather grade in `world.ts` must blend against `THREE.Vector3` values because the shared `TONE.uLitCol` and `TONE.uShadeCol` uniforms are Vector3 instances in `remotion/src/videos/bridge/shade.ts`. Updated the blend targets to match those declared uniform types; grade values and blend weights are unchanged.
+- The proof run at commit `4b558c3` failed at strict TypeScript checking because those targets were `THREE.Color`. This correction is in commit `fc33593`; a fresh run against the latest branch head is needed before claiming the check is fixed.
 
 ### 2026-11-18 — Final synced-branch 3D proof passed
 - After syncing the latest main wardrobe/OpenCode changes, workflow run `44269012189` completed successfully: Remotion dependency install, strict `npx tsc --noEmit`, and both native-resolution worldgen proof renders passed.

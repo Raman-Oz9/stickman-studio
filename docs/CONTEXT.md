@@ -1,3 +1,9 @@
+### 2026-11-18 — Verify artisan continuity and pottery camera choreography
+- Run #44268214849 passed strict TypeScript and all 23 native-resolution still renders. Downloaded the published artifact and inspected frames 540, 570 and 585 at 1080×1920, plus the storyboard opening and map reveal.
+- The pottery performer now matches the worker identity used for ledger writing and excavation. Frame 540 shows the hand meeting the vessel rim; frame 570 shows the hand releasing after set-down; frame 585 reveals the placed vessel as the camera returns to a wider workshop view.
+- The pottery shot's wide-to-close push and pull-back are readable and remain inside the canvas. The rest of the 2D proof is unchanged.
+- Visual acceptance is still pending: workshop, quarry and Great Zimbabwe environments are authored SVG/vector illustrations, not yet the richer painterly art and depth of the supplied reference. The production `StoryShort` path remains `StoryHybrid`; no full MP4 was rendered.
+
 ### 2026-11-18 — Preserve artisan identity and direct the pottery set-down
 - Native proof run #44266965234 passed strict TypeScript and all 1080×1920 still renders. Inspected the published artifact at native resolution; the ledger shows progressive pen strokes, the shovel blade reaches the excavation patch, and the pottery vessel aligns with the foreground table surface.
 - The final pottery performer omitted its role and therefore used the default merchant wardrobe instead of the worker identity used for writing and digging. Explicitly set the pottery performer to the same worker role.
@@ -124,7 +130,7 @@
 ## Current state — 2026-11-18
 - PR #1 was merged by Raman-Oz9 on 2026-11-17. It cannot be reopened or kept unmerged; the existing `reference-style-pass-01` branch remains the working review branch. No replacement PR is created in this pass.
 - The production `StoryShort` composition still maps to `StoryHybrid`. `StoryShort2D` and `IllustratedProof` remain verification targets until multiple representative 2D scenes pass repeated native-resolution visual QA.
-- Latest verified proof run #44266965234 passed strict TypeScript and all still renders. Its artifact contains 21 native 1080×1920 JPEGs. Reviewed the storyboard opening/map/trade frames and proof frames 315, 375, 435, 495 and 585: progressive pen strokes, shovel-blade-to-soil contact and the pottery vessel aligned to the foreground table are visible. Review also found that the pottery performer had fallen back to the merchant outfit, breaking artisan identity continuity; the role is corrected in the current commit, with two additional mid-placement QA frames added. The follow-up run is pending.
+- Latest proof run #44268214849 passed strict TypeScript and every native still render. The uploaded artifact contains 23 native 1080×1920 JPEGs. Inspected the new pottery contact frames 540 and 570 plus the release/pull-back frame 585 at native resolution: the worker now keeps the same headwrap/wardrobe identity as the writing and digging scenes, reaches the vessel rim, and releases it onto the foreground table as the camera pushes in and pulls back. Also reviewed storyboard opening frame 0 and trade-route map frame 1225. The proof's five action beats remain readable.
 - Environments are still authored SVG illustrations with gradients, patterns and grain rather than the richer painted reference quality. The five-action proof is a useful interaction slice, not production-wide 2D acceptance; broader scene coverage, more organic environmental detail and repeated camera/character QA remain.
 - No full production MP4 is approved by this migration task. Continue with strict typecheck and native stills only until the 2D replacement meets the visual acceptance criteria.
 

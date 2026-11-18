@@ -1,3 +1,8 @@
+### 2026-11-18 — Enrich the ocean-floor foreground
+- The underwater still showed an overly empty green-tinted seabed with distant-only reef detail and generic parallax specks.
+- Added a muted seabed material, larger foreground coral fans around the cast and removed the generic ground specks from the ocean-floor preset.
+- The underwater lighting remains cool; the next native-resolution render will confirm whether the sand and reef now separate clearly.
+
 ### 2026-11-18 — Rebuild canyon geometry after native-resolution review
 - The first proof render showed the canyon's side walls were outside the useful camera framing and the oversized hoodoos dominated the shot.
 - Rebuilt the set around tall opposing stratified cliff walls, a closing rear escarpment, a continuous overlapping river ribbon and smaller talus rocks.

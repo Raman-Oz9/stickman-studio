@@ -1,5 +1,7 @@
 import React from "react";
 import type { Expression, Vec } from "./Stickman2D";
+import type { InkStyle } from "./inkOutfit";
+import { Backpack, GarmentDefs, HatLayer, LowerGarment, Shine, TorsoExtras, coversHair } from "./InkGarments";
 
 // "Ink Explainer" stickman: plain round head with a minimal face, tee torso, thin outlined arms,
 // white mitten hands, straight jeans legs, white sneakers. Local space: origin = ground between
@@ -41,8 +43,8 @@ const Mitten: React.FC<{ at: Vec; dir: number; grip?: boolean }> = ({ at, dir, g
   </g>
 );
 
-const Shoe: React.FC<{ at: Vec }> = ({ at }) => (
-  <path d={`M ${at[0] - 20} ${at[1] - 12} L ${at[0] + 8} ${at[1] - 12} Q ${at[0] + 44} ${at[1] - 10} ${at[0] + 46} ${at[1] + 6} L ${at[0] + 46} ${at[1] + 12} L ${at[0] - 20} ${at[1] + 12} Z`} fill="#fbf7ef" stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+const Shoe: React.FC<{ at: Vec; color?: string }> = ({ at, color = "#fbf7ef" }) => (
+  <path d={`M ${at[0] - 20} ${at[1] - 12} L ${at[0] + 8} ${at[1] - 12} Q ${at[0] + 44} ${at[1] - 10} ${at[0] + 46} ${at[1] + 6} L ${at[0] + 46} ${at[1] + 12} L ${at[0] - 20} ${at[1] + 12} Z`} fill={color} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
 );
 
 const Face: React.FC<{ expression: Expression; blink: boolean; look: number; lookY: number }> = ({ expression, blink, look, lookY }) => {
@@ -104,7 +106,7 @@ export type InkStickmanProps = {
   expression?: Expression; frame?: number; look?: number; gaze?: Vec | null; lean?: number;
   build?: "lean" | "stocky"; seed?: number;
   footFront?: Vec | null; footBack?: Vec | null; hipDrop?: number; hipX?: number; rot?: number; headTilt?: number; open?: number;
-  held?: React.ReactNode; heldAng?: number; seat?: boolean; extra?: React.ReactNode;
+  style?: InkStyle; held?: React.ReactNode; heldAng?: number; seat?: boolean; extra?: React.ReactNode;
 };
 
 const shade = (hex: string, k: number) => {
@@ -114,16 +116,19 @@ const shade = (hex: string, k: number) => {
 };
 
 export const InkStickman: React.FC<InkStickmanProps> = ({
-  x, y, scale = 1, facing = 1, skin, cloth, hair, walk = 0, stand = 1, frontHand = null, backHand = null,
+  x, y, scale = 1, facing = 1, skin, cloth, hair: hairIn, walk = 0, stand = 1, frontHand = null, backHand = null,
   expression = "smile", frame = 0, look: lookIn = 0, gaze = null, lean = 0, build = "lean", grip = false,
-  footFront = null, footBack = null, hipDrop = 0, hipX = 0, rot = 0, headTilt = 0, open = 0, held = null, heldAng = 0, seat = false, extra = null,
+  footFront = null, footBack = null, hipDrop = 0, hipX = 0, rot = 0, headTilt = 0, open = 0, held = null, heldAng = 0, style: st, seat = false, extra = null,
 }) => {
+  const hair = st && coversHair(st.hat) ? undefined : hairIn;
   const wide = build === "stocky" ? 1.14 : 1;
   const breathe = Math.sin(frame / 9) * 2;
   const blink = frame % 100 < 4;
   const swing = Math.sin(walk * Math.PI * 2);
   const lift = (p: number) => Math.max(0, Math.sin(p * Math.PI * 2)) * 30 * (1 - stand);
   const jeans = "#3d5a86";
+  if (st) { cloth = st.top; skin = skin || st.skin; }
+  const botC = st?.bottom ?? jeans, legC = st ? (st.bareLegs ? skin : botC) : jeans, armC = st?.sleeves ? cloth : skin, shoeC = st ? st.shoes : "#fbf7ef";
 
   const footF: Vec = footFront ?? [mix(18 + swing * 46, 22, stand), -lift(walk)];
   const footB: Vec = footBack ?? [mix(-18 - swing * 46, -20, stand), -lift(walk + 0.5)];
@@ -147,14 +152,18 @@ export const InkStickman: React.FC<InkStickmanProps> = ({
 
   return (
     <g transform={`translate(${x} ${y}) scale(${scale * facing} ${scale}) rotate(${rot})`}>
+      <GarmentDefs />
       <ellipse cx="0" cy="6" rx="82" ry="14" fill="#2b2128" opacity=".22" />
       {seat ? <g stroke={INK} strokeWidth="6" strokeLinejoin="round" strokeLinecap="round"><path d={`M ${hipX - 70} ${HY + 14} H ${hipX + 40} V ${HY + 30} H ${hipX - 70} Z`} fill="#9a6a42" /><path d={`M ${hipX - 62} ${HY + 30} V 0 M ${hipX + 32} ${HY + 30} V 0 M ${hipX - 66} ${HY + 14} V ${HY - 150}`} fill="none" /></g> : null}
-      <Limb a={shB} b={armB.joint} c={armB.end} w={13} color={skin} />
+      <Limb a={shB} b={armB.joint} c={armB.end} w={13} color={shade(armC, 0.9)} />
       <Mitten at={armB.end} dir={ang(armB)} />
-      <Limb a={[-10 + hipX, HY]} b={legB.joint} c={legB.end} w={21} color={shade(jeans, 0.85)} />
-      <Shoe at={legB.end} />
+      <Limb a={[-10 + hipX, HY]} b={legB.joint} c={legB.end} w={21} color={shade(legC, 0.85)} />
+      <Shoe at={legB.end} color={shade(shoeC, 0.9)} />
       <g transform={`translate(${hipX} ${hipDrop}) rotate(${lean} 0 ${HIP_Y})`}>
+        {st ? <Backpack st={st} /> : null}
         <path d={torso} fill={cloth} stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+        {st ? <Shine d={torso} amt={st.shine} /> : null}
+        {st ? <TorsoExtras st={st} tw={tw} /> : null}
         <path d={`M ${-tw + 4} ${HIP_Y - 6} Q 0 ${HIP_Y + 6} ${tw - 4} ${HIP_Y - 6}`} fill="none" stroke={shade(cloth, 0.7)} strokeWidth="5" />
         <path d={`M -18 ${SH_Y + 4} Q 0 ${SH_Y + 22} 18 ${SH_Y + 4}`} fill="none" stroke={shade(cloth, 0.7)} strokeWidth="5" />
         <path d="M 0 -288 l 10 10 -10 10 -10 -10 Z" fill="#e3b15d" stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
@@ -164,11 +173,13 @@ export const InkStickman: React.FC<InkStickmanProps> = ({
           <path d={`M 0 ${HEAD_Y - 100} C 62 ${HEAD_Y - 100} 90 ${HEAD_Y - 50} 88 ${HEAD_Y + 10} C 86 ${HEAD_Y + 66} 48 ${HEAD_Y + 94} 0 ${HEAD_Y + 94} C -48 ${HEAD_Y + 94} -86 ${HEAD_Y + 66} -88 ${HEAD_Y + 10} C -90 ${HEAD_Y - 50} -62 ${HEAD_Y - 100} 0 ${HEAD_Y - 100} Z`} fill={skin} stroke={INK} strokeWidth="7" strokeLinejoin="round" />
           {hair ? <g transform={`translate(0 ${HEAD_Y}) scale(1.38 1.5) translate(0 430)`}><path d="M -63 -438 C -70 -472 -48 -500 -18 -500 C 2 -524 39 -512 51 -485 C 69 -477 70 -452 63 -438 Q 37 -455 19 -457 Q -2 -449 -17 -461 Q -36 -447 -63 -438 Z" fill={hair} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" /><path d="M -25 -483 Q 7 -509 42 -484 Q 14 -492 0 -469" fill="none" stroke="#fff3d5" strokeWidth="4" strokeLinecap="round" opacity=".28" /></g> : null}
           <g transform={`translate(0 ${HEAD_Y}) scale(1.32) translate(0 ${-HEAD_Y})`}><Face expression={expression} blink={blink} look={look} lookY={lookY} /></g>
+          {st ? <HatLayer hat={st.hat} color={st.hatColor} accent={st.accent} /> : null}
         </g>
       </g>
-      <Limb a={[10 + hipX, HY]} b={legF.joint} c={legF.end} w={21} color={jeans} />
-      <Shoe at={legF.end} />
-      <Limb a={shF} b={armF.joint} c={armF.end} w={13} color={skin} />
+      <Limb a={[10 + hipX, HY]} b={legF.joint} c={legF.end} w={21} color={legC} />
+      <Shoe at={legF.end} color={shoeC} />
+      {st ? <LowerGarment st={st} tw={tw} /> : null}
+      <Limb a={shF} b={armF.joint} c={armF.end} w={13} color={armC} />
       {held ? <g transform={`translate(${armF.end[0]} ${armF.end[1]}) rotate(${heldAng})`}>{held}</g> : null}
       <Mitten at={armF.end} dir={ang(armF)} grip={grip} />
       {extra}

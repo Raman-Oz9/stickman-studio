@@ -3,16 +3,17 @@ import { InkStickman } from "./InkStickman";
 import { PropIcon } from "./Props2D";
 import { perform, Verb } from "./pose2d";
 import type { Expression, Vec } from "./Stickman2D";
+import type { InkStyle } from "./inkOutfit";
 
 export type PerformerProps = {
   x: number; y: number; scale?: number; facing: 1 | -1;
   skin: string; cloth: string; hair?: string; build?: "lean" | "stocky"; seed?: number;
   verb: Verb; p: number; t: number; frame: number; phase?: number;
-  prop?: string | null; holdProp?: string | null; target?: Vec | null; expr?: Expression | null; gaze?: Vec | null;
+  ink?: InkStyle; prop?: string | null; holdProp?: string | null; target?: Vec | null; expr?: Expression | null; gaze?: Vec | null;
 };
 
 // One generic performer: any verb -> pose -> articulated ink stickman with its prop in hand.
-export const Performer2D: React.FC<PerformerProps> = ({ x, y, scale = 1, facing, skin, cloth, hair, build, seed, verb, p, t, frame, phase, prop, holdProp, target, expr, gaze }) => {
+export const Performer2D: React.FC<PerformerProps> = ({ x, y, scale = 1, facing, skin, cloth, hair, build, seed, verb, p, t, frame, phase, ink, prop, holdProp, target, expr, gaze }) => {
   const ph = phase ?? t * 1.15;
   const o = useMemo(() => perform({ verb, p, t, phase: ph, prop, target }), [verb, p, t, ph, prop, target]);
   const hp = o.hold?.prop ?? holdProp ?? null;
@@ -25,7 +26,7 @@ export const Performer2D: React.FC<PerformerProps> = ({ x, y, scale = 1, facing,
       frontHand={o.handF} backHand={o.handB} footFront={o.footF} footBack={o.footB}
       hipDrop={o.hipDrop} hipX={o.hipX} lean={o.lean} rot={o.rot} headTilt={o.headTilt} grip={o.grip}
       expression={expr ?? o.expr ?? "smile"} gaze={gaze ?? o.gaze ?? null}
-      held={held} heldAng={o.hold?.ang ?? 0} seat={!!o.chair} extra={fly}
+      style={ink} held={held} heldAng={o.hold?.ang ?? 0} seat={!!o.chair} extra={fly}
     />
   );
 };

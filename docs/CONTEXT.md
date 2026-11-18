@@ -1,3 +1,8 @@
+### 2026-11-18 — Keep land settlements out of underwater and open-ocean sets
+- `drawWorld` previously layered the default era/region settlement onto every non-space terrain, which would place huts or buildings on the seabed and open water.
+- Suppressed terrestrial settlement generation for `ocean` and `ocean-floor`; coastal and river settlements remain available.
+- The 3D proof render is intended to catch remaining composition issues; visual acceptance remains pending.
+
 ### 2026-11-18 — Add 20 hand-held prop icons to Props2D.tsx
 - Added 20 hand-held 2D prop icons (torch variants, hourglass, compass, trumpet, drum, lute, fishing rod, net, plate of meat, jug, quill+inkpot, key ring, magnifier, lantern, whistle, bell, candle, paintbrush, spoon, wheel) in clean ink outline style following the grip-origin convention `(0,0)`. Verified clean TypeScript compilation.
 

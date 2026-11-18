@@ -110,7 +110,7 @@ export const StoryHybrid: React.FC = () => {
   if (!kit) return null;
   return (
     <AbsoluteFill style={{ background: "#cfe3f2" }}>
-      <ThreeCanvas width={1080} height={1920} shadows gl={{ antialias: false, stencil: false, powerPreference: "high-performance" }} camera={{ fov: 40, near: 0.15, far: 1500 }}>
+      <ThreeCanvas width={1080} height={1920} gl={{ antialias: false, stencil: false, powerPreference: "high-performance" }} camera={{ fov: 40, near: 0.15, far: 1500 }}>
         <Inner kit={kit} board={board} />
       </ThreeCanvas>
       <Cast2D board={board} f={f} />

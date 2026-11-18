@@ -16,6 +16,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      actions: write
     steps:
       - uses: actions/checkout@v4
         with: { ref: main, fetch-depth: 0 }
@@ -49,7 +50,7 @@ jobs:
             opencode run --model "$M" "$PROMPT" 2>&1 | tee -a /tmp/oc.txt
             if ! grep -q "Error:" /tmp/oc.txt; then break; fi
           done
-      - name: PR and tick queue
+      - name: Verify, land on main, tick queue, chain next run
         if: always() && steps.pick.outputs.task != ''
         env:
           GH_TOKEN: ${{ github.token }}
@@ -58,14 +59,21 @@ jobs:
         run: |
           git config user.name opencode-agent; git config user.email opencode-agent@users.noreply.github.com
           git checkout -q -- docs/OPENCODE_QUEUE.md 2>/dev/null || true
-          rm -rf remotion/node_modules
-          if [ -n "$(git status --porcelain)" ]; then
-            BR="opencode/task-${N}-${GITHUB_RUN_ID}"
-            git checkout -q -b "$BR"; git add -A; git commit -qm "OpenCode: ${TASK:0:70}"
-            git push -q origin "$BR"
-            gh pr create --base main --head "$BR" --title "OpenCode: ${TASK:0:70}" --body "Queue task ${N}. Review stills before merging." || true
-            DONE="x"
-          else DONE="!"; fi
-          git fetch -q origin main; git checkout -q main; git reset -q --hard origin/main
+          git checkout -q -- remotion/package-lock.json 2>/dev/null || true
+          DONE="!"
+          if [ -n "$(git status --porcelain | grep -v node_modules | grep -v package-lock)" ]; then
+            (cd remotion && npm install --no-audit --no-fund >/dev/null 2>&1; npx tsc --noEmit > /tmp/tsc.txt 2>&1) && OK=1 || OK=0
+            git checkout -q -- remotion/package-lock.json 2>/dev/null || true
+            rm -rf remotion/node_modules
+            git add -A -- . ':!remotion/package-lock.json' ':!remotion/node_modules'
+            git commit -qm "OpenCode: ${TASK:0:70}" || true
+            if [ "$OK" = "1" ]; then
+              git fetch -q origin main && git rebase -q origin/main && git push -q origin HEAD:main && DONE="x" || { BR="opencode/task-${N}-${GITHUB_RUN_ID}"; git push -q origin "HEAD:refs/heads/$BR" || true; }
+            else
+              BR="opencode/failed-${N}-${GITHUB_RUN_ID}"; git push -q origin "HEAD:refs/heads/$BR" || true
+            fi
+          fi
+          git fetch -q origin main; git checkout -q -B main origin/main
           sed -i "${N}s/^- \[~\]/- [${DONE}]/" docs/OPENCODE_QUEUE.md
           git add docs/OPENCODE_QUEUE.md; git commit -qm "queue: task $N ${DONE}"; git push -q origin main
+          if grep -q '^- \[ \]' docs/OPENCODE_QUEUE.md; then gh workflow run opencode-loop.yml --ref main || true; fi

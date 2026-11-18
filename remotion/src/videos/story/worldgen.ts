@@ -2,7 +2,7 @@
 // All geometry is assembled from flat primitives; drawWorld(params,t) is deterministic for a given time.
 import * as THREE from "three";
 
-export type TerrainType = "forest"|"jungle"|"ocean"|"ocean-floor"|"mountain"|"canyon"|"desert"|"ice"|"plain"|"river"|"coast"|"swamp"|"cave"|"savanna"|"city"|"railway"|"airport"|"harbour";
+export type TerrainType = "forest"|"jungle"|"ocean"|"ocean-floor"|"mountain"|"canyon"|"desert"|"ice"|"plain"|"river"|"coast"|"swamp"|"cave"|"savanna"|"city"|"railway"|"airport"|"harbour"|"space";
 export type WeatherType = "clear"|"rain"|"snow"|"fog"|"storm"|"drought"|"wind";
 export type EraType = "stone-age"|"ancient"|"classical"|"medieval"|"early-modern"|"industrial"|"modern"|"viking"|"renaissance"|"victorian"|"1920s"|"ww2"|"near-future"|"space-age"|"space"|"egyptian"|"egypt"|"roman"|"greek"|"china"|"india"|"wild-west"|"pirate"|"ww1";
 export type RegionType = "european"|"african"|"east-asian"|"south-asian"|"middle-eastern"|"mesoamerican";
@@ -375,6 +375,42 @@ const settlement=(g:THREE.Group,p:WorldParams,t:number)=>{
     for(let i=0;i<3;i++){const x=-22+i*22;box(g,9,5,8,P.earth,x,2.5,-43);for(let k=0;k<4;k++)poly(g,[[x-4+k*1.3,5+k*.8,-47],[x,8+k*.8,-47],[x+4-k*1.3,5+k*.8,-47]],P.stone);}
   }
 };
+const spaceSet=(g:THREE.Group,p:WorldParams,t:number)=>{
+  // Deterministic starfield and a ringed world provide distant scale behind the cast.
+  const starPos=new Float32Array(360*3);
+  for(let i=0;i<360;i++){const a=hash(i,p.seed??11)*Math.PI*2,e=(hash(i,12)-.5)*Math.PI,r=420+hash(i,13)*520;starPos[i*3]=Math.cos(a)*Math.cos(e)*r;starPos[i*3+1]=Math.sin(e)*r;starPos[i*3+2]=-110-Math.sin(a)*Math.cos(e)*r;}
+  const sg=new THREE.BufferGeometry();sg.setAttribute("position",new THREE.BufferAttribute(starPos,3));
+  const stars=new THREE.Points(sg,new THREE.PointsMaterial({color:P.sky,size:2.1,sizeAttenuation:false,transparent:true,opacity:.88}));g.add(stars);
+  const planet=ball(g,31,P.sky,68,22,-145,1,1,1);planet.userData.spin={speed:.035};
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(47,2.2,8,72),new THREE.MeshLambertMaterial({color:P.accent,flatShading:true}));
+  ring.position.copy(planet.position);ring.rotation.set(1.12,.1,.16);ring.userData.spin={speed:.018};g.add(ring);
+  // Compact orbital station with a central pressure module, truss and broad solar wings.
+  const station=new THREE.Group();station.position.set(-58,12,-105);
+  box(station,19,3.8,4.2,P.stone,0,0,0);
+  box(station,8,5,5,P.earth,0,0,0);
+  box(station,1,1,24,P.shade,0,0,0);
+  for(const side of [-1,1]){
+    box(station,28,.35,11,P.sky,side*23,0,0);
+    for(let k=0;k<5;k++)box(station,1.2,.2,11,P.accent,side*(11+k*5),.3,0);
+    cylinder(station,.35,5,P.shade,side*37,0,0,8);
+  }
+  cylinder(station,.3,10,P.shade,0,5,0,8);ball(station,1.2,P.accent,0,10,0);
+  station.userData.orbit={phase:.3,baseX:-58,baseY:12};g.add(station);
+  // Black hole and luminous accretion disc sit as a separate distant story landmark.
+  const hole=new THREE.Mesh(new THREE.SphereGeometry(17,24,18),new THREE.MeshBasicMaterial({color:"#080a12"}));
+  hole.position.set(112,18,-195);g.add(hole);
+  const disc=new THREE.Mesh(new THREE.TorusGeometry(30,4.5,10,96),new THREE.MeshBasicMaterial({color:P.accent,transparent:true,opacity:.82}));
+  disc.position.copy(hole.position);disc.rotation.set(1.28,.15,.12);disc.userData.spin={speed:.11};g.add(disc);
+  const halo=new THREE.Mesh(new THREE.TorusGeometry(40,.8,6,96),new THREE.MeshBasicMaterial({color:P.reef,transparent:true,opacity:.5}));
+  halo.position.copy(hole.position);halo.rotation.copy(disc.rotation);halo.userData.spin={speed:-.06};g.add(halo);
+  // A loose asteroid belt gives foreground parallax; each rock has a deterministic orbit.
+  for(let i=0;i<34;i++){
+    const a=hash(i,31)*Math.PI*2,r=44+hash(i,32)*36,y=2+hash(i,33)*28;
+    const rock=ball(g,1.1+hash(i,34)*2.2,i%3?P.stone:P.earth,Math.cos(a)*r,y,-82+Math.sin(a)*r,1+hash(i,35),.7+hash(i,36),.8+hash(i,37));
+    rock.userData.asteroid={phase:a,radius:r,baseY:y,speed:.018+hash(i,38)*.012,centerZ:-82};
+  }
+  void t;
+};
 const mapLayer=(g:THREE.Group,p:WorldParams,t:number)=>{
   box(g,150,.5,180,MAP.paper,0,-.15,-24);
   // Southern Africa is the visual anchor: a tapered continent, east-coast curve and Madagascar.
@@ -444,7 +480,7 @@ export const drawArtifact=(type:ArtifactType,t=0):THREE.Group=>{
 export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
   const p: WorldParams={season:"summer",timeOfDay:"dawn",weather:"clear",era:"medieval",region:"african",...params};
   const g=new THREE.Group();g.name=p.mapMode?"HistoricalMapWorld":"ProceduralWorld";
-  if(p.mapMode){mapLayer(g,p,t);g.scale.set(.5,1,.72);}else{
+  if(p.mapMode){mapLayer(g,p,t);g.scale.set(.5,1,.72);}else if(p.terrain==="space"){spaceSet(g,p,t);}else{
     terrain(g,p,t);
     settlement(g,p,t);
     if(p.artifact){const a=drawArtifact(p.artifact,t);a.position.set(0,0,5);g.add(a);}
@@ -464,5 +500,5 @@ export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
   g.userData.worldParams=p;g.userData.time=t;return g;
 };
 export const animateWorld=(g:THREE.Group,t:number)=>{
-  g.traverse(o=>{const swim=o.userData.swim as {phase:number;baseX:number;baseY:number}|undefined;if(swim){o.position.x=swim.baseX+Math.sin(t*.55+swim.phase)*2.2;o.position.y=swim.baseY+Math.sin(t*1.3+swim.phase)*.35;o.rotation.y=Math.sin(t*.4+swim.phase)*.12;}const ray=o.userData.ray as {phase:number}|undefined;if(ray&&o instanceof THREE.Mesh&&o.material instanceof THREE.MeshBasicMaterial)o.material.opacity=.055+.025*(.5+.5*Math.sin(t*.7+ray.phase));const wave=o.userData.waveSurface as boolean|undefined;if(wave&&o instanceof THREE.Mesh){const a=o.geometry as THREE.PlaneGeometry,pos=a.attributes.position;for(let i=0;i<pos.count;i++){const x=pos.getX(i),y=pos.getY(i);pos.setZ(i,Math.sin(x*.12+t*.8)*.18+Math.cos(y*.1-t*.6)*.12);}pos.needsUpdate=true;a.computeVertexNormals();}const water=o.userData.waterWave as {phase:number;baseY:number}|undefined;if(water)o.position.y=water.baseY+Math.sin(t*.8+water.phase)*.08;const mark=o.userData.waveMark as {phase:number;baseY:number}|undefined;if(mark)o.position.y=mark.baseY+Math.sin(t*.9+mark.phase)*.035;const routeIndex=o.userData.routeIndex as number|undefined;if(routeIndex!==undefined)o.visible=routeIndex<Math.floor(clamp(t/3)*26);const s=o.userData.sway as {phase:number;amp:number}|undefined;if(s)o.rotation.z=Math.sin(t*1.3+s.phase)*s.amp;const smoke=o.userData.smokeParticle as {phase:number;baseY:number}|undefined;if(smoke){o.position.y=smoke.baseY+((t*1.5+smoke.phase)%5);o.scale.setScalar(.7+((t*.35+smoke.phase)%1)*.5);}const w=o.userData.weatherParticle as {kind:string;baseX:number;baseY:number;baseZ:number;phase:number;index:number}|undefined;if(w){if(w.kind==="rain"||w.kind==="storm")o.position.y=2+((w.baseY-2-t*(w.kind==="storm"?14:8))%14+14)%14;else if(w.kind==="snow")o.position.y=2+((w.baseY-2-t*.8)%14+14)%14;else if(w.kind==="fog"){o.position.x=w.baseX+Math.sin(t*.12+w.phase)*2;o.position.y=w.baseY+Math.sin(t*.2+w.phase)*.2;}else if(w.kind==="drought"){o.position.x=w.baseX+Math.sin(t*.35+w.phase)*2.4+t*.18;o.position.y=w.baseY+Math.sin(t*.7+w.phase)*.35;}else o.position.x=w.baseX+Math.sin(t*.7+w.phase)*.8;}});
+  g.traverse(o=>{const spin=o.userData.spin as {speed:number}|undefined;if(spin)o.rotation.y+=spin.speed/30;const orbit=o.userData.orbit as {phase:number;baseX:number;baseY:number}|undefined;if(orbit){o.position.x=orbit.baseX+Math.sin(t*.08+orbit.phase)*4;o.position.y=orbit.baseY+Math.cos(t*.08+orbit.phase)*1.2;}const asteroid=o.userData.asteroid as {phase:number;radius:number;baseY:number;speed:number;centerZ:number}|undefined;if(asteroid){const a=asteroid.phase+t*asteroid.speed;o.position.x=Math.cos(a)*asteroid.radius;o.position.z=asteroid.centerZ+Math.sin(a)*asteroid.radius;o.position.y=asteroid.baseY+Math.sin(a*1.7)*1.5;o.rotation.y+=.01;}const swim=o.userData.swim as {phase:number;baseX:number;baseY:number}|undefined;if(swim){o.position.x=swim.baseX+Math.sin(t*.55+swim.phase)*2.2;o.position.y=swim.baseY+Math.sin(t*1.3+swim.phase)*.35;o.rotation.y=Math.sin(t*.4+swim.phase)*.12;}const ray=o.userData.ray as {phase:number}|undefined;if(ray&&o instanceof THREE.Mesh&&o.material instanceof THREE.MeshBasicMaterial)o.material.opacity=.055+.025*(.5+.5*Math.sin(t*.7+ray.phase));const wave=o.userData.waveSurface as boolean|undefined;if(wave&&o instanceof THREE.Mesh){const a=o.geometry as THREE.PlaneGeometry,pos=a.attributes.position;for(let i=0;i<pos.count;i++){const x=pos.getX(i),y=pos.getY(i);pos.setZ(i,Math.sin(x*.12+t*.8)*.18+Math.cos(y*.1-t*.6)*.12);}pos.needsUpdate=true;a.computeVertexNormals();}const water=o.userData.waterWave as {phase:number;baseY:number}|undefined;if(water)o.position.y=water.baseY+Math.sin(t*.8+water.phase)*.08;const mark=o.userData.waveMark as {phase:number;baseY:number}|undefined;if(mark)o.position.y=mark.baseY+Math.sin(t*.9+mark.phase)*.035;const routeIndex=o.userData.routeIndex as number|undefined;if(routeIndex!==undefined)o.visible=routeIndex<Math.floor(clamp(t/3)*26);const s=o.userData.sway as {phase:number;amp:number}|undefined;if(s)o.rotation.z=Math.sin(t*1.3+s.phase)*s.amp;const smoke=o.userData.smokeParticle as {phase:number;baseY:number}|undefined;if(smoke){o.position.y=smoke.baseY+((t*1.5+smoke.phase)%5);o.scale.setScalar(.7+((t*.35+smoke.phase)%1)*.5);}const w=o.userData.weatherParticle as {kind:string;baseX:number;baseY:number;baseZ:number;phase:number;index:number}|undefined;if(w){if(w.kind==="rain"||w.kind==="storm")o.position.y=2+((w.baseY-2-t*(w.kind==="storm"?14:8))%14+14)%14;else if(w.kind==="snow")o.position.y=2+((w.baseY-2-t*.8)%14+14)%14;else if(w.kind==="fog"){o.position.x=w.baseX+Math.sin(t*.12+w.phase)*2;o.position.y=w.baseY+Math.sin(t*.2+w.phase)*.2;}else if(w.kind==="drought"){o.position.x=w.baseX+Math.sin(t*.35+w.phase)*2.4+t*.18;o.position.y=w.baseY+Math.sin(t*.7+w.phase)*.35;}else o.position.x=w.baseX+Math.sin(t*.7+w.phase)*.8;}});
 };

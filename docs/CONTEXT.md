@@ -238,6 +238,11 @@
 - Both: update this file on every change; never claim "works" without viewing rendered frames; never send the owner a video that has not been frame-checked.
 ## CHANGELOG
 
+### 2026-11-19 — Create qa_frames.mjs video QA script
+- Created `remotion/scripts/qa_frames.mjs`: given a video path, extracts one frame every 3 s using ffmpeg, generates a contact sheet JPG (`contact_sheet.jpg`), and writes a JSON report (`qa_report.json`) flagging near-uniform frames (flat colour, std-dev < 12) as "empty scene".
+- **Usage**: `node remotion/scripts/qa_frames.mjs <video_path> [output_directory]`
+- Verified clean TypeScript compilation with `npx tsc --noEmit`.
+
 ### 2026-11-18 — Add 3D sea world preset in worldgen.ts
 - Added animated 3D sea world preset in `remotion/src/videos/story/worldgen.ts` exposed via `WorldParams world.kind="sea"` featuring animated ocean surface (wave displacement, foam, sun glint, depth colour), bobbing ships/boats, and underwater camera mode (blue fog, shimmering caustics, and rising bubbles). Verified clean TypeScript compilation with `npx tsc --noEmit`.
 
@@ -536,3 +541,4 @@ Render stills with the props-test workflow (build a board in `remotion/story_pro
 - 2026-11-19 Claude: Alexander test video v5 delivered to owner (52 s, run 44476233518). Good: locations per scene, Greek vs Persian armies, ranks, camera variety. Weak: India shows pines, Egypt generic castle, hair blob, some head crops, tiny wide-shot characters. Queued mountain + pyramid tasks.
 - 2026-11-19 Claude: owner feedback on test v5: narration delayed (fixed: make_voice PAD .45->.10, LEAD 0, trim TTS silence, min dur 1.0, silent scenes 0.7 s); music bed replaced with livelier 104 bpm pulse+backbeat+hats, whoosh on every cut removed; floating "coin" = royal_bed prop rendered as 2D sticker -> queued 3D props for all nouns; ship sailing sequence, faster camera, depth/fog/contact shadows, real music, role-by-era queued as OWNER PRIORITY tasks. Claude weekly limit ~89% (resets Fri 12:00): agents (OpenCode/Qwen/Gemini) carry the queue.
 - 2026-11-19 Claude: v6 feedback: narration broke mid-sentence (planner splits sentences into fragment scenes, each TTS'd separately) -> make_voice.py now synthesises whole sentences and cuts audio into scenes at quiet points; TTS speed 1.18->1.08. Camera "tornado": actionSegs azimuth swings cut ~4x (±6-9° instead of ±22-32°, base*0.5), sub-cuts every 2.8 s, vehicle orbit 36° not 180°/segment. Background blur only where needed: queued.
+- 2026-11-19 OpenCode: created `remotion/scripts/qa_frames.mjs` to extract one frame every 3s with ffmpeg, generate a contact sheet JPG, and write a JSON report flagging near-uniform frames (std-dev < 12) as empty scene; documented usage in `docs/CONTEXT.md`.

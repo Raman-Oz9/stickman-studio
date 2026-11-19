@@ -18,14 +18,22 @@ export const GreatZimbabweBackdrop: React.FC<Props> = ({ frame, variant = 0 }) =
         <radialGradient id="gz-sun"><stop stopColor="#fff4c9" stopOpacity=".95"/><stop offset=".55" stopColor="#ffd48b" stopOpacity=".42"/><stop offset="1" stopColor="#ffd48b" stopOpacity="0"/></radialGradient>
         <pattern id="gz-masonry" width="76" height="48" patternUnits="userSpaceOnUse"><path d="M1 3H36L40 22H4ZM43 4H75V22H41ZM3 27H29L34 46H0ZM38 27H75V46H35Z" fill="none" stroke="#594938" strokeWidth="2.8" opacity=".68"/><path d="M5 6L33 5M45 7L70 7" stroke="#f2dfbd" strokeWidth="2" opacity=".42"/></pattern>
         <pattern id="gz-grain" width="44" height="44" patternUnits="userSpaceOnUse"><circle cx="7" cy="9" r="1.4" fill="#473c30" opacity=".22"/><circle cx="29" cy="28" r="1.2" fill="#fff0c9" opacity=".3"/></pattern>
+        <linearGradient id="gz-haze" x2="0" y2="1"><stop stopColor="#f5d7ad" stopOpacity="0"/><stop offset="1" stopColor="#f5d7ad" stopOpacity=".2"/></linearGradient>
+        <clipPath id="gz-wall-clip"><path d="M105 1330L145 1045Q160 955 260 930L790 930Q900 955 935 1050L980 1330Z"/></clipPath>
         <filter id="gz-soft"><feGaussianBlur stdDeviation="28"/></filter>
         <filter id="gz-shadow"><feGaussianBlur stdDeviation="12"/></filter>
       </defs>
       <rect width="1080" height="1920" fill="url(#gz-sky)"/>
       <circle cx="805" cy="360" r="260" fill="url(#gz-sun)"/>
       <circle cx="805" cy="360" r="92" fill="#ffe3a1" opacity=".9"/>
+      <g transform={`translate(${Math.sin(frame / 250) * 16} 0)`} opacity=".48">
+        <path d="M65 520Q115 462 170 510Q220 452 280 505Q322 512 325 540H45Q40 528 65 520Z" fill="#f7dfbd" stroke="#725a47" strokeWidth="3"/>
+        <path d="M650 620Q700 565 755 610Q805 555 860 605Q905 610 908 638H630Q625 628 650 620Z" fill="#f7dfbd" stroke="#725a47" strokeWidth="3"/>
+      </g>
+      <rect y="620" width="1080" height="650" fill="url(#gz-haze)" opacity=".62"/>
       <path d="M0 840L92 725 160 760 255 610 337 710 425 575 514 704 615 590 710 704 824 555 921 700 1008 612 1080 690V1180H0Z" fill="#5e6670"/>
       <path d="M0 930L120 805 214 848 322 700 410 792 520 690 614 820 742 690 835 815 956 675 1080 770V1240H0Z" fill="#72705f"/>
+      <path d="M40 850L255 610 337 710 425 575 514 704M520 690L614 820 742 690 835 815" fill="none" stroke="#c5b18c" strokeWidth="7" opacity=".24"/>
       <g fill="#87704e" opacity=".85"><path d="M80 1060Q80 900 210 840Q330 850 350 1060Z"/><path d="M730 1030Q760 850 885 815Q1010 850 1040 1040Z"/><path d="M420 1000Q455 825 550 790Q650 835 690 1010Z"/></g>
       <path d="M0 1040Q220 920 420 1030T810 1000T1080 1030V1920H0Z" fill="#8a805a"/>
       <path d="M0 1190Q180 1080 380 1185T760 1150T1080 1180V1920H0Z" fill="#a88b55"/>
@@ -35,12 +43,16 @@ export const GreatZimbabweBackdrop: React.FC<Props> = ({ frame, variant = 0 }) =
       <ellipse cx="550" cy="1325" rx="460" ry="72" fill="#3c3028" opacity=".35" filter="url(#gz-shadow)"/>
       <path d="M105 1330L145 1045Q160 955 260 930L790 930Q900 955 935 1050L980 1330Z" fill="url(#gz-stone)" stroke="#493d31" strokeWidth="20"/>
       <path d="M105 1330L145 1045Q160 955 260 930L790 930Q900 955 935 1050L980 1330Z" fill="url(#gz-masonry)" opacity=".88"/>
+      <g clipPath="url(#gz-wall-clip)" opacity=".34">
+        <path d="M135 1040Q310 1015 480 1040T850 1038M115 1120Q320 1090 520 1120T950 1110M105 1210Q310 1185 540 1215T980 1200" fill="none" stroke="#f2dfbd" strokeWidth="8"/>
+        <path d="M170 1075L205 1060 225 1078M410 1150L445 1135 468 1154M700 1090L730 1075 750 1094M820 1240L850 1225 875 1242" fill="none" stroke="#4b3c30" strokeWidth="6"/>
+      </g>
       <path d="M105 1330L145 1045Q160 955 260 930L790 930Q900 955 935 1050L980 1330" fill="none" stroke="#e2c69b" strokeWidth="12" opacity=".75"/>
       <path d="M430 1330Q425 1160 500 1110H620Q695 1160 690 1330Z" fill="#554535" stroke="#3e3329" strokeWidth="15"/>
       <path d="M455 1330Q454 1180 515 1145H605Q666 1180 665 1330Z" fill="#2c2926"/>
       <g transform="translate(0 0)">
-        <path d="M565 1290L565 845Q565 790 625 770Q685 790 685 845L685 1290Z" fill="url(#gz-tower)" stroke="#473a2e" strokeWidth="17"/>
-        <path d="M565 1290L565 845Q565 790 625 770Q685 790 685 845L685 1290Z" fill="url(#gz-masonry)" opacity=".75"/>
+        <path d="M565 1290L580 845Q590 790 625 760Q660 790 670 845L685 1290Z" fill="url(#gz-tower)" stroke="#473a2e" strokeWidth="17"/>
+        <path d="M565 1290L580 845Q590 790 625 760Q660 790 670 845L685 1290Z" fill="url(#gz-masonry)" opacity=".75"/>
         <path d="M573 860Q625 805 677 860" fill="none" stroke="#f0d7ae" strokeWidth="8" opacity=".75"/>
         {Array.from({length:8},(_,i)=><path key={i} d={`M ${572-i*.5} ${890+i*48} Q 625 ${906+i*48} ${678+i*.5} ${890+i*48}`} fill="none" stroke="#594736" strokeWidth="4" opacity=".7"/>)}
       </g>
@@ -67,6 +79,14 @@ export const GreatZimbabweBackdrop: React.FC<Props> = ({ frame, variant = 0 }) =
           <g fill="none" stroke="#f0d5a0" strokeWidth="5"><path d="M120 1530L120 1560M255 1530L255 1560M770 1530L770 1560M905 1530L905 1560"/></g>
         </g>
       ) : null}
+      <g fill="none" stroke="#e6c28a" strokeWidth="6" opacity=".48">
+        <path d="M55 1275L175 1160 295 1275M780 1260L900 1140 1020 1260M295 1360L385 1270 475 1360"/>
+        <path d="M110 1425H265M835 1425H970" stroke="#4b392c" strokeWidth="5" opacity=".5"/>
+      </g>
+      <g transform={`translate(${Math.sin(frame / 160) * 11} 0)`} opacity=".5">
+        <path d="M0 1580Q180 1510 350 1580T700 1570T1080 1575" fill="none" stroke="#e0bd7f" strokeWidth="7"/>
+        <path d="M0 1650Q230 1585 460 1650T920 1640T1080 1645" fill="none" stroke="#4d5139" strokeWidth="6"/>
+      </g>
       {/* Acacia silhouettes frame the scene; wind moves only the small crown branches. */}
       <g fill="#3e4936" stroke="#3e4936" strokeLinecap="round">
         <path d="M60 1510Q85 1300 155 1100M155 1100L100 1015M155 1100L235 1010" fill="none" strokeWidth="24"/>
@@ -96,6 +116,14 @@ export const GreatZimbabweBackdrop: React.FC<Props> = ({ frame, variant = 0 }) =
       {/* Worn ochre processional path leads the eye from the viewer toward the city gate. */}
       <path d="M350 1920Q410 1670 470 1480Q510 1380 545 1320L630 1320Q585 1435 590 1510Q630 1730 720 1920Z" fill="#d8b574" opacity=".88"/>
       <path d="M430 1920Q470 1700 525 1510" fill="none" stroke="#f5d89e" strokeWidth="8" opacity=".6"/>
+      <g opacity=".58" fill="#5c4a34" stroke="#40372b" strokeWidth="5">
+        <path d="M65 1775L90 1738 116 1775Z"/><path d="M220 1845L252 1800 282 1845Z"/>
+        <path d="M760 1790L792 1745 824 1790Z"/><path d="M960 1850L990 1808 1022 1850Z"/>
+        <path d="M420 1705L446 1670 472 1705Z"/>
+      </g>
+      <g transform={`translate(${Math.sin(frame / 170) * 10} 0)`} fill="none" stroke="#d6b77f" strokeWidth="5" opacity=".42">
+        <path d="M90 1900Q135 1845 185 1890M330 1885Q380 1825 430 1878M700 1905Q750 1840 800 1892M900 1870Q950 1810 1000 1860"/>
+      </g>
       {/* Foreground grasses add depth and frame the guide character. */}
       <g strokeLinecap="round" fill="none">
         {Array.from({length:34},(_,i)=>{const x=(i*137)%1080,y=1770+(i%7)*21,h=55+(i%5)*16;return <path key={i} d={`M ${x} 1920 Q ${x-14+wind*5} ${y+h/2} ${x+9+wind*8} ${y}`} stroke={i%3?"#4e5638":"#d5b06c"} strokeWidth={i%4===0?8:5} opacity=".8"/>;})}

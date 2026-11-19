@@ -28,6 +28,22 @@ export const IllustratedWorld2D: React.FC<{ frame: number; kind: IllustratedWorl
           <path d="M0 0L90 0 78 60 12 60Z" fill="none" stroke="#302a29" strokeWidth="3" opacity=".28" />
           <path d="M10 8L75 8M20 52L70 52" stroke="#e0bb7c" strokeWidth="2" opacity=".18" />
         </pattern>
+        <pattern id="iw-fabric" width="34" height="34" patternUnits="userSpaceOnUse">
+          <path d="M0 8H34M0 25H34" stroke="#f3dfb9" strokeWidth="4" opacity=".52" />
+          <path d="M8 0V34M25 0V34" stroke="#293b39" strokeWidth="2" opacity=".25" />
+        </pattern>
+        <pattern id="iw-woodgrain" width="64" height="24" patternUnits="userSpaceOnUse">
+          <path d="M0 6Q16 0 32 6T64 6M0 17Q16 11 32 17T64 17" fill="none" stroke="#3d2d27" strokeWidth="2" opacity=".35" />
+          <path d="M8 11Q22 7 35 11" fill="none" stroke="#f0c78a" strokeWidth="1.5" opacity=".38" />
+        </pattern>
+        <pattern id="iw-rockgrain" width="42" height="36" patternUnits="userSpaceOnUse">
+          <path d="M0 9L13 4 25 11 42 5M2 29L15 22 30 28" fill="none" stroke="#584638" strokeWidth="2.5" opacity=".38" />
+          <path d="M8 15L17 12M29 32L38 29" stroke="#f0d6a7" strokeWidth="2" opacity=".35" />
+        </pattern>
+        <linearGradient id="iw-haze" x2="0" y2="1">
+          <stop stopColor="#f6d9aa" stopOpacity="0" />
+          <stop offset="1" stopColor="#f6d9aa" stopOpacity=".22" />
+        </linearGradient>
         <pattern id="iw-grain" width="34" height="34" patternUnits="userSpaceOnUse">
           <circle cx="5" cy="8" r="1.2" fill="#fff1ce" opacity=".22" /><circle cx="24" cy="20" r="1" fill="#211d22" opacity=".17" />
           <path d="M13 28l4 -2" stroke="#fff1ce" strokeWidth="1" opacity=".16" />
@@ -38,9 +54,16 @@ export const IllustratedWorld2D: React.FC<{ frame: number; kind: IllustratedWorl
       <rect width="1080" height="1920" fill="url(#iw-sky)" />
       <circle cx="840" cy="260" r="170" fill="#f5d28a" opacity=".2" filter="url(#iw-glow)" />
       <circle cx="840" cy="260" r="74" fill="#f6d98e" opacity=".82" />
-      <g transform={"translate(" + drift + " 0)"}>
+      <g transform={"translate(" + (Math.sin(frame / 240) * 18) + " 0)"} opacity=".52">
+        <path d="M70 440Q115 385 165 430Q205 380 255 425Q300 432 300 460H55Q45 448 70 440Z" fill="#f2ddbf" stroke="#6e5c4c" strokeWidth="3" />
+        <path d="M655 565Q700 515 748 555Q790 505 842 548Q885 555 885 582H640Q630 570 655 565Z" fill="#f2ddbf" stroke="#6e5c4c" strokeWidth="3" />
+      </g>
+      <rect y="650" width="1080" height="520" fill="url(#iw-haze)" opacity=".65" />
+      <g transform={"translate(" + (drift * .34) + " 0)"}>
         <path d="M0 770Q140 560 280 710Q430 470 580 690Q760 480 900 690Q1010 560 1120 730V1250H0Z" fill="#48575a" stroke="#27262b" strokeWidth="12" />
         <path d="M0 920Q150 700 300 870Q460 650 620 880Q780 680 950 870Q1030 810 1120 900V1300H0Z" fill="#72765f" stroke="#27262b" strokeWidth="10" />
+        <path d="M85 790Q245 650 390 780T710 770T1040 760" fill="none" stroke="#a9a58b" strokeWidth="7" opacity=".28" />
+        <path d="M40 950Q220 810 380 930T740 920T1060 930" fill="none" stroke="#d0b98a" strokeWidth="5" opacity=".24" />
         <path d="M0 1090Q180 910 340 1080Q500 900 670 1080Q850 900 1080 1080V1450H0Z" fill="#9a805a" opacity=".82" />
         <path d="M65 1050Q540 820 1010 1050V1370H65Z" fill="url(#iw-stone)" stroke="#282329" strokeWidth="15" />
         <path d="M65 1050Q540 820 1010 1050V1370H65Z" fill="url(#iw-masonry)" opacity=".9" />
@@ -51,6 +74,11 @@ export const IllustratedWorld2D: React.FC<{ frame: number; kind: IllustratedWorl
       </g>
       <rect y="1320" width="1080" height="600" fill="url(#iw-ground)" />
       <rect y="1320" width="1080" height="600" fill="url(#iw-floor)" opacity=".7" />
+      <path d="M0 1515Q180 1470 360 1510T720 1505T1080 1510" fill="none" stroke="#e0bd83" strokeWidth="7" opacity=".22" />
+      <g opacity=".28" fill="#3c3029">
+        <ellipse cx="110" cy="1660" rx="26" ry="10" /><ellipse cx="305" cy="1785" rx="34" ry="12" />
+        <ellipse cx="790" cy="1695" rx="29" ry="9" /><ellipse cx="980" cy="1810" rx="38" ry="12" />
+      </g>
 
       {kind === "market" ? (
         <g stroke="#282329" strokeWidth="12" strokeLinejoin="round" strokeLinecap="round">
@@ -82,6 +110,23 @@ export const IllustratedWorld2D: React.FC<{ frame: number; kind: IllustratedWorl
           <path d="M870 1310Q860 1260 900 1240Q940 1260 930 1310Z" fill="#d6a65e" />
           <ellipse cx="900" cy="1240" rx="34" ry="10" fill="#f0d5a1" />
           <path d="M80 1450H1000" stroke="#e7c58b" strokeWidth="7" opacity=".55" />
+        </g>
+      ) : null}
+
+      {kind === "market" ? (
+        <g stroke="#49372e" strokeWidth="7" strokeLinejoin="round" strokeLinecap="round">
+          <path d="M32 1055L252 850 480 1055Z" fill="url(#iw-fabric)" opacity=".68" stroke="none" />
+          <path d="M590 1060L810 850 1040 1060Z" fill="url(#iw-fabric)" opacity=".62" stroke="none" />
+          <path d="M95 1055Q250 1000 420 1055M655 1060Q810 1005 980 1060" fill="none" stroke="#f0d4a5" strokeWidth="8" opacity=".8" />
+          <path d="M130 1070L145 1100M205 1000L218 1038M285 1000L298 1038M365 1070L380 1100M690 1075L705 1105M770 1000L785 1038M850 1000L865 1038M930 1075L945 1105" stroke="#614331" strokeWidth="5" />
+          <path d="M135 1140H375V1190H135Z" fill="#d6b67c" />
+          <path d="M155 1165H355" stroke="#8a5c3b" strokeWidth="7" />
+          <path d="M120 1320H410V1375H120Z" fill="url(#iw-woodgrain)" opacity=".48" />
+          <path d="M680 1320H960V1375H680Z" fill="url(#iw-woodgrain)" opacity=".48" />
+          <path d="M120 1395L165 1365 210 1395V1450H120Z" fill="#8a603d" />
+          <path d="M870 1395L915 1365 960 1395V1450H870Z" fill="#8a603d" />
+          <path d="M140 1410H190M890 1410H940" stroke="#e5c38a" strokeWidth="5" />
+          <path d="M480 1430Q510 1385 540 1430Q570 1385 600 1430" fill="none" stroke="#c99c5f" strokeWidth="7" opacity=".6" />
         </g>
       ) : null}
 
@@ -123,6 +168,23 @@ export const IllustratedWorld2D: React.FC<{ frame: number; kind: IllustratedWorl
         </g>
       ) : null}
 
+      {kind === "workshop" ? (
+        <g stroke="#49382f" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M125 760L430 1010 405 1070Z" fill="#fff0c8" opacity=".08" stroke="none" />
+          <path d="M150 1070H430" stroke="#302a29" strokeWidth="17" />
+          <path d="M160 1060H420" stroke="#d7b57c" strokeWidth="5" />
+          <path d="M205 1070V1135M290 1070V1120M375 1070V1140" stroke="#6c4935" strokeWidth="7" />
+          <path d="M190 1135L205 1155 220 1135 205 1105Z" fill="#8c6847" />
+          <path d="M276 1120L290 1145 304 1120 290 1088Z" fill="#9b7148" />
+          <path d="M360 1140L375 1160 390 1140 375 1105Z" fill="#8b6545" />
+          <path d="M690 1135Q770 1160 850 1135" fill="none" stroke="#e4b779" strokeWidth="7" opacity=".65" />
+          <path d="M700 1080Q770 1110 840 1080M710 1055Q770 1082 830 1055" fill="none" stroke="#5a3a2c" strokeWidth="5" opacity=".7" />
+          <path d="M110 1315H975V1360H110Z" fill="url(#iw-woodgrain)" opacity=".5" stroke="none" />
+          <path d="M545 1335L570 1300 595 1335M630 1335L655 1300 680 1335" fill="none" stroke="#49352b" strokeWidth="6" />
+          <path d="M545 1385H715" stroke="#e1bc7c" strokeWidth="5" opacity=".5" />
+        </g>
+      ) : null}
+
       {kind === "quarry" ? (
         <g stroke="#282329" strokeWidth="13" strokeLinejoin="round" strokeLinecap="round">
           <path d="M0 1070L130 800 280 930 430 690 600 900 770 650 930 890 1080 760V1510H0Z" fill="#77725c" />
@@ -141,6 +203,30 @@ export const IllustratedWorld2D: React.FC<{ frame: number; kind: IllustratedWorl
         </g>
       ) : null}
 
+      {kind === "quarry" ? (
+        <g fill="none" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M35 1000Q160 930 270 1010T510 980T770 1000T1060 960" stroke="#e1c18e" strokeWidth="8" opacity=".48" />
+          <path d="M80 1080Q210 1015 340 1080T620 1065T910 1080" stroke="#5b4b3b" strokeWidth="7" opacity=".4" />
+          <path d="M150 850L180 900 155 955M440 790L415 855 450 915M780 760L750 835 790 890" stroke="#4a4037" strokeWidth="9" opacity=".55" />
+          <path d="M100 1355H320V1508H100ZM350 1315H560V1508H350ZM595 1355H810V1508H595Z" fill="url(#iw-rockgrain)" opacity=".58" stroke="none" />
+          <path d="M835 1200V1510M835 1210L1000 1080M835 1290L1000 1160M875 1170V1510M935 1115V1510M990 1075V1510" stroke="#49392e" strokeWidth="9" opacity=".72" />
+          <path d="M835 1210L1000 1080M835 1290L1000 1160" stroke="#d7b77f" strokeWidth="3" opacity=".55" />
+          <path d="M100 1510L145 1465 190 1510M245 1510L285 1478 330 1510M620 1510L665 1468 710 1510M880 1510L925 1470 970 1510" stroke="#d2b17a" strokeWidth="8" opacity=".7" />
+          <g fill="#c7a678" stroke="#594534" strokeWidth="5">
+            <path d="M130 1570L155 1538 185 1570Z" /><path d="M270 1620L302 1578 340 1620Z" />
+            <path d="M735 1580L765 1540 805 1580Z" /><path d="M930 1650L962 1608 1000 1650Z" />
+          </g>
+        </g>
+      ) : null}
+
+      <g transform={"translate(" + (drift * 1.65) + " 0)"} opacity=".52">
+        <path d="M0 1790Q160 1745 320 1790T640 1785T960 1790T1080 1780V1920H0Z" fill="#282b28" opacity=".2" />
+        {Array.from({ length: 18 }, (_, i) => {
+          const x = (i * 113) % 1080;
+          const y = 1685 + (i % 5) * 38;
+          return <path key={i} d={`M ${x} ${y + 24} Q ${x + 12} ${y + 2} ${x + 25} ${y + 18} Q ${x + 42} ${y + 3} ${x + 53} ${y + 25}`} fill="none" stroke={i % 3 === 0 ? "#d6b77f" : "#3e4936"} strokeWidth={i % 4 === 0 ? 7 : 5} />;
+        })}
+      </g>
       <g transform={"translate(" + (sway * 4) + " 0)"} fill="none" stroke="#34302b" strokeWidth="9" strokeLinecap="round">
         <path d="M0 1750Q28 1640 42 1570M42 1780Q60 1660 94 1610M1030 1780Q1000 1650 1018 1580M1080 1750Q1045 1640 1060 1590" />
         <path d="M12 1660l-25 -30M50 1690l28 -34M1015 1670l-28 -34M1060 1690l25 -32" stroke="#9c9a68" strokeWidth="7" />

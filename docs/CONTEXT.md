@@ -106,6 +106,11 @@
 - Both: update this file on every change; never claim "works" without viewing rendered frames; never send the owner a video that has not been frame-checked.
 ## CHANGELOG
 
+### 2026-11-18 — Create verb_check.mjs script and report unmapped sentences
+- Created `remotion/scripts/verb_check.mjs` loading 42 sample sentences across history, space, and ocean domains and checking `verbFromText` mappings.
+- Reported unmapped sentences: "Cleopatra sailed down the Nile river on her royal barge", "Vikings sailed their longship across the stormy northern seas", "The astronaut floated effortlessly in zero gravity", "The lunar rover drove across the grey cratered moon", "Astronauts conducted spacewalks outside the orbiting station", "Scientists analyzed alien rock samples in the laboratory", "A massive asteroid drifted silently through the void", "The probe photographed the swirling storms of Jupiter", "Spacecraft docked smoothly with the international station", "Stars twinkled brightly as the spaceship accelerated faster", "Divers explored the mysterious underwater shipwreck", "Crabs scuttled across the sandy ocean floor near rocks", "Giant octopuses glided silently through dark kelp forests".
+- Verified clean TypeScript compilation with `npx tsc --noEmit`.
+
 ### 2026-11-18 — Create Effects2D.tsx ink-style SVG effects
 - Created `remotion/src/videos/story/Effects2D.tsx` containing ink-style SVG effect components taking `x, y, t` (dust puff, speed lines, impact star, sweat drops, sparkle, floating question mark, light bulb, anger vein, zzz). Verified clean TypeScript compilation with `npx tsc --noEmit`.
 

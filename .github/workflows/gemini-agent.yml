@@ -1,0 +1,103 @@
+name: Gemini Agent
+
+# Independent, manually dispatched coding agent. Uses Google's Gemini CLI and
+# the existing GEMINI_API_KEY secret. It opens a reviewable PR and never merges.
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: "A focused coding task for the Gemini agent"
+        required: true
+        type: string
+
+concurrency:
+  group: gemini-agent-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  gemini-agent:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Check out trusted main
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Create isolated agent branch
+        env:
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          git config user.name "gemini-agent"
+          git config user.email "gemini-agent@users.noreply.github.com"
+          git switch -c "gemini-agent/task-${RUN_ID}"
+
+      - name: Run Gemini CLI
+        id: gemini
+        uses: google-github-actions/run-gemini-cli@v0.1.22
+        with:
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          gemini_model: gemini-3.5-flash-lite
+          prompt: |
+            You are the independent Gemini coding agent for Raman-Oz9/stickman-studio.
+
+            First read AGENTS.md, docs/CONTEXT.md, docs/HANDOFF.md,
+            docs/REFERENCE_VIDEO_V2.md, and the relevant source/skill files.
+
+            Implement this focused task:
+            ${{ inputs.task }}
+
+            Preserve the production architecture: real 3D Three.js StoryWorld
+            with the 2D ink 3D-skeleton character rig. Respect file ownership:
+            do not overwrite or undo Claude's or OpenCode's work. Make only
+            scoped changes related to the task. Do not modify GitHub workflows,
+            agent credentials, or another agent's queue. Do not commit, push,
+            or merge; this workflow handles the review branch and pull request.
+            Update docs/CONTEXT.md with a concise dated record of your changes.
+            Leave the workspace ready for the workflow's strict TypeScript check.
+
+      - name: Validate and open a review PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.run_id }}
+          TASK: ${{ inputs.task }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "Gemini made no repository changes; no PR will be opened."
+            exit 1
+          fi
+
+          npm --prefix remotion ci --no-audit --no-fund
+          npm --prefix remotion exec -- tsc --noEmit
+          rm -rf remotion/node_modules
+
+          git add -A
+          git commit -m "Gemini: ${TASK:0:72}"
+          BRANCH="gemini-agent/task-${RUN_ID}"
+          git push --set-upstream origin "$BRANCH"
+
+          gh pr create \
+            --base main \
+            --head "$BRANCH" \
+            --title "Gemini agent: ${TASK:0:72}" \
+            --body "Automated Gemini CLI changes for the requested task.
+
+          - Strict Remotion TypeScript check passed.
+          - Changes are isolated on this branch for review.
+          - This workflow never merges automatically.
+
+          Please review the diff and rendered output before merging."

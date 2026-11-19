@@ -28,7 +28,7 @@ const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
   if(p.terrain==="ocean-floor"){
     // The cast stands on a broad sandy seabed; a translucent animated surface and light shafts
     // establish that the whole set is submerged rather than a flat blue floor.
-    // Keep one continuous seabed surface; a second nearly coplanar slab caused visual shimmer.
+    // The main terrain slab already covers the seabed, so avoid a redundant overlapping slab.
     for(let i=0;i<16;i++){
       const x=(hash(i,4)-.5)*145,z=-8-hash(i,5)*105,r=1.2+hash(i,6)*3.2;
       const rock=ball(g,r,i%3===0?P.shade:P.stone,x,r*.32,z,1.2,.65,1.05);

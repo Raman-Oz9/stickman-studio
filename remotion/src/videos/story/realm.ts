@@ -89,6 +89,47 @@ export const buildCity = () => {
 };
 const dockStuff = () => grp(mk(B(14, 0.3, 40), "#8a5a2b", 0, -0.12, -22), ...Array.from({ length: 30 }, (_, i) => mk(B(14, 0.02, 0.1), "#6b3f1c", 0, 0.05, -2 - i * 1.3)), ...Array.from({ length: 8 }, (_, i) => mk(C(0.25, 0.25, 3, 8), "#5a3b1e", i % 2 ? 7 : -7, -1, -4 - Math.floor(i / 2) * 9)));
 
+const pyramidsAndSphinx = () => {
+  const g = new THREE.Group();
+  const steppedPyramid = (w: number, h: number, d: number, col: string) => {
+    const pg = new THREE.Group();
+    const tiers = 4;
+    let curW = w, curD = d, curY = 0;
+    const tierH = h / tiers;
+    for (let i = 0; i < tiers; i++) {
+      const th = tierH * (1.1 - i * 0.1);
+      pg.add(mk(B(curW, th, curD), col, 0, curY + th / 2, 0));
+      curY += th;
+      curW *= 0.75;
+      curD *= 0.75;
+    }
+    pg.add(mk(cone(curW * 0.5, tierH * 1.2, 4), "#f0dfb2", 0, curY + (tierH * 1.2) / 2, 0, 1, 1, 1, 0, Math.PI / 4));
+    return pg;
+  };
+  const p1 = steppedPyramid(80, 75, 80, "#e3c27a");
+  p1.position.set(0, 0, 0);
+  g.add(p1);
+
+  const p2 = steppedPyramid(60, 55, 60, "#dac078");
+  p2.position.set(70, 0, -50);
+  g.add(p2);
+
+  const p3 = steppedPyramid(45, 42, 45, "#d4b870");
+  p3.position.set(-65, 0, -40);
+  g.add(p3);
+
+  const sphinxGroup = grp(
+    mk(B(8, 5, 18), "#d4c3a3", 0, 2.5, 0),
+    mk(B(5, 5.5, 5), "#d4c3a3", 0, 5, 6.5),
+    mk(B(6, 0.8, 1.4), "#234975", 0, 7.2, 6.8, 1, 1, 1, -0.2),
+    mk(B(7, 0.6, 20), "#c8b797", 0, 0.3, 0)
+  );
+  sphinxGroup.position.set(30, 0, 50);
+  g.add(sphinxGroup);
+
+  return g;
+};
+
 export const buildRealm = (se: Season) => {
   const R = new THREE.Group(); R.add(terrain(se));
   const water = mk(B(1800, 0.2, 1500), "#2f86d6", 1480, -1.6, -520); water.castShadow = false; R.add(water);
@@ -102,6 +143,7 @@ export const buildRealm = (se: Season) => {
   const pc = castle(); pc.position.set(LOCS.palace[0], 0, LOCS.palace[1] - 28); R.add(pc);
   const mm = mineMouth(); mm.position.set(LOCS.mine[0], 0, LOCS.mine[1] - 14); R.add(mm);
   const cm = caveMouth(); cm.position.set(LOCS.cave[0], 0, LOCS.cave[1] - 14); R.add(cm);
+  const ps = pyramidsAndSphinx(); ps.position.set(LOCS.desert[0] + 10, 0, LOCS.desert[1] - 40); R.add(ps);
   for (const [lx, lz] of [[-60, -240], [90, -520], [-110, 260], [260, 240], [-250, 20]]) { for (let i = 0; i < 14; i++) { const x = lx + (rnd() - 0.5) * 140, z = lz + (rnd() - 0.5) * 140; if (flatOf(x, z) > 0.98 || seaOf(x, z) > 0.2) continue; const y = heightAt(x, z); R.add(mk(C(0.4, 0.6, 5, 7), "#6b4a2a", x, y + 2.5, z), mk(S(3, 9, 7), se === "autumn" ? "#e0832a" : se === "winter" ? "#e8f1f7" : "#3f9f3f", x, y + 6.5, z)); } }
   return R;
 };

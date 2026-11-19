@@ -1,3 +1,6 @@
+### 2026-11-19 — Add pyramids and sphinx near desert anchor in realm.ts
+- Added 3 stepped sandstone pyramids (42–75 m) and a sphinx near `LOCS.desert` in `remotion/src/videos/story/realm.ts`, visible from the desert anchor. Verified clean TypeScript compilation with `npx tsc --noEmit`.
+
 ### 2026-11-18 — Fix scene-grade uniform type mismatch
 - The era/season/weather grade in `world.ts` must blend against `THREE.Vector3` values because the shared `TONE.uLitCol` and `TONE.uShadeCol` uniforms are Vector3 instances in `remotion/src/videos/bridge/shade.ts`. Updated the blend targets to match those declared uniform types; grade values and blend weights are unchanged.
 - The proof run at commit `4b558c3` failed at strict TypeScript checking because those targets were `THREE.Color`. This correction is in commit `fc33593`; a fresh run against the latest branch head is needed before claiming the check is fixed.
@@ -237,6 +240,9 @@
 - Avoid collisions: ChatGPT owns `worldgen.ts`, `IllustratedProof.tsx`, boards/sample scripts for new world types. Claude owns `world.ts` mounts/actions, `props3d.ts` models, camera shot logic unless coordinated here. If both need `camera.ts`/`world.ts`, write the intent in this file first, make small commits, rebase on `main` before pushing.
 - Both: update this file on every change; never claim "works" without viewing rendered frames; never send the owner a video that has not been frame-checked.
 ## CHANGELOG
+
+### 2026-11-19 — Add pyramids and sphinx near desert anchor in realm.ts
+- Added 3 stepped sandstone pyramids (42–75 m) and a sphinx near `LOCS.desert` in `remotion/src/videos/story/realm.ts`, visible from the desert anchor. Verified clean TypeScript compilation with `npx tsc --noEmit`.
 
 ### 2026-11-18 — Add 3D sea world preset in worldgen.ts
 - Added animated 3D sea world preset in `remotion/src/videos/story/worldgen.ts` exposed via `WorldParams world.kind="sea"` featuring animated ocean surface (wave displacement, foam, sun glint, depth colour), bobbing ships/boats, and underwater camera mode (blue fog, shimmering caustics, and rising bubbles). Verified clean TypeScript compilation with `npx tsc --noEmit`.

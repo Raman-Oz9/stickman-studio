@@ -33,6 +33,7 @@ const heightfieldGround=(g:THREE.Group,kind:string,base:string,seed=1)=>{
   const fbm=(x:number,z:number)=>noise(x,z,1)*.52+noise(x*2.07,z*2.07,2)*.27+noise(x*4.19,z*4.19,3)*.14+noise(x*8.3,z*8.3,4)*.07;
   const hAt=(x:number,z:number)=>{const broad=(fbm(x*.025,z*.025)-.5)*8,detail=(fbm(x*.09,z*.09)-.5)*2.2,ridge=Math.pow(1-Math.abs(fbm(x*.035+8,z*.035-3)-.5)*2,2);
     if(kind==="mountain")return broad*.8+detail*.7+ridge*14+Math.max(0,fbm(x*.012,z*.012)-.62)*14;
+    if(kind==="mountain-base")return broad*.35+detail*.22;
     if(kind==="desert"||kind==="dunes")return broad*.55+detail*.25+Math.sin(x*.045+z*.018+Math.sin(z*.025)*1.6)*3.1+Math.sin(x*.11+z*.035)*.65+(fbm(x*.018,z*.018)-.5)*3;
     if(kind==="canyon")return broad*.6+Math.sin(x*.07+z*.025)*1.1+Math.abs(Math.sin(x*.035+z*.012))*3;
     if(kind==="river"){const channel=Math.abs(x-Math.sin(z*.018)*17);return broad*.35+detail*.25-Math.max(0,1-channel/17)*1.3;}
@@ -951,18 +952,22 @@ const grandCanyonWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
 
 const coneMesh=(g:THREE.Group,r:number,h:number,c:string,x:number,y:number,z:number,seg=7)=>{const m=new THREE.Mesh(new THREE.ConeGeometry(r,h,seg),mat(c));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;g.add(m);return m;};
 const mountainsWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
-  heightfieldGround(g,"mountain","#788487",p.seed ?? 1);
-  // Bare Himalayan-style ridges: the skyline is layered behind the cast, not a single wall in front.
+  // Keep the ground low and gently undulating; the mountain range belongs on the horizon,
+  // not as a giant near-camera wall that hides the snow peaks.
+  heightfieldGround(g,"mountain-base","#89918e",p.seed ?? 1);
   for(let i=0;i<11;i++){
-    const x=-108+i*21.5,h=22+hash(i,110)*20,r=15+hash(i,111)*9,z=-112-hash(i,112)*18;
-    poly(g,[[x-r,0,z+13],[x-r*.48,h*.62,z+2],[x,h,z-7],[x+r*.46,h*.68,z+1],[x+r,0,z+13]],i%2===0?"#737e83":"#626e74");
-    poly(g,[[x-r*.23,h*.69,z+1],[x,h,z-7],[x+r*.22,h*.73,z+1]],"#f4f7fa");
-    poly(g,[[x-r*.12,h*.9,z-4],[x,h,z-7],[x+r*.1,h*.91,z-4]],"#ffffff");
+    const x=-108+i*21.5,h=38+hash(i,110)*27,r=17+hash(i,111)*10,z=-148-hash(i,112)*24;
+    const face=poly(g,[[x-r,0,z+18],[x-r*.5,h*.62,z+2],[x,h,z-12],[x+r*.48,h*.66,z+2],[x+r,0,z+18]],i%2===0?"#77848a":"#68777d");
+    (face.material as THREE.Material).side=THREE.DoubleSide;
+    const cap=poly(g,[[x-r*.25,h*.7,z+1],[x,h,z-12],[x+r*.23,h*.73,z+1]],"#f3f7fa");
+    (cap.material as THREE.Material).side=THREE.DoubleSide;
+    const crown=poly(g,[[x-r*.1,h*.91,z-7],[x,h,z-12],[x+r*.1,h*.92,z-7]],"#ffffff");
+    (crown.material as THREE.Material).side=THREE.DoubleSide;
   }
   // Low talus and exposed rock clusters frame the foreground without blocking the mountain range.
-  for(let i=0;i<30;i++){
-    const x=(hash(i,115)-.5)*150,z=-8-hash(i,116)*70,r=.65+hash(i,117)*1.7;
-    const rock=ball(g,r,i%3===0?"#a6afb1":"#747f83",x,r*.34,z,1.45,.68,1.1);
+  for(let i=0;i<26;i++){
+    const x=(hash(i,115)-.5)*145,z=-8-hash(i,116)*58,r=.55+hash(i,117)*1.35;
+    const rock=ball(g,r,i%3===0?"#a6afb1":"#747f83",x,r*.3,z,1.45,.62,1.1);
     rock.rotation.y=hash(i,118)*6.28;
   }
 };

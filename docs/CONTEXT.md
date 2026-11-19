@@ -601,3 +601,8 @@ Render stills with the props-test workflow (build a board in `remotion/story_pro
 - Reduced the near-camera Himalayan heightfield mass and rebuilt the skyline as layered bare rock peaks with clear snow caps and low foreground talus; winter ground now uses snow tones rather than bright sky blue.
 - Reframed Egypt as three clustered sandstone pyramids, a foreground sphinx, an offset obelisk and a narrow distant Nile so the landmarks read together in the portrait proof frame.
 - The first strict TypeScript check passed; this visual correction requires a fresh strict check and rerender before terrain acceptance.
+
+### 2026-11-20 — Move Himalayan peaks to the horizon and expose snow caps
+- The second proof still showed the mountain heightfield rising into the near-camera foreground; replaced that with low rolling terrain and moved the bare snow-capped ridge silhouettes to the far horizon.
+- Made mountain faces double-sided so the snow and rock planes remain visible from the proof camera angle; foreground talus remains low and sparse.
+- Strict TypeScript and a fresh mountain/Egypt still review are required before terrain completion.

@@ -1,0 +1,126 @@
+name: Qwen Code Agent
+
+# Independent, manually dispatched Qwen Code agent.
+# Uses the existing OPENROUTER_API_KEY secret with the Qwen coding model.
+# Creates an isolated branch and review-only PR; never merges automatically.
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: "A focused coding task for the Qwen agent"
+        required: true
+        type: string
+
+concurrency:
+  group: qwen-agent-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  qwen-agent:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Check out trusted main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check OpenRouter credential
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          if [ -z "$OPENROUTER_API_KEY" ]; then
+            echo "::error::Repository secret OPENROUTER_API_KEY is missing."
+            exit 1
+          fi
+
+      - name: Create isolated Qwen branch
+        env:
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          git config user.name "qwen-agent"
+          git config user.email "qwen-agent@users.noreply.github.com"
+          git switch -c "qwen-agent/task-${RUN_ID}"
+
+      - name: Install Qwen Code
+        run: npm install --global @qwen-code/qwen-code@latest
+
+      - name: Run Qwen Code
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          TASK: ${{ inputs.task }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          PROMPT=$(cat <<'PROMPT_EOF'
+          You are the independent Qwen coding agent for Raman-Oz9/stickman-studio.
+
+          First read AGENTS.md, docs/CONTEXT.md, docs/HANDOFF.md,
+          docs/REFERENCE_VIDEO_V2.md, and the relevant source/skill files.
+
+          Implement this focused task:
+          PROMPT_EOF
+          )
+          PROMPT="${PROMPT}
+
+          ${TASK}
+
+          Work only on your isolated Qwen branch. Respect all ownership boundaries.
+          Do not overwrite, revert, rebase, or interfere with Claude's, OpenCode's,
+          or Gemini's work. Do not edit GitHub workflows, agent credentials,
+          or another agent's queue. Do not push to main or merge anything.
+          Make only scoped, justified changes. Update docs/CONTEXT.md with a
+          concise dated record. The workflow will validate and open a review PR."
+          qwen --auth-type openai \
+            --model "qwen/qwen3-coder:free" \
+            --openai-api-key "$OPENROUTER_API_KEY" \
+            --openai-base-url "https://openrouter.ai/api/v1" \
+            --approval-mode=yolo \
+            --prompt "$PROMPT" 2>&1 | tee /tmp/qwen-agent.log
+
+      - name: Validate and open review PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.run_id }}
+          TASK: ${{ inputs.task }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "Qwen made no repository changes; no PR is needed."
+            exit 0
+          fi
+
+          npm --prefix remotion install --no-audit --no-fund
+          npm --prefix remotion exec -- tsc --noEmit
+          rm -rf remotion/node_modules
+          rm -f remotion/package-lock.json
+
+          git add -A
+          git commit -m "Qwen: ${TASK:0:72}"
+          BRANCH="qwen-agent/task-${RUN_ID}"
+          git push --set-upstream origin "$BRANCH"
+
+          gh pr create \
+            --base main \
+            --head "$BRANCH" \
+            --title "Qwen agent: ${TASK:0:72}" \
+            --body "Automated Qwen Code changes for the requested task.
+
+          - Strict Remotion TypeScript check passed.
+          - Changes are isolated on this branch for review.
+          - This workflow never merges automatically.
+
+          Please review the diff and rendered output before merging."

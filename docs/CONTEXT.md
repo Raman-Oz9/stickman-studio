@@ -238,6 +238,21 @@
 - Both: update this file on every change; never claim "works" without viewing rendered frames; never send the owner a video that has not been frame-checked.
 ## CHANGELOG
 
+### 2026-11-18 — Add vehicle camera shot types and automatic framing in camera.ts
+- Added shot types `"orbitVehicle"`, `"chase"`, `"flyover"`, `"lowAngle"`, and `"front"` in `remotion/src/videos/story/camera.ts` to frame moving vehicle props from changing angles.
+- Enabled automatic vehicle camera selection when `scene.focus` is a vehicle, a vehicle prop is present, or a character has a vehicle mount. Verified clean TypeScript compilation with `npx tsc --noEmit`.
+
+### 2026-11-18 — Add deep-space world preset in worldgen.ts
+- Added deep-space world preset in `remotion/src/videos/story/worldgen.ts` exposed via `WorldParams world.kind="space"` (starfield skybox with nebula colours, ringed and gas giant planets, asteroid field, space station silhouette, and black hole with accretion disc). Verified clean TypeScript compilation with `npx tsc --noEmit`.
+
+### 2026-11-18 — Create verb_check.mjs script and report unmapped sentences
+- Created `remotion/scripts/verb_check.mjs` loading 42 sample sentences across history, space, and ocean domains and checking `verbFromText` mappings.
+- Reported unmapped sentences: "Cleopatra sailed down the Nile river on her royal barge", "Vikings sailed their longship across the stormy northern seas", "The astronaut floated effortlessly in zero gravity", "The lunar rover drove across the grey cratered moon", "Astronauts conducted spacewalks outside the orbiting station", "Scientists analyzed alien rock samples in the laboratory", "A massive asteroid drifted silently through the void", "The probe photographed the swirling storms of Jupiter", "Spacecraft docked smoothly with the international station", "Stars twinkled brightly as the spaceship accelerated faster", "Divers explored the mysterious underwater shipwreck", "Crabs scuttled across the sandy ocean floor near rocks", "Giant octopuses glided silently through dark kelp forests".
+- Verified clean TypeScript compilation with `npx tsc --noEmit`.
+
+### 2026-11-18 — Create Effects2D.tsx ink-style SVG effects
+- Created `remotion/src/videos/story/Effects2D.tsx` containing ink-style SVG effect components taking `x, y, t` (dust puff, speed lines, impact star, sweat drops, sparkle, floating question mark, light bulb, anger vein, zzz). Verified clean TypeScript compilation with `npx tsc --noEmit`.
+
 ### 2026-11-18 — Add stone-age and ancient-era props in props3d.ts
 - Added procedural 3D recipes and aliases in `remotion/src/videos/story/props3d.ts` for cave fire, woolly mammoth, spear hunters' tools, huts, Egyptian obelisk and sphinx, Roman aqueduct, chariot, and galley/ship, Greek temple and trireme, Chinese junk and pagoda, medieval castle, cart, and catapult, and Viking longship. Verified clean TypeScript compilation with `npx tsc --noEmit`.
 

@@ -342,6 +342,7 @@ export class StoryWorld {
           case "float": yy += 0.12 * Math.sin(tt * 2.2 + k) + 0.15; rot = 0.06 * Math.sin(tt * 1.6 + k); break;
           case "fall": { const g = tt * tt * 6; yy += Math.max(0, 5.5 - g) * (pd.h ? 1 : 1); sc3 = tt > 0 ? 1 : 0; rot = tt * (1.5 + hh(j, 6)); break; }
           case "spin": rot = tt * 3; break;
+          case "sailing": yy += Math.sin(tt * 1.7 + k) * 0.16; rot = 0.035 * Math.sin(tt * 1.25 + k); break;
         }
         if (sc3 <= 0.001) continue;
         if (has3p) {
@@ -349,7 +350,7 @@ export class StoryWorld {
           let X = px + ox, Z = pz + oz, yawv = Math.atan2(cam.position.x - X, cam.position.z - Z) * 0.8 + (pd.anim === "spin" ? rot : 0), dist = 0, mv = false;
           if (pd.to) { const p2 = propAt(pd); X = p2.x + ox; Z = p2.z + oz; mv = Math.hypot(X - px - ox, Z - pz - oz) > 0.01 && u > a0 && u < Math.min(a1, 0.999); dist = Math.hypot(X - px - ox, Z - pz - oz); if (mv) yawv = Math.atan2(pd.to.x - pd.x, pd.to.z - pd.z); else if (orient) yawv = Math.atan2(right.x, right.z) + (pd.flip ? Math.PI : 0); }
           else if (orient) yawv = Math.atan2(right.x, right.z) + (pd.flip ? Math.PI : 0);
-          this.p3.put(pd.name, X, yy, Z, h3, sc3, yawv, pd.anim === "fall" ? rot : 0, pile, { dist, t: absT, mv: mv || pd.anim === "bounce" || (pd.anim === "float" && orient) });
+          this.p3.put(pd.name, X, yy, Z, h3, sc3, yawv, pd.anim === "fall" ? rot : 0, pile, { dist: pd.anim === "sailing" ? tt * 2.4 : dist, t: absT, mv: mv || pd.anim === "sailing" || pd.anim === "bounce" || (pd.anim === "float" && orient) });
           blob(st, X, 0, Z, Math.max(0.3, h3 * sc3 * 0.5));
           continue;
         }

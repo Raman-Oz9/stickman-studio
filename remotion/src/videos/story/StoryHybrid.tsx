@@ -14,6 +14,7 @@ import { camAt, focusOf } from "./camera";
 import { Performer2D } from "./Performer2D";
 import { castPerf } from "./castPerf";
 import { outfitFor, resolveRole } from "./outfits";
+import { sailingHeroAt } from "./worldgen";
 import { inkStyleOf } from "./inkOutfit";
 import type { Expression } from "./Stickman2D";
 
@@ -36,6 +37,13 @@ const Cast2D: React.FC<{ board: Board; f: number }> = ({ board, f }) => {
   const u = n > 1 ? local / (n - 1) : 0, dur = n / FPS, t = f / FPS;
   const cur: SceneDef = { ...s, cast: s.cast.map((d) => { const p = posOf(d, u); return { ...d, x: p.x, z: p.z }; }) };
   const c = camAt(cur, i, u, t, dur);
+  if(s.world?.kind==="sea"){
+    const [sx,sy,sz]=sailingHeroAt(local/FPS),phase=u,angle=-Math.PI/2+Math.max(0,Math.min(1,(phase-.18)/.62))*Math.PI*2;
+    if(phase<.18)c.pos.set(sx-4,48,sz+112);
+    else if(phase<.82)c.pos.set(sx+Math.cos(angle)*30,10+Math.sin(angle*2)*2,sz+Math.sin(angle)*30);
+    else c.pos.set(sx+32,13,sz+42);
+    c.look.set(sx,sy,sz);c.fov=phase<.18?58:phase<.82?48:52;
+  }
   const cam = new THREE.PerspectiveCamera(c.fov, 1080 / 1920, 0.15, 1500);
   cam.position.copy(c.pos); cam.up.set(0, 1, 0); cam.lookAt(c.look); cam.rotateZ(c.roll); cam.updateProjectionMatrix(); cam.updateMatrixWorld();
   const proj = (x: number, y: number, z: number) => { const v = new THREE.Vector3(x, y, z).project(cam); return { x: (v.x * 0.5 + 0.5) * 1080, y: (-v.y * 0.5 + 0.5) * 1920, behind: v.z > 1 }; };
@@ -44,12 +52,18 @@ const Cast2D: React.FC<{ board: Board; f: number }> = ({ board, f }) => {
   type Who = { d: CastDef; x: number; z: number; idx: number; extra: boolean; moving: boolean };
   const who: Who[] = s.cast.map((d, idx) => { const p = posOf(d, u); return { d, x: p.x, z: p.z, idx, extra: false, moving: p.moving }; });
   const F = focusOf(s);
-  const nEx = Math.min(14, s.extras ?? 4), eRole = s.extrasRole ?? "townsfolk", rank = eRole === "soldier";
+  const landing = s.world?.kind === "sea" && (s.extrasRole === "soldier" || /army|soldier|troop|warrior|disembark/i.test(String(s.caption ?? "")));
+  const nEx = Math.min(14, landing ? Math.max(8, s.extras ?? 8) : s.extras ?? 4), eRole = landing ? "soldier" : s.extrasRole ?? "townsfolk", rank = eRole === "soldier";
   for (let k = 0; k < nEx; k++) {
     let ex: number, ez: number, hd: number, drift: number, w0: number;
-    if (rank) {   // an army stands in ranks behind and beside the leads, facing the same way they march
+    if (rank) {
       const row = Math.floor(k / 5), col = k % 5;
-      ex = F.x - 4 + col * 2 + (hh(k, 40) - 0.5) * 0.5; ez = F.z - 3.2 - row * 1.8 + (hh(k, 41) - 0.5) * 0.4; hd = Math.PI * 0.5; drift = 2.2; w0 = 0.1;
+      if(s.world?.kind==="sea"){
+        // Ink soldiers step from the hero ship's landing side across the waterline onto the sandy shore.
+        ex=68+col*2.1+(hh(k,40)-.5)*.35;ez=-58+row*2.1+(hh(k,41)-.5)*.3;hd=0;drift=22;w0=.08+(k%4)*.035;
+      }else{
+        ex = F.x - 4 + col * 2 + (hh(k, 40) - 0.5) * 0.5; ez = F.z - 3.2 - row * 1.8 + (hh(k, 41) - 0.5) * 0.4; hd = Math.PI * 0.5; drift = 2.2; w0 = 0.1;
+      }
     } else {
       const a = hh(k, 20) * Math.PI * 2, r = 5.5 + hh(k, 21) * 4; ex = F.x * 0.3 + Math.sin(a) * r; ez = F.z * 0.3 + Math.cos(a) * r; hd = a + (hh(k, 23) - 0.5) * 1.4; drift = 1.2 + hh(k, 22) * 2.2; w0 = hh(k, 24) * 0.42;
     }
@@ -64,8 +78,10 @@ const Cast2D: React.FC<{ board: Board; f: number }> = ({ board, f }) => {
     return { ...w, g, k: kk0, depth: c.pos.distanceTo(new THREE.Vector3(w.x, 0, w.z)) };
   }).filter((w) => !w.g.behind && w.k > 0.05 && w.g.x > -400 && w.g.x < 1480).sort((a, b) => b.depth - a.depth);
   const golden = (s.light ?? (s.tod === "dawn" || s.tod === "dusk" ? "golden" : "day")) === "golden";
+  const darkGround=(s.tod==="night"||(s.env??[]).includes("night")||s.world?.timeOfDay==="night");
   return (
     <svg viewBox="0 0 1080 1920" width="1080" height="1920" style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none", filter: golden ? "sepia(.25) saturate(1.15) brightness(.97)" : "saturate(1.06) contrast(1.03)" }}>
+      <defs><radialGradient id="castGroundShadow"><stop offset="0%" stopColor="#101820" stopOpacity=".36"/><stop offset="100%" stopColor="#101820" stopOpacity="0"/></radialGradient></defs>
       {placed.map((w) => {
         const eraW = w.extra && s.extrasEra ? s.extrasEra : s.era;
         const o = outfitFor(w.d.role, w.idx, eraW);
@@ -79,9 +95,12 @@ const Cast2D: React.FC<{ board: Board; f: number }> = ({ board, f }) => {
         let yaw = (w.idx % 2 ? -1 : 1) * 28;                       // idle: a natural three-quarter turn toward the lens
         if (!Number.isNaN(hv[0])) { const hl = Math.hypot(hv[0], hv[1]) || 1, hx = hv[0] / hl, hz = hv[1] / hl; yaw = (Math.atan2(hx * rightXZ[0] + hz * rightXZ[1], hx * tc[0] + hz * tc[1]) * 180) / Math.PI; }
         const pf = w.extra ? { verb: w.moving ? "walk" : "talk", p: u, t, prop: null, holdProp: null } : castPerf(w.d, s, u, t);
-        return <Performer2D key={w.d.id + w.idx} x={w.g.x} y={w.g.y} scale={w.k} yaw={yaw} skin={o.skin ?? "#f6ead9"} cloth={o.dress ?? o.jacket} hair={o.hair} ink={inkStyleOf(w.d.role, w.idx, eraW, resolveRole(w.d.role, eraW))}
-          verb={pf.verb} p={pf.p} t={pf.t} phase={t * 1.15 + w.idx * 0.17} frame={f + w.idx * 13} prop={null} holdProp={null}
-          expr={w.d.expr ? EXPR[w.d.expr] ?? null : null} build={w.idx % 2 ? "stocky" : "lean"} seed={w.idx * 17 + 7} />;
+        return <g key={w.d.id + w.idx}>
+          <ellipse cx={w.g.x} cy={w.g.y+1} rx={Math.max(8,w.k*18)} ry={Math.max(2,w.k*4)} fill="url(#castGroundShadow)" opacity={darkGround?.72:1}/>
+          <Performer2D x={w.g.x} y={w.g.y} scale={w.k} yaw={yaw} skin={o.skin ?? "#f6ead9"} cloth={o.dress ?? o.jacket} hair={o.hair} ink={inkStyleOf(w.d.role, w.idx, eraW, resolveRole(w.d.role, eraW))}
+            verb={pf.verb} p={pf.p} t={pf.t} phase={t * 1.15 + w.idx * 0.17} frame={f + w.idx * 13} prop={null} holdProp={null}
+            expr={w.d.expr ? EXPR[w.d.expr] ?? null : null} build={w.idx % 2 ? "stocky" : "lean"} seed={w.idx * 17 + 7} />
+        </g>;
       })}
     </svg>
   );

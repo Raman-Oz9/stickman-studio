@@ -95,7 +95,7 @@ jobs:
               if git push -q origin "HEAD:refs/heads/$BR"; then
                 if gh pr create --title "OpenCode: ${TASK:0:70}" --body "Automated OpenCode task. TypeScript check passed in CI." --head "$BR" --base main; then
                   DONE="x"
-                elif [ -n "$(gh pr list --state open --head "$BR" --json number --jq '".[0].number // empty' 2>/dev/null)" ]; then
+                elif [ -n "$(gh pr list --state open --head "$BR" --json number --jq '.[0].number // empty' 2>/dev/null)" ]; then
                   DONE="x"
                 else
                   DONE="!"

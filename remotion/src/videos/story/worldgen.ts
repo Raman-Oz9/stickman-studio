@@ -28,7 +28,7 @@ const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
   if(p.terrain==="ocean-floor"){
     // The cast stands on a broad sandy seabed; a translucent animated surface and light shafts
     // establish that the whole set is submerged rather than a flat blue floor.
-    box(g,180,.55,150,"#C9B38D",0,-.28,-34);
+    // Keep one continuous seabed surface; a second nearly coplanar slab caused visual shimmer.
     for(let i=0;i<16;i++){
       const x=(hash(i,4)-.5)*145,z=-8-hash(i,5)*105,r=1.2+hash(i,6)*3.2;
       const rock=ball(g,r,i%3===0?P.shade:P.stone,x,r*.32,z,1.2,.65,1.05);
@@ -39,6 +39,12 @@ const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
       const x=(hash(i,8)-.5)*150,z=-5-hash(i,9)*112,len=4+hash(i,10)*13;
       const ripple=box(g,len,.025,.075,i%4===0?"#E7D3AA":"#A88F69",x,.035,z,(hash(i,11)-.5)*.16);
       ripple.castShadow=false;ripple.receiveShadow=false;
+    }
+    // Low, wind-shaped sand bars create broad relief without competing with the character.
+    for(let i=0;i<18;i++){
+      const x=(hash(i,101)-.5)*132,z=-12-hash(i,102)*96;
+      const bar=ball(g,1.15+hash(i,103)*1.2,i%3===0?"#D5BD94":"#C8AE84",x,.12,z,3.8+hash(i,104)*2.4,.12,1.15+hash(i,105)*1.1);
+      bar.rotation.y=(hash(i,106)-.5)*.28;bar.castShadow=false;
     }
     // Rounded coral gardens: low mounds and branching antler forms, not tree-like stalks.
     for(let i=0;i<30;i++){
@@ -70,6 +76,16 @@ const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
         branch.rotation.z=Math.cos(a)*-.25;
       }
       for(let k=0;k<4;k++)ball(g,.38*scale,k%2?P.accent:P.green,x+(k-1.5)*.62*scale,1.05*scale,z,.8,1.2,.8);
+    }
+    // Dark basalt outcrops add geological contrast between the soft sand and bright reef heads.
+    for(let i=0;i<10;i++){
+      const side=i%2===0?-1:1,x=side*(34+hash(i,107)*31),z=-18-hash(i,108)*86,r=2.2+hash(i,109)*3.8;
+      const outcrop=ball(g,r,i%3===0?"#52636A":"#657078",x,r*.24,z,1.8,.42,1.35);
+      outcrop.rotation.y=(hash(i,110)-.5)*.7;
+      for(let k=0;k<2;k++){
+        const shard=ball(g,r*.42,k===0?"#87918C":"#A18C72",x+side*(r*.48),r*.22,z+(k-.5)*r*.65,1.25,.34,.82);
+        shard.rotation.z=side*(.08+k*.04);
+      }
     }
     // Broken shipwreck timbers and a hydrothermal vent make the seabed feel explorable.
     const wreck=new THREE.Group();wreck.position.set(-48,0,-92);
@@ -143,8 +159,14 @@ const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
           const seam=box(g,.22,h*.48,.18,"#784532",gx,h*.25,z+(groove-1)*3.2);
           seam.castShadow=false;
         }
-        const cap=box(g,8,.9,19,i%2?P.earth:P.reef,x+lean*.55,h+.15,z,.035*side);
+        // Uneven caprock and talus soften the wall silhouette and make the gorge feel eroded.
+        const cap=box(g,8,.9,19,i%2?"#C58A59":"#A96548",x+lean*.55,h+.15,z,.035*side);
         cap.rotation.y=side*.06;
+        for(let talus=0;talus<3;talus++){
+          const tx=x+side*(5.5+talus*1.8),tz=z+(talus-1)*4.2,tr=1.8+hash(i,talus+111)*2.1;
+          const debris=ball(g,tr,talus%2?"#A96548":"#C18A5D",tx,tr*.28,tz,1.65,.48,1.15);
+          debris.rotation.y=hash(i,talus+115)*.6;
+        }
       }
     }
     // Distant stepped escarpment, broken into separate warm rock fins to preserve depth.
@@ -171,6 +193,16 @@ const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
     for(let i=0;i<8;i++){
       const x=-13+i*3.7,z=-12-hash(i,84)*52;
       const bar=ball(g,1.8,P.sand,x,.16,z,1.8,.12,.75);bar.rotation.y=hash(i,85)*.4;
+    }
+    // Dry braided washes and scattered boulders break up the broad canyon floor.
+    for(let i=0;i<16;i++){
+      const side=i%2===0?-1:1,x=side*(7+hash(i,121)*12),z=18-hash(i,122)*86;
+      const wash=box(g,2.4+hash(i,123)*4,.035,8+hash(i,124)*10,i%3===0?"#D5AD78":"#C29465",x,.035,z,(hash(i,125)-.5)*.24);
+      wash.castShadow=false;wash.receiveShadow=false;
+      if(i%2===0){
+        const boulder=ball(g,1.1+hash(i,126)*1.7,i%4===0?"#80503D":"#A96C4C",x+side*2,.55,z-2,1.4,.7,1.1);
+        boulder.rotation.y=hash(i,127)*Math.PI;
+      }
     }
   } else if(p.terrain==="city"){
     // A real street grid with sidewalks, marked lanes, junction crossings and street furniture.

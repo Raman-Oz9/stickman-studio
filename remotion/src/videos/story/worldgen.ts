@@ -24,7 +24,7 @@ const box=(g:THREE.Group,w:number,h:number,d:number,c:string,x:number,y:number,z
 const ball=(g:THREE.Group,r:number,c:string,x:number,y:number,z:number,sx=1,sy=1,sz=1)=>{const m=new THREE.Mesh(new THREE.IcosahedronGeometry(r,0),mat(c));m.position.set(x,y,z);m.scale.set(sx,sy,sz);m.castShadow=true;g.add(m);return m;};
 const cylinder=(g:THREE.Group,r:number,h:number,c:string,x:number,y:number,z:number,seg=8)=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,seg),mat(c));m.position.set(x,y,z);m.castShadow=true;g.add(m);return m;};
 const poly=(g:THREE.Group,pts:[number,number,number][],c:string)=>{const v:number[]=[];for(let i=1;i<pts.length-1;i++)v.push(...pts[0],...pts[i],...pts[i+1]);const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.Float32BufferAttribute(v,3));geo.computeVertexNormals();const m=new THREE.Mesh(geo,mat(c));g.add(m);return m;};
-const seasonGround=(p:WorldParams)=>p.season==="winter"?P.sky:p.season==="spring"?P.green:P.earth;
+const seasonGround=(p:WorldParams)=>p.season==="winter"?(p.terrain==="desert"?"#e7d9bd":"#eaf2f7"):p.season==="spring"?P.green:P.earth;
 const heightfieldGround=(g:THREE.Group,kind:string,base:string,seed=1)=>{
   const seg=64,geo=new THREE.PlaneGeometry(260,260,seg,seg);geo.rotateX(-Math.PI/2);
   const pos=geo.attributes.position,col=new Float32Array(pos.count*3),baseCol=new THREE.Color(base);
@@ -32,14 +32,14 @@ const heightfieldGround=(g:THREE.Group,kind:string,base:string,seed=1)=>{
   const noise=(x:number,z:number,s:number)=>{const ix=Math.floor(x),iz=Math.floor(z),fx=x-ix,fz=z-iz,u=fx*fx*(3-2*fx),v=fz*fz*(3-2*fz),a=lattice(ix,iz,s),b=lattice(ix+1,iz,s),c=lattice(ix,iz+1,s),d=lattice(ix+1,iz+1,s);return (a+(b-a)*u)*(1-v)+(c+(d-c)*u)*v;};
   const fbm=(x:number,z:number)=>noise(x,z,1)*.52+noise(x*2.07,z*2.07,2)*.27+noise(x*4.19,z*4.19,3)*.14+noise(x*8.3,z*8.3,4)*.07;
   const hAt=(x:number,z:number)=>{const broad=(fbm(x*.025,z*.025)-.5)*8,detail=(fbm(x*.09,z*.09)-.5)*2.2,ridge=Math.pow(1-Math.abs(fbm(x*.035+8,z*.035-3)-.5)*2,2);
-    if(kind==="mountain")return broad*1.4+detail+ridge*25+Math.max(0,fbm(x*.012,z*.012)-.62)*28;
+    if(kind==="mountain")return broad*.8+detail*.7+ridge*14+Math.max(0,fbm(x*.012,z*.012)-.62)*14;
     if(kind==="desert"||kind==="dunes")return broad*.55+detail*.25+Math.sin(x*.045+z*.018+Math.sin(z*.025)*1.6)*3.1+Math.sin(x*.11+z*.035)*.65+(fbm(x*.018,z*.018)-.5)*3;
     if(kind==="canyon")return broad*.6+Math.sin(x*.07+z*.025)*1.1+Math.abs(Math.sin(x*.035+z*.012))*3;
     if(kind==="river"){const channel=Math.abs(x-Math.sin(z*.018)*17);return broad*.35+detail*.25-Math.max(0,1-channel/17)*1.3;}
     if(["ocean","lake","coast","ocean-floor"].includes(kind))return broad*.08+Math.sin(x*.035+z*.02)*.08;
     return broad*.72+detail*.45+Math.sin(x*.19+Math.sin(z*.11))*.2;};
   for(let i=0;i<pos.count;i++){const x=pos.getX(i),z=pos.getZ(i),h=hAt(x,z),slope=Math.hypot(hAt(x+1,z)-h,hAt(x,z+1)-h);pos.setY(i,h-.25);const c=baseCol.clone();
-    if(kind==="mountain"){if(h>12)c.lerp(new THREE.Color("#d9e5ed"),Math.min(.96,(h-12)/23));else if(slope>.42)c.lerp(new THREE.Color("#68737b"),Math.min(.78,(slope-.42)*1.8));}
+    if(kind==="mountain"){if(h>8)c.lerp(new THREE.Color("#eef4f7"),Math.min(.98,(h-8)/18));else if(slope>.34)c.lerp(new THREE.Color("#68737b"),Math.min(.78,(slope-.34)*1.8));}
     if(kind==="desert"||kind==="dunes"){const ripple=.5+.5*Math.sin(x*.16+z*.045+Math.sin(z*.025)*2);c.lerp(new THREE.Color(ripple>.62?"#f7dfaa":"#b98d58"),.13+.18*ripple);if(slope>.48)c.lerp(new THREE.Color("#80684f"),.36);}
     if(kind==="canyon"){const band=.5+.5*Math.sin(h*1.7+x*.025);c.lerp(new THREE.Color(band>.55?"#bd7652":"#754c40"),.24);if(slope>.3)c.lerp(new THREE.Color("#514d4b"),Math.min(.65,(slope-.3)*1.4));}
     if(slope>.55&&kind!=="mountain"&&kind!=="desert"&&kind!=="canyon")c.lerp(new THREE.Color("#666b68"),Math.min(.62,(slope-.55)*1.35));
@@ -775,37 +775,43 @@ const greeceWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
 };
 
 const egyptWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
-  heightfieldGround(g,"desert",P.earth);
-  box(g,260,0.2,35,P.sky,0,-0.05,-15);
-  for(let i=0;i<25;i++){
-    const x=(hash(i,50)-.5)*220, z=-22+hash(i,51)*14;
-    const m=box(g,4+hash(i,52)*8,.02,.15,P.stone,x,0,z);
-    m.position.x+=Math.sin(t+i)*.15;
+  heightfieldGround(g,"desert",P.earth,p.seed ?? 1);
+  // A narrow Nile sits behind the monuments as a distant landscape feature.
+  box(g,260,.18,18,"#287f9e",0,-.05,-145);
+  for(let i=0;i<30;i++){
+    const x=(hash(i,50)-.5)*240,z=-151+hash(i,51)*13;
+    const wave=box(g,3+hash(i,52)*7,.025,.16,"#8bc9d5",x,.06,z);
+    wave.userData.waveMark={phase:hash(i,53)*6.28,baseY:.06};
   }
-  const pyrs=[{x:-35,z:-75,s:22},{x:30,z:-90,s:28},{x:65,z:-65,s:16}];
-  for(const pyrInfo of pyrs){
-    const pyrMesh=new THREE.Mesh(new THREE.ConeGeometry(pyrInfo.s,pyrInfo.s*0.75,4),mat(P.stone));
-    pyrMesh.position.set(pyrInfo.x,pyrInfo.s*0.375,pyrInfo.z);
-    pyrMesh.rotation.y=Math.PI/4;
-    pyrMesh.castShadow=true; pyrMesh.receiveShadow=true;
-    g.add(pyrMesh);
+  // Three separate, readable sandstone pyramids, grouped tightly in the middle distance.
+  const pyrs=[{x:-32,z:-94,s:17},{x:0,z:-108,s:23},{x:34,z:-91,s:14}];
+  for(const q of pyrs){
+    const pyr=new THREE.Mesh(new THREE.ConeGeometry(q.s,q.s*1.32,4),mat("#d9b77d"));
+    pyr.position.set(q.x,q.s*.66,q.z);pyr.rotation.y=Math.PI/4;pyr.castShadow=true;pyr.receiveShadow=true;g.add(pyr);
+    const cap=new THREE.Mesh(new THREE.ConeGeometry(q.s*.055,q.s*.12,4),mat("#f0d9a5"));
+    cap.position.set(q.x,q.s*1.27,q.z);cap.rotation.y=Math.PI/4;g.add(cap);
   }
+  // A foreground sphinx with a recognizable lion body, paws and nemes headdress.
   const sphinx=new THREE.Group();
-  sphinx.add(new THREE.Mesh(new THREE.BoxGeometry(9,2.8,22),mat("#b99462")));
-  const sphinxHead=new THREE.Mesh(new THREE.SphereGeometry(2.5,12,9),mat("#c9a574"));sphinxHead.position.set(0,3.4,7);sphinx.add(sphinxHead);
-  const nemes=new THREE.Mesh(new THREE.BoxGeometry(4.8,2.4,3.4),mat("#234975"));nemes.position.set(0,3.1,5.8);sphinx.add(nemes);sphinx.position.set(-12,0,-8);g.add(sphinx);
-  cylinder(g,0.6,14,P.stone,0,7,-32,6);
-  poly(g,[[-0.5,14,-0.5],[0,15.8,0],[0.5,14,0.5]],P.earth);
-  for(let i=0;i<8;i++){
-    const x=-50+i*15, z=i%2===0?-28:-2;
-    cylinder(g,0.3,5,P.shade,x,2.5,z,7);
-    for(let f=0.5;f<Math.PI*2;f+=Math.PI/3){
-      const leaf=box(g,3,0.05,0.8,P.green,x+Math.cos(f)*1.2,5.2,z+Math.sin(f)*1.2,0.3);
-      leaf.rotation.y=f;
+  sphinx.add(new THREE.Mesh(new THREE.BoxGeometry(11,2.8,23),mat("#b99462")));
+  const head=new THREE.Mesh(new THREE.SphereGeometry(2.55,12,9),mat("#c9a574"));head.position.set(0,3.45,7.2);sphinx.add(head);
+  const nemes=new THREE.Mesh(new THREE.BoxGeometry(5.1,2.6,3.6),mat("#234975"));nemes.position.set(0,3.2,5.8);sphinx.add(nemes);
+  for(const x of [-3.1,3.1]){const paw=new THREE.Mesh(new THREE.BoxGeometry(2.1,1.05,6.2),mat("#c6a06c"));paw.position.set(x,-.7,8);sphinx.add(paw);}
+  const tail=new THREE.Mesh(new THREE.TorusGeometry(1.1,.28,6,12,Math.PI),mat("#a98557"));tail.position.set(5.3,.1,-7);tail.rotation.y=Math.PI/2;sphinx.add(tail);
+  sphinx.position.set(-2,1.5,-28);sphinx.scale.setScalar(.92);g.add(sphinx);
+  // A single obelisk is offset from the central sightline.
+  box(g,3,.8,3,"#b18b5c",52,.4,-48);
+  const obelisk=new THREE.Mesh(new THREE.ConeGeometry(1.05,15,4),mat("#c7a474"));obelisk.position.set(52,8.2,-48);obelisk.rotation.y=Math.PI/4;g.add(obelisk);
+  // Small palms sit along the distant river bank rather than obscuring the monuments.
+  for(let i=0;i<6;i++){
+    const x=-108+i*43,z=-137+(i%2)*8;
+    cylinder(g,.26,6.5,"#76502f",x,3.25,z,7);
+    for(let k=0;k<6;k++){
+      const a=k*Math.PI/3,leaf=new THREE.Mesh(new THREE.ConeGeometry(.22,4.2,5),mat("#397c45"));
+      leaf.position.set(x+Math.cos(a)*1.35,6.3,z+Math.sin(a)*1.35);leaf.rotation.z=Math.cos(a)*.7;leaf.rotation.x=Math.sin(a)*.7;g.add(leaf);
     }
   }
 };
-
 const chinaWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
   box(g,260,0.5,260,P.green,0,-0.25,-45);
   for(let i=0;i<9;i++){
@@ -945,19 +951,21 @@ const grandCanyonWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
 
 const coneMesh=(g:THREE.Group,r:number,h:number,c:string,x:number,y:number,z:number,seg=7)=>{const m=new THREE.Mesh(new THREE.ConeGeometry(r,h,seg),mat(c));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;g.add(m);return m;};
 const mountainsWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
-  heightfieldGround(g,"mountain","#66716d");
-  for(let i=0;i<9;i++){
-    const x=-80+i*20, h=22+hash(i,110)*18, r=12+hash(i,111)*8;
-    poly(g,[[x-r,0,-50],[x,h,-50-r],[x+r,0,-50]],i%2===0?"#7b7f8e":"#646975");
-    poly(g,[[x-r*0.35,h*0.7,-50-r*0.35],[x,h,-50-r],[x+r*0.35,h*0.7,-50-r*0.35]],"#f4f7ff");
+  heightfieldGround(g,"mountain","#788487",p.seed ?? 1);
+  // Bare Himalayan-style ridges: the skyline is layered behind the cast, not a single wall in front.
+  for(let i=0;i<11;i++){
+    const x=-108+i*21.5,h=22+hash(i,110)*20,r=15+hash(i,111)*9,z=-112-hash(i,112)*18;
+    poly(g,[[x-r,0,z+13],[x-r*.48,h*.62,z+2],[x,h,z-7],[x+r*.46,h*.68,z+1],[x+r,0,z+13]],i%2===0?"#737e83":"#626e74");
+    poly(g,[[x-r*.23,h*.69,z+1],[x,h,z-7],[x+r*.22,h*.73,z+1]],"#f4f7fa");
+    poly(g,[[x-r*.12,h*.9,z-4],[x,h,z-7],[x+r*.1,h*.91,z-4]],"#ffffff");
   }
-  for(let i=0;i<28;i++){const x=(hash(i,115)-.5)*150,z=-8-hash(i,116)*112,r=1.2+hash(i,117)*2.8;const rock=ball(g,r,i%3===0?"#9ba3a7":"#737d82",x,r*.42,z,1.6,.72,1.2);rock.rotation.y=hash(i,118)*6.28;}
-  for(let i=0;i<5;i++){const x=-105+i*52,h=36+hash(i,121)*20,r=17+hash(i,122)*8;poly(g,[[x-r,0,-122],[x,h,-142],[x+r,0,-122]],i%2?"#657077":"#7b8589");poly(g,[[x-r*.28,h*.7,-136],[x,h,-142],[x+r*.28,h*.7,-136]],"#edf4f6");}
-  for(let i=0;i<15;i++){
-    ball(g,0.8+hash(i,118)*0.9,"#8a8f9c",(hash(i,119)-0.5)*80,0.4,-6-hash(i,120)*50,1.4,0.8,1.2);
+  // Low talus and exposed rock clusters frame the foreground without blocking the mountain range.
+  for(let i=0;i<30;i++){
+    const x=(hash(i,115)-.5)*150,z=-8-hash(i,116)*70,r=.65+hash(i,117)*1.7;
+    const rock=ball(g,r,i%3===0?"#a6afb1":"#747f83",x,r*.34,z,1.45,.68,1.1);
+    rock.rotation.y=hash(i,118)*6.28;
   }
 };
-
 const volcanoWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
   box(g,260,0.5,260,"#242220",0,-0.25,-45);
   const vx=0, vz=-65, vr=28, vh=32;

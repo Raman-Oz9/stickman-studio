@@ -596,3 +596,8 @@ Render stills with the props-test workflow (build a board in `remotion/story_pro
 - Reworked the shared worldgen heightfield with seeded multi-octave value noise, biome-specific mountain ridges, rippled dunes, canyon strata, slope/elevation vertex colour, and instanced grass, flowers, rocks and biome trees.
 - Increased the connected realm terrain's noise layering and added a low-poly, height-following meandering 3D river from the Himalayan region toward the coast; existing bare Himalayan snow peaks and Egypt monuments are preserved.
 - Strict TypeScript and native-resolution proof are required before marking the terrain queue item complete.
+
+### 2026-11-20 — Refine Himalayan and Egyptian proof compositions
+- Reduced the near-camera Himalayan heightfield mass and rebuilt the skyline as layered bare rock peaks with clear snow caps and low foreground talus; winter ground now uses snow tones rather than bright sky blue.
+- Reframed Egypt as three clustered sandstone pyramids, a foreground sphinx, an offset obelisk and a narrow distant Nile so the landmarks read together in the portrait proof frame.
+- The first strict TypeScript check passed; this visual correction requires a fresh strict check and rerender before terrain acceptance.

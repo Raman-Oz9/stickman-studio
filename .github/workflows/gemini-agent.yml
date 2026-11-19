@@ -81,9 +81,10 @@ jobs:
             exit 1
           fi
 
-          npm --prefix remotion ci --no-audit --no-fund
+          npm --prefix remotion install --no-audit --no-fund
           npm --prefix remotion exec -- tsc --noEmit
           rm -rf remotion/node_modules
+          rm -f remotion/package-lock.json
 
           git add -A
           git commit -m "Gemini: ${TASK:0:72}"

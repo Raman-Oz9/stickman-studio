@@ -1,3 +1,7 @@
+### 2026-11-19 — Verify five-ship 3D fleet, curved sailing paths, and synchronized landing proof
+- Verified five-ship 3D fleet with hero galleon, curved sailing paths, ship bob/roll, coast arrival, synchronized wide/orbit/settle camera choreography in `world.ts` + `StoryHybrid.tsx`, and ink soldier beach disembarkation.
+- Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` successfully with zero errors.
+
 ### 2026-11-19 — Verify animated 3D water surfaces, fleet arrival, and strict TypeScript proof
 - Verified that sea, connected-realm, generic ocean/lake/coast, river, and ocean-floor scenes utilize animated 3D water surfaces, horizon/coast, five-ship fleet with hero galleon, synchronized camera choreography, and ink soldier beach disembarkation.
 - Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` with zero errors.

@@ -238,6 +238,9 @@
 - Both: update this file on every change; never claim "works" without viewing rendered frames; never send the owner a video that has not been frame-checked.
 ## CHANGELOG
 
+### 2026-11-19 — Reduce hair blob size in InkStickman.tsx
+- Scaled hair path transform in `remotion/src/videos/story/InkStickman.tsx` by ~0.8 (from `scale(1.38 1.5)` to `scale(1.1 1.2)`) to keep hair comfortably inside the head outline. Verified clean TypeScript compilation with `npx tsc --noEmit`.
+
 ### 2026-11-18 — Add 3D sea world preset in worldgen.ts
 - Added animated 3D sea world preset in `remotion/src/videos/story/worldgen.ts` exposed via `WorldParams world.kind="sea"` featuring animated ocean surface (wave displacement, foam, sun glint, depth colour), bobbing ships/boats, and underwater camera mode (blue fog, shimmering caustics, and rising bubbles). Verified clean TypeScript compilation with `npx tsc --noEmit`.
 

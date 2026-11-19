@@ -1,3 +1,7 @@
+### 2026-11-19 — Verify animated 3D water surfaces, fleet arrival, and strict TypeScript proof
+- Verified that sea, connected-realm, generic ocean/lake/coast, river, and ocean-floor scenes utilize animated 3D water surfaces, horizon/coast, five-ship fleet with hero galleon, synchronized camera choreography, and ink soldier beach disembarkation.
+- Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` with zero errors.
+
 ### 2026-11-19 — Verify 3D depth, shadow maps disabled, and strict TypeScript proof passed
 - Verified strict TypeScript compilation with `npx tsc --noEmit` and render proof: shadow maps disabled, hemisphere/warm key lighting and film grade retained, FogExp2 distance fog, camera-space vignette, city-building base darkening, contact blobs under 3D props and radial contact shadows beneath ink characters.
 
@@ -244,6 +248,10 @@
 - Avoid collisions: ChatGPT owns `worldgen.ts`, `IllustratedProof.tsx`, boards/sample scripts for new world types. Claude owns `world.ts` mounts/actions, `props3d.ts` models, camera shot logic unless coordinated here. If both need `camera.ts`/`world.ts`, write the intent in this file first, make small commits, rebase on `main` before pushing.
 - Both: update this file on every change; never claim "works" without viewing rendered frames; never send the owner a video that has not been frame-checked.
 ## CHANGELOG
+
+### 2026-11-19 — Verify animated 3D water surfaces, fleet arrival, and strict TypeScript proof
+- Verified animated 3D water surfaces across sea, connected-realm, ocean/lake/coast, river, and ocean-floor scenes; sea shot horizon/coast, five-ship fleet with hero galleon, synchronized camera choreography, and ink soldier beach disembarkation.
+- Ran strict TypeScript verification (`cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit`) successfully with zero errors.
 
 ### 2026-11-18 — Add 3D sea world preset in worldgen.ts
 - Added animated 3D sea world preset in `remotion/src/videos/story/worldgen.ts` exposed via `WorldParams world.kind="sea"` featuring animated ocean surface (wave displacement, foam, sun glint, depth colour), bobbing ships/boats, and underwater camera mode (blue fog, shimmering caustics, and rising bubbles). Verified clean TypeScript compilation with `npx tsc --noEmit`.

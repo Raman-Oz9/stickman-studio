@@ -1,3 +1,7 @@
+### 2026-11-18 — Extend plan_story.py auto models & icons and Props2D fallback
+- Extended `remotion/scripts/plan_story.py` so every noun, vehicle, or animal not in `props3d` gets an auto-generated procedural recipe (8-30 parts), and added an `icons` map (`name -> small SVG` with viewBox 0 0 100 100, ink outline `#1d1a20`, flat colours) for hand-held nouns.
+- Updated `Props2D.tsx` so `PropIcon` fallback reads `board.icons` instead of rendering the generic letter tile. Verified clean TypeScript compilation with `npx tsc --noEmit`.
+
 ### 2026-11-18 — Fix scene-grade uniform type mismatch
 - The era/season/weather grade in `world.ts` must blend against `THREE.Vector3` values because the shared `TONE.uLitCol` and `TONE.uShadeCol` uniforms are Vector3 instances in `remotion/src/videos/bridge/shade.ts`. Updated the blend targets to match those declared uniform types; grade values and blend weights are unchanged.
 - The proof run at commit `4b558c3` failed at strict TypeScript checking because those targets were `THREE.Color`. This correction is in commit `fc33593`; a fresh run against the latest branch head is needed before claiming the check is fixed.

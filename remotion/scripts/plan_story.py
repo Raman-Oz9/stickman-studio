@@ -459,6 +459,73 @@ def clean(b):
     b["models"] = lib
     return b
 
+def _load_props3d_known():
+    known = set(LIB) | set(ROLES)
+    try:
+        txt = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../src/videos/story/props3d.ts")).read()
+        for block_name in ["PROC", "KEN", "ALIAS", "DEFAULT_H", "SADDLE"]:
+            part = txt.split(f"const {block_name}")
+            if len(part) > 1:
+                block_content = part[1].split(";")[0]
+                for k in re.findall(r"([a-z0-9_]+)\s*:", block_content):
+                    known.add(k.lower())
+    except Exception:
+        pass
+    return known
+
+def generate_recipe(name):
+    import hashlib
+    h_val = int(hashlib.md5(name.encode()).hexdigest(), 16)
+    shapes = ["box", "sphere", "cyl", "cone", "torus", "pyramid"]
+    colors = ["#8a5a2b", "#e23b3b", "#4aa84a", "#f1c24f", "#3a3a44", "#35c3e8", "#c0353a", "#8a8f9c", "#d49e35", "#b88a3a"]
+    num_parts = 12 + (h_val % 15)  # 12 to 26 parts (between 8 and 30)
+    parts = []
+    for i in range(num_parts):
+        s = shapes[(h_val + i * 3) % len(shapes)]
+        c = colors[(h_val + i * 7) % len(colors)]
+        px = ((h_val >> (i % 8)) % 21 - 10) * 0.05
+        py = 0.2 + (i * 0.07)
+        pz = ((h_val >> ((i + 2) % 8)) % 21 - 10) * 0.05
+        sx = 0.3 + ((h_val + i) % 5) * 0.1
+        sy = 0.3 + ((h_val + i * 2) % 5) * 0.1
+        sz = 0.3 + ((h_val + i * 3) % 5) * 0.1
+        parts.append({"s": s, "c": c, "p": [round(px, 2), round(py, 2), round(pz, 2)], "z": [round(sx, 2), round(sy, 2), round(sz, 2)], "r": [0, 0, 0]})
+    return {"h": 1.2, "parts": parts}
+
+def generate_icon_svg(name):
+    import hashlib
+    h_val = int(hashlib.md5(name.encode()).hexdigest(), 16)
+    colors = ["#f1c24f", "#e23b3b", "#4aa84a", "#35c3e8", "#d49e35", "#8a5a2b", "#b88a3a", "#c0353a", "#7a4b2a", "#3a3d45"]
+    col = colors[h_val % len(colors)]
+    col2 = colors[(h_val + 3) % len(colors)]
+    return f'<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><g stroke="#1d1a20" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"><rect x="20" y="20" width="60" height="60" rx="12" fill="{col}"/><circle cx="50" cy="50" r="18" fill="{col2}"/><path d="M 35 50 H 65" stroke="#1d1a20" stroke-width="6"/></g></svg>'
+
+def add_auto_models_and_icons(b):
+    known = _load_props3d_known()
+    models = b.get("models", {})
+    icons = b.get("icons", {})
+    all_nouns = set()
+    for sc in b.get("scenes", []):
+        for p in sc.get("props", []):
+            if isinstance(p, dict) and p.get("name"):
+                all_nouns.add(str(p["name"]).lower().strip())
+        for c in sc.get("cast", []):
+            if c.get("hold"):
+                all_nouns.add(str(c["hold"]).lower().strip())
+            if c.get("mount"):
+                all_nouns.add(str(c["mount"]).lower().strip())
+    for noun in all_nouns:
+        if not noun:
+            continue
+        if noun not in known and noun not in models:
+            models[noun] = generate_recipe(noun)
+        if noun not in icons:
+            icons[noun] = generate_icon_svg(noun)
+    b["models"] = models
+    if icons:
+        b["icons"] = icons
+    return b
+
 ARMY = r"\b(army|armies|soldiers?|troops?|legions?|warriors?|men marched|invad\w+|battle|siege|conquer\w*|crush\w*|march\w*)\b"
 CROWD = r"\b(crowd|people|villagers|citizens|priests|worshipp?ers|merchants|pilgrims|workers|nobles|courtiers|city|cities|market)\b"
 def crowds(b, script):
@@ -489,6 +556,6 @@ if __name__ == "__main__":
     if not b or not b.get("scenes"):
         b, src = heuristic(script), "heuristic"
     b = drop_worn(fly_pass(clean(establish(enrich_world(enrich_actions(enrich(split_clauses(b))))))))
-    b = crowds(b, script)
+    b = add_auto_models_and_icons(crowds(b, script))
     json.dump(b, open(sys.argv[2], "w"), indent=1)
     print(f"{src}: {len(b['scenes'])} scenes, {sum(s['dur'] for s in b['scenes']):.0f}s -> {sys.argv[2]}")

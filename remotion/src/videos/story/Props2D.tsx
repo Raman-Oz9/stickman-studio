@@ -1,4 +1,5 @@
 import React from "react";
+import { getBoard } from "./Story";
 
 // Ink-style hand-held props. Origin (0,0) = the grip point; +x = away from the body, -y = up.
 const INK = "#1d1a20";
@@ -49,7 +50,18 @@ const KINDS: K[] = [
   { re: /spoon|ladle/, node: <g {...S}><path d="M -25 0 L 15 0" stroke="#b0b5be" strokeWidth="5" strokeLinecap="round" /><ellipse cx="32" cy="0" rx="16" ry="10" fill="#d0d5dd" /><ellipse cx="30" cy="0" rx="12" ry="7" fill="#eaedf1" strokeWidth="0" /></g> },
   { re: /wheel|ship_wheel|steering_wheel|wagon_wheel/, node: <g {...S}><circle cx="20" cy="0" r="8" fill="#7a4b2a" /><circle cx="20" cy="0" r="28" fill="none" stroke="#6e4223" strokeWidth="7" /><path d="M 20 -36 V 36 M -16 0 H 56 M -5 -25 L 45 25 M -5 25 L 45 -25" stroke="#6e4223" strokeWidth="4" fill="none" /><circle cx="20" cy="-36" r="3" fill="#4a2c16" strokeWidth="0" /><circle cx="20" cy="36" r="3" fill="#4a2c16" strokeWidth="0" /><circle cx="-16" cy="0" r="3" fill="#4a2c16" strokeWidth="0" /><circle cx="56" cy="0" r="3" fill="#4a2c16" strokeWidth="0" /></g> },
 ];
-const FALLBACK = (name: string) => <g {...S}><rect x="0" y="-32" width="64" height="64" rx="10" fill="#d8b77a" /><text x="32" y="12" textAnchor="middle" fontSize="34" fontFamily="Arial Black,sans-serif" fill={INK} stroke="none">{(name[0] ?? "?").toUpperCase()}</text></g>;
+const FALLBACK = (name: string) => {
+  const n = name.toLowerCase();
+  let customIcons: Record<string, string> | undefined;
+  try {
+    customIcons = getBoard()?.icons;
+  } catch {}
+  const svgStr = customIcons?.[n] || customIcons?.[name];
+  if (svgStr) {
+    return <g dangerouslySetInnerHTML={{ __html: svgStr }} />;
+  }
+  return <g {...S}><rect x="0" y="-32" width="64" height="64" rx="10" fill="#d8b77a" /><text x="32" y="12" textAnchor="middle" fontSize="34" fontFamily="Arial Black,sans-serif" fill={INK} stroke="none">{(name[0] ?? "?").toUpperCase()}</text></g>;
+};
 
 export const PropIcon: React.FC<{ name: string; scale?: number }> = ({ name, scale = 1 }) => {
   const n = name.toLowerCase();

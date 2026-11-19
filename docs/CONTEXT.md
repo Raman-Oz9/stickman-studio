@@ -532,3 +532,4 @@ Render stills with the props-test workflow (build a board in `remotion/story_pro
 ### 2026-11-19 — Add independent Qwen Code agent workflow
 - Added `.github/workflows/qwen-agent.yml`, a manually dispatched Qwen Code workflow using the repository's `OPENROUTER_API_KEY` secret and the Qwen coding model through OpenRouter's OpenAI-compatible API.
 - The workflow uses its own `qwen-agent/*` branch, runs strict Remotion TypeScript validation, and opens a review-only PR; it does not merge automatically or modify Claude, OpenCode, or Gemini workflows. OpenRouter free-model availability and quotas are provider-controlled and may change.
+- 2026-11-19 Claude: merged PR #12 (Qwen Code agent workflow). Fixed Qwen fallback in opencode-loop (was "No auth type selected"): now `--auth-type openai` + OpenRouter key/base-url, model qwen/qwen3-coder:free. Gemini free quota exhausted (500/day) so Qwen carries the queue until reset.

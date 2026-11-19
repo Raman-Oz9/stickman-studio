@@ -611,7 +611,7 @@ const seaWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
   for(let sIdx=0;sIdx<5;sIdx++){
     const factory=PROC.galleon??PROC.sailboat??PROC.steamship,ship=factory?factory():new THREE.Group(),hero=sIdx===0;
     ship.name=hero?"HeroGalleon":"FleetShip_"+sIdx;ship.scale.setScalar(hero?2.05:.82+hash(sIdx,152)*.16);
-    ship.userData.sailPath={x0:-118+Math.floor(sIdx/2)*-7,z0:-70+(sIdx%2)*30,cx:-24+Math.floor(sIdx/2)*-4,cz:-96+(sIdx%2)*28,x1:82+Math.floor(sIdx/2)*-8,z1:-46+(sIdx%2)*22,delay:sIdx*.38,duration:7.2,baseY:.25,phase:sIdx*1.7};
+    ship.userData.sailPath={x0:-118+Math.floor(sIdx/2)*-7,z0:-70+(sIdx%2)*30,cx:-24+Math.floor(sIdx/2)*-4,cz:-96+(sIdx%2)*28,x1:82+Math.floor(sIdx/2)*-8,z1:-46+(sIdx%2)*22,delay:sIdx*.38,duration:5.0,baseY:.25,phase:sIdx*1.7};
     g.add(ship);
   }
   for(let i=0;i<14;i++){
@@ -1336,7 +1336,7 @@ export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
   g.userData.worldParams=p;g.userData.time=t;return g;
 };
 export const sailingHeroAt=(t:number):[number,number,number]=>{
-  const k=clamp(t/7.2),q=1-k,x=q*q*(-118)+2*q*k*(-24)+k*k*82,z=q*q*(-70)+2*q*k*(-96)+k*k*(-46);
+  const k=clamp(t/5.0),q=1-k,x=q*q*(-118)+2*q*k*(-24)+k*k*82,z=q*q*(-70)+2*q*k*(-96)+k*k*(-46);
   return [x,.25+Math.sin(t*1.7)*.18,z];
 };
 export const animateWorld=(g:THREE.Group,t:number)=>{

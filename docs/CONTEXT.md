@@ -1,3 +1,6 @@
+### 2026-11-19 — Verify 3D depth, shadow maps disabled, and strict TypeScript proof passed
+- Verified strict TypeScript compilation with `npx tsc --noEmit` and render proof: shadow maps disabled, hemisphere/warm key lighting and film grade retained, FogExp2 distance fog, camera-space vignette, city-building base darkening, contact blobs under 3D props and radial contact shadows beneath ink characters.
+
 ### 2026-11-18 — Extend plan_story.py auto models & icons and Props2D fallback
 - Extended `remotion/scripts/plan_story.py` so every noun, vehicle, or animal not in `props3d` gets an auto-generated procedural recipe (8-30 parts), and added an `icons` map (`name -> small SVG` with viewBox 0 0 100 100, ink outline `#1d1a20`, flat colours) for hand-held nouns.
 - Updated `Props2D.tsx` so `PropIcon` fallback reads `board.icons` instead of rendering the generic letter tile. Verified clean TypeScript compilation with `npx tsc --noEmit`.

@@ -24,6 +24,7 @@ jobs:
         working-directory: remotion
         run: npx tsc --noEmit 2>&1 | tee out-tsc.txt; test ${PIPESTATUS[0]} -eq 0
       - name: Render action sheet pages
+        if: startsWith(github.ref, 'refs/heads/claude/')
         working-directory: remotion
         run: |
           mkdir -p out && cp out-tsc.txt out/ || true
@@ -31,16 +32,19 @@ jobs:
             npx remotion still src/index.ts ActionSheet "out/actions-$f.jpg" --frame=$f --scale=1 --gl=swangle --image-format=jpeg --jpeg-quality=92 --timeout=300000 --log=warn || true
           done
       - name: Render turnaround sheet
+        if: startsWith(github.ref, 'refs/heads/claude/')
         working-directory: remotion
         run: |
           mkdir -p out
           npx remotion still src/index.ts TurnSheet out/turn.jpg --frame=0 --scale=1 --gl=swangle --image-format=jpeg --jpeg-quality=92 --timeout=300000 --log=warn || true
       - name: Render wardrobe sheets
+        if: startsWith(github.ref, 'refs/heads/claude/')
         working-directory: remotion
         run: |
           mkdir -p out
           for f in 0 1; do npx remotion still src/index.ts WardrobeSheet "out/ward-$f.jpg" --frame=$f --scale=1 --gl=swangle --image-format=jpeg --jpeg-quality=92 --timeout=300000 --log=warn || true; done
       - name: Render story stills with generic performer
+        if: startsWith(github.ref, 'refs/heads/claude/')
         working-directory: remotion
         run: |
           mkdir -p public/prep out
@@ -49,14 +53,17 @@ jobs:
             npx remotion still src/index.ts StoryShort2D "out/story-$f.jpg" --frame=$f --scale=0.5 --gl=swangle --image-format=jpeg --jpeg-quality=90 --props=./public/prep/actions-props.json --timeout=300000 --log=warn || true
           done
       - name: Render HYBRID (3D world + 2D cast) stills
+        if: startsWith(github.ref, 'refs/heads/claude/')
         working-directory: remotion
         run: |
           for f in 45 135 225 315 405 495 585 675; do
             npx remotion still src/index.ts StoryHybrid "out/hyb-$f.jpg" --frame=$f --scale=0.5 --gl=swangle --image-format=jpeg --jpeg-quality=90 --props=./public/prep/actions-props.json --timeout=600000 --log=warn || true
           done
       - name: Render ChatGPT cinematic-world proof stills
+        if: startsWith(github.ref, 'refs/heads/chatgpt/')
         working-directory: remotion
         run: |
+          mkdir -p public/prep out
           cat > public/prep/chatgpt-world-proof.json <<'JSON'
           {
             "board": {

@@ -25,7 +25,7 @@ export type PropDef = {
   name: string;                      // sticker name (a noun: "mango", "chicken", "gold coins")
   x: number; z: number; y?: number;
   h?: number;                        // height in metres (default 1)
-  anim?: "pop" | "grow" | "bounce" | "float" | "fall" | "spin" | "static";
+  anim?: "pop" | "grow" | "bounce" | "float" | "fall" | "spin" | "static" | "sailing";
   at?: number; until?: number;       // visible window as fractions of the scene
   count?: number; spread?: number;   // scatter copies (a pile of coins, a flock of chickens, falling rain)
   from?: { x: number; z: number };   // glide from here to x,z

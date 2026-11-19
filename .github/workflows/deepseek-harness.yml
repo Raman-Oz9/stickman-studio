@@ -1,0 +1,64 @@
+name: DeepSeek Harness Agent
+
+# Independent, manually dispatched coding agent. It creates validated PRs;
+# it never merges into main. OpenCode's queue workflow remains untouched.
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: "A focused coding task for DeepSeek Harness"
+        required: true
+        type: string
+
+concurrency:
+  group: deepseek-harness-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  deepseek-agent:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out trusted main
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: main
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Run DeepSeek Harness in an isolated worker
+        uses: Lixiaoyiao/DSH-action@497af93119203ca22af4f96f8fe89b3345ad665c # v0.13.0
+        with:
+          deepseek-api-key: ${{ secrets.DEEPSEEK_API_KEY }}
+          github-token: ${{ github.token }}
+          command: auto
+          prompt: |
+            Repository: Raman-Oz9/stickman-studio.
+            Read AGENTS.md, docs/CONTEXT.md, docs/HANDOFF.md,
+            docs/REFERENCE_VIDEO_V2.md, and relevant skill/reference files first.
+            Implement this focused task:
+            ${{ inputs.task }}
+
+            Work only on the requested scope. Do not overwrite another agent's work.
+            Preserve the existing 3D StoryWorld + 2D ink-skeleton architecture.
+            Run the repository's required checks. Record the change in docs/CONTEXT.md.
+            Open a pull request for review. Never merge to main.
+          task-access: write
+          allow-write: "true"
+          natural-language-write: "false"
+          permission-profile: strict
+          isolation: docker
+          dsh-mode: controlled
+          dsh-version: 0.2.1-rc.2
+          base-branch: main
+          branch-prefix: dsh/
+          timeout-minutes: "30"
+          run-tests: "true"
+          validation-integrity: strict
+          test-commands: '[["npm","--prefix","remotion","install","--no-audit","--no-fund"],["npm","--prefix","remotion","exec","--","tsc","--noEmit"]]'

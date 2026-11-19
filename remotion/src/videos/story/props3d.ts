@@ -405,7 +405,12 @@ const chair3 = () => grp(mk(B(1.2,.2,1.2),"#8a5a2b",0,.75,0),mk(B(1.2,1.5,.18),"
 const scroll3 = () => grp(mk(B(1,.08,1.8),"#e5d1a2",0,.1,0),mk(C(.13,.13,1.9,12),"#8a5a2b",0,.13,-.92,1,1,1,Math.PI/2),mk(C(.13,.13,1.9,12),"#8a5a2b",0,.13,.92,1,1,1,Math.PI/2),...[-.45,-.2,.05,.3].map(x=>mk(B(.7,.015,.025),"#8a6a3a",x,.15,0)));
 const bird3 = () => grp(mk(S(.48,14,10),"#3f6f9f",0,.65,0,.9,.8,1.2),mk(S(.25,10,8),"#d9d5c8",0,.55,.32,.8,.7,.7),mk(new THREE.ConeGeometry(.08,.22,5),"#d49a32",0,.7,.62,1,1,1,Math.PI/2),mk(S(.035,8,6),"#111",.14,.82,.48));
 const campfire3 = () => grp(...[0,1,2].map(i=>mk(C(.13,.16,1.7,7),"#6b3f1c",0,.12,0,1,1,1,0,0,i*Math.PI/3)),mk(new THREE.ConeGeometry(.48,1.25,8),"#f06a1e",0,.8,0),mk(new THREE.ConeGeometry(.25,.82,8),"#ffd23a",0,.66,.05));
+const calculator3 = () => grp(mk(B(1.2,.12,1.55),"#414a55",0,.12,0),mk(B(1.08,.035,1.38),"#aeb8b6",0,.2,0),mk(B(.72,.08,.26),"#243c43",0,.27,-.48),...Array.from({length:12},(_,i)=>mk(B(.13,.06,.13),i%4===0?"#d2a64d":"#59616a",-.42+(i%4)*.28,.27,.05+Math.floor(i/4)*.28)));
+const laptop3 = () => grp(mk(B(1.9,.12,1.35),"#6d7880",0,.08,.35),mk(B(1.9,1.25,.1),"#53616d",0,.7,-.28,0),mk(B(1.72,1.07,.035),"#244d61",0,.72,-.22),mk(B(1.86,.07,.16),"#aab2b6",0,.18,-.22));
 Object.assign(PROC, { bed: bed3, deathbed: bed3, royalbed: bed3, throne: throne3, table: table3, chair: chair3, scroll: scroll3, bird: bird3, birds: bird3, campfire: campfire3 });
+Object.assign(PROC, { calculator: calculator3, laptop: laptop3 });
+Object.assign(DEFAULT_H, { calculator: .42, laptop: 1.3 });
+Object.assign(ALIAS, { "laptop computer": "laptop", computer: "laptop", "mobile phone": "phone", calculator: "calculator" });
 Object.assign(DEFAULT_H, { bed: 1.4, deathbed: 1.4, royalbed: 1.6, throne: 3.2, table: 1.1, chair: 1.8, scroll: .35, bird: .9, birds: .9, campfire: 1.4 });
 Object.assign(ALIAS, { "royal bed": "royalbed", "death bed": "deathbed", "king bed": "royalbed", "camp fire": "campfire", carriage: "wagon", scroll: "scroll" });
 Object.assign(PROC, { cavefire, mammoth, huntingtools, hut, obelisk, sphinx, aqueduct, romanship, greektemple, trireme, junk, pagoda, catapult, vikinglongship });

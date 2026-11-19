@@ -406,7 +406,7 @@ const bird3 = () => grp(mk(S(.48,14,10),"#3f6f9f",0,.65,0,.9,.8,1.2),mk(S(.25,10
 const campfire3 = () => grp(...[0,1,2].map(i=>mk(C(.13,.16,1.7,7),"#6b3f1c",0,.12,0,1,1,1,0,0,i*Math.PI/3)),mk(new THREE.ConeGeometry(.48,1.25,8),"#f06a1e",0,.8,0),mk(new THREE.ConeGeometry(.25,.82,8),"#ffd23a",0,.66,.05));
 Object.assign(PROC, { bed: bed3, deathbed: bed3, royalbed: bed3, throne: throne3, table: table3, chair: chair3, scroll: scroll3, bird: bird3, birds: bird3, campfire: campfire3 });
 Object.assign(DEFAULT_H, { bed: 1.4, deathbed: 1.4, royalbed: 1.6, throne: 3.2, table: 1.1, chair: 1.8, scroll: .35, bird: .9, birds: .9, campfire: 1.4 });
-Object.assign(ALIAS, { "royal bed": "royalbed", "death bed": "deathbed", "king bed": "royalbed", "camp fire": "campfire", carriage: "wagon" });
+Object.assign(ALIAS, { "royal bed": "royalbed", "death bed": "deathbed", "king bed": "royalbed", "camp fire": "campfire", carriage: "wagon", scroll: "scroll" });
 Object.assign(PROC, { cavefire, mammoth, huntingtools, hut, obelisk, sphinx, aqueduct, romanship, greektemple, trireme, junk, pagoda, catapult, vikinglongship });
 Object.assign(DEFAULT_H, { cavefire: 0.9, mammoth: 2.8, huntingtools: 0.8, hut: 2.5, obelisk: 4.5, sphinx: 2.2, aqueduct: 3.5, romanship: 4.0, greektemple: 5.0, trireme: 4.2, junk: 4.0, pagoda: 5.5, catapult: 1.8, vikinglongship: 4.2 });
 Object.assign(ALIAS, {

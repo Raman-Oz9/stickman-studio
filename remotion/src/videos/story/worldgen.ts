@@ -63,7 +63,7 @@ const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
     const wp=waterGeo.attributes.position,wc=new Float32Array(wp.count*3);
     for(let i=0;i<wp.count;i++){const z=wp.getZ(i),c=new THREE.Color("#0b344e").lerp(new THREE.Color("#347f9d"),(z+125)/250*.42+.18);wc[i*3]=c.r;wc[i*3+1]=c.g;wc[i*3+2]=c.b;}
     waterGeo.setAttribute("color",new THREE.BufferAttribute(wc,3));waterGeo.computeVertexNormals();
-    const surfaceY=p.terrain==="ocean-floor"?28:.12;const surface=new THREE.Mesh(waterGeo,new THREE.MeshPhongMaterial({color:"#ffffff",vertexColors:true,specular:"#9bd7e4",shininess:70,transparent:p.terrain==="ocean-floor",opacity:p.terrain==="ocean-floor"?.72:1}));surface.position.set(0,surfaceY,-45);surface.userData.waterWave={baseY:surfaceY,phase:.6};surface.receiveShadow=false;g.add(surface);
+    const surfaceY=p.terrain==="ocean-floor"?28:.12;const surface=new THREE.Mesh(waterGeo,new THREE.MeshPhongMaterial({color:"#ffffff",vertexColors:true,specular:"#9bd7e4",shininess:70,transparent:p.terrain==="ocean-floor",opacity:p.terrain==="ocean-floor" ? 0.72 : 1}));surface.position.set(0,surfaceY,-45);surface.userData.waterWave={baseY:surfaceY,phase:.6};surface.receiveShadow=false;g.add(surface);
     const horizon=new THREE.Mesh(new THREE.PlaneGeometry(420,56),new THREE.MeshBasicMaterial({color:"#466f83",transparent:true,opacity:.3,depthWrite:false}));horizon.position.set(0,23,-184);g.add(horizon);
   }
   if(p.terrain==="river"){

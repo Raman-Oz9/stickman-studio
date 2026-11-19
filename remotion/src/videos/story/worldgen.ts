@@ -565,3 +565,67 @@ export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
       if(p.weather==="fog")(m.material as THREE.MeshLambertMaterial).transparent=true,(m.material as THREE.MeshLambertMaterial).opacity=.14;
     }
   }
+// Procedural archaeology insert. Each artifact is built only from the active six-colour world palette.
+export const drawArtifact=(type:ArtifactType,t=0):THREE.Group=>{
+  const g=new THREE.Group();g.name="Artifact_"+type;
+  const patina=0.5+0.5*Math.sin(t*0.18);
+  if(type==="coin"||type==="jewellery"){
+    cylinder(g,type==="coin"?1.15:.72,.16,P.earth,0,1,0, type==="coin"?16:10);
+    cylinder(g,type==="coin"?.82:.42,.035,P.stone,0,1.1,0,12);
+    if(type==="jewellery")ball(g,.28,P.green,0,1.28,0,.8,1.2,.8);
+  } else if(type==="pottery"){
+    cylinder(g,.62,1.5,P.earth,0,.8,0,10);
+    cylinder(g,.48,.12,P.stone,0,1.58,0,10);
+    cylinder(g,.2,.16,P.shade,0,1.68,0,10);
+    for(let y=.5;y<1.35;y+=.28)cylinder(g,.67-(y-.5)*.12,.055,P.stone,0,y,0,10);
+  } else if(type==="tool"||type==="weapon"){
+    box(g,.18,2.2,.18,P.earth,0,1,0);
+    poly(g,[[-.12,2,0],[0,type==="weapon"?4.1:3.2,.02],[.12,2,0]],P.stone);
+    box(g,.7,.16,.24,P.shade,0,.7,0);
+  } else if(type==="tablet"){
+    box(g,1.9,2.5,.28,P.earth,0,1.25,0);
+    for(let i=0;i<5;i++)box(g,.8,.045,.035,P.shade,-.15,2.05-i*.36,.17);
+  } else if(type==="scroll"){
+    box(g,2.1,2.6,.12,P.earth,0,1.3,0);
+    cylinder(g,.13,2.8,P.stone,-1.08,1.3,0,8);cylinder(g,.13,2.8,P.stone,1.08,1.3,0,8);
+  } else if(type==="bone"){
+    box(g,.22,2.2,.22,P.earth,0,1,0);
+    for(const x of [-.16,.16])for(const y of [.2,2])ball(g,.24,P.stone,x,y,0);
+  } else if(type==="ruins"){
+    for(let i=0;i<4;i++)box(g,.6,2.4+(i%2)*.7,.6,P.stone,-1.1+i*.72,1.2,0);
+    box(g,3,.32,.7,P.earth,0,2.7,0);
+  } else {
+    box(g,3,.22,2.2,P.earth,0,.1,0);
+    for(let i=0;i<5;i++)box(g,.12,.7+(i%2)*.3,.12,P.stone,-1.1+i*.55,.55,0);
+    poly(g,[[-1.4,.2,-.9],[0,1.7,0],[1.4,.2,.9]],P.shade);
+  }
+  g.traverse(o=>{if(o instanceof THREE.Mesh){o.castShadow=true;o.receiveShadow=true;o.userData.patina=patina;}});
+  return g;
+};
+
+export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
+  const p: WorldParams={season:"summer",timeOfDay:"dawn",weather:"clear",era:"medieval",region:"african",...params};
+  const g=new THREE.Group();g.name=p.mapMode?"HistoricalMapWorld":"ProceduralWorld";
+  if(p.mapMode){mapLayer(g,p,t);g.scale.set(.5,1,.72);}else if(p.terrain==="space"){spaceSet(g,p,t);}else{
+    terrain(g,p,t);
+    // Open-water and seabed presets must not inherit terrestrial era buildings or regional huts.
+    if(p.terrain!=="ocean"&&p.terrain!=="ocean-floor"&&p.terrain!=="canyon") settlement(g,p,t);
+    if(p.artifact){const a=drawArtifact(p.artifact,t);a.position.set(0,0,5);g.add(a);}
+    if(p.timeOfDay==="night"){ball(g,3,P.sky,40,34,-70);}
+    if(p.timeOfDay==="dawn"||p.timeOfDay==="dusk")ball(g,2.8,p.accentEnabled?P.accent:P.sky,34,26,-68);
+  }
+  // Deterministic weather particles. Accent stays dormant until explicitly unlocked.
+  if(p.weather==="rain"||p.weather==="storm"||p.weather==="snow"||p.weather==="fog"||p.weather==="wind"||p.weather==="drought"){
+    for(let i=0;i<90;i++){const x=(hash(i,51)-.5)*130,z=-8-hash(i,52)*70,phase=hash(i,53)*6.28;
+      const y=p.weather==="snow"?4+((hash(i,54)*12+t*(.6+hash(i,55)))%14):p.weather==="fog"?1.4+hash(i,56)*4:7+((hash(i,57)*12+t*8)%14);
+      const c=p.weather==="drought"?P.earth:P.sky;
+      const dust=p.weather==="drought",m=box(g,p.weather==="fog"?8:dust?.16:.035,p.weather==="fog"?1:dust?.08:.5,dust?.16:.035,c,x+Math.sin(t+phase)*.7,y,z);
+      m.userData.weatherParticle={kind:p.weather,baseX:x,baseY:y,baseZ:z,phase,index:i};
+      if(p.weather==="fog")(m.material as THREE.MeshLambertMaterial).transparent=true,(m.material as THREE.MeshLambertMaterial).opacity=.14;
+    }
+  }
+  g.userData.worldParams=p;g.userData.time=t;return g;
+};
+export const animateWorld=(g:THREE.Group,t:number)=>{
+  g.traverse(o=>{const spin=o.userData.spin as {speed:number;base:number}|undefined;if(spin)o.rotation.y=spin.base+t*spin.speed;const orbit=o.userData.orbit as {phase:number;baseX:number;baseY:number}|undefined;if(orbit){o.position.x=orbit.baseX+Math.sin(t*.08+orbit.phase)*4;o.position.y=orbit.baseY+Math.cos(t*.08+orbit.phase)*1.2;}const asteroid=o.userData.asteroid as {phase:number;radius:number;baseY:number;speed:number;centerZ:number}|undefined;if(asteroid){const a=asteroid.phase+t*asteroid.speed;o.position.x=Math.cos(a)*asteroid.radius;o.position.z=asteroid.centerZ+Math.sin(a)*asteroid.radius;o.position.y=asteroid.baseY+Math.sin(a*1.7)*1.5;o.rotation.y+=.01;}const bubble=o.userData.bubble as {baseX:number;baseY:number;baseZ:number;phase:number;speed:number}|undefined;if(bubble){o.position.x=bubble.baseX+Math.sin(t*.7+bubble.phase)*.22;o.position.y=bubble.baseY+((t*bubble.speed+bubble.phase)%13);o.position.z=bubble.baseZ;}const plume=o.userData.ventPlume as {phase:number;baseY:number}|undefined;if(plume){o.position.y=plume.baseY+Math.sin(t*.9+plume.phase)*.4;o.scale.setScalar(.9+.12*Math.sin(t*.7+plume.phase));}const swim=o.userData.swim as {phase:number;baseX:number;baseY:number}|undefined;if(swim){o.position.x=swim.baseX+Math.sin(t*.55+swim.phase)*2.2;o.position.y=swim.baseY+Math.sin(t*1.3+swim.phase)*.35;o.rotation.y=Math.sin(t*.4+swim.phase)*.12;}const ray=o.userData.ray as {phase:number}|undefined;if(ray&&o instanceof THREE.Mesh&&o.material instanceof THREE.MeshBasicMaterial)o.material.opacity=.055+.025*(.5+.5*Math.sin(t*.7+ray.phase));const wave=o.userData.waveSurface as boolean|undefined;if(wave&&o instanceof THREE.Mesh){const a=o.geometry as THREE.PlaneGeometry,pos=a.attributes.position;for(let i=0;i<pos.count;i++){const x=pos.getX(i),y=pos.getY(i);pos.setZ(i,Math.sin(x*.12+t*.8)*.18+Math.cos(y*.1-t*.6)*.12);}pos.needsUpdate=true;a.computeVertexNormals();}const water=o.userData.waterWave as {phase:number;baseY:number}|undefined;if(water)o.position.y=water.baseY+Math.sin(t*.8+water.phase)*.08;const mark=o.userData.waveMark as {phase:number;baseY:number}|undefined;if(mark)o.position.y=mark.baseY+Math.sin(t*.9+mark.phase)*.035;const routeIndex=o.userData.routeIndex as number|undefined;if(routeIndex!==undefined)o.visible=routeIndex<Math.floor(clamp(t/3)*26);const s=o.userData.sway as {phase:number;amp:number}|undefined;if(s)o.rotation.z=Math.sin(t*1.3+s.phase)*s.amp;const smoke=o.userData.smokeParticle as {phase:number;baseY:number}|undefined;if(smoke){o.position.y=smoke.baseY+((t*1.5+smoke.phase)%5);o.scale.setScalar(.7+((t*.35+smoke.phase)%1)*.5);}const w=o.userData.weatherParticle as {kind:string;baseX:number;baseY:number;baseZ:number;phase:number;index:number}|undefined;if(w){if(w.kind==="rain"||w.kind==="storm")o.position.y=2+((w.baseY-2-t*(w.kind==="storm"?14:8))%14+14)%14;else if(w.kind==="snow")o.position.y=2+((w.baseY-2-t*.8)%14+14)%14;else if(w.kind==="fog"){o.position.x=w.baseX+Math.sin(t*.12+w.phase)*2;o.position.y=w.baseY+Math.sin(t*.2+w.phase)*.2;}else if(w.kind==="drought"){o.position.x=w.baseX+Math.sin(t*.35+w.phase)*2.4+t*.18;o.position.y=w.baseY+Math.sin(t*.7+w.phase)*.35;}else o.position.x=w.baseX+Math.sin(t*.7+w.phase)*.8;}});
+};

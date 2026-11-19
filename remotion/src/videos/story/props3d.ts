@@ -146,6 +146,25 @@ const book = () => grp(mk(B(0.8, 0.14, 1.05), "#2f5fb5", 0, 0.07, 0), mk(B(0.74,
 const phone = () => grp(mk(B(0.5, 1, 0.08), "#2a2a34", 0, 0.5, 0), mk(B(0.42, 0.84, 0.09), "#8fd3f4", 0, 0.52, 0));
 const flower = () => { const g = grp(mk(C(0.025, 0.025, 0.6, 6), GREEN, 0, 0.3, 0)); for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2; g.add(mk(S(0.14, 10, 8), "#f06aa0", Math.cos(a) * 0.16, 0.64, Math.sin(a) * 0.16, 1, 0.5, 1)); } g.add(mk(S(0.1, 10, 8), "#ffd23a", 0, 0.66, 0)); return g; };
 const fire = () => grp(mk(new THREE.ConeGeometry(0.4, 1, 10), "#f06a1e", 0, 0.5, 0), mk(new THREE.ConeGeometry(0.25, 0.7, 10), "#ffd23a", 0, 0.38, 0.05));
+const coop = () => grp(
+  mk(B(3.4, 2.1, 2.8), "#F4C65A", 0, 1.05, 0),
+  mk(new THREE.ConeGeometry(2.5, 1.65, 4), "#D98D3D", 0, 2.92, 0, 1, 1, 1, 0, Math.PI / 4),
+  mk(B(1.0, 1.15, .16), "#171717", 0, .58, 1.48),
+  mk(B(.12, 2.0, .14), "#87583d", -1.45, 1.0, 1.48),
+  mk(B(.12, 2.0, .14), "#87583d", 1.45, 1.0, 1.48),
+  mk(B(3.2, .16, .18), "#87583d", 0, 2.0, 1.48)
+);
+const chalkboard = () => {
+  const g = grp(
+    mk(B(3.5, 2.45, .2), "#87583d", 0, 1.75, 0),
+    mk(B(3.12, 2.08, .08), "#174d68", 0, 1.78, .15),
+    mk(B(.16, 2.4, .16), "#87583d", -1.05, 1.2, .08),
+    mk(B(.16, 2.4, .16), "#87583d", 1.05, 1.2, .08),
+    mk(B(2.2, .09, .08), "#F1C24F", 0, .45, .16)
+  );
+  for(let i=0;i<3;i++)g.add(mk(B(1.8-i*.3,.045,.035),"#f7f2df",-.12,2.35-i*.48,.21));
+  return g;
+};
 const house = () => grp(mk(B(1.6, 1.0, 1.3), "#f0d9a8", 0, 0.5, 0), mk(new THREE.ConeGeometry(1.35, 0.8, 4), "#c0353a", 0, 1.4, 0, 1, 1, 0.95, 0, Math.PI / 4), mk(B(0.34, 0.6, 0.06), BROWN, 0, 0.3, 0.66), mk(B(0.3, 0.3, 0.06), "#bfe6f5", -0.5, 0.65, 0.66), mk(B(0.3, 0.3, 0.06), "#bfe6f5", 0.5, 0.65, 0.66), mk(B(0.22, 0.5, 0.22), "#a07050", 0.5, 1.6, -0.2));
 const castle = () => {
   const stone = "#b8bfc9", stone2 = "#a2aab6", roof = "#c0353a", g = grp(mk(B(3.2, 1.8, 2.2), stone, 0, 0.9, 0), mk(B(1.6, 1.0, 1.4), stone2, 0, 2.3, 0), mk(B(0.9, 1.1, 0.12), "#5a3b2a", 0, 0.55, 1.12), mk(C(0.45, 0.45, 0.12, 16, ), "#5a3b2a", 0, 1.1, 1.12, 1, 1, 1, Math.PI / 2));
@@ -218,14 +237,14 @@ const KEN: Record<string, string> = { chest: "chest", barrel: "barrel", crate: "
 const ALIAS: Record<string, string> = { gun: "pistol", revolver: "pistol", handgun: "pistol", firearm: "pistol", musket: "rifle", "machine gun": "rifle", knives: "knife", axes: "axe", spears: "spear", bows: "bow", arrows: "arrow", pistols: "pistol", rifles: "rifle", shields: "shield", bombs: "bomb", cannon: "cannon3", torches: "torch", clubs: "club", hammers: "hammer", maces: "mace", katanas: "katana", daggers: "dagger", grenades: "grenade", cannonballs: "cannonball", stallion: "horse", pony: "horse", mare: "horse", "white horse": "horsewhite", lamb: "sheep", stag: "deer", bunny: "rabbit", parakeet: "parrot", hawk: "eagle", falcon: "eagle", bird: "parrot", lioness: "lion", elephants: "elephant", camels: "camel", horses: "horse", wolves: "wolf",
   "old car": "oldcar", "vintage car": "oldcar", "model t": "oldcar", "police car": "policecar", cab: "taxi", lorry: "truck", airplane: "plane", aeroplane: "plane", biplane: "plane", aircraft: "plane", airliner: "jet", "fighter jet": "jet", chopper: "helicopter", spaceship: "rocket", spacecraft: "rocket", shuttle: "rocket", "flying saucer": "ufo", "hot air balloon": "balloon",
   "sailing ship": "sailboat", yacht: "sailboat", "sail boat": "sailboat", ferry: "steamship", "cruise ship": "steamship", steamer: "steamship", "steam ship": "steamship", "u boat": "submarine", locomotive: "train", carriage: "wagon", stagecoach: "wagon", motorcycle: "motorbike", bike: "bicycle", "fire truck": "firetruck", "fire engine": "firetruck", jeep: "car", van: "bus", cars: "car", planes: "plane", trains: "train", helicopters: "helicopter", rockets: "rocket", pirateships: "pirateship", "gold coin": "coin", coins: "coin", "gold coins": "coin", gold: "coin", money: "coin", cash: "coin", wallet: "purse", handbag: "purse", bag: "purse", pouch: "purse", sack: "moneybag", "money bag": "moneybag",
-  hen: "chicken", rooster: "chicken", chick: "chicken", puppy: "dog", kitten: "cat", palace: "castle", kingdom: "castle", fort: "castle", cottage: "house", home: "house", hut: "house", jewel: "gem", diamond: "gem", ruby: "gem", sapphire: "gem",
+  hen: "chicken", rooster: "chicken", chick: "chicken", "chicken coop": "coop", henhouse: "coop", blackboard: "chalkboard", "lesson board": "chalkboard", puppy: "dog", kitten: "cat", palace: "castle", kingdom: "castle", fort: "castle", cottage: "house", home: "house", hut: "house", jewel: "gem", diamond: "gem", ruby: "gem", sapphire: "gem",
   sword_: "sword", blade: "sword", loaf: "bread", cookie: "bread", ship_: "ship", "pirate ship": "pirateship", treasure: "chest", "treasure chest": "chest", "apple tree": "appletree", seeds: "seed", sapling: "tree", oak: "tree", plant: "tree", rocks: "rock",
   stone: "rock", boulder: "rock", flame: "fire", love: "heart", trophy: "crown", automobile: "car", vehicle: "car", cow_: "cow", bull: "cow", ox: "cow", piglet: "pig", mangoes: "mango", apples: "apple", eggs: "egg", keys: "key", crowns: "crown", swords: "sword", chickens: "chicken",
   village: "house", pumpkins: "pumpkin", carrots: "carrot", flowers: "flower", trees: "tree", cows: "cow", dogs: "dog", cats: "cat", pigs: "pig", fishes: "fish", books: "book", barrels: "barrel", ships: "ship", boats: "boat", cannons: "cannon", kings_crown: "crown", cake_: "cake" };
 /** default real-world-ish heights (m) in cartoon proportions, used when the storyboard gives none and for held items */
 export const DEFAULT_H: Record<string, number> = { knife: 0.45, dagger: 0.55, katana: 1.1, axe: 0.9, spear: 1.8, trident: 1.8, mace: 0.8, club: 0.8, hammer: 0.8, torch: 0.7, bow: 1.0, arrow: 0.8, pistol: 0.4, rifle: 1.0, shotgun: 0.9, shield: 0.8, bomb: 0.4, grenade: 0.25, cannonball: 0.3, cannon3: 1.2, horse: 2.2, horsewhite: 2.2, donkey: 1.5, camel: 2.7, elephant: 3.2, lion: 1.3, wolf: 1.1, sheep: 0.9, deer: 1.9, rabbit: 0.5, goat: 1.0, tiger: 1.2, bear3: 1.6, parrot: 0.6, eagle: 0.9, duck: 0.5, owl: 0.6, penguin: 0.8, shark: 1.0, whale: 2.2, snake: 0.6, frog: 0.4, dragon: 3.6,
   oldcar: 1.8, policecar: 1.5, taxi: 1.5, truck: 2.3, bus: 2.5, tractor: 1.9, motorbike: 1.2, bicycle: 1.1, train: 2.7, plane: 2.2, jet: 1.8, helicopter: 2.4, rocket: 5, ufo: 1.4, balloon: 4, sailboat: 3.6, steamship: 3.4, submarine: 1.3, chariot: 1.5, wagon: 1.9, tank: 1.3, canoe: 0.6, scooter: 1.0, firetruck: 2.7, ambulance: 2.3, pirateship: 6, boat: 1.2, coin: 0.3, coinPile: 0.3, purse: 0.34, moneybag: 0.5, mango: 0.26, apple: 0.24, seed: 0.2, egg: 0.2, chicken: 0.7, cow: 1.6, dog: 0.8, cat: 0.5, pig: 0.9, fish: 0.4, crown: 0.4, sword: 1.0, key: 0.4,
-  heart: 0.5, gem: 0.35, bread: 0.3, cake: 0.5, book: 0.3, phone: 0.3, flower: 0.5, fire: 0.9, car: 1.5, house: 8, castle: 14, appletree: 5, tree: 5, chest: 0.7, barrel: 0.9, crate: 0.8, cannon: 1.0, ship: 4 };
+  heart: 0.5, gem: 0.35, bread: 0.3, cake: 0.5, book: 0.3, phone: 0.3, flower: 0.5, fire: 0.9, coop: 3.2, chalkboard: 2.5, car: 1.5, house: 8, castle: 14, appletree: 5, tree: 5, chest: 0.7, barrel: 0.9, crate: 0.8, cannon: 1.0, ship: 4 };
 
 /** things that have a front: they face their direction of travel (or sit side-on to the lens) */
 export const GUNS = new Set(["pistol", "rifle", "shotgun"]);

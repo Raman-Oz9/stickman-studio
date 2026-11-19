@@ -66,7 +66,7 @@ const Cast2D: React.FC<{ board: Board; f: number }> = ({ board, f }) => {
   }).filter((w) => !w.g.behind && w.k > 0.05 && w.g.x > -400 && w.g.x < 1480).sort((a, b) => b.depth - a.depth);
   const golden = (s.light ?? (s.tod === "dawn" || s.tod === "dusk" ? "golden" : "day")) === "golden";
   return (
-    <svg viewBox="0 0 1080 1920" width="1080" height="1920" style={{ position: "absolute", inset: 0, overflow: "visible", pointerEvents: "none", filter: golden ? "sepia(.25) saturate(1.15) brightness(.97)" : "saturate(1.06) contrast(1.03)" }}>
+    <svg viewBox="0 0 1080 1920" width="1080" height="1920" style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none", filter: golden ? "sepia(.25) saturate(1.15) brightness(.97)" : "saturate(1.06) contrast(1.03)" }}>
       {placed.map((w) => {
         const eraW = w.extra && s.extrasEra ? s.extrasEra : s.era;
         const o = outfitFor(w.d.role, w.idx, eraW);
@@ -99,7 +99,13 @@ export const StoryHybrid: React.FC = () => {
     Promise.all([loadKit(), loadStickers(urls)]).then(([k]) => { setKit(k); continueRender(handle); });
   }, [handle, board]);
   const { i, local, n } = sceneAt(board, f);
-  const capFull = board.scenes[i].caption;
+  const scene = board.scenes[i];
+  const capFull = scene.caption;
+  const era = String(scene.era ?? "").toLowerCase();
+  const nightGrade = (scene.env ?? []).includes("night") || scene.tod === "night" || (scene.env ?? []).includes("space");
+  const historicCaption = /ancient|egypt|greek|roman|renaissance|medieval|viking/.test(era);
+  const captionFont = historicCaption ? "Georgia, 'Times New Roman', serif" : "Arial Black, Impact, Liberation Sans, DejaVu Sans, sans-serif";
+  const captionGlow = nightGrade ? "0 0 18px rgba(116,184,255,.28), 0 7px 0 rgba(0,0,0,.38)" : "0 7px 0 rgba(0,0,0,.35)";
   let cap = capFull, popK = 1;
   if (capFull) {
     const ws = capFull.split(/\s+/).filter(Boolean), ch: string[] = [];
@@ -115,7 +121,7 @@ export const StoryHybrid: React.FC = () => {
         <Inner kit={kit} board={board} />
       </ThreeCanvas>
       <Cast2D board={board} f={f} />
-      {cap ? <div style={{ position: "absolute", left: 60, right: 60, bottom: 220, textAlign: "center", fontFamily: "Arial Black, Impact, Liberation Sans, DejaVu Sans, sans-serif", fontWeight: 900, fontSize: 76, lineHeight: 1.1, color: "#fff", WebkitTextStroke: "10px #1a1020", paintOrder: "stroke fill", textShadow: "0 8px 0 rgba(0,0,0,.35)", transform: `scale(${popK.toFixed(3)})` }}>{cap}</div> : null}
+      {cap ? <div style={{ position: "absolute", left: 0, right: 0, bottom: 228, display: "flex", justifyContent: "center", padding: "0 52px", pointerEvents: "none" }}><span style={{ display: "inline-block", maxWidth: "100%", textAlign: "center", fontFamily: captionFont, fontWeight: 900, fontSize: cap.length > 12 ? 66 : 76, lineHeight: 1.06, letterSpacing: historicCaption ? "0.5px" : "-0.8px", color: "#fff", WebkitTextStroke: "9px #17131b", paintOrder: "stroke fill", textShadow: captionGlow, padding: "7px 18px 10px", borderRadius: 12, background: "rgba(15,19,24,.24)", boxShadow: "0 5px 18px rgba(0,0,0,.12)", transform: `scale(${popK.toFixed(3)})` }}>{cap}</span></div> : null}
     </AbsoluteFill>
   );
 };

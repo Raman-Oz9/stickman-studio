@@ -9,3 +9,4 @@ token.json
 node_modules
 remotion/out
 remotion/public/bridge/kenney
+.aider*

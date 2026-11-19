@@ -28,7 +28,7 @@ export const buildBiome = (b: Biome, se: Season, ground = true): THREE.Group => 
       for(let i=0;i<waterPos.count;i++){const z=waterPos.getZ(i),c=new THREE.Color("#0d4268").lerp(new THREE.Color("#3b91b2"),(z+350)/700*.5+.2);waterCol[i*3]=c.r;waterCol[i*3+1]=c.g;waterCol[i*3+2]=c.b;}
       waterGeo.setAttribute("color",new THREE.BufferAttribute(waterCol,3));waterGeo.computeVertexNormals();
       const surface=new THREE.Mesh(waterGeo,new THREE.MeshPhongMaterial({color:"#ffffff",vertexColors:true,specular:"#9bd7e4",shininess:68}));
-      surface.position.y=-.7;surface.userData.waterSurface={baseY:-.7,phase:.8};surface.receiveShadow=false;g.add(surface);
+      surface.position.y=0;surface.userData.waterSurface={baseY:-.7,phase:.8};surface.receiveShadow=false;g.add(surface);
     }
     const waves: THREE.Mesh[] = []; if (ground) for (let i = 0; i < 46; i++) { const w = mk(B(5 + rnd() * 6, 0.16, 0.7), "#6fb7f0", -40 + rnd() * 80, -0.55, -40 + rnd() * 90); w.castShadow = false; waves.push(w); g.add(w); } g.userData.waves = waves;
     g.add(mk(B(22, 0.3, 30), "#8a5a2b", 0, -0.15, -10));                                 // dock the characters stand on, reaching out over the water

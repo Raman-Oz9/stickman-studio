@@ -276,9 +276,27 @@ export const canon = (name: string, pile = false): string => {
   const n = n0, nn = n.replace(/ /g, ""), last = n.split(" ").pop() ?? n;
   const hit = (k: string) => (ALIAS[k] ?? k);
   for (const c of [n, nn, last, n.replace(/s$/, ""), last.replace(/s$/, "")]) { const a = hit(c); if (a in PROC || a in KEN || a === "appletree") return a === "coin" && pile ? "coinPile" : a; }
-  return "";
+  return nn || "unknownprop";
 };
 
+const keywordProp=(key:string):THREE.Object3D=>{
+  const k=key.toLowerCase();
+  if(/ship|boat|galleon|vessel/.test(k))return grp(mk(B(1.3,.55,3.8),"#6b4630",0,.35,0),mk(C(.04,.04,3.2,7),"#4a2f1a",0,2,0),mk(B(.05,2.2,1.6),"#f4ecd2",0,2.1,0));
+  if(/horse|camel|elephant|cow|dog|bird|fish|animal|beast/.test(k))return grp(mk(S(.5,12,9),k.includes("elephant")?"#9299a2":"#9a7049",0,.75,0,1.35,.85,1.8),mk(S(.28,10,8),"#b58a61",0,1.15,.85),...[-1,1].flatMap(x=>[-1,1].map(z=>mk(C(.09,.12,.7,6),"#5b493a",x*.42,.35,z*.55))),mk(S(.1,8,6),"#24252a",.16,1.2,1.1));
+  if(/table|desk|altar/.test(k))return grp(mk(B(2,.18,1.4),"#8a5a2b",0,1,0),...[-1,1].flatMap(x=>[-1,1].map(z=>mk(B(.13,.9,.13),"#6b3f1c",x*.82,.48,z*.52))));
+  if(/chair|seat/.test(k))return grp(mk(B(1,.18,1),"#8a5a2b",0,.7,0),mk(B(1,1.3,.16),"#8a5a2b",0,1.4,-.42),...[-1,1].flatMap(x=>[-1,1].map(z=>mk(B(.1,.65,.1),"#6b3f1c",x*.4,.32,z*.4))));
+  if(/bed|cot|mattress/.test(k))return grp(mk(B(2.3,.3,3.6),"#6b4630",0,.5,0),mk(B(2.2,.3,3.5),"#e8e2d6",0,.8,0),mk(B(2,.35,.65),"#f2eee5",0,1.1,1.25),mk(B(2.3,1,.18),"#8a5a2b",0,.95,-1.75));
+  if(/crown|coronet/.test(k))return crown();
+  if(/sword|blade|weapon/.test(k))return sword();
+  if(/shield/.test(k))return shield();
+  if(/spear|lance/.test(k))return spear();
+  if(/book|journal|ledger/.test(k))return book();
+  if(/scroll|parchment|document/.test(k))return grp(mk(B(.9,.07,1.5),"#e5d1a2",0,.1,0),mk(C(.12,.12,1.6,10),"#8a5a2b",0,.12,-.78,1,1,1,Math.PI/2),mk(C(.12,.12,1.6,10),"#8a5a2b",0,.12,.78,1,1,1,Math.PI/2));
+  if(/tent|camp/.test(k))return tent();
+  if(/fire|flame/.test(k))return grp(mk(C(.12,.16,.9,7),"#6b3f1c",0,.12,0),mk(new THREE.ConeGeometry(.4,1.1,8),"#f06a1e",0,.75,0),mk(new THREE.ConeGeometry(.22,.72,8),"#ffd23a",0,.62,.05));
+  if(/house|hut|building|palace/.test(k))return grp(mk(B(1.6,1.2,1.4),"#b99b70",0,.6,0),mk(cone(1.2,.9,4),"#7b4932",0,1.65,0,1,1,.9,0,Math.PI/4),mk(B(.35,.7,.08),"#33251c",0,.35,.74));
+  return grp(mk(B(.72,.78,.62),"#9a9da4",0,.42,0),mk(C(.22,.22,.42,10),"#b58a43",0,.98,0),mk(S(.22,10,8),"#d9c79d",0,1.42,0),mk(B(.95,.12,.12),"#5f6875",0,.4,.36));
+};
 const KFIX: Record<string, number> = {};
 export const BACK: Record<string, number> = {};
 export class Props3D {
@@ -291,7 +309,7 @@ export class Props3D {
       if (t) { o = new THREE.Group(); o.add(t); const R = [[0.9, 3.4, 0.7], [-1.0, 3.9, 0.5], [0.3, 4.4, 1.0], [-0.5, 3.1, -1.0], [1.3, 3.8, -0.4], [-1.3, 3.3, 0.9], [0.1, 3.6, 1.3]]; for (const [x, y, z] of R) o.add(mk(S(0.22, 12, 10), RED, x, y, z)); }
     } else if (c in KEN) o = kitClone(this.kit, KEN[c], 1);
     if (!o && c in PROC) o = PROC[c]();
-    if (!o) return null;
+    if (!o) o = keywordProp(c);
     if (o && (c === "coin" || c === "goldcoin" || c === "silvercoin")) { const bx = new THREE.Box3().setFromObject(o), m = Math.max(bx.max.x - bx.min.x, bx.max.z - bx.min.z, 0.001); const g2 = new THREE.Group(); o.scale.multiplyScalar(1 / m); g2.add(o); o = g2; }   // flat discs: normalise by diameter, not thickness
     if (c in KEN && c in KFIX && o) { const g = new THREE.Group(); o.rotation.y = KFIX[c]; g.add(o); o = g; }
     const box = new THREE.Box3().setFromObject(o), sz = box.getSize(new THREE.Vector3()), ctr = box.getCenter(new THREE.Vector3());
@@ -379,6 +397,16 @@ const pagoda = () => { const g = new THREE.Group(); const c = "#c0353a", w = "#f
 const catapult = withWheels(grp(mk(B(1.0, 0.4, 1.8), "#6b3f1c", 0, 0.5, 0), mk(C(0.08, 0.08, 1.4, 8), "#4a2f1a", 0, 1.1, -0.4, 1, 1, 1, Math.PI / 2), mk(B(0.15, 1.8, 0.15), "#8a5a2b", 0, 1.2, 0.3, 1, 1, 1, -0.4), mk(S(0.35, 10, 8), "#2a2a30", 0, 2.0, 0.7)), [[0.55, 0.4], [-0.55, 0.4], [0.55, -0.4], [-0.55, -0.4]], 0.35, 0.12);
 const vikinglongship = () => grp(hull("#5a3b2a", 4.2), mk(new THREE.ConeGeometry(0.4, 1.2, 4), "#8a5a2b", 0, 0.7, 2.2, 1, 1, 1, Math.PI / 2), mk(new THREE.ConeGeometry(0.4, 1.2, 4), "#8a5a2b", 0, 0.7, -2.2, 1, 1, 1, -Math.PI / 2), mk(C(0.05, 0.05, 3.4, 8), "#3a2414", 0, 1.9, 0), mk(B(0.04, 2.2, 1.8), "#d2362e", 0.02, 2.0, 0), ...([-1.6, -0.8, 0, 0.8, 1.6].map(z => mk(C(0.12, 0.12, 0.15, 12), "#f5c32c", 0.72, 0.45, z, 1, 1, 1, Math.PI / 2))));
 
+const bed3 = () => grp(mk(B(2.5,.32,4.2),"#6b4630",0,.62,0),mk(B(2.35,.34,4),"#e8e2d6",0,.95,0),mk(B(2.2,.42,.75),"#f2eee5",0,1.25,1.45),mk(B(2.5,1.25,.22),"#8a5a2b",0,1.1,-2.05),...[-1,1].flatMap(x=>[-1,1].map(z=>mk(C(.09,.12,.75,8),"#6b4630",x*1.08,.35,z*1.78))));
+const throne3 = () => grp(mk(B(1.8,.35,1.7),"#7b3c25",0,.8,0),mk(B(1.8,2.2,.3),"#8b4b2e",0,1.95,-.72),mk(B(.28,1.05,1.5),"#b58a43",-.92,1.25,0),mk(B(.28,1.05,1.5),"#b58a43",.92,1.25,0),...[-.62,.62].flatMap(x=>[-.55,.55].map(z=>mk(C(.09,.12,.75,8),"#b58a43",x,.38,z))),mk(new THREE.ConeGeometry(.16,.45,5),"#f5c32c",0,3.28,-.7));
+const table3 = () => grp(mk(B(2.5,.22,1.65),"#8a5a2b",0,1.1,0),...[-1,1].flatMap(x=>[-1,1].map(z=>mk(B(.16,1,.16),"#6b3f1c",x*1.05,.5,z*.62))));
+const chair3 = () => grp(mk(B(1.2,.2,1.2),"#8a5a2b",0,.75,0),mk(B(1.2,1.5,.18),"#8a5a2b",0,1.55,-.52),...[-1,1].flatMap(x=>[-1,1].map(z=>mk(B(.12,.72,.12),"#6b3f1c",x*.48,.36,z*.48))));
+const scroll3 = () => grp(mk(B(1,.08,1.8),"#e5d1a2",0,.1,0),mk(C(.13,.13,1.9,12),"#8a5a2b",0,.13,-.92,1,1,1,Math.PI/2),mk(C(.13,.13,1.9,12),"#8a5a2b",0,.13,.92,1,1,1,Math.PI/2),...[-.45,-.2,.05,.3].map(x=>mk(B(.7,.015,.025),"#8a6a3a",x,.15,0)));
+const bird3 = () => grp(mk(S(.48,14,10),"#3f6f9f",0,.65,0,.9,.8,1.2),mk(S(.25,10,8),"#d9d5c8",0,.55,.32,.8,.7,.7),mk(new THREE.ConeGeometry(.08,.22,5),"#d49a32",0,.7,.62,1,1,1,Math.PI/2),mk(S(.035,8,6),"#111",.14,.82,.48));
+const campfire3 = () => grp(...[0,1,2].map(i=>mk(C(.13,.16,1.7,7),"#6b3f1c",0,.12,0,1,1,1,0,0,i*Math.PI/3)),mk(new THREE.ConeGeometry(.48,1.25,8),"#f06a1e",0,.8,0),mk(new THREE.ConeGeometry(.25,.82,8),"#ffd23a",0,.66,.05));
+Object.assign(PROC, { bed: bed3, deathbed: bed3, royalbed: bed3, throne: throne3, table: table3, chair: chair3, scroll: scroll3, bird: bird3, birds: bird3, campfire: campfire3 });
+Object.assign(DEFAULT_H, { bed: 1.4, deathbed: 1.4, royalbed: 1.6, throne: 3.2, table: 1.1, chair: 1.8, scroll: .35, bird: .9, birds: .9, campfire: 1.4 });
+Object.assign(ALIAS, { "royal bed": "royalbed", "death bed": "deathbed", "king bed": "royalbed", "camp fire": "campfire", carriage: "wagon" });
 Object.assign(PROC, { cavefire, mammoth, huntingtools, hut, obelisk, sphinx, aqueduct, romanship, greektemple, trireme, junk, pagoda, catapult, vikinglongship });
 Object.assign(DEFAULT_H, { cavefire: 0.9, mammoth: 2.8, huntingtools: 0.8, hut: 2.5, obelisk: 4.5, sphinx: 2.2, aqueduct: 3.5, romanship: 4.0, greektemple: 5.0, trireme: 4.2, junk: 4.0, pagoda: 5.5, catapult: 1.8, vikinglongship: 4.2 });
 Object.assign(ALIAS, {

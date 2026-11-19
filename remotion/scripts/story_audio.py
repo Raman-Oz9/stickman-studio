@@ -37,6 +37,10 @@ def shaker(vel=1.0):
     x = np.diff(x, prepend=0) * env(n, 0.001, 0.03)
     return x * vel * 0.4
 
+def snare(vel=1.0):
+    n = int(SR * 0.16); t = np.arange(n) / SR
+    return (rng.standard_normal(n) * np.exp(-t * 28) * 0.7 + np.sin(2 * np.pi * 190 * t) * np.exp(-t * 30)) * vel
+
 def put(buf, x, t):
     i = int(t * SR)
     if i >= len(buf): return
@@ -52,17 +56,19 @@ def lowpass(x, fc=1800):
 
 def music(total, golden_from):
     """calm lo-fi cinematic bed: slow warm pads + soft low pluck arpeggio + muted heartbeat kick; no bright top line, no shaker"""
-    buf = np.zeros(int(total * SR)); bpm = 84; beat = 60 / bpm; bar = beat * 4
+    buf = np.zeros(int(total * SR)); bpm = 104; beat = 60 / bpm; bar = beat * 4
     nb = int(total / bar) + 1
     for b in range(nb):
         t0 = b * bar
         prog = PROG_GOLD if golden_from is not None and t0 >= golden_from else PROG_DAY
         ch, root = prog[b % 4]
         put(buf, pad([m - 12 for m in ch] + [ch[0]], bar + 0.6, 0.9), t0)
-        put(buf, kick(0.28), t0); put(buf, kick(0.18), t0 + 2.5 * beat)       # soft heartbeat
+        for q in range(4): put(buf, kick(0.5 if q % 2 == 0 else 0.0), t0 + q * beat)            # steady pulse
+        for q in (1, 3): put(buf, snare(0.45), t0 + q * beat)                                    # backbeat
+        for q in range(8): put(buf, shaker(0.9), t0 + q * beat / 2)                              # driving hats
         for k, off in enumerate([0, 7, 12, 7, 0, 7, 12, 7]):                    # mellow low arpeggio
             put(buf, pluck(root + off - 12, beat * 0.95, 0.32 if k % 2 == 0 else 0.2), t0 + k * beat / 2)
-    return lowpass(buf[: int(total * SR)], 1500)
+    return lowpass(buf[: int(total * SR)], 4200)
 
 # ---------------- sfx ----------------
 def whoosh(dur=0.45, peak=1.0):
@@ -158,9 +164,8 @@ def main(board_p, voice_p, out_p):
     m = music(total, gold)[:n]
     s = np.zeros(n)
     for t, kind in ev:
-        if kind == "scene": put(s, whoosh(0.5, 0.8), max(0, t - 0.22))
-        elif kind == "cut": put(s, whoosh(0.3, 0.45), max(0, t - 0.12))
-        elif kind == "punch": put(s, whoosh(0.35, 0.7), max(0, t - 0.15)); put(s, ting(0.4), t)
+        if kind in ("scene", "cut"): pass                      # owner: no zoom/whoosh on every cut
+        elif kind == "punch": put(s, ting(0.3), t)
         elif kind == "hit": put(s, hit(0.9), t)
         elif kind == "pop": put(s, pop(0.6), t)
         elif kind == "gun": put(s, gun(1.0), t)
@@ -170,7 +175,7 @@ def main(board_p, voice_p, out_p):
         elif kind.startswith("rain:"): put(s, rain_bed(float(kind[5:])), t)
     vv = np.zeros(n); vv[: len(v)] = v[:n]
     vr, vp = gated_rms(vv), np.abs(vv).max()
-    m *= 0.25 * vr / gated_rms(m)                     # music = 25 % of the voice level (about -12 dB, gated RMS): a bed, never competes
+    m *= 0.30 * vr / gated_rms(m)                     # music = 25 % of the voice level (about -12 dB, gated RMS): a bed, never competes
     nz = s[np.abs(s) > 1e-4]; sr_ = float(np.sqrt((nz ** 2).mean())) if len(nz) else 1.0
     s *= 0.35 * vr / sr_                                # sfx rms = 50 % of voice; peaks capped below
     cap = 0.5 * vp

@@ -6,8 +6,9 @@ import numpy as np
 import soundfile as sf
 from stickman_studio import voice
 
-PAD = 0.45   # silence after each line, seconds
-LEAD = 0.25  # silence before each line
+PAD = 0.10   # silence after each line, seconds (continuous narration: tight)
+LEAD = 0.0   # silence before each line
+GAP_SILENT = 0.7  # scenes with no narration (fly passes) stay short
 SR = 24000
 
 def main(board_path, out):
@@ -17,14 +18,18 @@ def main(board_path, out):
     for i, s in enumerate(b["scenes"]):
         text = (s.get("narration") or s.get("caption") or "").strip()
         if not text:
-            parts.append(np.zeros(int(SR * s["dur"]), dtype="float32")); continue
+            d0 = round(min(float(s["dur"]), GAP_SILENT) * 30) / 30; s["dur"] = d0
+            parts.append(np.zeros(int(SR * d0), dtype="float32")); continue
         wav = os.path.join(out, f"s{i}.wav")
         _, secs = voice.synth(text, wav)
         a, sr = sf.read(wav, dtype="float32")
         if a.ndim > 1: a = a.mean(axis=1)
         if sr != SR:
             idx = np.linspace(0, len(a) - 1, int(len(a) * SR / sr)); a = np.interp(idx, np.arange(len(a)), a).astype("float32")
-        dur = max(float(s.get("dur", 3)) * 0.6, len(a) / SR + LEAD + PAD)
+        nz = np.where(np.abs(a) > 0.012)[0]          # trim the TTS clip's own leading/trailing silence
+        if len(nz): a = a[max(0, nz[0] - int(0.02 * SR)): nz[-1] + int(0.04 * SR)]
+        a = a * np.minimum(1, np.arange(len(a)) / (0.01 * SR))   # tiny fade-in: no click
+        dur = max(1.0, len(a) / SR + LEAD + PAD)     # scene length follows the voice, never longer
         dur = round(dur * 30) / 30  # whole frames
         s["dur"] = dur
         buf = np.zeros(int(round(dur * SR)), dtype="float32")

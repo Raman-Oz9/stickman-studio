@@ -93,7 +93,97 @@ const actionSegs = (s: SceneDef, i: number, dur: number): Seg[] => {
   return segs;
 };
 
+const VEHICLES = new Set([
+  "car", "oldcar", "policecar", "taxi", "truck", "bus", "tractor", "motorbike", "bicycle",
+  "train", "plane", "jet", "helicopter", "rocket", "ufo", "balloon", "sailboat", "steamship",
+  "submarine", "chariot", "wagon", "tank", "canoe", "scooter", "firetruck", "ambulance",
+  "pirateship", "ship", "boat", "cart", "sedan", "suv", "van", "racecar", "sportscar",
+  "monstertruck", "kart", "tram", "garbagetruck", "delivery", "spaceship", "spacecar",
+  "miner", "ghostship", "galleon", "romanship", "vikinglongship", "horse", "camel", "elephant",
+  "automobile", "vehicle", "jeep", "pickup", "lorry", "cab", "locomotive", "subway", "streetcar",
+  "vessel", "yacht", "ferry", "cruiseship", "steamer", "uboat", "rowboat", "stagecoach",
+  "carriage", "motorcycle", "bike", "fireengine", "racingcar", "shuttle"
+]);
+
+export const isVehicle = (focusName?: string): boolean => {
+  if (!focusName) return false;
+  const clean = focusName.replace(/^@/, "").toLowerCase().trim();
+  if (VEHICLES.has(clean)) return true;
+  for (const v of VEHICLES) {
+    if (clean.includes(v) || v.includes(clean)) return true;
+  }
+  return false;
+};
+
+export const isVehicleScene = (s: SceneDef): boolean => {
+  if (s.focus && isVehicle(s.focus)) return true;
+  if (s.cast.some((c) => c.mount && isVehicle(c.mount))) return true;
+  if (s.props && s.props.some((p) => isVehicle(p.name))) return true;
+  return false;
+};
+
+const VEHICLE_MOVES = new Set(["orbitVehicle", "chase", "flyover", "lowAngle", "front"]);
+
+const vehicleSegs = (s: SceneDef, i: number, dur: number): Seg[] => {
+  const base = s.az ?? ((i % 2 ? 1 : -1) * (20 + (i * 31) % 50));
+  const focusProp = s.focus 
+    ? (s.focus.startsWith("@") ? s.focus : "@" + s.focus) 
+    : (s.props?.find((p) => isVehicle(p.name)) ? "@" + s.props.find((p) => isVehicle(p.name))!.name : (s.cast.find((c) => c.mount && isVehicle(c.mount)) ? "@" + s.cast.find((c) => c.mount && isVehicle(c.mount))!.mount : "@car"));
+  
+  const moveType = VEHICLE_MOVES.has(s.move!) ? s.move! : (["orbitVehicle", "chase", "flyover", "lowAngle", "front"])[i % 5];
+  const n = nSub(dur);
+  const segs: Seg[] = [];
+
+  for (let k = 0; k < n; k++) {
+    const u0 = k / n, u1 = (k + 1) / n;
+    const a0 = base + k * 40;
+    let kfs: KF[];
+
+    switch (moveType) {
+      case "orbitVehicle":
+        kfs = [
+          { u: 0, lv: "prop", who: focusProp, az: a0 },
+          { u: 0.5, lv: "prop", who: focusProp, az: a0 + 90 },
+          { u: 1, lv: "prop", who: focusProp, az: a0 + 180 }
+        ];
+        break;
+      case "chase":
+        kfs = [
+          { u: 0, lv: "prop", who: focusProp, az: a0, lead: -2.5 },
+          { u: 0.5, lv: "upper", who: focusProp, az: a0 + 15, lead: -1.5 },
+          { u: 1, lv: "prop", who: focusProp, az: a0 - 15, lead: -2 }
+        ];
+        break;
+      case "flyover":
+        kfs = [
+          { u: 0, lv: "high", who: focusProp, az: a0 },
+          { u: 0.5, lv: "env", who: focusProp, az: a0 + 50 },
+          { u: 1, lv: "prop", who: focusProp, az: a0 + 100 }
+        ];
+        break;
+      case "lowAngle":
+        kfs = [
+          { u: 0, lv: "low", who: focusProp, az: a0 - 30 },
+          { u: 0.5, lv: "lowface", who: focusProp, az: a0 },
+          { u: 1, lv: "prop", who: focusProp, az: a0 + 30 }
+        ];
+        break;
+      case "front":
+      default:
+        kfs = [
+          { u: 0, lv: "prop", who: focusProp, az: a0 + 150 },
+          { u: 0.5, lv: "upper", who: focusProp, az: a0 + 175 },
+          { u: 1, lv: "prop", who: focusProp, az: a0 + 190 }
+        ];
+        break;
+    }
+    segs.push({ u0, u1, ease: "out", kfs });
+  }
+  return segs;
+};
+
 export const segsOf = (s: SceneDef, i: number, dur: number): Seg[] => {
+  if (VEHICLE_MOVES.has(s.move!) || isVehicleScene(s)) return vehicleSegs(s, i, dur);
   if (GENERIC.has(s.move) && !(s.cast.find((c) => c.at2 != null && c.expr2) && dur > 1.8) && !s.cast.some((c) => c.to)) return actionSegs(s, i, dur);
   return segsOld(s, i, dur);
 };

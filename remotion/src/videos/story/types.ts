@@ -2,7 +2,7 @@ import type { Expr } from "../bridge/toon";
 import type { WorldParams } from "./worldgen";
 export type { Expr };
 export type Shot = "wide" | "medium" | "close" | "low" | "over" | "high";
-export type Move = "push" | "pull" | "orbit" | "hold" | "reveal" | "pan" | "descend" | "track" | "crane" | "tiltup" | "tiltdown";
+export type Move = "push" | "pull" | "orbit" | "hold" | "reveal" | "pan" | "descend" | "track" | "crane" | "tiltup" | "tiltdown" | "orbitVehicle" | "chase" | "flyover" | "lowAngle" | "front";
 export type CastDef = {
   id: string;
   role: string;            // king, knight, peasant, kid, merchant, soldier, wizard, girl ...

@@ -106,6 +106,10 @@
 - Both: update this file on every change; never claim "works" without viewing rendered frames; never send the owner a video that has not been frame-checked.
 ## CHANGELOG
 
+### 2026-11-18 — Add vehicle camera shot types and automatic framing in camera.ts
+- Added shot types `"orbitVehicle"`, `"chase"`, `"flyover"`, `"lowAngle"`, and `"front"` in `remotion/src/videos/story/camera.ts` to frame moving vehicle props from changing angles.
+- Enabled automatic vehicle camera selection when `scene.focus` is a vehicle, a vehicle prop is present, or a character has a vehicle mount. Verified clean TypeScript compilation with `npx tsc --noEmit`.
+
 ### 2026-11-18 — Add deep-space world preset in worldgen.ts
 - Added deep-space world preset in `remotion/src/videos/story/worldgen.ts` exposed via `WorldParams world.kind="space"` (starfield skybox with nebula colours, ringed and gas giant planets, asteroid field, space station silhouette, and black hole with accretion disc). Verified clean TypeScript compilation with `npx tsc --noEmit`.
 

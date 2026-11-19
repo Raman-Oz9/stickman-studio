@@ -34,17 +34,10 @@ const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
       const rock=ball(g,r,i%3===0?P.shade:P.stone,x,r*.32,z,1.2,.65,1.05);
       rock.rotation.y=hash(i,7)*Math.PI;
     }
-    // Fine sand ripples and scattered shells give the open floor texture at camera distance.
-    for(let i=0;i<38;i++){
-      const x=(hash(i,8)-.5)*132,z=-5-hash(i,9)*112;
-      const ripple=box(g,2.4+hash(i,10)*3,.035,.12,i%3===0?"#E7D2AA":"#BDA77F",x,.035,z,(hash(i,11)-.5)*.16);
-      ripple.receiveShadow=false;
-      if(i%4===0)ball(g,.34,i%8===0?P.reef:P.sand,x+2.2,.16,z+.5,.75,.42,1.25);
-    }
     // Rounded coral gardens: low mounds and branching antler forms, not tree-like stalks.
     for(let i=0;i<30;i++){
       const x=(hash(i,14)-.5)*140,z=-8-hash(i,15)*105;
-      const scale=.62+hash(i,16)*.72, base=ball(g,1.35*scale,i%3===0?P.reef:P.coral,x,.55*scale,z,1.5, .62,1.18);
+      const scale=.62+hash(i,16)*.72, base=ball(g,1.35*scale,i%3===0?P.reef:P.coral,x,.55*scale,z,1.5,.62,1.18);
       base.rotation.y=hash(i,18)*Math.PI;
       for(let b=0;b<5;b++){
         const a=(b/5)*Math.PI*2+hash(i,b+20)*.4;
@@ -119,13 +112,8 @@ const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
       for(let i=0;i<8;i++){
         const z=28-i*17.5, x=side*(27+hash(i,72)*2.8);
         const h=25+hash(i,71)*17, lean=side*(1.5+hash(i,74)*2.2);
-        const face=poly(g,[
-          [x-side*5,0,z+9],[x+lean-side*3,h*.72,z+8],
-          [x+lean,h,z+1],[x+lean+side*3,h*.84,z-8],
-          [x+side*5,0,z-9]
-        ],i%3===0?P.stone:P.canyon);
+        const face=poly(g,[[x-side*5,0,z+9],[x+lean-side*3,h*.72,z+8],[x+lean,h,z+1],[x+lean+side*3,h*.84,z-8],[x+side*5,0,z-9]],i%3===0?P.stone:P.canyon);
         face.material=mat(i%3===0?"#B87550":"#98513C");
-        // Broken sandstone shelves catch light along the inside of each wall.
         for(let layer=0;layer<5;layer++){
           const yy=4+layer*(h-7)/5+hash(i,layer+73)*.9;
           const ledge=box(g,1.05,.48,14,layer%3===0?P.sand:layer%2?P.reef:P.stone,x-side*4.1+lean*.35,yy,z,.025*side);
@@ -152,7 +140,6 @@ const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
     riverShape.closePath();
     const river=new THREE.Mesh(new THREE.ShapeGeometry(riverShape,1),new THREE.MeshPhongMaterial({color:"#238FB4",shininess:75,flatShading:true}));
     river.rotation.x=-Math.PI/2;river.position.y=.17;river.receiveShadow=true;g.add(river);
-    // Pale gravel bars and angular boulders break up the banks without crowding the cast.
     for(let i=0;i<14;i++){
       const side=i%2?1:-1,x=side*(8+hash(i,81)*8),z=19-Math.floor(i/2)*11,r=1.2+hash(i,82)*1.8;
       const rock=ball(g,r,i%3?P.sand:P.reef,x,r*.38,z,1.55,.58,1.15);rock.rotation.y=hash(i,83)*Math.PI;
@@ -506,65 +493,6 @@ const mapLayer=(g:THREE.Group,p:WorldParams,t:number)=>{
   const ocean=document.createElement("canvas");ocean.width=512;ocean.height=96;const oc=ocean.getContext("2d")!;oc.clearRect(0,0,512,96);oc.fillStyle=MAP.ink;oc.font="italic 42px Georgia, serif";oc.textAlign="center";oc.fillText("INDIAN OCEAN",256,62);const ot=new THREE.CanvasTexture(ocean);ot.colorSpace=THREE.SRGBColorSpace;const ol=new THREE.Mesh(new THREE.PlaneGeometry(32,6),new THREE.MeshBasicMaterial({map:ot,transparent:true,depthWrite:false}));ol.position.set(48,.4,28);ol.rotation.x=-Math.PI/2;g.add(ol);
 };
 
-// Procedural archaeology insert. Each artifact is built only from the active six-colour world palette.
-export const drawArtifact=(type:ArtifactType,t=0):THREE.Group=>{
-  const g=new THREE.Group();g.name="Artifact_"+type;
-  const patina=0.5+0.5*Math.sin(t*0.18);
-  if(type==="coin"||type==="jewellery"){
-    cylinder(g,type==="coin"?1.15:.72,.16,P.earth,0,1,0, type==="coin"?16:10);
-    cylinder(g,type==="coin"?.82:.42,.035,P.stone,0,1.1,0,12);
-    if(type==="jewellery")ball(g,.28,P.green,0,1.28,0,.8,1.2,.8);
-  } else if(type==="pottery"){
-    cylinder(g,.62,1.5,P.earth,0,.8,0,10);
-    cylinder(g,.48,.12,P.stone,0,1.58,0,10);
-    cylinder(g,.2,.16,P.shade,0,1.68,0,10);
-    for(let y=.5;y<1.35;y+=.28)cylinder(g,.67-(y-.5)*.12,.055,P.stone,0,y,0,10);
-  } else if(type==="tool"||type==="weapon"){
-    box(g,.18,2.2,.18,P.earth,0,1,0);
-    poly(g,[[-.12,2,0],[0,type==="weapon"?4.1:3.2,.02],[.12,2,0]],P.stone);
-    box(g,.7,.16,.24,P.shade,0,.7,0);
-  } else if(type==="tablet"){
-    box(g,1.9,2.5,.28,P.earth,0,1.25,0);
-    for(let i=0;i<5;i++)box(g,.8,.045,.035,P.shade,-.15,2.05-i*.36,.17);
-  } else if(type==="scroll"){
-    box(g,2.1,2.6,.12,P.earth,0,1.3,0);
-    cylinder(g,.13,2.8,P.stone,-1.08,1.3,0,8);cylinder(g,.13,2.8,P.stone,1.08,1.3,0,8);
-  } else if(type==="bone"){
-    box(g,.22,2.2,.22,P.earth,0,1,0);
-    for(const x of [-.16,.16])for(const y of [.2,2])ball(g,.24,P.stone,x,y,0);
-  } else if(type==="ruins"){
-    for(let i=0;i<4;i++)box(g,.6,2.4+(i%2)*.7,.6,P.stone,-1.1+i*.72,1.2,0);
-    box(g,3,.32,.7,P.earth,0,2.7,0);
-  } else {
-    box(g,3,.22,2.2,P.earth,0,.1,0);
-    for(let i=0;i<5;i++)box(g,.12,.7+(i%2)*.3,.12,P.stone,-1.1+i*.55,.55,0);
-    poly(g,[[-1.4,.2,-.9],[0,1.7,0],[1.4,.2,.9]],P.shade);
-  }
-  g.traverse(o=>{if(o instanceof THREE.Mesh){o.castShadow=true;o.receiveShadow=true;o.userData.patina=patina;}});
-  return g;
-};
-
-export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
-  const p: WorldParams={season:"summer",timeOfDay:"dawn",weather:"clear",era:"medieval",region:"african",...params};
-  const g=new THREE.Group();g.name=p.mapMode?"HistoricalMapWorld":"ProceduralWorld";
-  if(p.mapMode){mapLayer(g,p,t);g.scale.set(.5,1,.72);}else if(p.terrain==="space"){spaceSet(g,p,t);}else{
-    terrain(g,p,t);
-    // Open-water and seabed presets must not inherit terrestrial era buildings or regional huts.
-    if(p.terrain!=="ocean"&&p.terrain!=="ocean-floor"&&p.terrain!=="canyon") settlement(g,p,t);
-    if(p.artifact){const a=drawArtifact(p.artifact,t);a.position.set(0,0,5);g.add(a);}
-    if(p.timeOfDay==="night"){ball(g,3,P.sky,40,34,-70);}
-    if(p.timeOfDay==="dawn"||p.timeOfDay==="dusk")ball(g,2.8,p.accentEnabled?P.accent:P.sky,34,26,-68);
-  }
-  // Deterministic weather particles. Accent stays dormant until explicitly unlocked.
-  if(p.weather==="rain"||p.weather==="storm"||p.weather==="snow"||p.weather==="fog"||p.weather==="wind"||p.weather==="drought"){
-    for(let i=0;i<90;i++){const x=(hash(i,51)-.5)*130,z=-8-hash(i,52)*70,phase=hash(i,53)*6.28;
-      const y=p.weather==="snow"?4+((hash(i,54)*12+t*(.6+hash(i,55)))%14):p.weather==="fog"?1.4+hash(i,56)*4:7+((hash(i,57)*12+t*8)%14);
-      const c=p.weather==="drought"?P.earth:P.sky;
-      const dust=p.weather==="drought",m=box(g,p.weather==="fog"?8:dust?.16:.035,p.weather==="fog"?1:dust?.08:.5,dust?.16:.035,c,x+Math.sin(t+phase)*.7,y,z);
-      m.userData.weatherParticle={kind:p.weather,baseX:x,baseY:y,baseZ:z,phase,index:i};
-      if(p.weather==="fog")(m.material as THREE.MeshLambertMaterial).transparent=true,(m.material as THREE.MeshLambertMaterial).opacity=.14;
-    }
-  }
 // Procedural archaeology insert. Each artifact is built only from the active six-colour world palette.
 export const drawArtifact=(type:ArtifactType,t=0):THREE.Group=>{
   const g=new THREE.Group();g.name="Artifact_"+type;

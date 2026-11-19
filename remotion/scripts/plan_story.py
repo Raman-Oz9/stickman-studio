@@ -26,13 +26,17 @@ MOVES = ["push", "pull", "reveal", "pan", "descend", "orbit", "hold", "track", "
 SPEC = f"""Return ONLY JSON: {{"title": str, "scenes": [scene,...]}}. You are the DIRECTOR of a cartoon story video: every noun in the script must be SEEN and every verb ACTED.
 One scene per sentence or clause (2.5-5 s each). scene = {{"dur": seconds, "shot": one of {SHOTS}, "target": cast id the camera favours,
 "move": one of {MOVES}, "focus": optional "@propname" or cast id the camera must point at, "light": "day"|"golden", "extras": 0-10 background townsfolk,
+"loc": optional one of {LOCS} (choose based on story narration: town, palace, farm, forest, desert, savanna, swamp, jungle, ice, ocean, mountain, mine, cave, city),
+"era": optional era from (roman, greek, wildwest, viking, egypt, samurai, pirate, space, medieval, ocean-explorer, ocean, ww2, 1920s, victorian, arabian, india, prehistoric, china) mapping to outfits.ts ERA keys,
+"season": optional "spring"|"summer"|"autumn"|"winter",
+"tod": optional "dawn"|"noon"|"dusk"|"night",
+"env": optional list of "rain"|"storm"|"snow"|"night"|"space"|"fog"|"wind" (weather/sky for the scene; use whenever narration mentions rain, storm, snow, night, space, fog, wind),
 "caption": the spoken words verbatim (max 12), "narration": full sentence spoken,
-"cast": [{{"id": str, "role": one of {ROLES}, "x": -3..3, "z": -1..1, "expr": one of {EXPR}, "expr2": optional reaction, "at2": 0.3-0.8,
+"cast": [{{"id": str, "role": one of {ROLES} (choose era-appropriate roles when applicable, e.g. legionary/centurion for Roman soldiers, hoplite for Greek soldiers, cowboy/sheriff for Western), "x": -3..3, "z": -1..1, "expr": one of {EXPR}, "expr2": optional reaction, "at2": 0.3-0.8,
   "look": "partner"|"left"|"right"|"cam", "hold": optional item name the character carries in hand, "to": optional {{"x":..,"z":..}} destination the character walks/runs to during the scene,
   "act": optional "wave"|"cheer"|"point"|"nod"|"run" ("run" = sprint to "to"), "walkAt": 0-0.5 when moving starts}}],
 "props": [{{"name": item (prefer: {", ".join(LIB)}; any other noun is fine, it gets drawn), "x": -3..3, "z": -1..1, "h": height in metres (0.3 coin, 0.9 chicken, 4 tree, 5 castle),
   "anim": "pop"|"grow"|"bounce"|"float"|"fall"|"spin"|"static", "at": 0-0.8 when it appears (fraction of scene), "until": optional when it vanishes, "count": copies, "spread": width of the group}}]}}.
-"env": optional list of "rain"|"storm"|"snow"|"night"|"space"|"fog"|"wind" (weather/sky for the scene; use whenever the narration mentions it),
 "fx": optional timed effects [{{"type":"lightning"|"explosion"|"fire"|"smoke"|"sparkle","at":0-0.9,"x":..,"z":..,"h":size m}}] (thunder/lightning strike = lightning; blast/bomb/crash = explosion; burning = fire).
 WORKED EXAMPLE (follow this staging style, every action is a visible SEQUENCE inside the scene):
  "He planted the seed, and a giant apple tree grew." -> ONE scene, 5 s: cast farmer (act "point", look at the spot), props [{{"name":"seed","x":0.6,"z":0.1,"h":0.2,"anim":"pop","at":0.05,"until":0.35}},
@@ -112,6 +116,9 @@ def heuristic(script):
     for i, s in enumerate(sents):
         low = s.lower()
         era = next((e for p, e in ERAKW if re.search(p, low)), era)      # the era follows the sentence that names it
+        loc = next((k for k, rx in LOCKW if re.search(rx, low)), None)
+        season = next((k for k, rx in SEASONKW if re.search(rx, low)), None)
+        tod = next((k for k, rx in TODKW if re.search(rx, low)), None)
         pos = sorted((m.start(), r) for k, r in KW.items() for m in [re.search(r"\b" + k, low)] if m)
         roles = list(dict.fromkeys(r for _, r in pos))[:3] or (cast_seen[:2] or ["man"])
         cast_seen = list(dict.fromkeys(roles + cast_seen))[:3]
@@ -188,7 +195,7 @@ def heuristic(script):
         words = len(s.split())
         sc = {"dur": round(max(2.4, dur_min, words / 2.7 + 0.5), 1), "shot": "wide" if i == 0 else ("close" if expr in ("shock", "pained", "laugh") and (not scenes or scenes[-1]["shot"] != "close") else ["medium", "over", "low", "medium", "high"][i % 5]),
               "target": cast[0]["id"], "light": "golden" if i >= n - 2 and n > 3 else "day", "extras": 10 if i == 0 else 3, "caption": s, "narration": s,
-              "cast": cast, "props": props, **({"env": env} if env else {}), **({"fx": fxs} if fxs else {}), **({"era": era} if era else {}), **extra}
+              "cast": cast, "props": props, **({"env": env} if env else {}), **({"fx": fxs} if fxs else {}), **({"era": era} if era else {}), **({"loc": loc} if loc else {}), **({"season": season} if season else {}), **({"tod": tod} if tod else {}), **extra}
         if props and "focus" not in sc and not any(c.get("to") for c in cast) and i % 2: sc["focus"] = "@" + props[0]["name"]
         scenes.append(sc)
     return {"title": (sents[0][:48] if sents else "Story"), "scenes": scenes}
@@ -272,11 +279,11 @@ def enrich_world(b):
     cur = None
     for s in b.get("scenes", []):
         t = ((s.get("narration") or "") + " " + (s.get("caption") or "")).lower()
-        if s.get("interior"): s["loc"] = "town"; cur = None; continue
-        hit = next((k for k, rx in LOCKW if re.search(rx, t)), None) or (s.get("loc") if s.get("loc") in LOCS and s.get("loc") != "town" else None)
+        if s.get("interior"): s["loc"] = s.get("loc") or "town"; cur = None; continue
+        hit = s.get("loc") or next((k for k, rx in LOCKW if re.search(rx, t)), None) or (s.get("loc") if s.get("loc") in LOCS and s.get("loc") != "town" else None)
         if hit: cur = hit
-        elif re.search(URBAN, t): cur = None
-        s["loc"] = cur or "town"
+        elif re.search(URBAN, t) and not s.get("loc"): cur = None
+        s["loc"] = cur or s.get("loc") or "town"
         for k in ("biome",): s.pop(k, None)
         if not s.get("season"):
             h = next((k for k, rx in SEASONKW if re.search(rx, t)), None)
@@ -400,7 +407,9 @@ def clean(b):
             if p.get("anim") not in ("pop", "grow", "bounce", "float", "fall", "spin", "static"): p["anim"] = "pop"
             pr.append(p)
         s["props"] = pr
-        if s.get("era") not in ("roman","greek","wildwest","viking","egypt","samurai","pirate","space","ww2","1920s","victorian","arabian","india","prehistoric","china"): s.pop("era", None)
+        VALID_ERAS = ("roman","greek","wildwest","viking","egypt","samurai","pirate","space","medieval","ocean-explorer","ocean","ww2","1920s","victorian","arabian","india","prehistoric","china")
+        if s.get("era") not in VALID_ERAS: s.pop("era", None)
+        if s.get("loc") not in LOCS: s["loc"] = "town"
         for p in s["props"]:
             to = p.get("to")
             if isinstance(to, dict) and "x" in to: p["to"] = {"x": max(-16, min(16, float(to["x"]))), "z": max(-3, min(3, float(to.get("z", 0))))}

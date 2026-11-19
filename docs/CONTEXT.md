@@ -1,3 +1,7 @@
+### 2026-11-19 — Verify character contact shadows in StoryHybrid
+- Verified soft radial elliptical contact shadows beneath every projected ink character and extra in `remotion/src/videos/story/StoryHybrid.tsx` and marked task complete in work queue.
+- Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` successfully with zero errors.
+
 ### 2026-11-19 — Enforce camera discipline, narration beat sub-shots, and face-only depth-of-field in camera.ts
 - Updated `remotion/src/videos/story/camera.ts` to enforce strict camera discipline: steady angle with azimuth drift `<= 8` degrees per shot, sub-shot derivation from narration beats / word timings, and depth-of-field / background blur restricted strictly to face and upper close-ups (zero on wides or floors).
 - Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` successfully with zero errors.
@@ -256,6 +260,10 @@
 - Avoid collisions: ChatGPT owns `worldgen.ts`, `IllustratedProof.tsx`, boards/sample scripts for new world types. Claude owns `world.ts` mounts/actions, `props3d.ts` models, camera shot logic unless coordinated here. If both need `camera.ts`/`world.ts`, write the intent in this file first, make small commits, rebase on `main` before pushing.
 - Both: update this file on every change; never claim "works" without viewing rendered frames; never send the owner a video that has not been frame-checked.
 ## CHANGELOG
+
+### 2026-11-19 — Verify character contact shadows in StoryHybrid
+- Verified soft radial elliptical contact shadows beneath every projected ink character and extra in `remotion/src/videos/story/StoryHybrid.tsx` and marked task complete in work queue.
+- Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` successfully with zero errors.
 
 ### 2026-11-19 — Enforce camera discipline, narration beat sub-shots, and face-only depth-of-field in camera.ts
 - Updated `remotion/src/videos/story/camera.ts` to enforce strict camera discipline: steady angle with azimuth drift `<= 8` degrees per shot, sub-shot derivation from narration beats / word timings, and depth-of-field / background blur restricted strictly to face and upper close-ups (zero on wides or floors).

@@ -50,7 +50,7 @@ jobs:
           OC_OK=0
           for M in $MODELS; do
             echo "== OpenCode model $M"
-            if opencode run --model "$M" "$PROMPT" 2>&1 | tee /tmp/oc.txt && ! grep -Eqi '(^|[[:space:]])Error:' /tmp/oc.txt; then
+            if opencode run --model "$M" "$PROMPT" 2>&1 | tee /tmp/oc.txt && ! grep -Eqi '(^|[[:space:]])Error:|quota|rate.?limit|429|currently experiencing high demand|temporarily unavailable' /tmp/oc.txt; then
               OC_OK=1
               break
             fi

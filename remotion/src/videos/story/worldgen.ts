@@ -34,29 +34,29 @@ const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
       const rock=ball(g,r,i%3===0?P.shade:P.stone,x,r*.32,z,1.2,.65,1.05);
       rock.rotation.y=hash(i,7)*Math.PI;
     }
-    // Coral fans and branching reef clusters, with a restrained warm accent.
-    for(let i=0;i<24;i++){
-      const x=(hash(i,14)-.5)*140,z=-8-hash(i,15)*105,h=1.4+hash(i,16)*4.2;
-      const stem=cylinder(g,.12+hash(i,17)*.12,h*.55,i%3===0?P.reef:P.coral,x,h*.275,z,7);
-      stem.rotation.z=(hash(i,18)-.5)*.35;
-      for(let b=0;b<3;b++){
-        const branch=cylinder(g,.07,.8+hash(i,b+20)*1.2,P.coral,x+(b-1)*.42,h*.55,z,6);
-        branch.rotation.z=(b-1)*.48;
+    // Rounded coral gardens: low mounds and branching antler forms, not tree-like stalks.
+    for(let i=0;i<30;i++){
+      const x=(hash(i,14)-.5)*140,z=-8-hash(i,15)*105;
+      const scale=.62+hash(i,16)*.72, base=ball(g,1.35*scale,i%3===0?P.reef:P.coral,x,.55*scale,z,1.5, .62,1.18);
+      base.rotation.y=hash(i,18)*Math.PI;
+      for(let b=0;b<5;b++){
+        const a=(b/5)*Math.PI*2+hash(i,b+20)*.4;
+        const reach=(1.1+hash(i,b+30)*1.25)*scale;
+        const tip=ball(g,.48*scale,b%2?P.coral:P.reef,x+Math.cos(a)*reach,.95*scale+hash(i,b+40)*.65,z+Math.sin(a)*reach,.82,1.35,.82);
+        tip.rotation.z=Math.cos(a)*-.28;
       }
-      for(let k=0;k<3;k++)ball(g,.24,i%2?P.reef:P.green,x+(k-1)*.38,h*.65,z,.75,1.35,.75);
+      for(let k=0;k<3;k++)ball(g,.32*scale,k%2?P.accent:P.green,x+(k-1)*.55*scale,.9*scale,z,.8,1.1,.8);
     }
-    // Foreground coral fans create a readable reef silhouette around the explorer.
+    // Foreground reef heads frame the explorer with broad, branching silhouettes.
     for(let i=0;i<5;i++){
-      const x=-24+i*12,z=-7-(i%2)*9,h=6.5+hash(i,48)*2.2;
-      ball(g,1.7,P.reef,x,.65,z,1.55,.55,1.25);
-      cylinder(g,.28,h*.62,i%2?P.coral:P.reef,x,h*.31,z,8);
-      for(let b=0;b<4;b++){
-        const side=b%2?1:-1, yy=h*.48+(b>>1)*.65;
-        const branch=cylinder(g,.16,2.4,P.coral,x+side*.8,yy,z,7);
-        branch.rotation.z=-side*.48;
-        ball(g,.34,P.reef,x+side*1.5,yy+1.05,z,.8,1.25,.8);
+      const x=-24+i*12,z=-7-(i%2)*9,scale=1.45+hash(i,48)*.35;
+      ball(g,2.2*scale,P.reef,x,.75,z,1.55,.72,1.25);
+      for(let b=0;b<7;b++){
+        const a=(b/7)*Math.PI*2,reach=(1.8+(b%3)*.35)*scale;
+        const branch=ball(g,.58*scale,b%2?P.coral:P.reef,x+Math.cos(a)*reach,1.55*scale+(b%3)*.55,z+Math.sin(a)*reach,.78,1.45,.82);
+        branch.rotation.z=Math.cos(a)*-.25;
       }
-      for(let k=0;k<4;k++)ball(g,.32,k%2?P.accent:P.green,x+(k-1.5)*.55,h*.65,z,.8,1.3,.8);
+      for(let k=0;k<4;k++)ball(g,.38*scale,k%2?P.accent:P.green,x+(k-1.5)*.62*scale,1.05*scale,z,.8,1.2,.8);
     }
     // Broken shipwreck timbers and a hydrothermal vent make the seabed feel explorable.
     const wreck=new THREE.Group();wreck.position.set(-48,0,-92);
@@ -77,15 +77,18 @@ const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
       bubble.position.set((hash(i,43)-.5)*120,1+hash(i,44)*10,-12-hash(i,45)*105);
       bubble.userData.bubble={baseX:bubble.position.x,baseY:bubble.position.y,baseZ:bubble.position.z,phase:hash(i,46)*6.28,speed:.5+hash(i,47)*.5};g.add(bubble);
     }
-    // Small schools of fish animate as groups, staying inside the underwater scene.
+    // Clearly readable fish silhouettes: tapered bodies, forked tails and tiny eye highlights.
     for(let school=0;school<4;school++){
       const sg=new THREE.Group();
-      for(let j=0;j<7;j++){
-        const fish=ball(sg,.42,j%3===0?P.accent:P.sky,j*.85,.0,(j%2)*.34,.95,.42,.5);
-        fish.rotation.y=Math.PI/2;
-        poly(sg,[[j*.85-.28,0,-.12],[j*.85-.85,.3,-.12],[j*.85-.85,-.3,-.12]],P.reef);
+      for(let j=0;j<6;j++){
+        const x=j*1.35;
+        const body=ball(sg,.62,j%3===0?P.accent:P.sky,x,0,0,1.35,.62,.55);
+        body.rotation.z=-.06;
+        poly(sg,[[x-.72,0,0],[x-1.42,.48,0],[x-1.28,0,0],[x-1.42,-.48,0]],P.reef);
+        poly(sg,[[x+.05,.28,0],[x-.18,.72,0],[x+.42,.34,0]],P.coral);
+        ball(sg,.075,P.shade,x+.62,.12,.34,1,1,1);
       }
-      sg.position.set(-58+school*38,3+school%2*2,-22-school*17);
+      sg.position.set(-58+school*38,4+school%2*2,-22-school*17);
       sg.userData.swim={phase:school*1.7,baseX:sg.position.x,baseY:sg.position.y};
       g.add(sg);
     }
@@ -103,39 +106,53 @@ const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
     for(let i=0;i<46;i++){const x=(hash(i,4)-.5)*170,z=-5-hash(i,5)*105;const m=box(g,2+hash(i,6)*9,.035,.24,i%4===0?P.accent:P.sky,x,.19,z);m.userData.waveMark={phase:hash(i,7)*6.28,baseY:.19};}
     if(p.terrain!=="ocean")poly(g,[[-90,-.05,0],[-90,-.05,-14],[90,-.05,-14],[90,-.05,0]],P.earth);
   } else if(p.terrain==="canyon"){
-    // Tall opposing stratified walls define a real gorge around the river corridor.
+    // A broad, sculpted gorge: broken cliff faces, stepped strata and a narrow river channel.
     box(g,190,.6,170,P.canyon,0,-.20,-42);
     for(const side of [-1,1]){
-      for(let i=0;i<7;i++){
-        const z=25-i*18,h=29+hash(i,71)*15,x=side*(29+hash(i,72)*1.8);
-        const wall=box(g,3.2,h,22,i%3===0?P.shade:P.stone,x,h/2,z);
-        wall.userData.canyonWall={side,index:i};
-        // Exposed horizontal strata on the inward-facing wall surface.
-        const faceX=x-side*1.72;
-        for(let layer=0;layer<6;layer++){
-          const yy=4+layer*4.1+hash(i,layer+73)*.7;
-          box(g,1.1,.52,20,layer%3===0?P.earth:layer%2?P.reef:P.stone,faceX,yy,z);
+      for(let i=0;i<8;i++){
+        const z=28-i*17.5, x=side*(27+hash(i,72)*2.8);
+        const h=25+hash(i,71)*17, lean=side*(1.5+hash(i,74)*2.2);
+        const face=poly(g,[
+          [x-side*5,0,z+9],[x+lean-side*3,h*.72,z+8],
+          [x+lean,h,z+1],[x+lean+side*3,h*.84,z-8],
+          [x+side*5,0,z-9]
+        ],i%3===0?P.stone:P.canyon);
+        face.material=mat(i%3===0?"#B87550":"#98513C");
+        // Broken sandstone shelves catch light along the inside of each wall.
+        for(let layer=0;layer<5;layer++){
+          const yy=4+layer*(h-7)/5+hash(i,layer+73)*.9;
+          const ledge=box(g,1.05,.48,14,layer%3===0?P.sand:layer%2?P.reef:P.stone,x-side*4.1+lean*.35,yy,z,.025*side);
+          ledge.rotation.y=side*.08;
         }
-        box(g,4,.9,22,i%2?P.earth:P.reef,x-side*.25,h+.35,z);
+        const cap=box(g,8,.9,19,i%2?P.earth:P.reef,x+lean*.55,h+.15,z,.035*side);
+        cap.rotation.y=side*.06;
       }
     }
-    // A broken, jagged rear escarpment closes the valley without reading as a flat wall.
-    poly(g,[[62,0,-105],[62,24,-105],[40,38,-105],[18,29,-105],[-5,42,-105],[-25,27,-105],[-45,35,-105],[-62,24,-105],[-62,0,-105]],P.stone);
-    for(let layer=0;layer<5;layer++)box(g,118,.48,1.1,layer%2?P.earth:P.reef,0,4+layer*5.4,-104.2);
-    // Smooth winding river ribbon as one triangulated shape, avoiding a stair-stepped row of boxes.
+    // Distant stepped escarpment, broken into separate warm rock fins to preserve depth.
+    for(let i=0;i<9;i++){
+      const x=-62+i*15.5,h=20+hash(i,75)*19,w=11+hash(i,76)*5;
+      const peak=poly(g,[[x-w,0,-108],[x-w*.72,h*.72,-108],[x,h,-108],[x+w*.68,h*.78,-108],[x+w,0,-108]],i%2?P.stone:P.canyon);
+      peak.material=mat(i%3===0?"#B97851":"#96513D");
+      for(let layer=0;layer<4;layer++)box(g,w*1.65,.38,1.2,layer%2?P.reef:P.sand,x,4+layer*4.1,-107.2);
+    }
+    // Meandering river, deliberately narrow so the canyon floor remains visible on both banks.
     const riverShape=new THREE.Shape();
     const riverPath:[number,number][]=[];
-    for(let i=0;i<=44;i++){const z=24-i*3.25,x=Math.sin(i*.12)*8.5;riverPath.push([x-5,-z]);}
-    for(let i=44;i>=0;i--){const z=24-i*3.25,x=Math.sin(i*.12)*8.5;riverPath.push([x+5,-z]);}
+    for(let i=0;i<=44;i++){const z=24-i*3.25,x=Math.sin(i*.12)*4.8;riverPath.push([x-2.1,-z]);}
+    for(let i=44;i>=0;i--){const z=24-i*3.25,x=Math.sin(i*.12)*4.8;riverPath.push([x+2.1,-z]);}
     riverShape.moveTo(riverPath[0][0],riverPath[0][1]);
     for(let i=1;i<riverPath.length;i++)riverShape.lineTo(riverPath[i][0],riverPath[i][1]);
     riverShape.closePath();
-    const river=new THREE.Mesh(new THREE.ShapeGeometry(riverShape,1),mat(P.sky));
-    river.rotation.x=-Math.PI/2;river.position.y=.16;river.receiveShadow=true;g.add(river);
-    // Small angular talus rocks add scale without obscuring the canyon walls.
-    for(let i=0;i<10;i++){
-      const side=i%2?1:-1,x=side*(17+hash(i,81)*4),z=18-Math.floor(i/2)*13,r=1.4+hash(i,82)*1.5;
-      const rock=ball(g,r,i%3?P.earth:P.reef,x,r*.45,z,1.5,.8,1.1);rock.rotation.y=hash(i,83)*Math.PI;
+    const river=new THREE.Mesh(new THREE.ShapeGeometry(riverShape,1),new THREE.MeshPhongMaterial({color:"#238FB4",shininess:75,flatShading:true}));
+    river.rotation.x=-Math.PI/2;river.position.y=.17;river.receiveShadow=true;g.add(river);
+    // Pale gravel bars and angular boulders break up the banks without crowding the cast.
+    for(let i=0;i<14;i++){
+      const side=i%2?1:-1,x=side*(8+hash(i,81)*8),z=19-Math.floor(i/2)*11,r=1.2+hash(i,82)*1.8;
+      const rock=ball(g,r,i%3?P.sand:P.reef,x,r*.38,z,1.55,.58,1.15);rock.rotation.y=hash(i,83)*Math.PI;
+    }
+    for(let i=0;i<8;i++){
+      const x=-13+i*3.7,z=-12-hash(i,84)*52;
+      const bar=ball(g,1.8,P.sand,x,.16,z,1.8,.12,.75);bar.rotation.y=hash(i,85)*.4;
     }
   } else if(p.terrain==="city"){
     // A real street grid with sidewalks, marked lanes, junction crossings and street furniture.

@@ -106,6 +106,9 @@
 - Both: update this file on every change; never claim "works" without viewing rendered frames; never send the owner a video that has not been frame-checked.
 ## CHANGELOG
 
+### 2026-11-18 — Add 3D sea world preset in worldgen.ts
+- Added animated 3D sea world preset in `remotion/src/videos/story/worldgen.ts` exposed via `WorldParams world.kind="sea"` featuring animated ocean surface (wave displacement, foam, sun glint, depth colour), bobbing ships/boats, and underwater camera mode (blue fog, shimmering caustics, and rising bubbles). Verified clean TypeScript compilation with `npx tsc --noEmit`.
+
 ### 2026-11-18 — Add vehicle camera shot types and automatic framing in camera.ts
 - Added shot types `"orbitVehicle"`, `"chase"`, `"flyover"`, `"lowAngle"`, and `"front"` in `remotion/src/videos/story/camera.ts` to frame moving vehicle props from changing angles.
 - Enabled automatic vehicle camera selection when `scene.focus` is a vehicle, a vehicle prop is present, or a character has a vehicle mount. Verified clean TypeScript compilation with `npx tsc --noEmit`.

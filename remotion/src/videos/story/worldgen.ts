@@ -236,6 +236,57 @@ export const drawArtifact=(type:ArtifactType,t=0):THREE.Group=>{
   return g;
 };
 
+const seaWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
+  box(g,260,1,260,"#051325",0,-0.8,-45);
+  for(let i=0;i<40;i++){
+    const x=(hash(i,100)-.5)*160, z=-10-hash(i,101)*80;
+    const wMesh=box(g,8+hash(i,102)*8,0.18,1.4,i%2===0?"#1a446e":"#0f2b48",x,0.05,z);
+    wMesh.userData.waveDisplace={baseY:0.05,phase:hash(i,103)*6.28,speed:2.2};
+  }
+  for(let i=0;i<30;i++){
+    const fx=(hash(i,105)-.5)*150, fz=-12-hash(i,106)*75;
+    const foam=box(g,3+hash(i,107)*4,0.04,0.4,"#d0e7ef",fx,0.15,fz);
+    foam.userData.foamAnim={baseY:0.15,phase:hash(i,108)*6.28};
+  }
+  for(let i=0;i<25;i++){
+    const gx=(hash(i,110)-.5)*130, gz=-15-hash(i,111)*65;
+    const glint=ball(g,0.35,"#ffffff",gx,0.2,gz);
+    glint.userData.sunGlint={phase:hash(i,112)*6.28};
+  }
+  for(let sIdx=0;sIdx<3;sIdx++){
+    const bGroup=new THREE.Group();
+    bGroup.name="Boat_"+sIdx;
+    const bx=-30+sIdx*30, bz=-22-sIdx*18;
+    bGroup.position.set(bx,0.5,bz);
+    box(bGroup,9,1.8,3.6,"#4a2e18",0,0,0);
+    box(bGroup,4,1.4,2.8,"#6b4423",-0.5,1.1,0);
+    cylinder(bGroup,0.18,7,"#24160d",-1.2,3.8,0,6);
+    box(bGroup,0.1,5,3.2,"#f4efe2",-1.1,4.2,0,0.2);
+    bGroup.userData.boatBob={baseY:0.5,baseX:bx,baseZ:bz,phase:sIdx*2.1,speed:1.6};
+    g.add(bGroup);
+  }
+  for(let i=0;i<14;i++){
+    const cx=-70+i*11, cz=-20-hash(i,115)*55;
+    const caustic=new THREE.Mesh(new THREE.PlaneGeometry(10,30),new THREE.MeshBasicMaterial({color:"#4cc9f0",transparent:true,opacity:0.18,side:THREE.DoubleSide}));
+    caustic.position.set(cx,10,cz);
+    caustic.rotation.x=Math.PI/2;
+    caustic.userData.causticAnim={phase:hash(i,116)*6.28};
+    g.add(caustic);
+  }
+  for(let i=0;i<60;i++){
+    const px=(hash(i,120)-.5)*140, pz=-10-hash(i,121)*80, py=hash(i,122)*16;
+    const part=new THREE.Mesh(new THREE.IcosahedronGeometry(0.15+hash(i,123)*0.25,0),new THREE.MeshBasicMaterial({color:"#80e5ff",transparent:true,opacity:0.65}));
+    part.position.set(px,py,pz);
+    part.userData.bubbleParticle={baseX:px,baseY:py,baseZ:pz,speed:1.2+hash(i,124)*1.5,phase:hash(i,125)*6.28};
+    g.add(part);
+  }
+  for(let i=0;i<22;i++){
+    const rx=(hash(i,130)-.5)*130, rz=-15-hash(i,131)*70, rr=1.8+hash(i,132)*4;
+    const rMesh=ball(g,rr,i%2===0?"#16325c":"#224275",rx,-0.6,rz,1.4,0.6,1.2);
+    rMesh.rotation.z=hash(i,133)*0.3;
+  }
+};
+
 const oceanWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
   box(g,260,1,260,"#122030",0,-0.75,-45);
   for(let i=0;i<24;i++){
@@ -855,6 +906,7 @@ export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
 
   const g=new THREE.Group();
   g.name=p.mapMode?"HistoricalMapWorld"
+    : p.kind==="sea"?"SeaWorld"
     : p.kind==="ocean"?"DeepOceanWorld"
     : p.kind==="space" || p.kind==="deep-space" || p.kind==="deepspace"?"DeepSpaceWorld"
     : p.kind==="rome"?"RomeWorld"
@@ -874,8 +926,10 @@ export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
     : isSavanna?"SavannaWorld"
     :"ProceduralWorld";
 
-  if(p.mapMode){
+   if(p.mapMode){
     mapLayer(g,p,t);g.scale.set(.5,1,.72);
+  }else if(p.kind==="sea"){
+    seaWorld(g,p,t);
   }else if(p.kind==="ocean"){
     oceanWorld(g,p,t);
   }else if(p.kind==="space" || p.kind==="deep-space" || p.kind==="deepspace"){
@@ -931,6 +985,11 @@ export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
 };
 export const animateWorld=(g:THREE.Group,t:number)=>{
   g.traverse(o=>{
+    const waveDis=o.userData.waveDisplace as {baseY:number;phase:number;speed:number}|undefined;if(waveDis)o.position.y=waveDis.baseY+Math.sin(t*waveDis.speed+waveDis.phase)*0.18;
+    const foamAn=o.userData.foamAnim as {baseY:number;phase:number}|undefined;if(foamAn){o.position.y=foamAn.baseY+Math.cos(t*2.8+foamAn.phase)*0.08;const sc=0.8+0.4*Math.sin(t*3.2+foamAn.phase);o.scale.x=sc;}
+    const glint=o.userData.sunGlint as {phase:number}|undefined;if(glint){const mat=(o as THREE.Mesh).material as THREE.MeshBasicMaterial;if(mat)mat.opacity=0.2+0.8*Math.abs(Math.sin(t*4.5+glint.phase));}
+    const boat=o.userData.boatBob as {baseY:number;phase:number;speed:number}|undefined;if(boat){o.position.y=boat.baseY+Math.sin(t*boat.speed+boat.phase)*0.4;o.rotation.z=Math.sin(t*1.3+boat.phase)*0.09;o.rotation.x=Math.cos(t*1.1+boat.phase)*0.06;}
+    const caustic=o.userData.causticAnim as {phase:number}|undefined;if(caustic){const mat=(o as THREE.Mesh).material as THREE.MeshBasicMaterial;if(mat)mat.opacity=0.08+0.12*Math.sin(t*2.2+caustic.phase);}
     const planetRot=o.userData.planetRotate as {speed:number}|undefined;if(planetRot)o.rotation.y=t*0.2*planetRot.speed;
     const astDrift=o.userData.asteroidDrift as {speed:number;phase:number}|undefined;if(astDrift)o.position.y+=Math.sin(t*astDrift.speed+astDrift.phase)*0.005;
     const stationSpin=o.userData.stationSpin as {speed:number}|undefined;if(stationSpin)o.rotation.y=t*0.4*stationSpin.speed;

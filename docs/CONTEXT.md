@@ -1,3 +1,8 @@
+### 2026-11-19 — Reduce per-frame render cost in world.ts and lensblur.ts
+- Added module-level caches in `remotion/src/videos/story/world.ts` keyed by scene ID for static geometry/materials (world layers, interiors, shop fronts, realms) to avoid re-creating meshes each frame across frames and `StoryWorld` instances.
+- Lowered default depth-of-field effect cost in `remotion/src/videos/bridge/lensblur.ts` by reducing blur sample taps (`taps` from 64 to 32, `nearTaps` from 32 to 16).
+- Verified clean TypeScript compilation with `npx tsc --noEmit`.
+
 ### 2026-11-18 — Fix scene-grade uniform type mismatch
 - The era/season/weather grade in `world.ts` must blend against `THREE.Vector3` values because the shared `TONE.uLitCol` and `TONE.uShadeCol` uniforms are Vector3 instances in `remotion/src/videos/bridge/shade.ts`. Updated the blend targets to match those declared uniform types; grade values and blend weights are unchanged.
 - The proof run at commit `4b558c3` failed at strict TypeScript checking because those targets were `THREE.Color`. This correction is in commit `fc33593`; a fresh run against the latest branch head is needed before claiming the check is fixed.

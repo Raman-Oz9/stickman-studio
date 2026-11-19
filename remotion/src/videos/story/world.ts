@@ -27,6 +27,11 @@ import { update as updateTraffic } from "./traffic";
 const hh = (i: number, s = 0) => { const v = Math.sin(i * 127.1 + s * 311.7) * 43758.5453; return v - Math.floor(v); };
 const ROLE_SCALE: Record<string, number> = { kid: 0.72, girl: 0.74 };
 
+const moduleWorldCache = new Map<string, THREE.Group>();
+const moduleIntCache = new Map<string, THREE.Group>();
+const moduleFrontCache = new Map<string, THREE.Group>();
+const moduleRealmCache = new Map<string, THREE.Group>();
+
 export class StoryWorld {
   /** hybrid mode: the 2D ink cast is drawn by an overlay, so the 3D world skips its own characters */
   static hideCast = false;
@@ -98,8 +103,18 @@ export class StoryWorld {
     const dur = n / FPS;
     // Optional world preset is an independent environment layer; character/action code below is unchanged.
     const worldKey = s.world ? JSON.stringify(s.world) : "";
+    if (worldKey) {
+      let wg = moduleWorldCache.get(worldKey);
+      if (!wg) {
+        wg = drawWorld(s.world!, 0);
+        this.root.add(wg);
+        moduleWorldCache.set(worldKey, wg);
+      } else if (!this.root.children.includes(wg)) {
+        this.root.add(wg);
+      }
+      this.worldLayers.set(worldKey, wg);
+    }
     this.worldLayers.forEach((g, key) => { g.visible = !!worldKey && key === worldKey; if (g.visible) { animateWorld(g, t); const wp = g.userData.worldParams as any; if (wp?.kind === "city") updateTraffic(g, t); } });
-    if (worldKey) { let wg = this.worldLayers.get(worldKey); if (!wg) { wg = drawWorld(s.world!, 0); this.root.add(wg); this.worldLayers.set(worldKey, wg); } wg.visible = true; animateWorld(wg, t); if (s.world?.kind === "city") { updateTraffic(wg, t); } }
     const posOf = (d: CastDef) => {
       if (!d.to) return { x: d.x, z: d.z, moving: false, dist: 0, dx: 0, dz: 0 };
       const w0 = d.walkAt ?? 0, k = Math.min(1, Math.max(0, (u - w0) / Math.max(0.05, 0.96 - w0))), e = d.act === "run" ? (k < 0.08 ? k * k / 0.16 : k - 0.04) / 0.96 : k * k * (3 - 2 * k);   // sprints keep full speed (no slow ease)
@@ -114,17 +129,50 @@ export class StoryWorld {
     if (E.shake > 0.01) { const k = E.shake * 0.28; c.pos.x += Math.sin(absT * 61) * k; c.pos.y += Math.sin(absT * 73 + 1) * k; c.look.x += Math.sin(absT * 53 + 2) * k * 0.6; }
     const ik = INTERIOR_ALIAS[String(s.interior ?? "").toLowerCase().replace(/[^a-z]/g, "")] as InteriorKind | undefined;
     const ikey = ik === "shop" ? "shop:" + (s.shop ?? "shop") : ik;
-    if (ik && ikey && !this.ints.has(ikey)) { const g = buildInterior(ik, s.shop ?? "shop"); g.visible = false; this.root.add(g); this.ints.set(ikey, g); }
+    if (ik && ikey) {
+      let g = moduleIntCache.get(ikey);
+      if (!g) {
+        g = buildInterior(ik, s.shop ?? "shop");
+        g.visible = false;
+        this.root.add(g);
+        moduleIntCache.set(ikey, g);
+      } else if (!this.root.children.includes(g)) {
+        this.root.add(g);
+      }
+      this.ints.set(ikey, g);
+    }
     this.ints.forEach((g, k) => { g.visible = k === ikey; if (k === ikey) flicker(g, absT); });
     if (ik) E.dim = Math.min(E.dim, DIM[ik]);
     const loc = resolveLoc(s), se = ((s.season ?? "summer") as Season), fly = (s as SceneDef & { fly?: { from: string; to: string } }).fly;
-    if (!s.world && !this.realms.has(se)) { const Rl = buildRealm(se); Rl.visible = false; this.holder.add(Rl); this.realms.set(se, Rl); }
+    if (!s.world) {
+      let Rl = moduleRealmCache.get(se);
+      if (!Rl) {
+        Rl = buildRealm(se);
+        Rl.visible = false;
+        this.holder.add(Rl);
+        moduleRealmCache.set(se, Rl);
+      } else if (!this.holder.children.includes(Rl)) {
+        this.holder.add(Rl);
+      }
+      this.realms.set(se, Rl);
+    }
     this.realms.forEach((Rl, k) => { Rl.visible = !s.world && k === se; if (Rl.visible) realmWaves(Rl, absT); const mc = Rl.getObjectByName("modernCity"); if (mc) mc.visible = resolveLoc(s) === "city" || ["modern","futuristic","1920s","ww2"].includes(s.era ?? ""); });
     const [ax, az] = fly ? anchorAt(fly.from, fly.to, u) : (LOCS[loc] as [number, number]);
     this.holder.position.set(-ax, 0, -az); this.holder.visible = !ik && !E.space && !s.world;
     const bk = loc !== "town" || !!fly ? (KINDB[loc] ?? "farm") : undefined;
     this.plat.visible = E.space && !ik;
-    if (s.front && !this.fronts.has(s.front)) { const fg = buildShopFront(s.front); fg.position.set(0, 0, -14); this.root.add(fg); this.fronts.set(s.front, fg); }
+    if (s.front) {
+      let fg = moduleFrontCache.get(s.front);
+      if (!fg) {
+        fg = buildShopFront(s.front);
+        fg.position.set(0, 0, -14);
+        this.root.add(fg);
+        moduleFrontCache.set(s.front, fg);
+      } else if (!this.root.children.includes(fg)) {
+        this.root.add(fg);
+      }
+      this.fronts.set(s.front, fg);
+    }
     this.fronts.forEach((fg, k) => { fg.visible = k === s.front && !ik; });
     cam.position.copy(c.pos); cam.up.set(0, s.world?.mapMode ? 0 : 1, s.world?.mapMode ? -1 : 0); cam.lookAt(c.look); cam.rotateZ(c.roll);
     cam.fov = c.fov; cam.near = 0.15; cam.far = 1500; cam.updateProjectionMatrix(); cam.updateMatrixWorld();

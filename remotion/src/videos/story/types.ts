@@ -51,6 +51,7 @@ export type SceneDef = {
   move?: Move; roll?: number;
   focus?: string;                 // name of a prop the camera glides onto (e.g. the stolen purse)
   props?: PropDef[];              // the things the narration talks about
+  extrasEra?: string;
   extrasRole?: string;            // role of the background crowd (soldier, townsfolk, ...)
   extras?: number;                // background townsfolk
   caption?: string;

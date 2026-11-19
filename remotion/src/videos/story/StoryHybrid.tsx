@@ -68,7 +68,8 @@ const Cast2D: React.FC<{ board: Board; f: number }> = ({ board, f }) => {
   return (
     <svg viewBox="0 0 1080 1920" width="1080" height="1920" style={{ position: "absolute", inset: 0, overflow: "visible", pointerEvents: "none", filter: golden ? "sepia(.25) saturate(1.15) brightness(.97)" : "saturate(1.06) contrast(1.03)" }}>
       {placed.map((w) => {
-        const o = outfitFor(w.d.role, w.idx, s.era);
+        const eraW = w.extra && s.extrasEra ? s.extrasEra : s.era;
+        const o = outfitFor(w.d.role, w.idx, eraW);
         const hv = ((): [number, number] => {
           if (w.d.to && w.moving) return [w.d.to.x - w.d.x, w.d.to.z - w.d.z];
           const other = placed.filter((q) => q !== w && !q.extra).sort((a, b) => Math.hypot(a.x - w.x, a.z - w.z) - Math.hypot(b.x - w.x, b.z - w.z))[0];
@@ -79,7 +80,7 @@ const Cast2D: React.FC<{ board: Board; f: number }> = ({ board, f }) => {
         let yaw = (w.idx % 2 ? -1 : 1) * 28;                       // idle: a natural three-quarter turn toward the lens
         if (!Number.isNaN(hv[0])) { const hl = Math.hypot(hv[0], hv[1]) || 1, hx = hv[0] / hl, hz = hv[1] / hl; yaw = (Math.atan2(hx * rightXZ[0] + hz * rightXZ[1], hx * tc[0] + hz * tc[1]) * 180) / Math.PI; }
         const pf = w.extra ? { verb: w.moving ? "walk" : "talk", p: u, t, prop: null, holdProp: null } : castPerf(w.d, s, u, t);
-        return <Performer2D key={w.d.id + w.idx} x={w.g.x} y={w.g.y} scale={w.k} yaw={yaw} skin={o.skin ?? "#f6ead9"} cloth={o.dress ?? o.jacket} hair={o.hair} ink={inkStyleOf(w.d.role, w.idx, s.era, resolveRole(w.d.role, s.era))}
+        return <Performer2D key={w.d.id + w.idx} x={w.g.x} y={w.g.y} scale={w.k} yaw={yaw} skin={o.skin ?? "#f6ead9"} cloth={o.dress ?? o.jacket} hair={o.hair} ink={inkStyleOf(w.d.role, w.idx, eraW, resolveRole(w.d.role, eraW))}
           verb={pf.verb} p={pf.p} t={pf.t} phase={t * 1.15 + w.idx * 0.17} frame={f + w.idx * 13} prop={pf.prop} holdProp={pf.holdProp}
           expr={w.d.expr ? EXPR[w.d.expr] ?? null : null} build={w.idx % 2 ? "stocky" : "lean"} seed={w.idx * 17 + 7} />;
       })}

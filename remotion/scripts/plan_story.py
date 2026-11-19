@@ -460,17 +460,24 @@ def clean(b):
 ARMY = r"\b(army|armies|soldiers?|troops?|legions?|warriors?|men marched|invad\w+|battle|siege|conquer\w*|crush\w*|march\w*)\b"
 CROWD = r"\b(crowd|people|villagers|citizens|priests|worshipp?ers|merchants|pilgrims|workers|nobles|courtiers|city|cities|market)\b"
 def crowds(b, script):
-    """Armies, priests, crowds: plural nouns get a visible group (extras in the scene's era dress) and era follows the story."""
-    era = None
+    """Dedupe repeated scenes, set the era (dominant era of the story, per-scene override), armies/crowds as visible groups."""
+    seen, out = set(), []
+    for sc in b["scenes"]:
+        cap = (sc.get("narration") or sc.get("caption") or "").strip().lower()
+        if cap and cap in seen: continue
+        if cap: seen.add(cap)
+        out.append(sc)
+    b["scenes"] = out
+    low = script.lower()
+    main = next((e for p, e in ERAKW if re.search(p, low) and e != "arabian"), None)     # protagonists' era (Alexander -> greek)
     for sc in b["scenes"]:
         t = (sc.get("narration") or sc.get("caption") or "").lower()
-        for pat, e in ERAKW:
-            if re.search(pat, t): era = e
-        if era and not sc.get("era"): sc["era"] = era
+        here = next((e for p, e in ERAKW if re.search(p, t) and e not in ("arabian",)), None)
+        sc["era"] = here or sc.get("era") or main
+        if sc["era"] == "arabian" and main: sc["era"] = main
+        if re.search(r"persian\s+(soldiers?|army|armies|troops|warriors|forces)|babylonian|assyrian", t): sc["extrasEra"] = "arabian"
         if re.search(ARMY, t): sc["extras"] = max(int(sc.get("extras") or 0), 10); sc["extrasRole"] = "soldier"
         elif re.search(CROWD, t): sc["extras"] = max(int(sc.get("extras") or 0), 8); sc["extrasRole"] = "townsfolk"
-    for sc in b["scenes"]:
-        if not sc.get("era") and era: sc["era"] = era
     return b
 
 if __name__ == "__main__":

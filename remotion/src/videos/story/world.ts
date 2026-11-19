@@ -119,7 +119,7 @@ export class StoryWorld {
     if (ik) E.dim = Math.min(E.dim, DIM[ik]);
     const loc = resolveLoc(s), se = ((s.season ?? "summer") as Season), fly = (s as SceneDef & { fly?: { from: string; to: string } }).fly;
     if (!s.world && !this.realms.has(se)) { const Rl = buildRealm(se); Rl.visible = false; this.holder.add(Rl); this.realms.set(se, Rl); }
-    this.realms.forEach((Rl, k) => { Rl.visible = !s.world && k === se; if (Rl.visible) realmWaves(Rl, absT); });
+    this.realms.forEach((Rl, k) => { Rl.visible = !s.world && k === se; if (Rl.visible) realmWaves(Rl, absT); const mc = Rl.getObjectByName("modernCity"); if (mc) mc.visible = resolveLoc(s) === "city" || ["modern","futuristic","1920s","ww2"].includes(s.era ?? ""); });
     const [ax, az] = fly ? anchorAt(fly.from, fly.to, u) : (LOCS[loc] as [number, number]);
     this.holder.position.set(-ax, 0, -az); this.holder.visible = !ik && !E.space && !s.world;
     const bk = loc !== "town" || !!fly ? (KINDB[loc] ?? "farm") : undefined;

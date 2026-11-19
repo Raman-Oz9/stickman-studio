@@ -102,7 +102,11 @@ const dockStuff = () => grp(mk(B(14, 0.3, 40), "#8a5a2b", 0, -0.12, -22), ...Arr
 
 export const buildRealm = (se: Season) => {
   const R = new THREE.Group(); R.add(terrain(se));
-  const water = mk(B(1800, 0.2, 1500), "#2f86d6", 1480, -1.6, -520); water.castShadow = false; R.add(water);
+  const waterGeo=new THREE.PlaneGeometry(1800,1500,48,40);waterGeo.rotateX(-Math.PI/2);
+  const waterPos=waterGeo.attributes.position,waterCol=new Float32Array(waterPos.count*3);
+  for(let i=0;i<waterPos.count;i++){const z=waterPos.getZ(i),c=new THREE.Color("#0b3c60").lerp(new THREE.Color("#367fa0"),(z+750)/1500*.45+.2);waterCol[i*3]=c.r;waterCol[i*3+1]=c.g;waterCol[i*3+2]=c.b;}
+  waterGeo.setAttribute("color",new THREE.BufferAttribute(waterCol,3));waterGeo.computeVertexNormals();
+  const water=new THREE.Mesh(waterGeo,new THREE.MeshPhongMaterial({color:"#ffffff",vertexColors:true,specular:"#9bd7e4",shininess:72}));water.position.set(1480,-1.6,-520);water.userData.waterSurface={baseY:-1.6,phase:.6};water.receiveShadow=false;R.add(water);
   const waves: THREE.Mesh[] = []; let sd = 9; const rnd = () => ((sd = (sd * 16807) % 2147483647) / 2147483647);
   for (let i = 0; i < 160; i++) { const w = mk(B(8 + rnd() * 14, 0.2, 0.9), "#9ed3f7", 560 + rnd() * 900, -1.4, 0 - rnd() * 900); w.castShadow = false; waves.push(w); R.add(w); }
   R.userData.waves = waves;
@@ -120,5 +124,8 @@ export const buildRealm = (se: Season) => {
   for (const [lx, lz] of [[-60, -240], [90, -520], [-110, 260], [260, 240], [-250, 20]]) { for (let i = 0; i < 14; i++) { const x = lx + (rnd() - 0.5) * 140, z = lz + (rnd() - 0.5) * 140; if (flatOf(x, z) > 0.98 || seaOf(x, z) > 0.2 || Math.hypot(x-LOCS.mountain[0],z-LOCS.mountain[1])<240) continue; const y = heightAt(x, z); R.add(mk(C(0.4, 0.6, 5, 7), "#6b4a2a", x, y + 2.5, z), mk(S(3, 9, 7), se === "autumn" ? "#e0832a" : se === "winter" ? "#e8f1f7" : "#3f9f3f", x, y + 6.5, z)); } }
   return R;
 };
-export const realmWaves = (R: THREE.Object3D, t: number) => (R.userData.waves as THREE.Mesh[] | undefined)?.forEach((w, i) => { w.position.y = -1.4 + 0.12 * Math.sin(t * 1.4 + i * 1.3); w.position.x += 0.01 * Math.sin(t * 0.7 + i); });
+export const realmWaves = (R: THREE.Object3D, t: number) => {
+  (R.userData.waves as THREE.Mesh[] | undefined)?.forEach((w, i) => { w.position.y = -1.4 + 0.12 * Math.sin(t * 1.4 + i * 1.3); w.position.x += 0.01 * Math.sin(t * 0.7 + i); });
+  R.traverse(o=>{const w=o.userData.waterSurface as {baseY:number;phase:number}|undefined;if(!w||!(o instanceof THREE.Mesh))return;const geo=o.geometry as THREE.BufferGeometry,pa=geo.attributes.position as THREE.BufferAttribute;if(!geo.userData.basePositions)geo.userData.basePositions=(pa.array as Float32Array).slice();const base=geo.userData.basePositions as Float32Array;for(let i=0;i<pa.count;i++){const x=base[i*3],z=base[i*3+2];pa.setY(i,w.baseY+Math.sin(x*.035+t*1.15+w.phase)*.2+Math.cos(z*.04-t*.85)*.13);}pa.needsUpdate=true;geo.computeVertexNormals();});
+};
 export const anchorAt = (a: string, b: string | undefined, u: number): [number, number] => { const A = LOCS[a] ?? LOCS.town, B2 = b ? LOCS[b] ?? A : A, k = u * u * (3 - 2 * u); return [A[0] + (B2[0] - A[0]) * k, A[1] + (B2[1] - A[1]) * k]; };

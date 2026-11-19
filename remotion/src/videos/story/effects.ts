@@ -61,7 +61,7 @@ export class Effects {
     const out: FxOut = { dim: 1, flash: 0, shake: 0, space: env.has("space"), night: env.has("night") || env.has("space"), fogK: 1 };
     const storm = env.has("storm"), rain = env.has("rain") || storm;
     if (storm) out.dim = 0.5; else if (env.has("rain")) out.dim = 0.72; if (out.night) out.dim = Math.min(out.dim, env.has("space") ? 0.7 : 0.45);
-    if (env.has("fog")) out.fogK = 0.25;
+    if (env.has("fog")) out.fogK = 0.28; // FogExp2 density is scaled by StoryWorld; no blur/post-process pass.
     const cx = look.x, cz = look.z;
     // rain / snow: a slab of streaks around the view
     if (rain) {

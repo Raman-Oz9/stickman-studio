@@ -1,6 +1,7 @@
 // Universal procedural environment + civilization layer. No character/action code lives here.
 // All geometry is assembled from flat primitives; drawWorld(params,t) is deterministic for a given time.
 import * as THREE from "three";
+import { PROC } from "./props3d";
 
 export type TerrainType = "forest"|"jungle"|"ocean"|"ocean-floor"|"mountain"|"canyon"|"desert"|"ice"|"plain"|"river"|"coast"|"swamp"|"cave"|"savanna"|"city"|"railway"|"airport"|"harbour"|"space";
 export type WeatherType = "clear"|"rain"|"snow"|"fog"|"storm"|"drought"|"wind";
@@ -24,8 +25,38 @@ const ball=(g:THREE.Group,r:number,c:string,x:number,y:number,z:number,sx=1,sy=1
 const cylinder=(g:THREE.Group,r:number,h:number,c:string,x:number,y:number,z:number,seg=8)=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,seg),mat(c));m.position.set(x,y,z);m.castShadow=true;g.add(m);return m;};
 const poly=(g:THREE.Group,pts:[number,number,number][],c:string)=>{const v:number[]=[];for(let i=1;i<pts.length-1;i++)v.push(...pts[0],...pts[i],...pts[i+1]);const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.Float32BufferAttribute(v,3));geo.computeVertexNormals();const m=new THREE.Mesh(geo,mat(c));g.add(m);return m;};
 const seasonGround=(p:WorldParams)=>p.season==="winter"?P.sky:p.season==="spring"?P.green:P.earth;
+const heightfieldGround=(g:THREE.Group,kind:string,base:string)=>{
+  const seg=52,geo=new THREE.PlaneGeometry(260,260,seg,seg);geo.rotateX(-Math.PI/2);
+  const pos=geo.attributes.position,col=new Float32Array(pos.count*3),baseCol=new THREE.Color(base);
+  const hAt=(x:number,z:number)=>{
+    const broad=Math.sin(x*.018+Math.sin(z*.012)*1.8)*Math.cos(z*.021)*2.2;
+    const mid=Math.sin(x*.052+z*.031)*Math.cos(z*.047-x*.013)*.9;
+    if(kind==="mountain")return broad*2.2+mid*2.4+Math.pow(1-Math.abs(Math.sin(x*.013+z*.009)),2)*17;
+    if(kind==="desert"||kind==="dunes")return broad*1.8+Math.sin(x*.075+z*.026)*2.6+Math.sin(x*.16+z*.05)*.55+mid*.6;
+    if(kind==="ocean-floor")return broad*.14+Math.sin(x*.035+z*.02)*.16;
+    return broad*.65+mid*.35+Math.sin(x*.19+Math.sin(z*.11))*.22;
+  };
+  for(let i=0;i<pos.count;i++){
+    const x=pos.getX(i),z=pos.getZ(i),h=hAt(x,z),slope=Math.hypot(hAt(x+1,z)-h,hAt(x,z+1)-h);
+    pos.setY(i,h-.25);const c=baseCol.clone();
+    if(kind==="mountain"&&h>15)c.lerp(new THREE.Color("#edf3f6"),Math.min(.82,(h-15)/22));
+    if(kind==="desert"||kind==="dunes")c.lerp(new THREE.Color("#f1d69a"),.12+.08*Math.sin(x*.11+z*.08));
+    if(slope>.32)c.lerp(new THREE.Color(kind==="desert"?"#786b59":"#626b70"),Math.min(.7,(slope-.32)*1.4));
+    c.multiplyScalar(.88+hash(i,kind.length)*.2);col[i*3]=c.r;col[i*3+1]=c.g;col[i*3+2]=c.b;
+  }
+  geo.setAttribute("color",new THREE.BufferAttribute(col,3));geo.computeVertexNormals();
+  const mesh=new THREE.Mesh(geo,new THREE.MeshLambertMaterial({vertexColors:true,flatShading:true}));mesh.receiveShadow=false;g.add(mesh);
+  if(["plain","farm","savanna","forest"].includes(kind)){
+    const dummy=new THREE.Object3D(),blades=new THREE.InstancedMesh(new THREE.ConeGeometry(.055,.62,4),new THREE.MeshLambertMaterial({color:"#719c49"}),360);
+    for(let i=0;i<360;i++){dummy.position.set((hash(i,81)-.5)*220,.22,-10-hash(i,82)*190);dummy.rotation.z=(hash(i,83)-.5)*.4;dummy.scale.set(.6+hash(i,84),.7+hash(i,85),.6+hash(i,86));dummy.updateMatrix();blades.setMatrixAt(i,dummy.matrix);}
+    blades.instanceMatrix.needsUpdate=true;g.add(blades);
+    const flowers=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(.12,0),new THREE.MeshLambertMaterial({color:"#e7c66b"}),28);
+    for(let i=0;i<28;i++){dummy.position.set((hash(i,91)-.5)*190,.34,-8-hash(i,92)*170);dummy.scale.setScalar(.6+hash(i,93)*.7);dummy.updateMatrix();flowers.setMatrixAt(i,dummy.matrix);}
+    flowers.instanceMatrix.needsUpdate=true;g.add(flowers);
+  }
+};
 const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
-  const ground=p.terrain==="ocean-floor"?P.seabed:(p.weather==="rain"||p.weather==="storm")?P.shade:seasonGround(p);box(g,260,0.5,260,ground,0,-0.25,-45);
+  const ground=p.terrain==="ocean-floor"?P.seabed:(p.weather==="rain"||p.weather==="storm")?P.shade:seasonGround(p);heightfieldGround(g,p.terrain,ground);
   if(p.terrain==="ocean-floor"){
     // The cast stands on a broad sandy seabed; a translucent animated surface and light shafts
     // establish that the whole set is submerged rather than a flat blue floor.
@@ -533,7 +564,15 @@ export const drawArtifact=(type:ArtifactType,t=0):THREE.Group=>{
 };
 
 const seaWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
-  box(g,260,1,260,"#051325",0,-0.8,-45);
+  const waterGeo=new THREE.PlaneGeometry(360,280,36,30);waterGeo.rotateX(-Math.PI/2);
+  const waterPos=waterGeo.attributes.position,waterCol=new Float32Array(waterPos.count*3);
+  for(let i=0;i<waterPos.count;i++){const k=clamp((waterPos.getZ(i)+140)/280),c=new THREE.Color("#09263d").lerp(new THREE.Color("#28728c"),k*.72);waterCol[i*3]=c.r;waterCol[i*3+1]=c.g;waterCol[i*3+2]=c.b;}
+  waterGeo.setAttribute("color",new THREE.BufferAttribute(waterCol,3));waterGeo.computeVertexNormals();
+  const water=new THREE.Mesh(waterGeo,new THREE.MeshPhongMaterial({color:"#ffffff",vertexColors:true,specular:"#8bc7d8",shininess:72}));
+  water.position.set(0,-.35,-42);water.userData.waterWave={baseY:-.35,phase:.4};water.receiveShadow=false;g.add(water);
+  box(g,92,3,84,"#d9bd83",126,-.1,-43);
+  for(let i=0;i<18;i++){const x=82+hash(i,141)*75,z=-12-hash(i,142)*66,r=1.8+hash(i,143)*3.6;ball(g,r,i%2?"#827d72":"#a59a83",x,r*.35,z,1.5,.8,1.2);}
+  const horizon=new THREE.Mesh(new THREE.PlaneGeometry(520,78),new THREE.MeshBasicMaterial({color:"#466f83",transparent:true,opacity:.38,depthWrite:false}));horizon.position.set(0,30,-184);g.add(horizon);
   for(let i=0;i<40;i++){
     const x=(hash(i,100)-.5)*160, z=-10-hash(i,101)*80;
     const wMesh=box(g,8+hash(i,102)*8,0.18,1.4,i%2===0?"#1a446e":"#0f2b48",x,0.05,z);
@@ -549,17 +588,11 @@ const seaWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
     const glint=ball(g,0.35,"#ffffff",gx,0.2,gz);
     glint.userData.sunGlint={phase:hash(i,112)*6.28};
   }
-  for(let sIdx=0;sIdx<3;sIdx++){
-    const bGroup=new THREE.Group();
-    bGroup.name="Boat_"+sIdx;
-    const bx=-30+sIdx*30, bz=-22-sIdx*18;
-    bGroup.position.set(bx,0.5,bz);
-    box(bGroup,9,1.8,3.6,"#4a2e18",0,0,0);
-    box(bGroup,4,1.4,2.8,"#6b4423",-0.5,1.1,0);
-    cylinder(bGroup,0.18,7,"#24160d",-1.2,3.8,0,6);
-    box(bGroup,0.1,5,3.2,"#f4efe2",-1.1,4.2,0,0.2);
-    bGroup.userData.boatBob={baseY:0.5,baseX:bx,baseZ:bz,phase:sIdx*2.1,speed:1.6};
-    g.add(bGroup);
+  for(let sIdx=0;sIdx<5;sIdx++){
+    const factory=PROC.galleon??PROC.sailboat??PROC.steamship,ship=factory?factory():new THREE.Group(),hero=sIdx===0;
+    ship.name=hero?"HeroGalleon":"FleetShip_"+sIdx;ship.scale.setScalar(hero?2.05:.82+hash(sIdx,152)*.16);
+    ship.userData.sailPath={x0:-118+Math.floor(sIdx/2)*-7,z0:-70+(sIdx%2)*30,cx:-24+Math.floor(sIdx/2)*-4,cz:-96+(sIdx%2)*28,x1:82+Math.floor(sIdx/2)*-8,z1:-46+(sIdx%2)*22,delay:sIdx*.38,duration:7.2,baseY:.25,phase:sIdx*1.7};
+    g.add(ship);
   }
   for(let i=0;i<14;i++){
     const cx=-70+i*11, cz=-20-hash(i,115)*55;
@@ -710,7 +743,7 @@ const greeceWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
 };
 
 const egyptWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
-  box(g,260,0.5,260,P.earth,0,-0.25,-45);
+  heightfieldGround(g,"desert",P.earth);
   box(g,260,0.2,35,P.sky,0,-0.05,-15);
   for(let i=0;i<25;i++){
     const x=(hash(i,50)-.5)*220, z=-22+hash(i,51)*14;
@@ -725,6 +758,10 @@ const egyptWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
     pyrMesh.castShadow=true; pyrMesh.receiveShadow=true;
     g.add(pyrMesh);
   }
+  const sphinx=new THREE.Group();
+  sphinx.add(new THREE.Mesh(new THREE.BoxGeometry(9,2.8,22),mat("#b99462")));
+  const sphinxHead=new THREE.Mesh(new THREE.SphereGeometry(2.5,12,9),mat("#c9a574"));sphinxHead.position.set(0,3.4,7);sphinx.add(sphinxHead);
+  const nemes=new THREE.Mesh(new THREE.BoxGeometry(4.8,2.4,3.4),mat("#234975"));nemes.position.set(0,3.1,5.8);sphinx.add(nemes);sphinx.position.set(-12,0,-8);g.add(sphinx);
   cylinder(g,0.6,14,P.stone,0,7,-32,6);
   poly(g,[[-0.5,14,-0.5],[0,15.8,0],[0.5,14,0.5]],P.earth);
   for(let i=0;i<8;i++){
@@ -874,19 +911,14 @@ const grandCanyonWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
 
 const coneMesh=(g:THREE.Group,r:number,h:number,c:string,x:number,y:number,z:number,seg=7)=>{const m=new THREE.Mesh(new THREE.ConeGeometry(r,h,seg),mat(c));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;g.add(m);return m;};
 const mountainsWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
-  box(g,260,0.5,260,"#6b7a5a",0,-0.25,-45);
+  heightfieldGround(g,"mountain","#66716d");
   for(let i=0;i<9;i++){
     const x=-80+i*20, h=22+hash(i,110)*18, r=12+hash(i,111)*8;
     poly(g,[[x-r,0,-50],[x,h,-50-r],[x+r,0,-50]],i%2===0?"#7b7f8e":"#646975");
     poly(g,[[x-r*0.35,h*0.7,-50-r*0.35],[x,h,-50-r],[x+r*0.35,h*0.7,-50-r*0.35]],"#f4f7ff");
   }
-  for(let i=0;i<35;i++){
-    const x=(hash(i,115)-0.5)*100, z=-4-hash(i,116)*60, s=0.8+hash(i,117)*0.6;
-    for(let j=0;j<3;j++){
-      coneMesh(g,1.3*s-j*0.3,1.8*s,"#2f7a46",x,(1.6+j*1.1)*s,z,7);
-    }
-    cylinder(g,0.14*s,1.3*s,"#5a3b1e",x,0.65*s,z,6);
-  }
+  for(let i=0;i<28;i++){const x=(hash(i,115)-.5)*150,z=-8-hash(i,116)*112,r=1.2+hash(i,117)*2.8;const rock=ball(g,r,i%3===0?"#9ba3a7":"#737d82",x,r*.42,z,1.6,.72,1.2);rock.rotation.y=hash(i,118)*6.28;}
+  for(let i=0;i<5;i++){const x=-105+i*52,h=36+hash(i,121)*20,r=17+hash(i,122)*8;poly(g,[[x-r,0,-122],[x,h,-142],[x+r,0,-122]],i%2?"#657077":"#7b8589");poly(g,[[x-r*.28,h*.7,-136],[x,h,-142],[x+r*.28,h*.7,-136]],"#edf4f6");}
   for(let i=0;i<15;i++){
     ball(g,0.8+hash(i,118)*0.9,"#8a8f9c",(hash(i,119)-0.5)*80,0.4,-6-hash(i,120)*50,1.4,0.8,1.2);
   }
@@ -930,6 +962,7 @@ const glacierWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
 };
 
 const desertDunesWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
+  heightfieldGround(g,"desert","#d7b777");
   for(let i=0;i<30;i++){
     const r=16+hash(i,160)*80, a=hash(i,161)*6.283, w=14+hash(i,162)*26;
     const m=ball(g,1,i%3===0?"#e9c887":i%3===1?"#dcb774":"#c9a05b",Math.cos(a)*r,0,Math.sin(a)*r-15,w,2.5+hash(i,163)*4,w*0.7);
@@ -1282,6 +1315,10 @@ export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
 };
 export const animateWorld=(g:THREE.Group,t:number)=>{
   g.traverse(o=>{
+    const waterWave=o.userData.waterWave as {baseY:number;phase:number}|undefined;
+    if(waterWave&&o instanceof THREE.Mesh){const geo=o.geometry as THREE.BufferGeometry,pa=geo.attributes.position as THREE.BufferAttribute;if(!geo.userData.basePositions)geo.userData.basePositions=(pa.array as Float32Array).slice();const base=geo.userData.basePositions as Float32Array;for(let i=0;i<pa.count;i++){const x=base[i*3],z=base[i*3+2];pa.setY(i,waterWave.baseY+Math.sin(x*.045+t*1.25+waterWave.phase)*.42+Math.cos(z*.052-t*.9)*.24+Math.sin((x+z)*.025+t*.65)*.12);}pa.needsUpdate=true;geo.computeVertexNormals();}
+    const sail=o.userData.sailPath as {x0:number;z0:number;cx:number;cz:number;x1:number;z1:number;delay:number;duration:number;baseY:number;phase:number}|undefined;
+    if(sail){const k=clamp((t-sail.delay)/sail.duration),q=1-k,x=q*q*sail.x0+2*q*k*sail.cx+k*k*sail.x1,z=q*q*sail.z0+2*q*k*sail.cz+k*k*sail.z1,dx=2*q*(sail.cx-sail.x0)+2*k*(sail.x1-sail.cx),dz=2*q*(sail.cz-sail.z0)+2*k*(sail.z1-sail.cz);o.position.set(x,sail.baseY+Math.sin(t*1.7+sail.phase)*.18,z);o.rotation.y=Math.atan2(dx,dz);o.rotation.z=Math.sin(t*1.1+sail.phase)*.025;}
     const waveDis=o.userData.waveDisplace as {baseY:number;phase:number;speed:number}|undefined;if(waveDis)o.position.y=waveDis.baseY+Math.sin(t*waveDis.speed+waveDis.phase)*0.18;
     const foamAn=o.userData.foamAnim as {baseY:number;phase:number}|undefined;if(foamAn){o.position.y=foamAn.baseY+Math.cos(t*2.8+foamAn.phase)*0.08;const sc=0.8+0.4*Math.sin(t*3.2+foamAn.phase);o.scale.x=sc;}
     const glint=o.userData.sunGlint as {phase:number}|undefined;if(glint){const mat=(o as THREE.Mesh).material as THREE.MeshBasicMaterial;if(mat)mat.opacity=0.2+0.8*Math.abs(Math.sin(t*4.5+glint.phase));}

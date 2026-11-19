@@ -61,7 +61,7 @@ jobs:
               "scenes": [
                 {"dur":3,"shot":"wide","extras":0,"world":{"terrain":"mountain","kind":"mountain","era":"india","region":"south-asian","timeOfDay":"dawn","weather":"clear","seed":71},"cast":[{"id":"guide","role":"explorer","x":0,"z":0,"expr":"neutral"}],"caption":"Himalayan snow peaks"},
                 {"dur":3,"shot":"wide","extras":0,"world":{"terrain":"desert","kind":"desert","era":"egypt","region":"african","timeOfDay":"dusk","weather":"clear","seed":72},"cast":[{"id":"guide","role":"explorer","x":0,"z":0,"expr":"neutral"}],"caption":"Giza pyramids and sphinx"},
-                {"dur":3,"shot":"wide","extras":0,"world":{"terrain":"coast","kind":"sea","era":"pirate","region":"european","timeOfDay":"dusk","weather":"clear","seed":73},"cast":[{"id":"guide","role":"sailor","x":0,"z":0,"expr":"neutral"}],"caption":"Fleet arrives at coast"},
+                {"dur":3,"shot":"wide","extras":8,"extrasRole":"soldier","world":{"terrain":"coast","kind":"sea","era":"pirate","region":"european","timeOfDay":"dusk","weather":"clear","seed":73},"cast":[{"id":"guide","role":"sailor","x":0,"z":0,"expr":"neutral"}],"caption":"Soldiers disembark at coast"},
                 {"dur":3,"shot":"medium","extras":0,"world":{"terrain":"plain","kind":"city","era":"modern","region":"european","timeOfDay":"noon","weather":"clear","seed":74},"cast":[{"id":"guide","role":"explorer","x":0,"z":0,"expr":"neutral"}],"caption":"3D prop library","props":[{"name":"throne","x":-5,"z":-8,"h":3.2},{"name":"royal_bed","x":0,"z":-10,"h":1.6},{"name":"campfire","x":5,"z":-8,"h":1.4},{"name":"unknown bronze astrolabe","x":9,"z":-12,"h":1.1}]}
               ]
             },

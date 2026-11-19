@@ -59,7 +59,7 @@ const other = (s: SceneDef, id?: string) => s.cast.find((c) => c.id !== id)?.id 
 
 /** Plan the camera for a scene. Mirrored in remotion/scripts/story_audio.py (cut times) - keep in sync. */
 /** how many ~2 s sub-shots a scene is cut into by the action camera (mirrored in story_audio.py) */
-export const nSub = (dur: number) => Math.max(1, Math.min(6, Math.round(dur / 2.0)));
+export const nSub = (dur: number) => Math.max(1, Math.min(6, Math.round(dur / 2.8)));
 const GENERIC = new Set(["push", "pull", "reveal", "pan", "descend", "orbit", "hold", undefined]);
 /** Reference-paced action camera: fast, varied cuts, but every insert remains attached to a story subject.
  * Props are not blindly cycled as standalone shots (that produced empty tree/bag/terrain inserts in real renders).
@@ -72,7 +72,7 @@ const actionSegs = (s: SceneDef, i: number, dur: number): Seg[] => {
   const segs: Seg[] = [];
   for (let k = 0; k < n; k++) {
     const who = i === 0 && k === 0 && s.shot === "wide" ? undefined : subj[(k + (i % 2)) % subj.length];
-    const sw = (k % 2 ? -1 : 1) * (22 + 10 * ((i + k) % 3)), a0 = base + (k % 2 ? 30 : -30), u0 = k / n, u1 = (k + 1) / n;
+    const sw = (k % 2 ? -1 : 1) * (6 + 3 * ((i + k) % 3)), a0 = base * 0.5 + (k % 2 ? 10 : -10)   /* gentle: no spinning */, u0 = k / n, u1 = (k + 1) / n;
     let kfs: KF[];
     // A specifically named story prop gets one motivated insert, never a random object cut.
     const focus = s.focus ? (s.focus.startsWith("@") ? s.focus : "@" + s.focus) : undefined;
@@ -136,15 +136,15 @@ const vehicleSegs = (s: SceneDef, i: number, dur: number): Seg[] => {
 
   for (let k = 0; k < n; k++) {
     const u0 = k / n, u1 = (k + 1) / n;
-    const a0 = base + k * 40;
+    const a0 = base + k * 12;
     let kfs: KF[];
 
     switch (moveType) {
       case "orbitVehicle":
         kfs = [
           { u: 0, lv: "prop", who: focusProp, az: a0 },
-          { u: 0.5, lv: "prop", who: focusProp, az: a0 + 90 },
-          { u: 1, lv: "prop", who: focusProp, az: a0 + 180 }
+          { u: 0.5, lv: "prop", who: focusProp, az: a0 + 18 },
+          { u: 1, lv: "prop", who: focusProp, az: a0 + 36 }
         ];
         break;
       case "chase":

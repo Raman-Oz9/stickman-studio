@@ -1,3 +1,7 @@
+### 2026-11-19 — Enforce camera discipline, narration beat sub-shots, and face-only depth-of-field in camera.ts
+- Updated `remotion/src/videos/story/camera.ts` to enforce strict camera discipline: steady angle with azimuth drift `<= 8` degrees per shot, sub-shot derivation from narration beats / word timings, and depth-of-field / background blur restricted strictly to face and upper close-ups (zero on wides or floors).
+- Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` successfully with zero errors.
+
 ### 2026-11-19 — Verify five-ship 3D fleet, curved sailing paths, and synchronized landing proof
 - Verified five-ship 3D fleet with hero galleon, curved sailing paths, ship bob/roll, coast arrival, synchronized wide/orbit/settle camera choreography in `world.ts` + `StoryHybrid.tsx`, and ink soldier beach disembarkation.
 - Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` successfully with zero errors.
@@ -252,6 +256,10 @@
 - Avoid collisions: ChatGPT owns `worldgen.ts`, `IllustratedProof.tsx`, boards/sample scripts for new world types. Claude owns `world.ts` mounts/actions, `props3d.ts` models, camera shot logic unless coordinated here. If both need `camera.ts`/`world.ts`, write the intent in this file first, make small commits, rebase on `main` before pushing.
 - Both: update this file on every change; never claim "works" without viewing rendered frames; never send the owner a video that has not been frame-checked.
 ## CHANGELOG
+
+### 2026-11-19 — Enforce camera discipline, narration beat sub-shots, and face-only depth-of-field in camera.ts
+- Updated `remotion/src/videos/story/camera.ts` to enforce strict camera discipline: steady angle with azimuth drift `<= 8` degrees per shot, sub-shot derivation from narration beats / word timings, and depth-of-field / background blur restricted strictly to face and upper close-ups (zero on wides or floors).
+- Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` successfully with zero errors.
 
 ### 2026-11-19 — Verify animated 3D water surfaces, fleet arrival, and strict TypeScript proof
 - Verified animated 3D water surfaces across sea, connected-realm, ocean/lake/coast, river, and ocean-floor scenes; sea shot horizon/coast, five-ship fleet with hero galleon, synchronized camera choreography, and ink soldier beach disembarkation.

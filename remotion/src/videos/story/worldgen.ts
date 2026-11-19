@@ -586,7 +586,11 @@ const seaWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
   waterGeo.setAttribute("color",new THREE.BufferAttribute(waterCol,3));waterGeo.computeVertexNormals();
   const water=new THREE.Mesh(waterGeo,new THREE.MeshPhongMaterial({color:"#ffffff",vertexColors:true,specular:"#8bc7d8",shininess:72}));
   water.position.set(0,-.35,-42);water.userData.waterWave={baseY:-.35,phase:.4};water.receiveShadow=false;g.add(water);
-  box(g,92,3,84,"#d9bd83",126,-.1,-43);
+  const coastGeo=new THREE.PlaneGeometry(92,84,18,18);coastGeo.rotateX(-Math.PI/2);
+  const coastPos=coastGeo.attributes.position,coastCol=new Float32Array(coastPos.count*3);
+  for(let i=0;i<coastPos.count;i++){const x=coastPos.getX(i),z=coastPos.getZ(i),h=.12+Math.sin(x*.08+z*.04)*.42+Math.cos(z*.12)*.16;coastPos.setY(i,h);const c=new THREE.Color("#d9bd83").lerp(new THREE.Color("#b99b6d"),Math.min(.35,Math.abs(h)*.28));coastCol[i*3]=c.r;coastCol[i*3+1]=c.g;coastCol[i*3+2]=c.b;}
+  coastGeo.setAttribute("color",new THREE.BufferAttribute(coastCol,3));coastGeo.computeVertexNormals();
+  const coast=new THREE.Mesh(coastGeo,new THREE.MeshLambertMaterial({color:"#ffffff",vertexColors:true,flatShading:true}));coast.position.set(126,-.1,-43);g.add(coast);
   for(let i=0;i<18;i++){const x=82+hash(i,141)*75,z=-12-hash(i,142)*66,r=1.8+hash(i,143)*3.6;ball(g,r,i%2?"#827d72":"#a59a83",x,r*.35,z,1.5,.8,1.2);}
   const horizon=new THREE.Mesh(new THREE.PlaneGeometry(520,78),new THREE.MeshBasicMaterial({color:"#466f83",transparent:true,opacity:.38,depthWrite:false}));horizon.position.set(0,30,-184);g.add(horizon);
   for(let i=0;i<40;i++){

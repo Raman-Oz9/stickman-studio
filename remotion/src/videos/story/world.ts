@@ -9,7 +9,6 @@ import { NOINK } from "../bridge/ink";
 import { Pool, Actor, Fx, person, blob, lidAt, setLight, Who, Stage, CamInfo, FPS } from "../bridge/cast";
 import { FrontOpts, SideOpts, Expr } from "../bridge/toon";
 import { SceneDef, CastDef, PropDef } from "./types";
-import { STICKERS } from "../bridge/stickers";
 import { createAction, updateAction, handTarget, propBase, ballistic, Action, ActionType } from "./actions";
 import { FOGB, Biome, Season, BIOMES } from "./terrain";
 import { buildRealm, realmWaves, anchorAt, resolveLoc, LOCS } from "./realm";
@@ -223,12 +222,12 @@ export class StoryWorld {
       }
       const pp = posOf(d), mode = d.mode === "sit" ? "sit" : "stand";
       const bob = extra ? 0 : 0.012 * Math.sin(absT * 2.1 + idx);
-      const has3 = !!d.hold && this.p3.has(d.hold), holdOn = d.hold && u >= (d.holdAt ?? 0) && u < (d.holdUntil ?? 2) && (has3 || STICKERS.has(d.hold));
+      const has3 = !!d.hold && this.p3.has(d.hold), holdOn = !!d.hold && u >= (d.holdAt ?? 0) && u < (d.holdUntil ?? 2) && has3;
       const lat = pp.moving ? (pp.dx * right.x + pp.dz * right.z) / (Math.hypot(pp.dx, pp.dz) || 1) : 0;
       const side = pp.moving && Math.abs(lat) > 0.5, mirror = lat < 0;
       const phase = pp.dist / 1.5;
       const fo: FrontOpts = { mode: pp.moving ? "stroll" : mode, phase: pp.moving ? phase : 0, expr, look: side ? 0 : look, blink: lidAt(t, idx + (extra ? 300 : 0), d.at2 != null ? [swapT] : []),
-        headTilt: extra ? 0 : Math.round(4 * Math.sin(absT * 0.9 + idx)), prop: holdOn ? { held: d.hold!, s: 150 } : null };
+        headTilt: extra ? 0 : Math.round(4 * Math.sin(absT * 0.9 + idx)), prop: null };
       if (d.act === "wave" && !holdOn) fo.wave = Math.sin(absT * 7);
       if (d.act === "cheer") { fo.wave = Math.sin(absT * 8); fo.cheer = Math.sin(absT * 8 + 1.5); }
       // weapon use: aim direction toward the target (a cast id or @prop), the arm reaches out that way
@@ -240,7 +239,7 @@ export class StoryWorld {
       }
       if (d.act === "point") fo.point = (look >= 0 ? 1 : -1) as 1 | -1;
       if (d.act === "nod") fo.headTilt = Math.round(7 * Math.sin(absT * 5));
-      const so: SideOpts = { mode: pp.moving ? "march" : "stand", phase: pp.moving && d.act === "run" ? pp.dist / 1.25 : phase, expr, stomp: d.act === "run" ? 1.6 : 0.4, stride: d.act === "run" ? 1.3 : 0.9, held: holdOn ? { name: d.hold!, s: 150 } : undefined };
+      const so: SideOpts = { mode: pp.moving ? "march" : "stand", phase: pp.moving && d.act === "run" ? pp.dist / 1.25 : phase, expr, stomp: d.act === "run" ? 1.6 : 0.4, stride: d.act === "run" ? 1.3 : 0.9, held: undefined };
       if (d.do && !d.mount) {   // ---- universal physical action: the world contact point is the master, the hand IK and the 3D prop follow it ----
         const key = `${i}:${d.id}`, tg = d.do.to ?? "", tgp = tg.startsWith("@") ? (cur.props ?? []).find((q) => q.name === tg.slice(1).toLowerCase()) : cur.cast.find((q) => q.id === tg);
         let A = this.acts.get(key);

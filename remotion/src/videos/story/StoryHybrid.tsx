@@ -60,7 +60,8 @@ const Cast2D: React.FC<{ board: Board; f: number }> = ({ board, f }) => {
       const row = Math.floor(k / 5), col = k % 5;
       if(s.world?.kind==="sea"){
         // Ink soldiers step from the hero ship's landing side across the waterline onto the sandy shore.
-        ex=68+col*2.1+(hh(k,40)-.5)*.35;ez=-58+row*2.1+(hh(k,41)-.5)*.3;hd=0;drift=22;w0=.08+(k%4)*.035;
+        const [shipX,,shipZ]=sailingHeroAt(local/FPS);
+        ex=shipX-8+col*2.1+(hh(k,40)-.5)*.35;ez=shipZ+row*2.1+(hh(k,41)-.5)*.3;hd=0;drift=22;w0=.08+(k%4)*.035;
       }else{
         ex = F.x - 4 + col * 2 + (hh(k, 40) - 0.5) * 0.5; ez = F.z - 3.2 - row * 1.8 + (hh(k, 41) - 0.5) * 0.4; hd = Math.PI * 0.5; drift = 2.2; w0 = 0.1;
       }

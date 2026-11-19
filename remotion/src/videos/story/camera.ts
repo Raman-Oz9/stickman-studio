@@ -5,7 +5,7 @@
 import * as THREE from "three";
 import { SceneDef, CastDef } from "./types";
 import { DEFAULT_H, canon } from "./props3d";
-import { LOCS } from "./realm";
+import { LOCS, heightAt } from "./realm";
 
 type Lvl = { d: number; h: number; ly: number; fov: number; c: number };
 const LV: Record<string, Lvl> = {

@@ -528,3 +528,7 @@ Render stills with the props-test workflow (build a board in `remotion/story_pro
 ### 2026-11-19 — Add independent free-tier Gemini coding agent
 - Added a separate, manually dispatched Gemini CLI workflow using Google's Gemini API free tier (`gemini-3.5-flash-lite`) and the repository's existing `GEMINI_API_KEY` secret. It creates an isolated `gemini-agent/*` branch, runs the strict Remotion TypeScript check, and opens a review-only PR; it never merges automatically.
 - The workflow uses only the provider's free-tier model configuration, with no paid fallback. Free-tier usage has quotas/rate limits and is not unlimited. Claude and OpenCode workflows and ownership remain unchanged.
+
+### 2026-11-19 — Add independent Qwen Code agent workflow
+- Added `.github/workflows/qwen-agent.yml`, a manually dispatched Qwen Code workflow using the repository's `OPENROUTER_API_KEY` secret and the Qwen coding model through OpenRouter's OpenAI-compatible API.
+- The workflow uses its own `qwen-agent/*` branch, runs strict Remotion TypeScript validation, and opens a review-only PR; it does not merge automatically or modify Claude, OpenCode, or Gemini workflows. OpenRouter free-model availability and quotas are provider-controlled and may change.

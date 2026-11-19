@@ -16,7 +16,7 @@ jobs:
     permissions: { contents: write, actions: write, models: read }
     strategy:
       fail-fast: false
-      max-parallel: 6
+      max-parallel: 7
       matrix:
         include:
           - { agent: aider-groq,        slot: 1 }
@@ -25,11 +25,13 @@ jobs:
           - { agent: aider-gemini,      slot: 4 }
           - { agent: aider-ghmodels,    slot: 5 }
           - { agent: aider-mistral,     slot: 6 }
+          - { agent: aider-gemini2,     slot: 7 }
     env:
       GH_TOKEN: ${{ github.token }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
       CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
       CODESTRAL_API_KEY: ${{ secrets.CODESTRAL_API_KEY }}
     steps:
@@ -67,6 +69,7 @@ jobs:
             aider-openrouter) pip install -q aider-chat; aider --yes-always --no-auto-commits --no-check-update --model openrouter/openrouter/free --message "$PROMPT" $(echo "$TASK" | grep -oE '[A-Za-z0-9_./-]+\.(ts|tsx|py|mjs|md)' | sort -u | tr '\n' ' ') AGENTS.md docs/CONTEXT.md || true ;;
             aider-ghmodels)   pip install -q aider-chat; OPENAI_API_BASE=https://models.github.ai/inference OPENAI_API_KEY="$GH_TOKEN" aider --yes-always --no-auto-commits --no-check-update --model openai/openai/gpt-4.1 --message "$PROMPT" $(echo "$TASK" | grep -oE '[A-Za-z0-9_./-]+\.(ts|tsx|py|mjs|md)' | sort -u | tr '\n' ' ') AGENTS.md docs/CONTEXT.md || true ;;
             aider-mistral)    [ -n "$CODESTRAL_API_KEY" ] && { pip install -q aider-chat; aider --yes-always --no-auto-commits --no-check-update --model codestral/codestral-latest --message "$PROMPT" $(echo "$TASK" | grep -oE '[A-Za-z0-9_./-]+\.(ts|tsx|py|mjs|md)' | sort -u | tr '\n' ' ') AGENTS.md docs/CONTEXT.md || true; } ;;
+            aider-gemini2)    [ -n "$GEMINI_API_KEY_2" ] && { pip install -q aider-chat; GEMINI_API_KEY="$GEMINI_API_KEY_2" aider --yes-always --no-auto-commits --no-check-update --model gemini/gemini-3.5-flash --message "$PROMPT" $(echo "$TASK" | grep -oE '[A-Za-z0-9_./-]+\.(ts|tsx|py|mjs|md)' | sort -u | tr '\n' ' ') AGENTS.md docs/CONTEXT.md || true; } ;;
             aider-gemini)     pip install -q aider-chat; aider --yes-always --no-auto-commits --no-check-update --model gemini/gemini-3.5-flash --message "$PROMPT" $(echo "$TASK" | grep -oE '[A-Za-z0-9_./-]+\.(ts|tsx|py|mjs|md)' | sort -u | tr '\n' ' ') AGENTS.md docs/CONTEXT.md || true ;;
             goose-openrouter) curl -fsSL https://github.com/block/goose/releases/download/stable/download_cli.sh | CONFIGURE=false bash || true
                               export PATH="$HOME/.local/bin:$PATH" GOOSE_PROVIDER=openrouter GOOSE_MODEL=openrouter/free

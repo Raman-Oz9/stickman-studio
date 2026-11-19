@@ -17,6 +17,9 @@ on:
       - ".github/workflows/worldgen-check.yml"
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   proof:
     runs-on: ubuntu-latest

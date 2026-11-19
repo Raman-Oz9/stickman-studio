@@ -80,19 +80,21 @@ jobs:
         run: |
           N=${{ steps.pick.outputs.n }}
           git checkout -q -- docs/OPENCODE_QUEUE.md remotion/package-lock.json 2>/dev/null || true
-          DONE="!"
+          DONE=" "
           if [ -n "$(git status --porcelain | grep -v node_modules | grep -v package-lock)" ]; then
             if (cd remotion && npm install --no-audit --no-fund >/dev/null 2>&1 && npx tsc --noEmit > /tmp/tsc.txt 2>&1); then
               rm -rf remotion/node_modules
               git add -A -- . ':!remotion/package-lock.json' ':!remotion/node_modules'
-              git commit -qm "${{ matrix.agent }}: ${TASK:0:70}" || true
+              git commit -qm "${{ matrix.agent }}: task $N" || true
+              if git diff --quiet origin/main HEAD -- remotion .github stickman_studio 2>/dev/null; then DONE=" "; echo "no real code change: re-open task"; else
               for t in 1 2 3 4; do
                 git fetch -q origin main; git merge -q --no-edit -X ours origin/main >/dev/null 2>&1 || true
                 git push -q origin HEAD:main && DONE="x" && break
                 sleep 5
               done
+              fi
             else
-              rm -rf remotion/node_modules; git add -A -- . ':!remotion/package-lock.json' ':!remotion/node_modules'
+              DONE="!"; rm -rf remotion/node_modules; git add -A -- . ':!remotion/package-lock.json' ':!remotion/node_modules'
               git commit -qm "${{ matrix.agent }} (tsc failed): task $N" || true
               git push -q origin "HEAD:refs/heads/agents/failed-${N}-${{ matrix.agent }}-${GITHUB_RUN_ID}" || true
             fi

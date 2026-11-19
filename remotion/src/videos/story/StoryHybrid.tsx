@@ -96,7 +96,7 @@ const Cast2D: React.FC<{ board: Board; f: number }> = ({ board, f }) => {
         if (!Number.isNaN(hv[0])) { const hl = Math.hypot(hv[0], hv[1]) || 1, hx = hv[0] / hl, hz = hv[1] / hl; yaw = (Math.atan2(hx * rightXZ[0] + hz * rightXZ[1], hx * tc[0] + hz * tc[1]) * 180) / Math.PI; }
         const pf = w.extra ? { verb: w.moving ? "walk" : "talk", p: u, t, prop: null, holdProp: null } : castPerf(w.d, s, u, t);
         return <g key={w.d.id + w.idx}>
-          <ellipse cx={w.g.x} cy={w.g.y+1} rx={Math.max(8,w.k*18)} ry={Math.max(2,w.k*4)} fill="url(#castGroundShadow)" opacity={darkGround?.72:1}/>
+          <ellipse cx={w.g.x} cy={w.g.y+1} rx={Math.max(8,w.k*18)} ry={Math.max(2,w.k*4)} fill="url(#castGroundShadow)" opacity={darkGround ? 0.72 : 1}/>
           <Performer2D x={w.g.x} y={w.g.y} scale={w.k} yaw={yaw} skin={o.skin ?? "#f6ead9"} cloth={o.dress ?? o.jacket} hair={o.hair} ink={inkStyleOf(w.d.role, w.idx, eraW, resolveRole(w.d.role, eraW))}
             verb={pf.verb} p={pf.p} t={pf.t} phase={t * 1.15 + w.idx * 0.17} frame={f + w.idx * 13} prop={null} holdProp={null}
             expr={w.d.expr ? EXPR[w.d.expr] ?? null : null} build={w.idx % 2 ? "stocky" : "lean"} seed={w.idx * 17 + 7} />

@@ -17,6 +17,246 @@ def _roles():
     except Exception:
         return _ROLES_OLD, {}
 ROLES, ROLE_ALIAS = _roles()
+
+def _khash(name):
+    k = 0
+    for ch in str(name).lower():
+        k = (k * 31 + ord(ch)) % 1000
+    return k
+
+# ---------------------------------------------------------------------------
+# 3D prop coverage: every noun / vehicle / animal not known to props3d.ts gets
+# a procedural recipe (8-30 parts) so the 3D world never falls back to nothing,
+# and hand-held nouns also get a small SVG icon for the 2D cast layer.
+# ---------------------------------------------------------------------------
+def _props3d_txt():
+    try:
+        return open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../src/videos/story/props3d.ts")).read()
+    except Exception:
+        return ""
+
+def _known3d():
+    txt = _props3d_txt()
+    known = set()
+    m = re.search(r"const\s+PROC\s*:\s*Record[^=]*=\s*\{([^}]*)\}", txt)
+    if m:
+        known |= {w.strip() for w in re.findall(r"\b([a-zA-Z_][a-zA-Z0-9_]*)\s*[,}]", m.group(1)) if w.strip()}
+    m = re.search(r"const\s+KEN\s*:\s*Record[^=]*=\s*\{([^}]*)\}", txt, re.S)
+    if m:
+        known |= {k.strip().strip('"') for k, _ in re.findall(r"([a-zA-Z_][a-zA-Z0-9_]*|\"[^\"]+\")\s*:\s*\"", m.group(1))}
+    m = re.search(r"const\s+ALIAS\s*:\s*Record[^=]*=\s*\{([^}]*)\}", txt, re.S)
+    if m:
+        known |= {k.strip().strip('"') for k, _ in re.findall(r"([a-zA-Z_][a-zA-Z0-9_]*|\"[^\"]+\")\s*:", m.group(1))}
+    m = re.search(r"export\s+const\s+DEFAULT_H\s*:\s*Record[^=]*=\s*\{([^}]*)\}", txt, re.S)
+    if m:
+        known |= {k.strip().strip('"') for k, _ in re.findall(r"([a-zA-Z_][a-zA-Z0-9_]*|\"[^\"]+\")\s*:", m.group(1))}
+    known.add("appletree")
+    return {k.lower() for k in known}
+
+def _norm3d(n):
+    return re.sub(r"[^a-z ]+", "", n.lower().strip()).replace("  ", " ").strip()
+
+def _in3d(name, known):
+    n = _norm3d(name)
+    nn = n.replace(" ", "")
+    last = n.split(" ")[-1]
+    cands = (n, nn, last, n[:-1] if n.endswith("s") else n, last[:-1] if last.endswith("s") else last)
+    return any(c in known for c in cands)
+
+def _category(name):
+    nl = name.lower()
+    if any(k in nl for k in ("horse","cow","bull","ox","dog","cat","sheep","pig","lion","tiger","bear","wolf","deer","goat","camel","donkey","elephant")): return "quadruped"
+    if any(k in nl for k in ("chicken","hen","rooster","duck","owl","parrot","eagle","penguin","crow","bird")): return "bird"
+    if any(k in nl for k in ("fish","shark","whale")): return "fish"
+    if any(k in nl for k in ("train","tram","locomotive")): return "train"
+    if any(k in nl for k in ("plane","jet","helicopter","rocket","ufo","balloon")): return "air"
+    if any(k in nl for k in ("ship","boat","canoe","galleon","sailboat","steamship","submarine")): return "ship"
+    if any(k in nl for k in ("car","truck","bus","tank","tractor","van","ambulance","policecar","firetruck","oldcar")): return "vehicle4"
+    if any(k in nl for k in ("bicycle","motorbike","scooter","bike")): return "vehicle2"
+    if any(k in nl for k in ("tree",)): return "tree"
+    if any(k in nl for k in ("house","castle","tower","temple","palace","hut","cabin")): return "building"
+    if any(k in nl for k in ("apple","mango","bread","cake","egg","cheese","fruit","corn","rice","bowl","plate","meal","meat","food","pie","pizza")): return "food"
+    if any(k in nl for k in ("cup","mug","jug","bottle","purse","bag","chest","box","crate","sack","basket","barrel","jar","urn","pitcher","pot")): return "container"
+    if any(k in nl for k in ("sword","knife","dagger","axe","hammer","shovel","spade","pickaxe","pen","pencil","brush","quill","spear","bow","arrow","gun","pistol","rifle","shotgun","tool","wrench","sickle","hoe","rake")): return "tool"
+    if any(k in nl for k in ("crown","hat","helmet","cap","turban","tiara")): return "crown"
+    if any(k in nl for k in ("coin","gem","jewel","ring","money","gold")): return "money"
+    if any(k in nl for k in ("guitar","lute","drum","trumpet","violin","flute","harp","lyre")): return "music"
+    return "generic"
+
+PALETTE = ["#8a5a2b","#4aa84a","#e23b3b","#f5c32c","#bfe6f5","#d49e35","#f1c24f","#6b3f2a","#c9ced3","#7a4b2a","#f4ead2","#363942"]
+
+def _design_recipe(name, khash, mount=False):
+    """8-30 part recipe for an unknown noun/vehicle/animal (y up, +z front)."""
+    c = PALETTE[khash % len(PALETTE)]
+    cat = _category(name)
+    P = lambda s, c, p, z, r=None: {"s": s, "c": c, "p": p, "z": z, **({"r": r} if r else {})}
+    if cat == "quadruped":
+        parts = [P("sphere", c, [0, 0.6, 0], [0.7, 0.5, 1.1]), P("sphere", c, [0, 1.15, 0.5], [0.4, 0.4, 0.45]),
+                 P("cyl", c, [0, 0.9, 0.25], [0.14, 0.3, 0.14]), P("cyl", c, [-0.22, 0.25, 0.35], [0.1, 0.5, 0.1], [0,0,10]),
+                 P("cyl", c, [0.22, 0.25, 0.35], [0.1, 0.5, 0.1], [0,0,-10]), P("cyl", c, [-0.22, 0.25, -0.35], [0.1, 0.5, 0.1], [0,0,10]),
+                 P("cyl", c, [0.22, 0.25, -0.35], [0.1, 0.5, 0.1], [0,0,-10]), P("cone", c, [0, 0.85, -0.45], [0.08, 0.4, 0.08], [0,0,20]),
+                 P("sphere", c, [-0.18, 1.15, 0.55], [0.09, 0.09, 0.06]), P("sphere", c, [0.18, 1.15, 0.55], [0.09, 0.09, 0.06])]
+        h = 1.4
+    elif cat == "bird":
+        parts = [P("sphere", c, [0, 0.55, 0], [0.45, 0.4, 0.7]), P("sphere", c, [0, 0.95, 0.35], [0.28, 0.28, 0.28]),
+                 P("cone", c, [0, 1.0, 0.6], [0.09, 0.25, 0.09], [0,0,-45]), P("sphere", c, [-0.25, 0.55, 0], [0.22, 0.08, 0.45]),
+                 P("sphere", c, [0.25, 0.55, 0], [0.22, 0.08, 0.45]), P("cone", c, [0, 0.6, -0.35], [0.12, 0.4, 0.12], [0,20,0]),
+                 P("sphere", c, [-0.08, 1.0, 0.5], [0.05, 0.05, 0.05]), P("sphere", c, [0.08, 1.0, 0.5], [0.05, 0.05, 0.05])]
+        h = 0.7
+    elif cat == "fish":
+        parts = [P("sphere", c, [0, 0.4, 0], [0.6, 0.35, 0.3]), P("cone", c, [0, 0.4, -0.55], [0.2, 0.5, 0.2], [0,90,0]),
+                 P("sphere", c, [0, 0.75, 0], [0.16, 0.06, 0.3]), P("sphere", c, [0, 0.05, 0], [0.16, 0.06, 0.3]),
+                 P("sphere", c, [-0.55, 0.4, 0], [0.06, 0.22, 0.16]), P("sphere", c, [0.55, 0.4, 0], [0.06, 0.22, 0.16]),
+                 P("sphere", c, [0.4, 0.45, 0.15], [0.04, 0.04, 0.04]), P("box", c, [-0.08, 0.4, 0.2], [0.2, 0.06, 0.02])]
+        h = 0.5
+    elif cat == "train":
+        parts = [P("box", c, [0, 0.75, 0], [1.0, 0.8, 2.4]), P("box", c, [0, 1.35, -0.6], [0.8, 0.7, 1.0]),
+                 P("cyl", c, [0.25, 1.85, -0.9], [0.12, 0.45, 0.12]), P("cyl", c, [-0.45, 0.25, 0.85], [0.13, 0.26, 0.13], [90,0,0]),
+                 P("cyl", c, [0.45, 0.25, 0.85], [0.13, 0.26, 0.13], [90,0,0]), P("cyl", c, [-0.45, 0.25, -0.85], [0.13, 0.26, 0.13], [90,0,0]),
+                 P("cyl", c, [0.45, 0.25, -0.85], [0.13, 0.26, 0.13], [90,0,0]), P("box", c, [0, 0.45, 1.35], [1.0, 0.35, 0.5])]
+        h = 2.7
+    elif cat == "air":
+        parts = [P("box", c, [0, 0.9, 0], [0.4, 0.4, 2.2]), P("box", c, [0, 0.9, -0.1], [2.6, 0.12, 0.9]),
+                 P("box", c, [0, 0.9, 1.1], [0.5, 0.5, 0.5]), P("box", c, [0, 1.25, 1.25], [0.06, 0.5, 0.5]),
+                 P("sphere", c, [0.2, 1.05, 0.05], [0.18, 0.18, 0.18]), P("cyl", c, [0, 0.65, -1.0], [0.2, 0.3, 0.5], [90,0,0]),
+                 P("box", c, [0, 0.55, -0.3], [0.5, 0.06, 0.2])]
+        h = 2.2
+    elif cat == "ship":
+        parts = [P("box", c, [0, 0.3, 0], [1.2, 0.5, 2.6]), P("box", c, [0, 0.75, -0.05], [1.0, 0.12, 2.2]),
+                 P("cyl", c, [0, 1.4, 0], [0.08, 1.5, 0.08]), P("box", c, [0, 1.6, -0.3], [0.02, 1.0, 1.0]),
+                 P("box", c, [0, 0.95, -0.55], [0.6, 0.4, 0.9]), P("box", c, [0, 2.2, -0.35], [0.3, 0.1, 0.02]),
+                 P("box", c, [0, 0.1, 1.4], [0.1, 0.2, 0.4])]
+        h = 2.6
+    elif cat == "vehicle4":
+        parts = [P("box", c, [-0.1, 0.55, 0], [0.9, 0.5, 1.6]), P("box", c, [0, 1.0, -0.1], [0.7, 0.55, 0.9]),
+                 P("box", c, [0, 0.55, -0.85], [0.75, 0.35, 0.7]), P("cyl", c, [-0.42, 0.15, 0.6], [0.14, 0.3, 0.14], [90,0,0]),
+                 P("cyl", c, [0.42, 0.15, 0.6], [0.14, 0.3, 0.14], [90,0,0]), P("cyl", c, [-0.42, 0.15, -0.85], [0.14, 0.3, 0.14], [90,0,0]),
+                 P("cyl", c, [0.42, 0.15, -0.85], [0.14, 0.3, 0.14], [90,0,0]), P("box", c, [0, 0.35, -1.25], [1.0, 0.2, 0.3]),
+                 P("box", c, [0, 1.15, -0.05], [0.5, 0.3, 0.02])]
+        h = 1.6
+    elif cat == "vehicle2":
+        parts = [P("box", c, [0, 0.55, 0], [0.9, 0.12, 0.06]), P("cyl", c, [-0.5, 0.3, 0], [0.1, 0.2, 0.2], [0,0,90]),
+                 P("cyl", c, [0.5, 0.3, 0], [0.1, 0.2, 0.2], [0,0,90]), P("box", c, [0.2, 0.7, 0], [0.08, 0.4, 0.08]),
+                 P("box", c, [-0.15, 0.75, 0], [0.4, 0.1, 0.3])]
+        parts += [P("cyl", c, [-0.42, 0.35, 0], [0.08, 0.08, 0.2], [0,0,90])]
+        h = 1.1
+    elif cat == "tree":
+        parts = [P("cyl", c, [0, 1.2, 0], [0.35, 2.4, 0.35]), P("sphere", c, [0, 2.6, 0], [0.8, 0.8, 0.8]),
+                 P("sphere", c, [-0.5, 2.55, 0.2], [0.7, 0.7, 0.7]), P("sphere", c, [0.5, 2.6, -0.2], [0.7, 0.7, 0.7]),
+                 P("sphere", c, [0, 3.1, 0], [0.7, 0.7, 0.7]), P("cyl", c, [-0.35, 2.6, 0.1], [0.1, 0.5, 0.1], [20,0,10]),
+                 P("cyl", c, [0.35, 2.7, -0.1], [0.1, 0.5, 0.1], [-20,0,-10])]
+        h = 4.6
+    elif cat == "building":
+        parts = [P("box", c, [0, 1.5, 0], [1.4, 3.0, 1.4]), P("pyramid", c, [0, 3.15, 0], [1.6, 1.6, 1.6], [0,45,0]),
+                 P("box", c, [0, 0.15, 0.72], [0.4, 0.3, 0.02]), P("box", c, [-0.55, 1.55, 0.71], [0.3, 0.3, 0.02]),
+                 P("box", c, [0.55, 1.55, 0.71], [0.3, 0.3, 0.02]), P("cyl", c, [-0.6, 1.75, -0.4], [0.25, 1.5, 0.25]),
+                 P("cyl", c, [0.6, 1.75, -0.4], [0.25, 1.5, 0.25]), P("box", c, [0, 0.0, 0], [1.6, 0.2, 1.6])]
+        h = 4.7
+    elif cat == "food":
+        parts = [P("sphere", c, [0, 0.3, 0], [0.4, 0.4, 0.4]), P("cyl", c, [0, 0.55, 0], [0.08, 0.25, 0.08]),
+                 P("sphere", c, [0.15, 0.6, 0], [0.18, 0.1, 0.1], [0,0,25]), P("sphere", c, [-0.08, 0.45, 0.2], [0.08, 0.08, 0.08]),
+                 P("box", c, [0, 0.28, -0.05], [0.1, 0.1, 0.04]), P("sphere", c, [0.05, 0.35, -0.1], [0.05, 0.05, 0.05]),
+                 P("sphere", c, [-0.1, 0.25, 0.1], [0.06, 0.06, 0.06])]
+        h = 0.6
+    elif cat == "container":
+        parts = [P("cyl", c, [0, 0.4, 0], [0.35, 0.8, 0.35]), P("box", c, [0, 0.85, 0], [0.42, 0.12, 0.42]),
+                 P("torus", c, [0.35, 0.45, 0], [0.08, 0.08, 0.2], [0,90,0]), P("box", c, [0.33, 0.4, 0], [0.06, 0.8, 0.02]),
+                 P("sphere", c, [0, 0.92, 0], [0.06, 0.06, 0.06]), P("box", c, [0, -0.02, 0], [0.38, 0.06, 0.38]),
+                 P("box", c, [0, 0.4, 0.37], [0.5, 0.3, 0.01])]
+        h = 0.95
+    elif cat == "tool":
+        parts = [P("cyl", c, [0, 0.6, 0], [0.1, 1.2, 0.1]), P("box", c, [0, -0.05, 0], [0.45, 0.25, 0.1]),
+                 P("box", c, [0, -0.3, 0], [0.15, 0.35, 0.08]), P("box", c, [0, 0.05, 0], [0.55, 0.08, 0.02]),
+                 P("sphere", c, [-0.15, 0.05, 0.06], [0.05, 0.05, 0.05]), P("sphere", c, [0.15, 0.05, 0.06], [0.05, 0.05, 0.05]),
+                 P("box", c, [0, 1.15, 0], [0.2, 0.35, 0.12])]
+        h = 1.2
+    elif cat == "crown":
+        parts = [P("torus", c, [0, 0.25, 0], [0.32, 0.05, 0.32], [90,0,0])]
+        for i in range(5):
+            ang = i * 72
+            parts.append(P("cone", c, [0.3 * (1 if i % 2 else -1), 0.5, 0.25 * (1 if i < 3 else -1)], [0.1, 0.3, 0.1], [0, ang, 0]))
+        parts += [P("sphere", c, [-0.15, 0.3, 0.35], [0.05, 0.05, 0.05]), P("sphere", c, [0.15, 0.3, 0.35], [0.05, 0.05, 0.05]), P("sphere", c, [0, 0.3, -0.35], [0.05, 0.05, 0.05])]
+        h = 0.5
+    elif cat == "money":
+        parts = [P("torus", c, [0, 0, 0], [0.22, 0.06, 0.22]), P("torus", c, [0, 0.04, 0], [0.14, 0.03, 0.14]),
+                 P("sphere", c, [0, 0, 0.02], [0.2, 0.2, 0.02]), P("torus", c, [0, -0.05, 0], [0.22, 0.06, 0.22]),
+                 P("torus", c, [0, -0.09, 0], [0.22, 0.06, 0.22]), P("torus", c, [0, -0.13, 0], [0.22, 0.06, 0.22]),
+                 P("sphere", c, [0, 0, -0.02], [0.2, 0.2, 0.02])]
+        h = 0.35
+    elif cat == "music":
+        parts = [P("sphere", c, [0, 0.6, 0], [0.45, 0.5, 0.3]), P("cyl", c, [0, 0.95, 0], [0.08, 0.7, 0.08]),
+                 P("box", c, [0, 1.35, 0], [0.2, 0.2, 0.1]), P("box", c, [0, 0.6, 0.3], [0.3, 0.5, 0.02]),
+                 P("box", c, [0.1, 0.6, 0.31], [0.02, 0.5, 0.01]), P("box", c, [-0.1, 0.6, 0.31], [0.02, 0.5, 0.01]),
+                 P("sphere", c, [0, 1.5, 0], [0.08, 0.08, 0.08])]
+        h = 1.0
+    else:  # generic
+        parts = [P("box", c, [0, 0.25, 0], [0.8, 0.5, 0.8]), P("sphere", c, [0, 0.75, 0], [0.5, 0.5, 0.5]),
+                 P("cone", c, [0, 1.2, 0], [0.4, 0.8, 0.4])]
+        for i in range(6):
+            parts.append(P("box", c, [(i % 3 - 1) * 0.3, 0.3 + (i // 3) * 0.3, 0.4], [0.1, 0.1, 0.1]))
+        h = 1.6
+    saddle = 0.6 if (mount and cat in ("quadruped", "bird")) else (0.5 if (mount and cat in ("vehicle4", "vehicle2", "ship", "train")) else None)
+    fly = {"air": 2.5}.get(cat)
+    return {"h": h, "parts": parts, **({"saddle": saddle} if saddle else {}), **({"fly": fly} if fly else {})}
+
+def _design_icon(name, khash):
+    c = PALETTE[khash % len(PALETTE)]
+    cat = _category(name)
+    s = "#1d1a20"
+    el = []
+    def add(tag, attrs):
+        el.append(f'<{tag} {attrs}/>')
+    def path(d, fill="none", w=6):
+        el.append(f'<path d="{d}" fill="{fill}" stroke="{s}" stroke-width="{w}" stroke-linecap="round" stroke-linejoin="round"/>')
+    def circle(cx, cy, r, fill=None, w=6):
+        fill_s = f'fill="{fill}"' if fill else 'fill="none"'
+        el.append(f'<circle cx="{cx}" cy="{cy}" r="{r}" {fill_s} stroke="{s}" stroke-width="{w}"/>')
+    def rect(x, y, ww, hh, fill=None, w=6, rx=4):
+        fill_s = f'fill="{fill}"' if fill else 'fill="none"'
+        el.append(f'<rect x="{x}" y="{y}" width="{ww}" height="{hh}" rx="{rx}" {fill_s} stroke="{s}" stroke-width="{w}"/>')
+    def line(x1, y1, x2, y2, w=6):
+        el.append(f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{s}" stroke-width="{w}" stroke-linecap="round"/>')
+    if cat == "quadruped":
+        rect(22, 44, 46, 26, c, rx=12); circle(50, 38, 12, c); rect(30, 68, 8, 16, c, rx=3); rect(46, 68, 8, 16, c, rx=3)
+        rect(24, 68, 8, 16, c, rx=3); rect(60, 68, 8, 16, c, rx=3); line(68, 44, 80, 38); circle(44, 36, 3); circle(56, 36, 3)
+    elif cat == "bird":
+        ellipse_body = f'<ellipse cx="50" cy="52" rx="16" ry="12" fill="{c}" stroke="{s}" stroke-width="6"/>'; el.append(ellipse_body)
+        circle(50, 40, 9, c); path("M 50 31 L 55 26 L 52 33", c); path("M 28 52 Q 20 45 26 58", c)
+        path("M 72 52 Q 80 45 74 58", c); path("M 50 44 L 62 42", "none", 4)
+    elif cat == "fish":
+        el.append(f'<ellipse cx="50" cy="52" rx="18" ry="12" fill="{c}" stroke="{s}" stroke-width="6"/>')
+        path("M 68 52 L 80 44 L 78 60 Z", c); circle(44, 50, 3)
+    elif cat == "train":
+        rect(20, 40, 60, 26, c); rect(20, 28, 26, 14, c); line(30, 28, 30, 20, 8); circle(28, 68, 5, s); circle(48, 68, 5, s); circle(68, 68, 5, s)
+    elif cat == "air":
+        path("M 20 50 L 60 50 L 70 40 L 80 50 L 70 60 L 60 50 L 20 50", c)
+        path("M 50 40 L 58 40 L 58 26 L 70 26 L 58 40", c); circle(40, 48, 4)
+    elif cat == "ship":
+        rect(20, 44, 60, 18, c); line(50, 44, 50, 28, 8); path("M 52 30 L 64 40 L 52 44", c)
+    elif cat == "vehicle4":
+        rect(22, 40, 56, 18, c); rect(30, 30, 30, 12, c); circle(32, 62, 6, s); circle(50, 62, 6, s); circle(68, 62, 6, s); rect(22, 40, 56, 8, "#bfe6f5")
+    elif cat == "vehicle2":
+        circle(30, 58, 12, "none"); circle(70, 58, 12, "none"); path("M 30 58 L 50 44 L 70 58", c, 6); line(50, 44, 52, 36, 6)
+    elif cat == "tree":
+        rect(44, 44, 12, 44, "#8a5a2b", rx=3); circle(50, 32, 16, "#4aa84a"); circle(40, 28, 10, "#4aa84a"); circle(60, 30, 10, "#4aa84a")
+    elif cat == "building":
+        rect(26, 34, 48, 44, c); path("M 20 34 L 50 20 L 80 34", c); rect(42, 50, 16, 28, "#6b3f2a")
+    elif cat == "food":
+        circle(50, 52, 16, c); circle(44, 46, 4, "#fff6e6"); line(50, 36, 52, 28, 6); circle(54, 26, 5, "#4aa84a")
+    elif cat == "container":
+        rect(34, 30, 32, 40, c, rx=6); rect(34, 26, 32, 8, "#9c5525", rx=3); path("M 66 38 Q 78 38 74 50", "none", 6)
+    elif cat == "tool":
+        line(50, 20, 50, 60, 8); path("M 40 20 L 60 20 L 55 10 L 45 10 Z", c); path("M 42 60 L 58 60 L 54 70 L 46 70 Z", c)
+    elif cat == "crown":
+        path("M 30 60 L 30 40 L 42 52 L 50 36 L 58 52 L 70 40 L 70 60 Z", c); circle(50, 56, 3, "#e23b3b")
+    elif cat == "money":
+        circle(50, 48, 14, c); circle(50, 48, 8, "none"); circle(50, 66, 14, c, 4)
+    elif cat == "music":
+        path("M 40 60 Q 40 40 60 40 Q 70 48 64 56 Q 54 62 40 60 Z", c); line(60, 40, 66, 30, 6); rect(60, 28, 10, 6, c)
+    else:
+        rect(36, 36, 28, 28, c, rx=6); circle(50, 30, 10, c); path("M 50 20 L 50 26", "none", 6)
+    return f'<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="100" height="100">{"".join(el)}</svg>'
+
 LIBPATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "library", "models.json")
 LIB = ["gold coin","coins","money bag","purse","mango","apple","apple tree","tree","seed","chicken","egg","crown","sword","key","treasure chest","castle","house","bread","cow",
        "dog","cat","car","book","gem","heart","sun","flower","phone","boat","rock","fire","bone","fish","cake","flag"]
@@ -442,6 +682,21 @@ def clean(b):
             else: c.pop("do", None)
         ok.append(s)
     b["scenes"] = ok
+    want, mounts = set(), set()
+    for s in b["scenes"]:
+        for p in s.get("props", []) or []:
+            n = str(p.get("name", "")).strip().lower()
+            if n: want.add(n)
+        for c in s.get("cast", []) or []:
+            if c.get("hold"): want.add(str(c["hold"]).strip().lower())
+            if c.get("mount"):
+                n = str(c["mount"]).strip().lower(); want.add(n); mounts.add(n)
+            dd = c.get("do")
+            if isinstance(dd, dict):
+                pr = dd.get("prop")
+                if pr: want.add(str(pr).strip().lower())
+        if s.get("shop"):
+            want.update(str(x).strip().lower() for x in (s.get("stock") or []) if str(x).strip())
     lib = {}
     try: lib = json.load(open(LIBPATH))
     except Exception: pass
@@ -451,9 +706,21 @@ def clean(b):
             parts = [q for q in r["parts"][:40] if q.get("s") in ("box", "sphere", "cyl", "cone", "torus", "pyramid")]
             if len(parts) >= 3: new[str(nm).lower()] = {"h": max(0.2, min(20.0, float(r.get("h", 1)))), "parts": parts, **{k: r[k] for k in ("saddle", "fly") if k in r}}
         except Exception: pass
+    known3d = _known3d()
+    have = set(lib) | {str(k).lower() for k in (b.get("models") or {})} | known3d
+    for nm in sorted(want - have):
+        try: new[nm] = _design_recipe(nm, _khash(nm), mount=(nm in mounts))
+        except Exception: pass
     lib.update(new)                                   # the library grows with every video: designed things are reused forever
     try: os.makedirs(os.path.dirname(LIBPATH), exist_ok=True); json.dump(lib, open(LIBPATH, "w"), indent=1)
     except Exception: pass
+    icons = {}
+    for s in b["scenes"]:
+        for c in s.get("cast", []) or []:
+            if c.get("hold"):
+                nm = str(c["hold"]).strip().lower()
+                if nm and nm not in known3d and nm in want: icons[nm] = _design_icon(nm, _khash(nm))
+    b["icons"] = icons
     b["models"] = lib
     return b
 

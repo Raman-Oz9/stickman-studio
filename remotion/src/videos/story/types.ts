@@ -57,7 +57,7 @@ export type SceneDef = {
   caption?: string;
   narration?: string;
 };
-export type Board = { title: string; scenes: SceneDef[]; stickers?: Record<string, string>; models?: Record<string, import("./props3d").Recipe> };
+export type Board = { title: string; scenes: SceneDef[]; stickers?: Record<string, string>; models?: Record<string, import("./props3d").Recipe>; icons?: Record<string, string> };
 export const FPS = 30;
 export const framesOf = (b: Board) => b.scenes.map((s) => Math.max(1, Math.round(s.dur * FPS)));
 export const totalFrames = (b: Board) => framesOf(b).reduce((a, c) => a + c, 0);

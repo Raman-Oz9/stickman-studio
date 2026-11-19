@@ -5,6 +5,9 @@ const INK = "#1d1a20";
 const S = { stroke: INK, strokeWidth: 5, strokeLinejoin: "round" as const, strokeLinecap: "round" as const };
 type K = { re: RegExp; node: React.ReactNode; hand?: number };
 
+let BOARD_ICONS: Record<string, string> = {};
+export const setBoardIcons = (icons: Record<string, string>) => { BOARD_ICONS = icons; };
+
 const KINDS: K[] = [
   { re: /sword|blade|dagger|machete|saber|sabre|knife/, node: <g {...S}><path d="M 0 -4 L 150 -6 L 172 0 L 150 6 L 0 4 Z" fill="#dfe6ea" /><path d="M 4 -3 L 150 -3" stroke="#fff" strokeWidth="3" /><rect x="-4" y="-22" width="12" height="44" rx="4" fill="#b88a3a" /><rect x="-34" y="-7" width="30" height="14" rx="6" fill="#6b3f2a" /></g> },
   { re: /spear|lance|javelin|trident/, node: <g {...S}><path d="M -90 -3 L 250 -3 L 250 3 L -90 3 Z" fill="#8a5a36" /><path d="M 250 -14 L 310 0 L 250 14 Z" fill="#dfe6ea" /></g> },
@@ -53,7 +56,11 @@ const FALLBACK = (name: string) => <g {...S}><rect x="0" y="-32" width="64" heig
 
 export const PropIcon: React.FC<{ name: string; scale?: number }> = ({ name, scale = 1 }) => {
   const n = name.toLowerCase();
+  const svg = BOARD_ICONS[n];
+  if (svg) {
+    return <g transform={`translate(-50 -100) scale(${scale})`} dangerouslySetInnerHTML={{ __html: svg }} />;
+  }
   const k = KINDS.find((q) => q.re.test(n));
   return <g transform={`scale(${scale})`}>{k ? k.node : FALLBACK(n)}</g>;
 };
-export const hasPropIcon = (name: string) => KINDS.some((q) => q.re.test(name.toLowerCase()));
+export const hasPropIcon = (name: string) => KINDS.some((q) => q.re.test(name.toLowerCase())) || !!BOARD_ICONS[name.toLowerCase()];

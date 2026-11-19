@@ -13,10 +13,11 @@ import { LensBlur } from "../bridge/lensblur";
 import { GradeEffect, GRADES, GRADE_STRENGTH, gradeFor } from "../bridge/grade";
 import { Kit } from "../bridge/build";
 import { StoryWorld } from "./world";
+import { setBoardIcons } from "./Props2D";
 import { Board, sceneAt, totalFrames, FPS } from "./types";
 import { DEMO } from "./demo";
 
-export const getBoard = (): Board => ((getInputProps() as { board?: Board }).board) ?? DEMO;
+export const getBoard = (): Board => { const b = ((getInputProps() as { board?: Board }).board) ?? DEMO; setBoardIcons(b.icons ?? {}); return b; };
 export const storyFrames = (b: Board) => totalFrames(b);
 
 const makeBloom = () => {

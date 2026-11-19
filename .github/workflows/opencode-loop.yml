@@ -36,7 +36,11 @@ jobs:
           { echo "task<<EOF_T"; echo "$TASK"; echo "EOF_T"; } >> $GITHUB_OUTPUT
           sed -i "${N}s/^- \[ \]/- [~]/" docs/OPENCODE_QUEUE.md
           git config user.name opencode-agent; git config user.email opencode-agent@users.noreply.github.com
-          git add docs/OPENCODE_QUEUE.md; git commit -qm "queue: start task $N"; for t in 1 2 3 4; do git push -q origin main && break; git pull -q --rebase origin main; done
+          git add docs/OPENCODE_QUEUE.md
+          if ! git diff --cached --quiet; then
+            git commit -qm "queue: start task $N"
+            for t in 1 2 3 4; do git push -q origin main && break; git pull -q --rebase origin main; done
+          fi
       - name: Run OpenCode
         if: steps.pick.outputs.task != ''
         env:

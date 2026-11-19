@@ -69,7 +69,7 @@ jobs:
               echo "Add repository secret OPENROUTER_API_KEY to enable the free-model Qwen Code fallback."
             fi
           fi
-      - name: Verify, land on main, tick queue, chain next run
+      - name: Verify, preserve work in a PR, tick queue, chain next run
         if: always() && steps.pick.outputs.task != ''
         env:
           GH_TOKEN: ${{ github.token }}
@@ -81,18 +81,35 @@ jobs:
           git checkout -q -- remotion/package-lock.json 2>/dev/null || true
           DONE=" "
           if [ -n "$(git status --porcelain | grep -v node_modules | grep -v package-lock)" ]; then
-            (cd remotion && npm install --no-audit --no-fund >/dev/null 2>&1; npx tsc --noEmit > /tmp/tsc.txt 2>&1) && OK=1 || OK=0
+            (cd remotion && npm install --no-audit --no-fund >/dev/null 2>&1 && npx tsc --noEmit > /tmp/tsc.txt 2>&1) && OK=1 || OK=0
             git checkout -q -- remotion/package-lock.json 2>/dev/null || true
             rm -rf remotion/node_modules
             git add -A -- . ':!remotion/package-lock.json' ':!remotion/node_modules'
             git commit -qm "OpenCode: ${TASK:0:70}" || true
+            BR="opencode/task-${N}-${GITHUB_RUN_ID}"
             if [ "$OK" = "1" ]; then
-              git fetch -q origin main && git rebase -q origin/main && git push -q origin HEAD:main && DONE="x" || { BR="opencode/task-${N}-${GITHUB_RUN_ID}"; git push -q origin "HEAD:refs/heads/$BR" || true; DONE="!"; }
+              # Preserve the tested agent commit on its own branch before any integration attempt.
+              sed -i "${N}s/^- \[~\]/- [x]/" docs/OPENCODE_QUEUE.md
+              git add docs/OPENCODE_QUEUE.md
+              git commit -qm "queue: task $N x" || true
+              if git push -q origin "HEAD:refs/heads/$BR"; then
+                if gh pr create --title "OpenCode: ${TASK:0:70}" --body "Automated OpenCode task. TypeScript check passed in CI." --head "$BR" --base main; then
+                  DONE="x"
+                elif [ -n "$(gh pr list --state open --head "$BR" --json number --jq '".[0].number // empty' 2>/dev/null)" ]; then
+                  DONE="x"
+                else
+                  DONE="!"
+                fi
+              else
+                DONE="!"
+              fi
             else
-              BR="opencode/failed-${N}-${GITHUB_RUN_ID}"; git push -q origin "HEAD:refs/heads/$BR" || true; DONE="!"
+              git push -q origin "HEAD:refs/heads/opencode/failed-${N}-${GITHUB_RUN_ID}" || true
+              DONE="!"
             fi
           fi
           git fetch -q origin main; git checkout -q -B main origin/main
           sed -i "${N}s/^- \[~\]/- [${DONE}]/" docs/OPENCODE_QUEUE.md
-          git add docs/OPENCODE_QUEUE.md; git commit -qm "queue: task $N ${DONE}" || true; for t in 1 2 3 4; do git push -q origin main && break; git pull -q --rebase origin main; done
+          git add docs/OPENCODE_QUEUE.md; git commit -qm "queue: task $N ${DONE}" || true
+          for t in 1 2 3 4; do git push -q origin main && break; git pull -q --rebase origin main; done
           if grep -q '^- \[ \]' docs/OPENCODE_QUEUE.md; then gh workflow run opencode-loop.yml --ref main || true; fi

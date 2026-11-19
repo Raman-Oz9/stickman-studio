@@ -201,7 +201,7 @@ STOCK = {"mango": ["mango"], "fruit": ["mango", "apple"], "apple": ["apple"], "s
 def enrich(b):
     """Director's pass over the LLM storyboard: make sure each sentence really gets its interior, shop goods, vehicle/animal ride, so the weak planner can't skip them."""
     prev = None; shopctx = None
-    LEAVE = r"outside|ran out|fled|escaped|jumped on|hopped on|rode|galloped|drove|street|road|outdoors|left the|exited|chased"
+    LEAVE = r"marched|march|journey|travel|east|west|north|south|across|empire|continent|edge of|babylon|india|egypt|persia|desert|sea|battle|outside|ran out|fled|escaped|jumped on|hopped on|rode|galloped|drove|street|road|outdoors|left the|exited|chased"
     INS2 = r"inside|into|entered|crept in|crept into|shelves|counter|behind the|walked in|stepped in|stepped inside"
     SHOPW = r"seller|shop|stall|barber|blacksmith|bakery|baker|market|tailor|butcher|grocer|store"
     for s in b.get("scenes", []):

@@ -837,6 +837,8 @@ const cityWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
 
       const buildingWidth = spacing - 3.5;
       const buildingDepth = spacing - 3.5;
+      const baseShade=new THREE.Mesh(new THREE.CircleGeometry(Math.max(buildingWidth,buildingDepth)*.72,18),new THREE.MeshBasicMaterial({color:"#111820",transparent:true,opacity:.16,depthWrite:false}));
+      baseShade.rotation.x=-Math.PI/2;baseShade.position.set(blockX,.035,blockZ);baseShade.scale.y=.72;g.add(baseShade);
 
       if(era === "modern"){
         const bHeight = 8 + hSeed * 22;

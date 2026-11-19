@@ -28,7 +28,8 @@ jobs:
         run: |
           OPEN=$(gh pr list --state open --search "head:opencode/" --json number --jq length)
           if [ "$OPEN" -ge 3 ]; then echo "3+ open OpenCode PRs, waiting for review"; echo "task=" >> $GITHUB_OUTPUT; exit 0; fi
-          LINE=$(grep -n -m1 '^- \[ \]' docs/OPENCODE_QUEUE.md || true)
+          LINE=$(grep -n -m1 '^- \[~\]' docs/OPENCODE_QUEUE.md || true)
+          if [ -z "$LINE" ]; then LINE=$(grep -n -m1 '^- \[ \]' docs/OPENCODE_QUEUE.md || true); fi
           if [ -z "$LINE" ]; then echo "queue empty"; echo "task=" >> $GITHUB_OUTPUT; exit 0; fi
           N=${LINE%%:*}; TASK=$(printf "%s" "$LINE" | cut -d: -f2- | sed "s/^- \[ \] //")
           echo "n=$N" >> $GITHUB_OUTPUT
@@ -77,7 +78,7 @@ jobs:
           git config user.name opencode-agent; git config user.email opencode-agent@users.noreply.github.com
           git checkout -q -- docs/OPENCODE_QUEUE.md 2>/dev/null || true
           git checkout -q -- remotion/package-lock.json 2>/dev/null || true
-          DONE="!"
+          DONE=" "
           if [ -n "$(git status --porcelain | grep -v node_modules | grep -v package-lock)" ]; then
             (cd remotion && npm install --no-audit --no-fund >/dev/null 2>&1; npx tsc --noEmit > /tmp/tsc.txt 2>&1) && OK=1 || OK=0
             git checkout -q -- remotion/package-lock.json 2>/dev/null || true
@@ -85,9 +86,9 @@ jobs:
             git add -A -- . ':!remotion/package-lock.json' ':!remotion/node_modules'
             git commit -qm "OpenCode: ${TASK:0:70}" || true
             if [ "$OK" = "1" ]; then
-              git fetch -q origin main && git rebase -q origin/main && git push -q origin HEAD:main && DONE="x" || { BR="opencode/task-${N}-${GITHUB_RUN_ID}"; git push -q origin "HEAD:refs/heads/$BR" || true; }
+              git fetch -q origin main && git rebase -q origin/main && git push -q origin HEAD:main && DONE="x" || { BR="opencode/task-${N}-${GITHUB_RUN_ID}"; git push -q origin "HEAD:refs/heads/$BR" || true; DONE="!"; }
             else
-              BR="opencode/failed-${N}-${GITHUB_RUN_ID}"; git push -q origin "HEAD:refs/heads/$BR" || true
+              BR="opencode/failed-${N}-${GITHUB_RUN_ID}"; git push -q origin "HEAD:refs/heads/$BR" || true; DONE="!"
             fi
           fi
           git fetch -q origin main; git checkout -q -B main origin/main

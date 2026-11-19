@@ -62,6 +62,7 @@ jobs:
               echo "All OpenCode models failed; handing this same task to Qwen Code using OpenRouter's free-model router."
               npm install -g @qwen-code/qwen-code@latest
               export OPENAI_BASE_URL="https://openrouter.ai/api/v1"
+              export OPENAI_API_KEY="$OPENROUTER_API_KEY"
               qwen --model "openrouter/free" --approval-mode=yolo -p "$PROMPT" 2>&1 | tee /tmp/qwen-code.txt
             else
               echo "::warning::OpenCode models failed and OPENROUTER_API_KEY is not configured; Qwen Code fallback was skipped."

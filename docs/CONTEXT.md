@@ -1,3 +1,6 @@
+### 2026-11-18 — Add modern tech props recipes in props3d.ts and icons in Props2D.tsx
+- Added procedural 3D recipes in `props3d.ts` and detailed ink icons in `Props2D.tsx` for calculator, laptop, phone, tablet, camera, microphone, headphones, satellite dish, drone, robot, 3D printer, microscope, and telescope. Verified clean TypeScript compilation.
+
 ### 2026-11-18 — Fix scene-grade uniform type mismatch
 - The era/season/weather grade in `world.ts` must blend against `THREE.Vector3` values because the shared `TONE.uLitCol` and `TONE.uShadeCol` uniforms are Vector3 instances in `remotion/src/videos/bridge/shade.ts`. Updated the blend targets to match those declared uniform types; grade values and blend weights are unchanged.
 - The proof run at commit `4b558c3` failed at strict TypeScript checking because those targets were `THREE.Color`. This correction is in commit `fc33593`; a fresh run against the latest branch head is needed before claiming the check is fixed.

@@ -366,9 +366,20 @@ const junk = () => grp(hull("#8a5a2b", 3.8), mk(B(3.4, 0.9, 1.5), "#a06a3a", 0, 
 const pagoda = () => { const g = new THREE.Group(); const c = "#c0353a", w = "#f4f0e6"; for (let i = 0; i < 4; i++) { const y = 0.5 + i * 0.9; g.add(mk(B(1.8 - i * 0.2, 0.75, 1.8 - i * 0.2), w, 0, y, 0)); g.add(mk(B(2.2 - i * 0.2, 0.14, 2.2 - i * 0.2), c, 0, y + 0.42, 0)); } g.add(mk(C(0.05, 0.05, 1.0, 8), GOLD, 0, 4.1, 0), mk(S(0.15), GOLD, 0, 4.6, 0)); return g; };
 const catapult = withWheels(grp(mk(B(1.0, 0.4, 1.8), "#6b3f1c", 0, 0.5, 0), mk(C(0.08, 0.08, 1.4, 8), "#4a2f1a", 0, 1.1, -0.4, 1, 1, 1, Math.PI / 2), mk(B(0.15, 1.8, 0.15), "#8a5a2b", 0, 1.2, 0.3, 1, 1, 1, -0.4), mk(S(0.35, 10, 8), "#2a2a30", 0, 2.0, 0.7)), [[0.55, 0.4], [-0.55, 0.4], [0.55, -0.4], [-0.55, -0.4]], 0.35, 0.12);
 const vikinglongship = () => grp(hull("#5a3b2a", 4.2), mk(new THREE.ConeGeometry(0.4, 1.2, 4), "#8a5a2b", 0, 0.7, 2.2, 1, 1, 1, Math.PI / 2), mk(new THREE.ConeGeometry(0.4, 1.2, 4), "#8a5a2b", 0, 0.7, -2.2, 1, 1, 1, -Math.PI / 2), mk(C(0.05, 0.05, 3.4, 8), "#3a2414", 0, 1.9, 0), mk(B(0.04, 2.2, 1.8), "#d2362e", 0.02, 2.0, 0), ...([-1.6, -0.8, 0, 0.8, 1.6].map(z => mk(C(0.12, 0.12, 0.15, 12), "#f5c32c", 0.72, 0.45, z, 1, 1, 1, Math.PI / 2))));
+const calculator = () => grp(mk(B(0.5, 0.08, 0.7), "#2a2a34", 0, 0.04, 0), mk(B(0.4, 0.02, 0.22), "#bfe6f5", 0, 0.09, -0.16));
+const tablet = () => grp(mk(B(0.7, 0.04, 0.9), "#2a2a34", 0, 0.02, 0), mk(B(0.62, 0.01, 0.82), "#bfe6f5", 0, 0.042, 0));
+const camera = () => grp(mk(B(0.7, 0.45, 0.4), "#3a3a44", 0, 0.22, 0), mk(C(0.22, 0.22, 0.3, 16), "#222", 0, 0.22, 0.22, 1, 1, 1, Math.PI / 2), mk(S(0.12), "#bfe6f5", 0, 0.22, 0.38, 1, 1, 0.5));
+const microphone = () => grp(mk(C(0.04, 0.04, 0.8, 8), "#555", 0, 0.4, 0), mk(S(0.22, 12, 10), "#b8863a", 0, 0.85, 0, 0.8, 1.2, 0.8), mk(C(0.18, 0.18, 0.08, 12), "#333", 0, 0.04, 0));
+const headphones = () => grp(mk(new THREE.TorusGeometry(0.35, 0.06, 8, 20), "#2a2a34", 0, 0.5, 0, 1, 1, 1, 0, 0, Math.PI / 2), mk(C(0.15, 0.15, 0.12, 12), "#3a3a44", 0.35, 0.35, 0, 1, 1, 1, 0, 0, Math.PI / 2), mk(C(0.15, 0.15, 0.12, 12), "#3a3a44", -0.35, 0.35, 0, 1, 1, 1, 0, 0, Math.PI / 2));
+const satellitedish = () => grp(mk(C(0.06, 0.1, 0.8, 10), "#9aa2b0", 0, 0.4, 0), mk(new THREE.ConeGeometry(0.8, 0.4, 16), "#e8e8ec", 0, 0.9, 0, 1, 1, 1, -0.6, 0, 0), mk(S(0.12), "#e23b3b", 0, 0.82, 0.15));
+const drone = () => grp(mk(B(0.3, 0.12, 0.3), "#3a3a44", 0, 0.2, 0), spin(mk(B(0.4, 0.02, 0.08), "#222", 0.25, 0.24, 0.25), "y"), spin(mk(B(0.4, 0.02, 0.08), "#222", -0.25, 0.24, 0.25), "y"), spin(mk(B(0.4, 0.02, 0.08), "#222", 0.25, 0.24, -0.25), "y"), spin(mk(B(0.4, 0.02, 0.08), "#222", -0.25, 0.24, -0.25), "y"));
+const robot = () => grp(mk(B(0.6, 0.9, 0.4), "#b8bfc9", 0, 0.45, 0), mk(S(0.35), "#c9ced8", 0, 1.15, 0, 1, 1.1, 1), mk(S(0.08), "#35c3e8", 0.12, 1.22, 0.3), mk(S(0.08), "#35c3e8", -0.12, 1.22, 0.3), mk(C(0.12, 0.12, 0.6, 8), "#9aa2b0", 0.42, 0.5, 0), mk(C(0.12, 0.12, 0.6, 8), "#9aa2b0", -0.42, 0.5, 0));
+const printer3d = () => grp(mk(B(1.0, 0.9, 0.9), "#3a3a44", 0, 0.45, 0), mk(B(0.8, 0.08, 0.8), "#222", 0, 0.12, 0), mk(B(0.7, 0.04, 0.7), "#e23b3b", 0, 0.3, 0), mk(B(0.6, 0.4, 0.6), "#bfe6f5", 0, 0.6, 0));
+const microscope = () => grp(mk(B(0.6, 0.08, 0.7), "#3a3a44", 0, 0.04, 0), mk(C(0.06, 0.06, 0.9, 8), "#9aa2b0", -0.15, 0.5, 0), mk(B(0.4, 0.06, 0.4), "#9aa0ab", -0.15, 0.9, 0), mk(C(0.1, 0.1, 0.4, 10), "#2a2a34", 0.05, 0.75, 0, 1, 1, 1, 0, 0, 0.4), mk(S(0.12), "#bfe6f5", 0.2, 0.55, 0));
+const telescope = () => grp(mk(C(0.15, 0.3, 1.6, 14), "#b88a3a", 0, 0.8, 0, 1, 1, 1, Math.PI / 2), mk(C(0.04, 0.04, 1.2, 8), "#555", 0.2, 0.5, 0, 1, 1, 1, 0, 0, 0.3), mk(C(0.04, 0.04, 1.2, 8), "#555", -0.2, 0.5, 0, 1, 1, 1, 0, 0, -0.3), mk(C(0.04, 0.04, 1.2, 8), "#555", 0, 0.5, 0.25, 1, 1, 1, 0.3, 0, 0));
 
-Object.assign(PROC, { cavefire, mammoth, huntingtools, hut, obelisk, sphinx, aqueduct, romanship, greektemple, trireme, junk, pagoda, catapult, vikinglongship });
-Object.assign(DEFAULT_H, { cavefire: 0.9, mammoth: 2.8, huntingtools: 0.8, hut: 2.5, obelisk: 4.5, sphinx: 2.2, aqueduct: 3.5, romanship: 4.0, greektemple: 5.0, trireme: 4.2, junk: 4.0, pagoda: 5.5, catapult: 1.8, vikinglongship: 4.2 });
+Object.assign(PROC, { cavefire, mammoth, huntingtools, hut, obelisk, sphinx, aqueduct, romanship, greektemple, trireme, junk, pagoda, catapult, vikinglongship, calculator, tablet, camera, microphone, headphones, satellitedish, drone, robot, printer3d, microscope, telescope });
+Object.assign(DEFAULT_H, { cavefire: 0.9, mammoth: 2.8, huntingtools: 0.8, hut: 2.5, obelisk: 4.5, sphinx: 2.2, aqueduct: 3.5, romanship: 4.0, greektemple: 5.0, trireme: 4.2, junk: 4.0, pagoda: 5.5, catapult: 1.8, vikinglongship: 4.2, calculator: 0.3, tablet: 0.35, camera: 0.4, microphone: 0.8, headphones: 0.4, satellitedish: 1.2, drone: 0.6, robot: 1.2, printer3d: 0.9, microscope: 0.8, telescope: 1.2 });
 Object.assign(ALIAS, {
   "cave fire": "cavefire",
   "woolly mammoth": "mammoth",
@@ -389,7 +400,19 @@ Object.assign(ALIAS, {
   "chinese junk": "junk",
   "viking longship": "vikinglongship",
   longship: "vikinglongship",
-  catapults: "catapult"
+  catapults: "catapult",
+  "satellite dish": "satellitedish",
+  satellitedish: "satellitedish",
+  mic: "microphone",
+  headset: "headphones",
+  ipad: "tablet",
+  smartphone: "phone",
+  camcorder: "camera",
+  dslr: "camera",
+  bot: "robot",
+  spyglass: "telescope",
+  "3d printer": "printer3d",
+  printer3d: "printer3d"
 });
 for (const k of ["mammoth", "romanship", "trireme", "junk", "vikinglongship", "catapult"]) ORIENT.add(k);
 Object.assign(SADDLE, { mammoth: 0.65, romanship: 0.5, trireme: 0.5, junk: 0.5, vikinglongship: 0.5 });

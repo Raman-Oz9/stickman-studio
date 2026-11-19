@@ -54,7 +54,8 @@ export const buildBiome = (b: Biome, se: Season, ground = true): THREE.Group => 
     for (let i = 0; i < 8; i++) g.add(mk(new THREE.DodecahedronGeometry(0.7 + rnd(), 0), "#a89b82", (rnd() - 0.5) * 60, 0.3, -8 - rnd() * 40, 1.4, 0.6, 1));
   } else if (b === "mountain") {
     for (let i = 0; i < 9; i++) { const a = -2.6 + (i / 8) * 2.1, r = 55 + rnd() * 30, h = 18 + rnd() * 18; g.add(mk(cone(14 + rnd() * 8, h, 7), "#7b7f8e", Math.sin(a) * r, h / 2, -Math.cos(a) * r, 1, 1, 1, 0, rnd()), mk(cone(5, h * 0.35, 7), "#f4f7ff", Math.sin(a) * r, h * 0.84, -Math.cos(a) * r, 1, 1, 1, 0, 0)); }
-    for (let i = 0; i < 30; i++) treeAt(g, (rnd() - 0.5) * 70, -8 - rnd() * 40, 1 + rnd() * 0.5, se, true);
+    // High alpine anchor is exposed rock and snow; keep conifers out of the Himalayan skyline.
+    for (let i = 0; i < 26; i++) { const x=(rnd()-.5)*82,z=-12-rnd()*58,r=.8+rnd()*1.8;g.add(mk(new THREE.DodecahedronGeometry(r,0),i%3?"#737e84":"#aebbc4",x,r*.4,z,1.3,.8,1.2)); }
     for (let i = 0; i < 14; i++) g.add(mk(new THREE.DodecahedronGeometry(0.8 + rnd(), 0), "#8a8f9c", (rnd() - 0.5) * 40, 0.4, -4 - rnd() * 30, 1.3, 0.7, 1));
   } else if (b === "jungle") {
     for (let i = 0; i < 46; i++) { const x = (rnd() - 0.5) * 70, z = -5 - rnd() * 40, h = 4 + rnd() * 5; g.add(mk(C(0.2, 0.3, h, 8), "#6b4a2a", x, h / 2, z), mk(S(2.2, 10, 8), "#2f8a3a", x, h, z, 1.2, 0.7, 1.2), mk(S(1.4, 10, 8), "#3fa04a", x + 1, h - 0.6, z + 0.4)); }

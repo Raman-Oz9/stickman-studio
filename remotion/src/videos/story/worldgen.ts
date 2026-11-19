@@ -1335,6 +1335,10 @@ export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
   }
   g.userData.worldParams=p;g.userData.time=t;return g;
 };
+export const sailingHeroAt=(t:number):[number,number,number]=>{
+  const k=clamp(t/7.2),q=1-k,x=q*q*(-118)+2*q*k*(-24)+k*k*82,z=q*q*(-70)+2*q*k*(-96)+k*k*(-46);
+  return [x,.25+Math.sin(t*1.7)*.18,z];
+};
 export const animateWorld=(g:THREE.Group,t:number)=>{
   g.traverse(o=>{
     const waterWave=o.userData.waterWave as {baseY:number;phase:number}|undefined;

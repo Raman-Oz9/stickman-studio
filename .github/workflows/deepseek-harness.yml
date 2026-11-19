@@ -32,6 +32,20 @@ jobs:
           persist-credentials: false
           fetch-depth: 1
 
+      - name: Validate agent skill mirrors and repository paths
+        shell: bash
+        run: |
+          set -euo pipefail
+          if find . -type l -print -quit | grep -q .; then
+            echo "Unsupported symbolic link found; DeepSeek Harness cannot materialize this repository safely."
+            find . -type l -print
+            exit 1
+          fi
+          if ! diff -qr .claude/skills .opencode/skills; then
+            echo "Claude and OpenCode skill mirrors differ. Sync .opencode/skills from .claude/skills before running DeepSeek Harness."
+            exit 1
+          fi
+
       - name: Run DeepSeek Harness in an isolated worker
         uses: Lixiaoyiao/DSH-action@497af93119203ca22af4f96f8fe89b3345ad665c # v0.13.0
         with:

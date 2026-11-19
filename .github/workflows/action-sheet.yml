@@ -1,10 +1,13 @@
 name: action sheet proof
 on:
   push:
-    branches: ["claude/**"]
+    branches: ["claude/**", "chatgpt/**"]
   workflow_dispatch:
 permissions:
   contents: write
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   proof:
     runs-on: ubuntu-latest
@@ -20,7 +23,6 @@ jobs:
       - name: Strict TypeScript check
         working-directory: remotion
         run: npx tsc --noEmit 2>&1 | tee out-tsc.txt; test ${PIPESTATUS[0]} -eq 0
-        continue-on-error: true
       - name: Render action sheet pages
         working-directory: remotion
         run: |
@@ -51,6 +53,26 @@ jobs:
         run: |
           for f in 45 135 225 315 405 495 585 675; do
             npx remotion still src/index.ts StoryHybrid "out/hyb-$f.jpg" --frame=$f --scale=0.5 --gl=swangle --image-format=jpeg --jpeg-quality=90 --props=./public/prep/actions-props.json --timeout=600000 --log=warn || true
+          done
+      - name: Render ChatGPT cinematic-world proof stills
+        working-directory: remotion
+        run: |
+          cat > public/prep/chatgpt-world-proof.json <<'JSON'
+          {
+            "board": {
+              "title": "Cinematic 3D World Proof",
+              "scenes": [
+                {"dur":3,"shot":"wide","extras":0,"world":{"terrain":"mountain","kind":"mountain","era":"india","region":"south-asian","timeOfDay":"dawn","weather":"clear","seed":71},"cast":[{"id":"guide","role":"explorer","x":0,"z":0,"expr":"neutral"}],"caption":"Himalayan snow peaks"},
+                {"dur":3,"shot":"wide","extras":0,"world":{"terrain":"desert","kind":"egypt","era":"egypt","region":"african","timeOfDay":"dusk","weather":"clear","seed":72},"cast":[{"id":"guide","role":"explorer","x":0,"z":0,"expr":"neutral"}],"caption":"Giza pyramids and sphinx"},
+                {"dur":6,"shot":"wide","extras":8,"extrasRole":"soldier","world":{"terrain":"coast","kind":"sea","era":"pirate","region":"european","timeOfDay":"dusk","weather":"clear","seed":73},"cast":[{"id":"guide","role":"sailor","x":0,"z":0,"expr":"neutral"}],"caption":"Soldiers disembark at coast"},
+                {"dur":3,"shot":"medium","extras":0,"world":{"terrain":"plain","kind":"city","era":"modern","region":"european","timeOfDay":"noon","weather":"clear","seed":74},"cast":[{"id":"guide","role":"explorer","x":0,"z":0,"expr":"neutral"}],"caption":"3D prop library","props":[{"name":"throne","x":-5,"z":-8,"h":3.2},{"name":"royal_bed","x":0,"z":-10,"h":1.6},{"name":"campfire","x":5,"z":-8,"h":1.4},{"name":"unknown bronze astrolabe","x":9,"z":-12,"h":1.1}]}
+              ]
+            },
+            "post": {"dpr":0.75}
+          }
+          JSON
+          for f in 45 135 345 405; do
+            npx remotion still src/index.ts StoryHybrid "out/chatgpt-world-$f.jpg" --frame=$f --scale=1 --gl=swangle --image-format=jpeg --jpeg-quality=94 --props=./public/prep/chatgpt-world-proof.json --timeout=600000 --log=warn
           done
       - name: Publish frames to branch
         if: always()

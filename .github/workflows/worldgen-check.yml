@@ -2,7 +2,7 @@ name: 3D worldgen typecheck and render proof
 on:
   push:
     branches:
-      - chatgpt/ocean-floor-canyon-worlds-20261118
+      - chatgpt/cinematic-world-biomes-ships-depth-props
     paths:
       - "remotion/src/videos/story/**"
       - "remotion/src/bridge/**"
@@ -17,6 +17,9 @@ on:
       - ".github/workflows/worldgen-check.yml"
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   proof:
     runs-on: ubuntu-latest

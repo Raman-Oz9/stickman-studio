@@ -22,7 +22,14 @@ export const buildBiome = (b: Biome, se: Season, ground = true): THREE.Group => 
   const g = new THREE.Group(); seed = 3 + b.length;
   const water = b === "ocean";
   if (!water) { if (ground) g.add(mk(B(700, 0.3, 700), grass(se, b), 0, -0.16, 0)); } else {
-    if (ground) g.add(mk(B(700, 0.2, 700), "#2f86d6", 0, -0.7, 0));
+    if (ground) {
+      const waterGeo=new THREE.PlaneGeometry(700,700,36,36);waterGeo.rotateX(-Math.PI/2);
+      const waterPos=waterGeo.attributes.position,waterCol=new Float32Array(waterPos.count*3);
+      for(let i=0;i<waterPos.count;i++){const z=waterPos.getZ(i),c=new THREE.Color("#0d4268").lerp(new THREE.Color("#3b91b2"),(z+350)/700*.5+.2);waterCol[i*3]=c.r;waterCol[i*3+1]=c.g;waterCol[i*3+2]=c.b;}
+      waterGeo.setAttribute("color",new THREE.BufferAttribute(waterCol,3));waterGeo.computeVertexNormals();
+      const surface=new THREE.Mesh(waterGeo,new THREE.MeshPhongMaterial({color:"#ffffff",vertexColors:true,specular:"#9bd7e4",shininess:68}));
+      surface.position.y=-.7;surface.userData.waterSurface={baseY:-.7,phase:.8};surface.receiveShadow=false;g.add(surface);
+    }
     const waves: THREE.Mesh[] = []; if (ground) for (let i = 0; i < 46; i++) { const w = mk(B(5 + rnd() * 6, 0.16, 0.7), "#6fb7f0", -40 + rnd() * 80, -0.55, -40 + rnd() * 90); w.castShadow = false; waves.push(w); g.add(w); } g.userData.waves = waves;
     g.add(mk(B(22, 0.3, 30), "#8a5a2b", 0, -0.15, -10));                                 // dock the characters stand on, reaching out over the water
     for (let i = 0; i < 12; i++) g.add(mk(B(22, 0.02, 0.1), "#6b3f1c", 0, 0.01, -4.5 + i * 1.2), ...[-10, 10].map((x) => mk(C(0.22, 0.22, 1.4, 8), "#5a3b1e", x, -0.6, -5 + (i % 6) * 2.4)));
@@ -54,7 +61,8 @@ export const buildBiome = (b: Biome, se: Season, ground = true): THREE.Group => 
     for (let i = 0; i < 8; i++) g.add(mk(new THREE.DodecahedronGeometry(0.7 + rnd(), 0), "#a89b82", (rnd() - 0.5) * 60, 0.3, -8 - rnd() * 40, 1.4, 0.6, 1));
   } else if (b === "mountain") {
     for (let i = 0; i < 9; i++) { const a = -2.6 + (i / 8) * 2.1, r = 55 + rnd() * 30, h = 18 + rnd() * 18; g.add(mk(cone(14 + rnd() * 8, h, 7), "#7b7f8e", Math.sin(a) * r, h / 2, -Math.cos(a) * r, 1, 1, 1, 0, rnd()), mk(cone(5, h * 0.35, 7), "#f4f7ff", Math.sin(a) * r, h * 0.84, -Math.cos(a) * r, 1, 1, 1, 0, 0)); }
-    for (let i = 0; i < 30; i++) treeAt(g, (rnd() - 0.5) * 70, -8 - rnd() * 40, 1 + rnd() * 0.5, se, true);
+    // High alpine anchor is exposed rock and snow; keep conifers out of the Himalayan skyline.
+    for (let i = 0; i < 26; i++) { const x=(rnd()-.5)*82,z=-12-rnd()*58,r=.8+rnd()*1.8;g.add(mk(new THREE.DodecahedronGeometry(r,0),i%3?"#737e84":"#aebbc4",x,r*.4,z,1.3,.8,1.2)); }
     for (let i = 0; i < 14; i++) g.add(mk(new THREE.DodecahedronGeometry(0.8 + rnd(), 0), "#8a8f9c", (rnd() - 0.5) * 40, 0.4, -4 - rnd() * 30, 1.3, 0.7, 1));
   } else if (b === "jungle") {
     for (let i = 0; i < 46; i++) { const x = (rnd() - 0.5) * 70, z = -5 - rnd() * 40, h = 4 + rnd() * 5; g.add(mk(C(0.2, 0.3, h, 8), "#6b4a2a", x, h / 2, z), mk(S(2.2, 10, 8), "#2f8a3a", x, h, z, 1.2, 0.7, 1.2), mk(S(1.4, 10, 8), "#3fa04a", x + 1, h - 0.6, z + 0.4)); }
@@ -72,4 +80,7 @@ export const buildBiome = (b: Biome, se: Season, ground = true): THREE.Group => 
   if (se === "autumn" && b !== "desert") for (let i = 0; i < 60; i++) g.add(mk(B(0.18, 0.02, 0.14), ["#d9822b", "#b3402a", "#e6b422"][i % 3], (rnd() - 0.5) * 30, 0.02, -2 + rnd() * 14, 1, 1, 1, 0, rnd() * 3));
   return g;
 };
-export const waveBob = (g: THREE.Object3D, t: number) => (g.userData.waves as THREE.Mesh[] | undefined)?.forEach((w, i) => { w.position.y = -0.55 + 0.07 * Math.sin(t * 1.6 + i * 1.7); w.position.x += 0.004 * Math.sin(t + i); });
+export const waveBob = (g: THREE.Object3D, t: number) => {
+  (g.userData.waves as THREE.Mesh[] | undefined)?.forEach((w, i) => { w.position.y = -0.55 + 0.07 * Math.sin(t * 1.6 + i * 1.7); w.position.x += 0.004 * Math.sin(t + i); });
+  g.traverse(o=>{const w=o.userData.waterSurface as {baseY:number;phase:number}|undefined;if(!w||!(o instanceof THREE.Mesh))return;const geo=o.geometry as THREE.BufferGeometry,pa=geo.attributes.position as THREE.BufferAttribute;if(!geo.userData.basePositions)geo.userData.basePositions=(pa.array as Float32Array).slice();const base=geo.userData.basePositions as Float32Array;for(let i=0;i<pa.count;i++){const x=base[i*3],z=base[i*3+2];pa.setY(i,w.baseY+Math.sin(x*.035+t*1.2+w.phase)*.22+Math.cos(z*.04-t*.8)*.14);}pa.needsUpdate=true;geo.computeVertexNormals();});
+};

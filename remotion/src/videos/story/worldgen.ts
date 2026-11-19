@@ -750,6 +750,95 @@ const harbourWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
   g.add(ship);
 };
 
+const spaceWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
+  box(g,260,0.5,260,"#080812",0,-0.25,-45);
+  const nebulaColors=["#431259","#12243d","#591236","#12433d","#391259"];
+  for(let i=0;i<12;i++){
+    const nx=(hash(i,200)-0.5)*180, nz=-20-hash(i,201)*100, ny=10+hash(i,202)*35;
+    const nc=nebulaColors[i%nebulaColors.length];
+    const nPuff=new THREE.Mesh(new THREE.IcosahedronGeometry(12+hash(i,203)*15,1),new THREE.MeshBasicMaterial({color:nc,transparent:true,opacity:0.25}));
+    nPuff.position.set(nx,ny,nz);
+    g.add(nPuff);
+  }
+  for(let i=0;i<150;i++){
+    const sx=(hash(i,210)-0.5)*200, sz=-5-hash(i,211)*120, sy=2+hash(i,212)*60;
+    const star=new THREE.Mesh(new THREE.IcosahedronGeometry(0.25+hash(i,213)*0.3,0),new THREE.MeshBasicMaterial({color:i%3===0?"#a5f3fc":i%5===0?"#fef08a":"#ffffff"}));
+    star.position.set(sx,sy,sz);
+    star.userData.starTwinkle={phase:hash(i,214)*6.28};
+    g.add(star);
+  }
+  const gasGiant=new THREE.Mesh(new THREE.SphereGeometry(16,28,20),mat("#d97736"));
+  gasGiant.position.set(40,28,-80);
+  gasGiant.castShadow=true;
+  gasGiant.userData.planetRotate={speed:0.8};
+  g.add(gasGiant);
+  for(let b=0;b<4;b++){
+    const band=new THREE.Mesh(new THREE.CylinderGeometry(16.05,16.05,2.5,28,1,true),mat(b%2===0?"#b45309":"#92400e"));
+    band.position.set(40,18+b*6,-80);
+    g.add(band);
+  }
+  const planetRing=new THREE.Mesh(new THREE.TorusGeometry(24,2.2,4,48),new THREE.MeshBasicMaterial({color:"#e8c89a",transparent:true,opacity:0.85}));
+  planetRing.position.set(40,28,-80);
+  planetRing.rotation.x=1.2;
+  planetRing.rotation.y=0.3;
+  g.add(planetRing);
+
+  const earthPlanet=new THREE.Mesh(new THREE.SphereGeometry(10,24,18),mat("#2563eb"));
+  earthPlanet.position.set(-45,22,-65);
+  earthPlanet.castShadow=true;
+  earthPlanet.userData.planetRotate={speed:1.2};
+  g.add(earthPlanet);
+  for(let c=0;c<3;c++){
+    const cont=ball(g,4.5+c*0.8,"#16a34a",-45+(c===0?-3:c===1?4:-2),22+(c===0?3:c===1?-2:4),-65+(c===0?2:c===1?-3:1),1.2,0.6,1.1);
+    cont.rotation.y=c*1.5;
+  }
+
+  for(let i=0;i<35;i++){
+    const ax=(hash(i,220)-0.5)*130, az=-10-hash(i,221)*80, ay=2+hash(i,222)*40;
+    const size=1.2+hash(i,223)*3.5;
+    const ast=new THREE.Mesh(new THREE.IcosahedronGeometry(size,1),mat(i%2===0?P.stone:P.shade));
+    ast.position.set(ax,ay,az);
+    ast.rotation.set(hash(i,224)*6,hash(i,225)*6,hash(i,226)*6);
+    ast.castShadow=true;
+    ast.userData.asteroidDrift={speed:0.5+hash(i,227),phase:hash(i,228)*6.28};
+    g.add(ast);
+  }
+
+  const station=new THREE.Group();
+  station.position.set(0,15,-45);
+  cylinder(station,2.5,9,P.stone,0,0,0,10);
+  ball(station,3.2,P.shade,0,0,0,1.2,1,1.2);
+  for(const side of [-1,1]){
+    box(station,14,0.4,4,"#1e3a8a",side*9.5,0,0);
+    box(station,5,0.2,0.4,P.shade,side*3.5,0,0);
+  }
+  const habRing=new THREE.Mesh(new THREE.TorusGeometry(5.5,0.6,6,24),mat(P.earth));
+  habRing.position.set(0,-3.5,0);
+  habRing.rotation.x=Math.PI/2;
+  station.add(habRing);
+  station.userData.stationSpin={speed:0.6};
+  g.add(station);
+
+  const bhGroup=new THREE.Group();
+  bhGroup.position.set(-18,16,-55);
+  const bhCore=new THREE.Mesh(new THREE.SphereGeometry(3.5,24,18),new THREE.MeshBasicMaterial({color:"#020204"}));
+  bhGroup.add(bhCore);
+  const photonRing=new THREE.Mesh(new THREE.TorusGeometry(3.9,0.18,8,36),new THREE.MeshBasicMaterial({color:"#00f0ff",transparent:true,opacity:0.85}));
+  photonRing.rotation.x=1.1;
+  bhGroup.add(photonRing);
+  for(let d=0;d<3;d++){
+    const discRadius=5.5+d*1.8;
+    const discOpacity=0.9-d*0.25;
+    const discColor=d===0?"#ff6b00":d===1?"#ffcc00":"#ff3366";
+    const accretionDisc=new THREE.Mesh(new THREE.TorusGeometry(discRadius,0.6+d*0.2,6,48),new THREE.MeshBasicMaterial({color:discColor,transparent:true,opacity:discOpacity}));
+    accretionDisc.rotation.x=1.1;
+    accretionDisc.rotation.y=0.2*d;
+    accretionDisc.userData.accretionSwirl={speed:(d+1)*0.8};
+    bhGroup.add(accretionDisc);
+  }
+  g.add(bhGroup);
+};
+
 export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
   const p: WorldParams={season:"summer",timeOfDay:"dawn",weather:"clear",era:"medieval",region:"african",...params};
   const k = p.kind ?? "";
@@ -767,6 +856,7 @@ export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
   const g=new THREE.Group();
   g.name=p.mapMode?"HistoricalMapWorld"
     : p.kind==="ocean"?"DeepOceanWorld"
+    : p.kind==="space" || p.kind==="deep-space" || p.kind==="deepspace"?"DeepSpaceWorld"
     : p.kind==="rome"?"RomeWorld"
     : p.kind==="greece"?"GreeceWorld"
     : p.kind==="egypt"?"EgyptWorld"
@@ -788,6 +878,8 @@ export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
     mapLayer(g,p,t);g.scale.set(.5,1,.72);
   }else if(p.kind==="ocean"){
     oceanWorld(g,p,t);
+  }else if(p.kind==="space" || p.kind==="deep-space" || p.kind==="deepspace"){
+    spaceWorld(g,p,t);
   }else if(p.kind==="rome"){
     romeWorld(g,p,t);
   }else if(p.kind==="greece"){
@@ -838,5 +930,11 @@ export const drawWorld=(params:WorldParams,t:number):THREE.Group=>{
   g.userData.worldParams=p;g.userData.time=t;return g;
 };
 export const animateWorld=(g:THREE.Group,t:number)=>{
-  g.traverse(o=>{const routeIndex=o.userData.routeIndex as number|undefined;if(routeIndex!==undefined)o.visible=routeIndex<Math.floor(clamp(t/3)*26);const s=o.userData.sway as {phase:number;amp:number}|undefined;if(s)o.rotation.z=Math.sin(t*1.3+s.phase)*s.amp;const smoke=o.userData.smokeParticle as {phase:number;baseY:number}|undefined;if(smoke){o.position.y=smoke.baseY+((t*1.5+smoke.phase)%5);o.scale.setScalar(.7+((t*.35+smoke.phase)%1)*.5);}const w=o.userData.weatherParticle as {kind:string;baseX:number;baseY:number;baseZ:number;phase:number;index:number}|undefined;if(w){if(w.kind==="rain"||w.kind==="storm")o.position.y=2+((w.baseY-2-t*(w.kind==="storm"?14:8))%14+14)%14;else if(w.kind==="snow")o.position.y=2+((w.baseY-2-t*.8)%14+14)%14;else if(w.kind==="fog"){o.position.x=w.baseX+Math.sin(t*.12+w.phase)*2;o.position.y=w.baseY+Math.sin(t*.2+w.phase)*.2;}else o.position.x=w.baseX+Math.sin(t*.7+w.phase)*.8;}const fish=o.userData.fishParticle as {baseX:number;baseY:number;baseZ:number;speed:number;radius:number;phase:number}|undefined;if(fish){o.position.x=fish.baseX+Math.sin(t*fish.speed+fish.phase)*fish.radius;o.position.z=fish.baseZ+Math.cos(t*fish.speed*0.7+fish.phase)*fish.radius*0.6;}const bubble=o.userData.bubbleParticle as {baseX:number;baseY:number;baseZ:number;speed:number;phase:number}|undefined;if(bubble){o.position.y=((bubble.baseY+t*bubble.speed+bubble.phase)%18);o.position.x=bubble.baseX+Math.sin(t*0.8+bubble.phase)*0.5;}const glow=o.userData.ventGlow as {phase:number}|undefined;if(glow){const sc=1+0.25*Math.sin(t*3+glow.phase);o.scale.set(sc,sc,sc);}const lure=o.userData.anglerLure as {baseY:number;phase:number}|undefined;if(lure){o.position.y=lure.baseY+Math.sin(t*2+lure.phase)*0.3;}const train=o.userData.trainAnim as {speed:number;range:number}|undefined;if(train){o.position.z=-15+Math.sin(t*0.6)*18;}const plane=o.userData.planeAnim as {speed:number;range:number}|undefined;if(plane){o.position.z=-20+((t*plane.speed)%plane.range);}const crane=o.userData.craneSway as {phase:number}|undefined;if(crane){o.rotation.y=Math.sin(t*0.4+crane.phase)*0.12;}});
+  g.traverse(o=>{
+    const planetRot=o.userData.planetRotate as {speed:number}|undefined;if(planetRot)o.rotation.y=t*0.2*planetRot.speed;
+    const astDrift=o.userData.asteroidDrift as {speed:number;phase:number}|undefined;if(astDrift)o.position.y+=Math.sin(t*astDrift.speed+astDrift.phase)*0.005;
+    const stationSpin=o.userData.stationSpin as {speed:number}|undefined;if(stationSpin)o.rotation.y=t*0.4*stationSpin.speed;
+    const discSwirl=o.userData.accretionSwirl as {speed:number}|undefined;if(discSwirl)o.rotation.z=t*0.5*discSwirl.speed;
+    const starTwinkle=o.userData.starTwinkle as {phase:number}|undefined;if(starTwinkle){const mat=(o as THREE.Mesh).material as THREE.MeshBasicMaterial;if(mat)mat.opacity=0.4+0.6*Math.sin(t*3+starTwinkle.phase);}
+    const routeIndex=o.userData.routeIndex as number|undefined;if(routeIndex!==undefined)o.visible=routeIndex<Math.floor(clamp(t/3)*26);const s=o.userData.sway as {phase:number;amp:number}|undefined;if(s)o.rotation.z=Math.sin(t*1.3+s.phase)*s.amp;const smoke=o.userData.smokeParticle as {phase:number;baseY:number}|undefined;if(smoke){o.position.y=smoke.baseY+((t*1.5+smoke.phase)%5);o.scale.setScalar(.7+((t*.35+smoke.phase)%1)*.5);}const w=o.userData.weatherParticle as {kind:string;baseX:number;baseY:number;baseZ:number;phase:number;index:number}|undefined;if(w){if(w.kind==="rain"||w.kind==="storm")o.position.y=2+((w.baseY-2-t*(w.kind==="storm"?14:8))%14+14)%14;else if(w.kind==="snow")o.position.y=2+((w.baseY-2-t*.8)%14+14)%14;else if(w.kind==="fog"){o.position.x=w.baseX+Math.sin(t*.12+w.phase)*2;o.position.y=w.baseY+Math.sin(t*.2+w.phase)*.2;}else o.position.x=w.baseX+Math.sin(t*.7+w.phase)*.8;}const fish=o.userData.fishParticle as {baseX:number;baseY:number;baseZ:number;speed:number;radius:number;phase:number}|undefined;if(fish){o.position.x=fish.baseX+Math.sin(t*fish.speed+fish.phase)*fish.radius;o.position.z=fish.baseZ+Math.cos(t*fish.speed*0.7+fish.phase)*fish.radius*0.6;}const bubble=o.userData.bubbleParticle as {baseX:number;baseY:number;baseZ:number;speed:number;phase:number}|undefined;if(bubble){o.position.y=((bubble.baseY+t*bubble.speed+bubble.phase)%18);o.position.x=bubble.baseX+Math.sin(t*0.8+bubble.phase)*0.5;}const glow=o.userData.ventGlow as {phase:number}|undefined;if(glow){const sc=1+0.25*Math.sin(t*3+glow.phase);o.scale.set(sc,sc,sc);}const lure=o.userData.anglerLure as {baseY:number;phase:number}|undefined;if(lure){o.position.y=lure.baseY+Math.sin(t*2+lure.phase)*0.3;}const train=o.userData.trainAnim as {speed:number;range:number}|undefined;if(train){o.position.z=-15+Math.sin(t*0.6)*18;}const plane=o.userData.planeAnim as {speed:number;range:number}|undefined;if(plane){o.position.z=-20+((t*plane.speed)%plane.range);}const crane=o.userData.craneSway as {phase:number}|undefined;if(crane){o.rotation.y=Math.sin(t*0.4+crane.phase)*0.12;}});
 };

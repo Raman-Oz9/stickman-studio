@@ -106,6 +106,9 @@
 - Both: update this file on every change; never claim "works" without viewing rendered frames; never send the owner a video that has not been frame-checked.
 ## CHANGELOG
 
+### 2026-11-18 — Add deep-space world preset in worldgen.ts
+- Added deep-space world preset in `remotion/src/videos/story/worldgen.ts` exposed via `WorldParams world.kind="space"` (starfield skybox with nebula colours, ringed and gas giant planets, asteroid field, space station silhouette, and black hole with accretion disc). Verified clean TypeScript compilation with `npx tsc --noEmit`.
+
 ### 2026-11-18 — Create verb_check.mjs script and report unmapped sentences
 - Created `remotion/scripts/verb_check.mjs` loading 42 sample sentences across history, space, and ocean domains and checking `verbFromText` mappings.
 - Reported unmapped sentences: "Cleopatra sailed down the Nile river on her royal barge", "Vikings sailed their longship across the stormy northern seas", "The astronaut floated effortlessly in zero gravity", "The lunar rover drove across the grey cratered moon", "Astronauts conducted spacewalks outside the orbiting station", "Scientists analyzed alien rock samples in the laboratory", "A massive asteroid drifted silently through the void", "The probe photographed the swirling storms of Jupiter", "Spacecraft docked smoothly with the international station", "Stars twinkled brightly as the spaceship accelerated faster", "Divers explored the mysterious underwater shipwreck", "Crabs scuttled across the sandy ocean floor near rocks", "Giant octopuses glided silently through dark kelp forests".

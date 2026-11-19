@@ -17,7 +17,7 @@ const ROADS: [string, string][] = [["town", "palace"], ["town", "farm"], ["farm"
 const sm = (a: number, b: number, x: number) => { const k = Math.min(1, Math.max(0, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
 const lattice=(x:number,z:number,s:number)=>{const v=Math.sin(x*127.1+z*311.7+s*74.7)*43758.5453;return v-Math.floor(v);};
 const valueNoise=(x:number,z:number,s:number)=>{const ix=Math.floor(x),iz=Math.floor(z),fx=x-ix,fz=z-iz,u=fx*fx*(3-2*fx),v=fz*fz*(3-2*fz),a=lattice(ix,iz,s),b=lattice(ix+1,iz,s),c=lattice(ix,iz+1,s),d=lattice(ix+1,iz+1,s);return (a+(b-a)*u)*(1-v)+(c+(d-c)*u)*v;};
-const fbm=(x:number,z:number)=>valueNoise(x*.004,z*.004,1)*.55+valueNoise(x*.012,z*.012,2)*.3+valueNoise(x*.035,z*.035,3)*.15;
+const fbm=(x:number,z:number)=>valueNoise(x*.0035,z*.0035,1)*.48+valueNoise(x*.010,z*.010,2)*.27+valueNoise(x*.028,z*.028,3)*.16+valueNoise(x*.072,z*.072,4)*.09;
 const segDist = (px: number, pz: number, a: number[], b: number[]) => { const dx = b[0] - a[0], dz = b[1] - a[1], k = Math.min(1, Math.max(0, ((px - a[0]) * dx + (pz - a[1]) * dz) / (dx * dx + dz * dz))); return Math.hypot(px - a[0] - dx * k, pz - a[1] - dz * k); };
 const roadD = (x: number, z: number) => { let d = 1e9; for (const [p, q] of ROADS) d = Math.min(d, segDist(x, z, LOCS[p], LOCS[q])); return d; };
 const flatOf = (x: number, z: number) => { let f = 0; for (const k in LOCS) f = Math.max(f, 1 - sm(90, 170, Math.hypot(x - LOCS[k][0], z - LOCS[k][1]))); return Math.max(f, 1 - sm(10, 40, roadD(x, z))); };
@@ -57,6 +57,9 @@ const terrain = (se: Season) => {
   g.setAttribute("color", new THREE.BufferAttribute(col, 3)); g.computeVertexNormals();
   const m = new THREE.Mesh(g, twoTone(new THREE.MeshLambertMaterial({ vertexColors: true }))); m.receiveShadow = true; return m;
 };
+const buildRealmRiver = () => {const g=new THREE.BufferGeometry(),count=88,positions:number[]=[],colors:number[]=[],indices:number[]=[];const center=(i:number):[number,number]=>{const u=i/(count-1);return [-38+u*610+Math.sin(u*Math.PI*5)*28,-910+u*1030];};
+  for(let i=0;i<count;i++){const [x,z]=center(i),[nx,nz]=center(Math.min(count-1,i+1)),dx=nx-x,dz=nz-z,len=Math.hypot(dx,dz)||1,px=-dz/len,pz=dx/len;for(const side of [-1,1]){const bx=x+px*side*(5.2+Math.sin(i*.23)*.8),bz=z+pz*side*(5.2+Math.sin(i*.23)*.8),by=heightAt(bx,bz)+.2;positions.push(bx,by,bz);const c=new THREE.Color(side===-1?"#247da0":"#3e9bb7");c.multiplyScalar(.92+.08*Math.sin(i*.31));colors.push(c.r,c.g,c.b);}if(i<count-1){const a=i*2;indices.push(a,a+1,a+2,a+1,a+3,a+2);}}
+  g.setAttribute("position",new THREE.Float32BufferAttribute(positions,3));g.setAttribute("color",new THREE.Float32BufferAttribute(colors,3));g.setIndex(indices);g.computeVertexNormals();const water=new THREE.Mesh(g,new THREE.MeshPhongMaterial({color:"#ffffff",vertexColors:true,specular:"#b5e5ed",shininess:72,side:THREE.DoubleSide}));water.userData.realmRiver=true;return water;};
 const castle = () => {
   const g = new THREE.Group(), W = "#cfc7b8", Rr = "#b3262e";
   g.add(mk(B(150, 0.25, 40), "#b8ad98", 0, 0.05, 14));                                   // paved forecourt
@@ -101,7 +104,7 @@ export const buildCity = () => {
 const dockStuff = () => grp(mk(B(14, 0.3, 40), "#8a5a2b", 0, -0.12, -22), ...Array.from({ length: 30 }, (_, i) => mk(B(14, 0.02, 0.1), "#6b3f1c", 0, 0.05, -2 - i * 1.3)), ...Array.from({ length: 8 }, (_, i) => mk(C(0.25, 0.25, 3, 8), "#5a3b1e", i % 2 ? 7 : -7, -1, -4 - Math.floor(i / 2) * 9)));
 
 export const buildRealm = (se: Season) => {
-  const R = new THREE.Group(); R.add(terrain(se));
+  const R = new THREE.Group(); R.add(terrain(se), buildRealmRiver());
   const waterGeo=new THREE.PlaneGeometry(1800,1500,48,40);waterGeo.rotateX(-Math.PI/2);
   const waterPos=waterGeo.attributes.position,waterCol=new Float32Array(waterPos.count*3);
   for(let i=0;i<waterPos.count;i++){const z=waterPos.getZ(i),c=new THREE.Color("#0b3c60").lerp(new THREE.Color("#367fa0"),(z+750)/1500*.45+.2);waterCol[i*3]=c.r;waterCol[i*3+1]=c.g;waterCol[i*3+2]=c.b;}

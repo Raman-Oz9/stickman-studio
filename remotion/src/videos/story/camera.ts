@@ -286,7 +286,7 @@ export const camAt = (s: SceneDef, i: number, u: number, t: number, dur = 3): Ca
   const A = pose(s, a), B = pose(s, b);
   const L = (p: number, q: number) => p + (q - p) * e;
   const d = Math.exp(L(Math.log(A.d), Math.log(B.d)));            // distance interpolates geometrically: feels like a constant-speed dolly
-  const az = (L(A.az, B.az) * Math.PI) / 180, fov = L(A.fov, B.fov), h = L(A.h, B.h);
+  const az = (Math.max(-55, Math.min(55, L(A.az, B.az) * 0.35)) * Math.PI) / 180,   /* owner: no spinning: all azimuth damped to 35 %, max 55 deg */ fov = L(A.fov, B.fov), h = L(A.h, B.h);
   const fx = L(A.x, B.x), fz = L(A.z, B.z);
   const look = new THREE.Vector3(fx, L(A.ly, B.ly), fz);
   const pos = new THREE.Vector3(fx + Math.sin(az) * d, h, fz + Math.cos(az) * d);

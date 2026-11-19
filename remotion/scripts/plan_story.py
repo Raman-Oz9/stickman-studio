@@ -398,6 +398,8 @@ def clean(b):
             p["h"] = max(0.15, min(20.0, float(p.get("h", 0.7))))
             if p["h"] >= 3: p["z"] = min(p["z"], -3.0 - p["h"] * 0.4); p["x"] = max(-6, min(6, p["x"])) if p["h"] >= 6 else max(-1.8, min(1.8, p["x"]))      # big things (trees, castle) stand behind the actors
             if p.get("anim") not in ("pop", "grow", "bounce", "float", "fall", "spin", "static"): p["anim"] = "pop"
+            if re.search(r"boat|ship|galleon|canoe|vessel|yacht|ferry|trireme", p["name"]): p["count"] = 1; p["anim"] = "static"; p.pop("spread", None)   # one ship, no bouncing pile
+            if p["name"] in ("bed", "royal_bed", "deathbed", "death_bed"): p["name"] = "bed"; p["count"] = 1; p["anim"] = "static"
             pr.append(p)
         s["props"] = pr
         if s.get("era") not in ("roman","greek","wildwest","viking","egypt","samurai","pirate","space","ww2","1920s","victorian","arabian","india","prehistoric","china"): s.pop("era", None)

@@ -9,7 +9,7 @@ import subprocess
 from pathlib import Path
 
 VOICE = os.environ.get("NARRATOR_VOICE", "am_liam")
-SPEED = float(os.environ.get("NARRATOR_SPEED", "1.08"))
+SPEED = float(os.environ.get("NARRATOR_SPEED", "0.98"))
 EDGE_VOICE = os.environ.get("EDGE_VOICE", "en-US-BrianNeural")
 SAMPLE_VOICES = ["am_michael", "am_puck", "am_eric", "am_liam", "bm_lewis"]
 _pipes = {}

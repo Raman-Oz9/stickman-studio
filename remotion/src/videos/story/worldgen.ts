@@ -3,7 +3,7 @@
 import * as THREE from "three";
 import { PROC } from "./props3d";
 
-export type TerrainType = "forest"|"jungle"|"ocean"|"ocean-floor"|"mountain"|"canyon"|"desert"|"ice"|"plain"|"river"|"coast"|"swamp"|"cave"|"savanna"|"city"|"railway"|"airport"|"harbour"|"space";
+export type TerrainType = "forest"|"jungle"|"ocean"|"ocean-floor"|"mountain"|"canyon"|"desert"|"ice"|"plain"|"river"|"lake"|"coast"|"swamp"|"cave"|"savanna"|"city"|"railway"|"airport"|"harbour"|"space";
 export type WeatherType = "clear"|"rain"|"snow"|"fog"|"storm"|"drought"|"wind";
 export type EraType = "stone-age"|"ancient"|"classical"|"medieval"|"early-modern"|"industrial"|"modern"|"futuristic"|"viking"|"renaissance"|"victorian"|"1920s"|"ww2"|"near-future"|"china"|"egypt"|"egyptian"|"greek"|"india"|"pirate"|"roman"|"space"|"space-age"|"wild-west"|"ww1";
 export type RegionType = "european"|"african"|"east-asian"|"south-asian"|"middle-eastern"|"mesoamerican";
@@ -34,6 +34,7 @@ const heightfieldGround=(g:THREE.Group,kind:string,base:string)=>{
     if(kind==="mountain")return broad*2.2+mid*2.4+Math.pow(1-Math.abs(Math.sin(x*.013+z*.009)),2)*17;
     if(kind==="desert"||kind==="dunes")return broad*1.8+Math.sin(x*.075+z*.026)*2.6+Math.sin(x*.16+z*.05)*.55+mid*.6;
     if(kind==="ocean-floor")return broad*.14+Math.sin(x*.035+z*.02)*.16;
+    if(kind==="ocean"||kind==="lake"||kind==="coast")return broad*.08+Math.sin(x*.035+z*.02)*.06;
     return broad*.65+mid*.35+Math.sin(x*.19+Math.sin(z*.11))*.22;
   };
   for(let i=0;i<pos.count;i++){
@@ -57,6 +58,14 @@ const heightfieldGround=(g:THREE.Group,kind:string,base:string)=>{
 };
 const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
   const ground=p.terrain==="ocean-floor"?P.seabed:(p.weather==="rain"||p.weather==="storm")?P.shade:seasonGround(p);heightfieldGround(g,p.terrain,ground);
+  if(["ocean","lake","coast"].includes(p.terrain)){
+    const waterGeo=new THREE.PlaneGeometry(300,250,32,28);waterGeo.rotateX(-Math.PI/2);
+    const wp=waterGeo.attributes.position,wc=new Float32Array(wp.count*3);
+    for(let i=0;i<wp.count;i++){const z=wp.getZ(i),c=new THREE.Color("#0b344e").lerp(new THREE.Color("#347f9d"),(z+125)/250*.42+.18);wc[i*3]=c.r;wc[i*3+1]=c.g;wc[i*3+2]=c.b;}
+    waterGeo.setAttribute("color",new THREE.BufferAttribute(wc,3));waterGeo.computeVertexNormals();
+    const surface=new THREE.Mesh(waterGeo,new THREE.MeshPhongMaterial({color:"#ffffff",vertexColors:true,specular:"#9bd7e4",shininess:70}));surface.position.set(0,.12,-45);surface.userData.waterWave={baseY:.12,phase:.6};surface.receiveShadow=false;g.add(surface);
+    const horizon=new THREE.Mesh(new THREE.PlaneGeometry(420,56),new THREE.MeshBasicMaterial({color:"#466f83",transparent:true,opacity:.3,depthWrite:false}));horizon.position.set(0,23,-184);g.add(horizon);
+  }
   if(p.terrain==="river"){
     const riverGeo=new THREE.PlaneGeometry(24,240,10,80);riverGeo.rotateX(-Math.PI/2);
     const riverPos=riverGeo.attributes.position,riverCol=new Float32Array(riverPos.count*3);
@@ -637,7 +646,12 @@ const seaWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
 };
 
 const oceanWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
-  box(g,260,1,260,"#122030",0,-0.75,-45);
+  heightfieldGround(g,"ocean-floor","#122030");
+  const surfaceGeo=new THREE.PlaneGeometry(260,260,32,32);surfaceGeo.rotateX(-Math.PI/2);
+  const surfacePos=surfaceGeo.attributes.position,surfaceCol=new Float32Array(surfacePos.count*3);
+  for(let i=0;i<surfacePos.count;i++){const z=surfacePos.getZ(i),c=new THREE.Color("#063451").lerp(new THREE.Color("#2d7897"),(z+130)/260*.4+.2);surfaceCol[i*3]=c.r;surfaceCol[i*3+1]=c.g;surfaceCol[i*3+2]=c.b;}
+  surfaceGeo.setAttribute("color",new THREE.BufferAttribute(surfaceCol,3));surfaceGeo.computeVertexNormals();
+  const surface=new THREE.Mesh(surfaceGeo,new THREE.MeshPhongMaterial({color:"#ffffff",vertexColors:true,specular:"#9bd7e4",shininess:74,transparent:true,opacity:.78}));surface.position.set(0,28,-45);surface.userData.waterWave={baseY:28,phase:.9};g.add(surface);
   for(let i=0;i<24;i++){
     const x=(hash(i,70)-.5)*140, z=-10-hash(i,71)*70, r=2+hash(i,72)*5;
     const isCoral=i%3===0;

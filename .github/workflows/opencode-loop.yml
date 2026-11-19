@@ -41,15 +41,32 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           TASK: ${{ steps.pick.outputs.task }}
         run: |
           npm install -g opencode-ai
           PROMPT="You are the OpenCode agent on stickman-studio. Read AGENTS.md, docs/CONTEXT.md and docs/REFERENCE_VIDEO_V2.md first. Task: ${TASK}. Rules: full-body articulated humans (no barrels), clean ink style, small focused change. When done run: cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit and fix every error. Append a line to docs/CONTEXT.md describing what you changed."
+          set -o pipefail
+          OC_OK=0
           for M in $MODELS; do
-            echo "== model $M" | tee /tmp/oc.txt
-            opencode run --model "$M" "$PROMPT" 2>&1 | tee -a /tmp/oc.txt
-            if ! grep -q "Error:" /tmp/oc.txt; then break; fi
+            echo "== OpenCode model $M"
+            if opencode run --model "$M" "$PROMPT" 2>&1 | tee /tmp/oc.txt && ! grep -Eqi '(^|[[:space:]])Error:' /tmp/oc.txt; then
+              OC_OK=1
+              break
+            fi
+            echo "OpenCode model $M failed; trying the next configured model."
           done
+          if [ "$OC_OK" != "1" ]; then
+            if [ -n "$OPENROUTER_API_KEY" ]; then
+              echo "All OpenCode models failed; handing this same task to Qwen Code using OpenRouter's free-model router."
+              npm install -g @qwen-code/qwen-code@latest
+              export OPENAI_BASE_URL="https://openrouter.ai/api/v1"
+              qwen --model "openrouter/free" --approval-mode=yolo -p "$PROMPT" 2>&1 | tee /tmp/qwen-code.txt
+            else
+              echo "::warning::OpenCode models failed and OPENROUTER_API_KEY is not configured; Qwen Code fallback was skipped."
+              echo "Add repository secret OPENROUTER_API_KEY to enable the free-model Qwen Code fallback."
+            fi
+          fi
       - name: Verify, land on main, tick queue, chain next run
         if: always() && steps.pick.outputs.task != ''
         env:

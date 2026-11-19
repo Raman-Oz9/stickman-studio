@@ -16,18 +16,22 @@ jobs:
     permissions: { contents: write, actions: write }
     strategy:
       fail-fast: false
-      max-parallel: 4
+      max-parallel: 6
       matrix:
         include:
           - { agent: aider-groq,        slot: 1 }
           - { agent: aider-openrouter,  slot: 2 }
           - { agent: goose-openrouter,  slot: 3 }
           - { agent: aider-gemini,      slot: 4 }
+          - { agent: aider-cerebras,    slot: 5 }
+          - { agent: aider-mistral,     slot: 6 }
     env:
       GH_TOKEN: ${{ github.token }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
+      MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
     steps:
       - uses: actions/checkout@v4
         with: { ref: main, fetch-depth: 0 }
@@ -61,6 +65,8 @@ jobs:
           case "${{ matrix.agent }}" in
             aider-groq)       pip install -q aider-chat; aider --yes-always --no-auto-commits --no-check-update --model groq/llama-3.3-70b-versatile --message "$PROMPT" $(echo "$TASK" | grep -oE '[A-Za-z0-9_./-]+\.(ts|tsx|py|mjs|md)' | sort -u | tr '\n' ' ') AGENTS.md docs/CONTEXT.md || true ;;
             aider-openrouter) pip install -q aider-chat; aider --yes-always --no-auto-commits --no-check-update --model openrouter/openrouter/free --message "$PROMPT" $(echo "$TASK" | grep -oE '[A-Za-z0-9_./-]+\.(ts|tsx|py|mjs|md)' | sort -u | tr '\n' ' ') AGENTS.md docs/CONTEXT.md || true ;;
+            aider-cerebras)   [ -n "$CEREBRAS_API_KEY" ] && { pip install -q aider-chat; aider --yes-always --no-auto-commits --no-check-update --model cerebras/qwen-3-coder-480b --message "$PROMPT" $(echo "$TASK" | grep -oE '[A-Za-z0-9_./-]+\.(ts|tsx|py|mjs|md)' | sort -u | tr '\n' ' ') AGENTS.md docs/CONTEXT.md || true; } ;;
+            aider-mistral)    [ -n "$MISTRAL_API_KEY" ] && { pip install -q aider-chat; aider --yes-always --no-auto-commits --no-check-update --model mistral/codestral-latest --message "$PROMPT" $(echo "$TASK" | grep -oE '[A-Za-z0-9_./-]+\.(ts|tsx|py|mjs|md)' | sort -u | tr '\n' ' ') AGENTS.md docs/CONTEXT.md || true; } ;;
             aider-gemini)     pip install -q aider-chat; aider --yes-always --no-auto-commits --no-check-update --model gemini/gemini-3.5-flash --message "$PROMPT" $(echo "$TASK" | grep -oE '[A-Za-z0-9_./-]+\.(ts|tsx|py|mjs|md)' | sort -u | tr '\n' ' ') AGENTS.md docs/CONTEXT.md || true ;;
             goose-openrouter) curl -fsSL https://github.com/block/goose/releases/download/stable/download_cli.sh | CONFIGURE=false bash || true
                               export PATH="$HOME/.local/bin:$PATH" GOOSE_PROVIDER=openrouter GOOSE_MODEL=openrouter/free

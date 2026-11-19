@@ -35,6 +35,7 @@ const Cast2D: React.FC<{ board: Board; f: number }> = ({ board, f }) => {
   const { i, local, n } = sceneAt(board, f), s: SceneDef = board.scenes[i];
   if (s.world?.mapMode) return null;
   const u = n > 1 ? local / (n - 1) : 0, dur = n / FPS, t = f / FPS;
+  const era = String(s.era ?? "").toLowerCase();
   const cur: SceneDef = { ...s, cast: s.cast.map((d) => { const p = posOf(d, u); return { ...d, x: p.x, z: p.z }; }) };
   const c = camAt(cur, i, u, t, dur);
   if(s.world?.kind==="sea"){
@@ -49,14 +50,31 @@ const Cast2D: React.FC<{ board: Board; f: number }> = ({ board, f }) => {
   const proj = (x: number, y: number, z: number) => { const v = new THREE.Vector3(x, y, z).project(cam); return { x: (v.x * 0.5 + 0.5) * 1080, y: (-v.y * 0.5 + 0.5) * 1920, behind: v.z > 1 }; };
 
   const rq = new THREE.Vector3(1, 0, 0).applyQuaternion(cam.quaternion), rl = Math.hypot(rq.x, rq.z) || 1, rightXZ: [number, number] = [rq.x / rl, rq.z / rl];
-  type Who = { d: CastDef; x: number; z: number; idx: number; extra: boolean; moving: boolean };
+  type Who = { d: CastDef; x: number; z: number; idx: number; extra: boolean; moving: boolean; eraW?: string; army?: 1 | 2 };
   const who: Who[] = s.cast.map((d, idx) => { const p = posOf(d, u); return { d, x: p.x, z: p.z, idx, extra: false, moving: p.moving }; });
   const F = focusOf(s);
+  const battle = /charged|attacked|fought|clashed|held the line|crushed|battle|war|charge|attack|fight|clash/i.test(String(s.narration ?? s.caption ?? "")) || (s.extrasRole === "soldier" && (s.extras ?? 0) >= 6);
   const landing = s.world?.kind === "sea" && (s.extrasRole === "soldier" || /army|soldier|troop|warrior|disembark/i.test(String(s.caption ?? "")));
-  const nEx = Math.min(14, landing ? Math.max(8, s.extras ?? 8) : s.extras ?? 4), eRole = landing ? "soldier" : s.extrasRole ?? "townsfolk", rank = eRole === "soldier";
+  const nEx = Math.min(16, battle ? Math.max(12, s.extras ?? 12) : landing ? Math.max(8, s.extras ?? 8) : s.extras ?? 4);
+  const eRole = landing || battle ? "soldier" : s.extrasRole ?? "townsfolk";
+  const rank = eRole === "soldier";
+  const half = battle ? Math.floor(nEx / 2) : 0;
   for (let k = 0; k < nEx; k++) {
-    let ex: number, ez: number, hd: number, drift: number, w0: number;
-    if (rank) {
+    let ex: number, ez: number, hd: number, drift: number, w0: number, armyNum: 1 | 2 = 1, eEra = s.era;
+    if (battle) {
+      if (k < half) {
+        const row = Math.floor(k / 4), col = k % 4;
+        ex = -3.5 + col * 1.0 + (hh(k, 40) - 0.5) * 0.2;
+        ez = F.z - 2.2 + row * 1.5 + (hh(k, 41) - 0.5) * 0.2;
+        hd = 0; drift = 0; w0 = 0.05; armyNum = 1; eEra = s.era;
+      } else {
+        const hk = k - half;
+        const row = Math.floor(hk / 4), col = hk % 4;
+        ex = +1.5 + col * 1.0 + (hh(k, 42) - 0.5) * 0.2;
+        ez = F.z - 2.2 + row * 1.5 + (hh(k, 43) - 0.5) * 0.2;
+        hd = 0; drift = 0; w0 = 0.05; armyNum = 2; eEra = s.extrasEra ?? (era === "greek" ? "arabian" : "barbarian");
+      }
+    } else if (rank) {
       const row = Math.floor(k / 5), col = k % 5;
       if(s.world?.kind==="sea"){
         // Ink soldiers step from the hero ship's landing side across the waterline onto the sandy shore.
@@ -68,9 +86,9 @@ const Cast2D: React.FC<{ board: Board; f: number }> = ({ board, f }) => {
     } else {
       const a = hh(k, 20) * Math.PI * 2, r = 5.5 + hh(k, 21) * 4; ex = F.x * 0.3 + Math.sin(a) * r; ez = F.z * 0.3 + Math.cos(a) * r; hd = a + (hh(k, 23) - 0.5) * 1.4; drift = 1.2 + hh(k, 22) * 2.2; w0 = hh(k, 24) * 0.42;
     }
-    if (Math.hypot(ex - c.pos.x, ez - c.pos.z) < 4.5) continue;
+    if (!battle && Math.hypot(ex - c.pos.x, ez - c.pos.z) < 4.5) continue;
     const kk = Math.min(1, Math.max(0, (u - w0) / (0.96 - w0))), e = kk * kk * (3 - 2 * kk);
-    who.push({ d: { id: "x" + k, role: eRole, x: ex, z: ez, expr: rank ? "stern" : "smile" } as CastDef, x: ex + Math.cos(hd) * drift * e, z: ez + Math.sin(hd) * drift * e, idx: 20 + k, extra: true, moving: kk > 0.001 && kk < 0.999 });
+    who.push({ d: { id: "x" + k, role: eRole, x: ex, z: ez, expr: rank || battle ? "stern" : "smile" } as CastDef, x: ex + Math.cos(hd) * drift * e, z: ez + Math.sin(hd) * drift * e, idx: 20 + k, extra: true, moving: kk > 0.001 && kk < 0.999, eraW: eEra, army: armyNum });
   }
   const placed = who.map((w) => {
     const g = proj(w.x, 0, w.z), g1 = proj(w.x, 1, w.z), sc = (w.d.scale ?? 1) * (ROLE_SCALE[w.d.role] ?? 1);
@@ -84,9 +102,10 @@ const Cast2D: React.FC<{ board: Board; f: number }> = ({ board, f }) => {
     <svg viewBox="0 0 1080 1920" width="1080" height="1920" style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none", filter: golden ? "sepia(.25) saturate(1.15) brightness(.97)" : "saturate(1.06) contrast(1.03)" }}>
       <defs><radialGradient id="castGroundShadow"><stop offset="0%" stopColor="#101820" stopOpacity=".36"/><stop offset="100%" stopColor="#101820" stopOpacity="0"/></radialGradient></defs>
       {placed.map((w) => {
-        const eraW = w.extra && s.extrasEra ? s.extrasEra : s.era;
+        const eraW = w.extra && w.eraW ? w.eraW : (w.extra && s.extrasEra ? s.extrasEra : s.era);
         const o = outfitFor(w.d.role, w.idx, eraW);
         const hv = ((): [number, number] => {
+          if (battle && w.extra) return w.army === 1 ? [1, 0] : [-1, 0];
           if (w.d.to && w.moving) return [w.d.to.x - w.d.x, w.d.to.z - w.d.z];
           const other = placed.filter((q) => q !== w && !q.extra).sort((a, b) => Math.hypot(a.x - w.x, a.z - w.z) - Math.hypot(b.x - w.x, b.z - w.z))[0];
           if (other && Math.hypot(other.x - w.x, other.z - w.z) > 0.05) return [other.x - w.x, other.z - w.z];
@@ -94,8 +113,18 @@ const Cast2D: React.FC<{ board: Board; f: number }> = ({ board, f }) => {
         })();
         const tcx = c.pos.x - w.x, tcz = c.pos.z - w.z, tl = Math.hypot(tcx, tcz) || 1, tc: [number, number] = [tcx / tl, tcz / tl];
         let yaw = (w.idx % 2 ? -1 : 1) * 28;                       // idle: a natural three-quarter turn toward the lens
-        if (!Number.isNaN(hv[0])) { const hl = Math.hypot(hv[0], hv[1]) || 1, hx = hv[0] / hl, hz = hv[1] / hl; yaw = (Math.atan2(hx * rightXZ[0] + hz * rightXZ[1], hx * tc[0] + hz * tc[1]) * 180) / Math.PI; }
-        const pf = w.extra ? { verb: w.moving ? "walk" : "talk", p: u, t, prop: null, holdProp: null } : castPerf(w.d, s, u, t);
+        if (battle && w.extra) {
+          yaw = w.army === 1 ? 65 : -65;
+        } else if (!Number.isNaN(hv[0])) { const hl = Math.hypot(hv[0], hv[1]) || 1, hx = hv[0] / hl, hz = hv[1] / hl; yaw = (Math.atan2(hx * rightXZ[0] + hz * rightXZ[1], hx * tc[0] + hz * tc[1]) * 180) / Math.PI; }
+        const pf = (() => {
+          if (battle && w.extra) {
+            const vIdx = (w.idx + Math.floor(u * 8 + t * 3)) % 4;
+            const verb = vIdx === 0 ? "swing" : vIdx === 1 ? "stab" : vIdx === 2 ? "block" : "fall";
+            const pVal = (u * 1.5 + w.idx * 0.2) % 1;
+            return { verb, p: pVal, t, prop: null, holdProp: "sword" };
+          }
+          return w.extra ? { verb: w.moving ? "walk" : "talk", p: u, t, prop: null, holdProp: null } : castPerf(w.d, s, u, t);
+        })();
         return <g key={w.d.id + w.idx}>
           <ellipse cx={w.g.x} cy={w.g.y+1} rx={Math.max(8,w.k*18)} ry={Math.max(2,w.k*4)} fill="url(#castGroundShadow)" opacity={darkGround ? 0.72 : 1}/>
           <Performer2D x={w.g.x} y={w.g.y} scale={w.k} yaw={yaw} skin={o.skin ?? "#f6ead9"} cloth={o.dress ?? o.jacket} hair={o.hair} ink={inkStyleOf(w.d.role, w.idx, eraW, resolveRole(w.d.role, eraW))}

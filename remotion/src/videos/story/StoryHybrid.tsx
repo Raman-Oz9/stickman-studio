@@ -3,10 +3,9 @@
 // scale with depth, and the whole shot parallaxes like a normal 3D scene while the people stay clean hand-inked 2D.
 import React, { useEffect, useMemo, useState } from "react";
 import * as THREE from "three";
-import { AbsoluteFill, continueRender, delayRender, staticFile, useCurrentFrame } from "remotion";
+import { AbsoluteFill, continueRender, delayRender, useCurrentFrame } from "remotion";
 import { ThreeCanvas } from "@remotion/three";
 import { loadKit } from "../bridge/world";
-import { loadStickers } from "../bridge/stickers";
 import { Kit } from "../bridge/build";
 import { Inner, getBoard } from "./Story";
 import { StoryWorld } from "./world";
@@ -81,7 +80,7 @@ const Cast2D: React.FC<{ board: Board; f: number }> = ({ board, f }) => {
         if (!Number.isNaN(hv[0])) { const hl = Math.hypot(hv[0], hv[1]) || 1, hx = hv[0] / hl, hz = hv[1] / hl; yaw = (Math.atan2(hx * rightXZ[0] + hz * rightXZ[1], hx * tc[0] + hz * tc[1]) * 180) / Math.PI; }
         const pf = w.extra ? { verb: w.moving ? "walk" : "talk", p: u, t, prop: null, holdProp: null } : castPerf(w.d, s, u, t);
         return <Performer2D key={w.d.id + w.idx} x={w.g.x} y={w.g.y} scale={w.k} yaw={yaw} skin={o.skin ?? "#f6ead9"} cloth={o.dress ?? o.jacket} hair={o.hair} ink={inkStyleOf(w.d.role, w.idx, eraW, resolveRole(w.d.role, eraW))}
-          verb={pf.verb} p={pf.p} t={pf.t} phase={t * 1.15 + w.idx * 0.17} frame={f + w.idx * 13} prop={pf.prop} holdProp={pf.holdProp}
+          verb={pf.verb} p={pf.p} t={pf.t} phase={t * 1.15 + w.idx * 0.17} frame={f + w.idx * 13} prop={null} holdProp={null}
           expr={w.d.expr ? EXPR[w.d.expr] ?? null : null} build={w.idx % 2 ? "stocky" : "lean"} seed={w.idx * 17 + 7} />;
       })}
     </svg>
@@ -94,9 +93,7 @@ export const StoryHybrid: React.FC = () => {
   const [kit, setKit] = useState<Kit | null>(null);
   const [handle] = useState(() => delayRender("hybrid kit"));
   useEffect(() => {
-    const urls: Record<string, string> = {};
-    Object.entries(board.stickers ?? {}).forEach(([nm, u]) => { urls[nm] = staticFile(u); });
-    Promise.all([loadKit(), loadStickers(urls)]).then(([k]) => { setKit(k); continueRender(handle); });
+    loadKit().then((k) => { setKit(k); continueRender(handle); });
   }, [handle, board]);
   const { i, local, n } = sceneAt(board, f);
   const scene = board.scenes[i];

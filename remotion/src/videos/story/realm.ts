@@ -10,20 +10,28 @@ export const LOCS: Record<string, [number, number]> = {
   town: [0, 0], palace: [0, -430], farm: [-300, 90], forest: [-380, -250], desert: [0, 620], savanna: [420, 470], swamp: [-430, 390], jungle: [-660, 140],
   ice: [-700, -720], ocean: [640, 40], city: [380, -420], mountain: [0, -950], mine: [230, -900], cave: [-230, -900],
 };
-export const LOCALIAS: Record<string, string> = { metropolis: "city", downtown: "city", skyline: "city", skyscraper: "city", skyscrapers: "city", urban: "city", cityscape: "city", harbor: "ocean", harbour: "ocean", sea: "ocean", coast: "ocean", dock: "ocean", lake: "ocean", beach: "ocean", castle: "palace", kingdom: "palace", mountains: "mountain", hills: "mountain", peak: "mountain", arctic: "ice", polar: "ice", glacier: "ice", tundra: "ice", sahara: "desert", dunes: "desert", woods: "forest", forest: "forest", marsh: "swamp", wetland: "swamp", plains: "savanna", steppe: "savanna", plain: "savanna", rainforest: "jungle", field: "farm", fields: "farm", village: "town", market: "town", street: "town" };
+export const LOCALIAS: Record<string, string> = { babylon: "desert", egypt: "desert", persia: "desert", arabia: "desert", nile: "desert", india: "mountain", himalaya: "mountain", alps: "mountain", rome: "town", athens: "town", greece: "town", ocean: "ocean", atlantic: "ocean", pacific: "ocean", indian: "ocean", metropolis: "city", downtown: "city", skyline: "city", skyscraper: "city", skyscrapers: "city", urban: "city", cityscape: "city", harbor: "ocean", harbour: "ocean", sea: "ocean", coast: "ocean", dock: "ocean", lake: "ocean", beach: "ocean", castle: "palace", kingdom: "palace", mountains: "mountain", hills: "mountain", peak: "mountain", arctic: "ice", polar: "ice", glacier: "ice", tundra: "ice", sahara: "desert", dunes: "desert", woods: "forest", forest: "forest", marsh: "swamp", wetland: "swamp", plains: "savanna", steppe: "savanna", plain: "savanna", rainforest: "jungle", field: "farm", fields: "farm", village: "town", market: "town", street: "town" };
 export const resolveLoc = (s: { loc?: string; biome?: string }): string => { const k = String(s.loc ?? s.biome ?? "town").toLowerCase().replace(/[^a-z]/g, ""); const a = LOCALIAS[k] ?? k; return LOCS[a] ? a : "town"; };
 const KIND: Record<string, Biome | undefined> = { forest: "forest", desert: "desert", savanna: "savanna", swamp: "swamp", jungle: "jungle", ice: "ice", ocean: "ocean", farm: "farm", mountain: "mountain" };
 const ROADS: [string, string][] = [["town", "palace"], ["town", "farm"], ["farm", "forest"], ["farm", "swamp"], ["farm", "jungle"], ["town", "desert"], ["desert", "savanna"], ["town", "ocean"], ["town", "city"], ["city", "ocean"], ["palace", "mountain"], ["mountain", "mine"], ["mountain", "cave"], ["forest", "ice"]];
 const sm = (a: number, b: number, x: number) => { const k = Math.min(1, Math.max(0, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
+const lattice=(x:number,z:number,s:number)=>{const v=Math.sin(x*127.1+z*311.7+s*74.7)*43758.5453;return v-Math.floor(v);};
+const valueNoise=(x:number,z:number,s:number)=>{const ix=Math.floor(x),iz=Math.floor(z),fx=x-ix,fz=z-iz,u=fx*fx*(3-2*fx),v=fz*fz*(3-2*fz),a=lattice(ix,iz,s),b=lattice(ix+1,iz,s),c=lattice(ix,iz+1,s),d=lattice(ix+1,iz+1,s);return (a+(b-a)*u)*(1-v)+(c+(d-c)*u)*v;};
+const fbm=(x:number,z:number)=>valueNoise(x*.004,z*.004,1)*.55+valueNoise(x*.012,z*.012,2)*.3+valueNoise(x*.035,z*.035,3)*.15;
 const segDist = (px: number, pz: number, a: number[], b: number[]) => { const dx = b[0] - a[0], dz = b[1] - a[1], k = Math.min(1, Math.max(0, ((px - a[0]) * dx + (pz - a[1]) * dz) / (dx * dx + dz * dz))); return Math.hypot(px - a[0] - dx * k, pz - a[1] - dz * k); };
 const roadD = (x: number, z: number) => { let d = 1e9; for (const [p, q] of ROADS) d = Math.min(d, segDist(x, z, LOCS[p], LOCS[q])); return d; };
 const flatOf = (x: number, z: number) => { let f = 0; for (const k in LOCS) f = Math.max(f, 1 - sm(90, 170, Math.hypot(x - LOCS[k][0], z - LOCS[k][1]))); return Math.max(f, 1 - sm(10, 40, roadD(x, z))); };
 const seaOf = (x: number, z: number) => sm(470, 560, x) * sm(-20, -50, z) * (1 - sm(-1100, -1000, z) * 0);   // sea fills the north-east, beyond the harbor
 const heightAt = (x: number, z: number) => {
-  const hill = 6 * (Math.sin(x * 0.006) * Math.cos(z * 0.007) + 0.5 * Math.sin(x * 0.017 + z * 0.013)) + 2.5 * Math.sin(x * 0.04) * Math.cos(z * 0.035);
+  const broad=fbm(x,z)-.5;
+  const hill = 7 * (Math.sin(x * 0.006) * Math.cos(z * 0.007) + 0.5 * Math.sin(x * 0.017 + z * 0.013)) + 2.5 * Math.sin(x * 0.04) * Math.cos(z * 0.035) + broad*12 + Math.sin(x*.11+z*.08)*.55;
   const flat = flatOf(x, z), ridge = sm(700, 920, -z) * (38 + 30 * Math.abs(Math.sin(x * 0.011) * Math.cos(z * 0.013)) + 14 * Math.sin(x * 0.03 + z * 0.02));
   let h = (hill + ridge) * (1 - flat * (1 - sm(0.1, 0.9, ridge / 60) * 0)); h = hill * (1 - flat) + ridge * (1 - flat);
-  h += sm(380, 480, z) * (1 - flat) * (5 + 4 * Math.sin(x * 0.03 + z * 0.012)) * Math.max(0, Math.sin(x * 0.02 + z * 0.02) + 0.3);   // desert dunes
+  const desertMask=sm(390,520,z)*(1-sm(120,260,Math.abs(x)));
+  h += desertMask*(1-flat)*(5+4*Math.sin(x*.03+z*.012))*Math.max(0,Math.sin(x*.02+z*.02)+.3);
+  h += desertMask*(1-flat)*(Math.sin(x*.075+z*.026)*1.9+Math.sin(x*.16+z*.05)*.45);
+  const mountainMask=sm(650,820,-z)*(1-sm(180,340,Math.abs(x)));
+  h += mountainMask*(1-flat)*(Math.pow(1-Math.abs(Math.sin(x*.013+z*.009)),2)*28+Math.abs(broad)*10);
   const sea = seaOf(x, z); return h * (1 - sea) - 9 * sea - 0.08;
 };
 const NOISE = (x: number, z: number) => 0.92 + 0.08 * Math.sin(x * 0.05) * Math.cos(z * 0.043) + 0.05 * Math.sin(x * 0.19 + z * 0.17);
@@ -38,6 +46,9 @@ const terrain = (se: Season) => {
     let wsum = 0.1, r = base.r * 0.1, gg = base.g * 0.1, b = base.b * 0.1;
     for (const k in LOCS) { const kb = k === "town" ? undefined : KIND[k]; const c = new THREE.Color(kb ? GROUNDC[kb] : k === "palace" ? "#7fb85a" : k === "town" ? "#7fb85a" : "#79866a"); const d = Math.hypot(x - LOCS[k][0], z - LOCS[k][1]), w = Math.exp(-((d / 160) ** 2)); r += c.r * w; gg += c.g * w; b += c.b * w; wsum += w; }
     const c = season(new THREE.Color(r / wsum, gg / wsum, b / wsum), se, h, roadD(x, z) < 12 || false);
+    const slope=Math.hypot(heightAt(x+4,z)-h,heightAt(x,z+4)-h)/4;
+    if(slope>.28)c.lerp(new THREE.Color("#646d70"),Math.min(.68,(slope-.28)*1.4));
+    if(Math.hypot(x-LOCS.mountain[0],z-LOCS.mountain[1])<240&&h>18)c.lerp(new THREE.Color("#edf3f6"),Math.min(.9,(h-18)/38));
     const rd = 1 - sm(7, 11, roadD(x, z)); if (rd > 0 && flatOf(x, z) > 0.5 && h > -1) c.lerp(new THREE.Color("#b99a6a"), rd * 0.95);   // dirt roads painted into the terrain
     if (h < 0.25 && h > -2.2) c.lerp(new THREE.Color("#e8d9a8"), 0.8);            // beach
     if (h <= -2.2) c.set("#2a6fa0");
@@ -97,12 +108,16 @@ export const buildRealm = (se: Season) => {
   R.userData.waves = waves;
   for (const k in KIND) { const b = KIND[k]!; if (k === "mountain" || k === "ocean") continue; const d = buildBiome(b, se, false); d.position.set(LOCS[k][0], 0, LOCS[k][1]); R.add(d); }
   const mt = buildBiome("mountain", se, false); mt.position.set(LOCS.mountain[0], 0, LOCS.mountain[1] + 40); mt.scale.set(1.5, 1.5, 1.5); R.add(mt);
+  for(let i=0;i<7;i++){const x=-210+i*70,h=62+Math.sin(i*1.7)*12,r=34+(i%3)*5;R.add(mk(cone(r,h,7),i%2?"#737e84":"#626d73",LOCS.mountain[0]+x,h/2,LOCS.mountain[1]-145),mk(cone(r*.34,h*.28,7),"#edf4f7",LOCS.mountain[0]+x,h*.84,LOCS.mountain[1]-145));}
+  const pyramidSpecs:[number,number,number,number][]=[[-82,40,34,-48],[0,62,50,-82],[88,88,68,-54]];
+  for(const [px,ph,pw,pz] of pyramidSpecs){const py=new THREE.Group(),levels=6;for(let k=0;k<levels;k++){const f=1-k/levels,w=pw*f+.8,h=ph/levels;py.add(mk(B(w,h,w),k%2?"#d5b47c":"#e0c18a",0,k*h+h/2,0));}py.position.set(LOCS.desert[0]+px,0,LOCS.desert[1]+pz);py.rotation.y=Math.PI/4;R.add(py);}
+  const sphinx=grp(mk(B(13,3.8,28),"#c8ad7d",0,1.9,0),mk(S(3.2,14,10),"#d2b889",0,4.7,9,1,1.15,1),mk(B(5.4,2.8,4.2),"#315477",0,4.3,7));sphinx.position.set(LOCS.desert[0]+12,0,LOCS.desert[1]+12);R.add(sphinx);
   const oc = buildBiome("ocean", se, false); oc.position.set(LOCS.ocean[0], 0, LOCS.ocean[1]); R.add(oc);
   const ct = buildCity(); ct.name = "modernCity"; ct.position.set(LOCS.city[0], 0, LOCS.city[1]); R.add(ct);
   const pc = castle(); pc.position.set(LOCS.palace[0], 0, LOCS.palace[1] - 28); R.add(pc);
   const mm = mineMouth(); mm.position.set(LOCS.mine[0], 0, LOCS.mine[1] - 14); R.add(mm);
   const cm = caveMouth(); cm.position.set(LOCS.cave[0], 0, LOCS.cave[1] - 14); R.add(cm);
-  for (const [lx, lz] of [[-60, -240], [90, -520], [-110, 260], [260, 240], [-250, 20]]) { for (let i = 0; i < 14; i++) { const x = lx + (rnd() - 0.5) * 140, z = lz + (rnd() - 0.5) * 140; if (flatOf(x, z) > 0.98 || seaOf(x, z) > 0.2) continue; const y = heightAt(x, z); R.add(mk(C(0.4, 0.6, 5, 7), "#6b4a2a", x, y + 2.5, z), mk(S(3, 9, 7), se === "autumn" ? "#e0832a" : se === "winter" ? "#e8f1f7" : "#3f9f3f", x, y + 6.5, z)); } }
+  for (const [lx, lz] of [[-60, -240], [90, -520], [-110, 260], [260, 240], [-250, 20]]) { for (let i = 0; i < 14; i++) { const x = lx + (rnd() - 0.5) * 140, z = lz + (rnd() - 0.5) * 140; if (flatOf(x, z) > 0.98 || seaOf(x, z) > 0.2 || Math.hypot(x-LOCS.mountain[0],z-LOCS.mountain[1])<240) continue; const y = heightAt(x, z); R.add(mk(C(0.4, 0.6, 5, 7), "#6b4a2a", x, y + 2.5, z), mk(S(3, 9, 7), se === "autumn" ? "#e0832a" : se === "winter" ? "#e8f1f7" : "#3f9f3f", x, y + 6.5, z)); } }
   return R;
 };
 export const realmWaves = (R: THREE.Object3D, t: number) => (R.userData.waves as THREE.Mesh[] | undefined)?.forEach((w, i) => { w.position.y = -1.4 + 0.12 * Math.sin(t * 1.4 + i * 1.3); w.position.x += 0.01 * Math.sin(t * 0.7 + i); });

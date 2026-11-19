@@ -106,6 +106,9 @@
 - Both: update this file on every change; never claim "works" without viewing rendered frames; never send the owner a video that has not been frame-checked.
 ## CHANGELOG
 
+### 2026-11-18 — Create Effects2D.tsx ink-style SVG effects
+- Created `remotion/src/videos/story/Effects2D.tsx` containing ink-style SVG effect components taking `x, y, t` (dust puff, speed lines, impact star, sweat drops, sparkle, floating question mark, light bulb, anger vein, zzz). Verified clean TypeScript compilation with `npx tsc --noEmit`.
+
 ### 2026-11-18 — Add stone-age and ancient-era props in props3d.ts
 - Added procedural 3D recipes and aliases in `remotion/src/videos/story/props3d.ts` for cave fire, woolly mammoth, spear hunters' tools, huts, Egyptian obelisk and sphinx, Roman aqueduct, chariot, and galley/ship, Greek temple and trireme, Chinese junk and pagoda, medieval castle, cart, and catapult, and Viking longship. Verified clean TypeScript compilation with `npx tsc --noEmit`.
 

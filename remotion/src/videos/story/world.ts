@@ -38,7 +38,8 @@ export class StoryWorld {
   private fxs: Fx[] = [];
   private hemi = new THREE.HemisphereLight("#cfe6ff", "#6c5c8c", 1.1);
   private sun = new THREE.DirectionalLight("#fff0d6", 2.6);
-  private fog = new THREE.Fog("#bccbec", 25, 420);
+  private fog = new THREE.FogExp2("#bccbec", 0.0025);
+  private vignette: THREE.Mesh;
   private sky: THREE.Mesh; private skyMat: THREE.ShaderMaterial;
   private sunCache = new Map<number, THREE.Vector3>();
   private frustum = new THREE.Frustum(); private m4 = new THREE.Matrix4(); private sph = new THREE.Sphere(); private v = new THREE.Vector3();
@@ -58,7 +59,12 @@ export class StoryWorld {
     });
     this.sky = new THREE.Mesh(new THREE.SphereGeometry(1100, 48, 24), this.skyMat);
     this.sky.renderOrder = -1; this.sky.frustumCulled = false; this.sky.layers.set(NOINK);
-    this.sun.castShadow = true; this.sun.shadow.mapSize.set(2048, 2048);
+    // CPU-only CI: do not allocate or render directional shadow maps.
+    this.sun.castShadow = false; this.sun.shadow.autoUpdate = false; this.sun.shadow.needsUpdate = false;
+    const vignetteMat=new THREE.ShaderMaterial({transparent:true,depthTest:false,depthWrite:false,toneMapped:false,
+      vertexShader:"varying vec2 vUv; void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}",
+      fragmentShader:"varying vec2 vUv;void main(){vec2 p=(vUv-0.5)*2.0;float r=dot(p,p);float a=smoothstep(0.22,1.05,r)*0.22;gl_FragColor=vec4(0.025,0.035,0.05,a);}"});
+    this.vignette=new THREE.Mesh(new THREE.PlaneGeometry(2.2,2.2),vignetteMat);this.vignette.position.set(0,0,-.72);this.vignette.renderOrder=999;this.vignette.layers.set(NOINK);
     R.add(this.sky, this.hemi, this.sun, this.sun.target);
 
     const b = new Batch();
@@ -109,6 +115,16 @@ export class StoryWorld {
     const propAt = (pd: PropDef) => { if (!pd.to) return { x: pd.x, z: pd.z }; const a0 = pd.at ?? 0, k = Math.min(1, Math.max(0, (u - a0) / Math.max(0.05, Math.min(pd.until ?? 1, 1) - a0))); return { x: pd.x + (pd.to.x - pd.x) * k, z: pd.z + (pd.to.z - pd.z) * k }; };
     const cur: SceneDef = { ...s, cast: s.cast.map((d) => { const p = posOf(d); return { ...d, x: p.x, z: p.z }; }), props: (s.props ?? []).map((pd) => ({ ...pd, ...propAt(pd), to: undefined })) };
     const c = camAt(cur, i, u, absT, dur);
+    // Ship-specific establishing/orbit/settle choreography; camera.ts remains under its owner's control.
+    const sailingScene=s.world?.kind==="sea"||s.props?.some(pd=>pd.anim==="sailing"&&/ship|galleon|boat/i.test(pd.name));
+    const heroShip=sailingScene?this.worldLayers.get(worldKey)?.getObjectByName("HeroGalleon"):undefined;
+    if(heroShip){
+      const phase=u,angle=-Math.PI/2+Math.max(0,Math.min(1,(phase-.18)/.62))*Math.PI*2;
+      if(phase<.18)c.pos.set(heroShip.position.x-4,48,heroShip.position.z+112);
+      else if(phase<.82)c.pos.set(heroShip.position.x+Math.cos(angle)*30,10+Math.sin(angle*2)*2,heroShip.position.z+Math.sin(angle)*30);
+      else c.pos.set(heroShip.position.x+32,13,heroShip.position.z+42);
+      c.look.copy(heroShip.position);c.fov=phase<.18?58:phase<.82?48:52;
+    }
     { const ev = new Set<string>(((cur as SceneDef).env ?? []) as string[]); if (s.world?.weather === "rain") ev.add("rain"); if (s.world?.weather === "storm") ev.add("storm"); if (s.world?.weather === "snow") ev.add("snow"); if (s.world?.weather === "fog") ev.add("fog"); if (s.world?.weather === "wind") ev.add("wind"); if (s.tod === "night") ev.add("night"); if (s.season === "winter" && BIOMES[String(s.biome ?? "").toLowerCase()] !== "desert") ev.add("snow"); (cur as SceneDef).env = [...ev] as SceneDef["env"]; }
     const E = this.fxe.update(cur, u, dur, c.pos, c.look, absT);
     if (E.shake > 0.01) { const k = E.shake * 0.28; c.pos.x += Math.sin(absT * 61) * k; c.pos.y += Math.sin(absT * 73 + 1) * k; c.look.x += Math.sin(absT * 53 + 2) * k * 0.6; }
@@ -127,6 +143,7 @@ export class StoryWorld {
     if (s.front && !this.fronts.has(s.front)) { const fg = buildShopFront(s.front); fg.position.set(0, 0, -14); this.root.add(fg); this.fronts.set(s.front, fg); }
     this.fronts.forEach((fg, k) => { fg.visible = k === s.front && !ik; });
     cam.position.copy(c.pos); cam.up.set(0, s.world?.mapMode ? 0 : 1, s.world?.mapMode ? -1 : 0); cam.lookAt(c.look); cam.rotateZ(c.roll);
+    if(this.vignette.parent!==cam)cam.add(this.vignette);
     cam.fov = c.fov; cam.near = 0.15; cam.far = 1500; cam.updateProjectionMatrix(); cam.updateMatrixWorld();
     cam.layers.enable(NOINK);
     // sun: camera-relative, frozen per scene (from the start of the move)
@@ -177,10 +194,10 @@ export class StoryWorld {
     if (E.night) { for (let k = 0; k < 5; k++) { const cv = su["c" + k].value as THREE.Color; cv.multiplyScalar(E.space ? 0.02 : 0.16).lerp(new THREE.Color(E.space ? "#020410" : "#0b1236"), 0.55); } }
     else if (E.dim < 0.95) for (let k = 0; k < 5; k++) (su["c" + k].value as THREE.Color).multiplyScalar(E.dim * 0.8).lerp(new THREE.Color("#4a5468"), 0.35);
     this.sky.position.copy(cam.position);
-    untone(L.fog, this.fog.color); this.fog.near = L.fogNear; this.fog.far = L.fogFar; if (E.night) this.fog.color.set(E.space ? "#020410" : "#0b1236"); else if (E.dim < 0.95) this.fog.color.lerp(new THREE.Color("#4a5468"), 0.5); if (underwater && !E.night) { this.fog.color.set("#286477"); this.fog.near = 18; this.fog.far = 260; } this.fog.near *= E.fogK; this.fog.far *= E.fogK; scene.fog = this.fog; scene.background = null;
-    if (bk && !ik) { this.fog.color.set(FOGB[bk]); this.fog.near = bk === "swamp" ? 25 : 120; this.fog.far = bk === "swamp" ? 260 : 1700; }
-    if (s.world?.kind === "sea" || s.world?.kind === "ocean" || s.world?.terrain === "ocean") { this.fog.color.set("#0a2342"); this.fog.near = 12; this.fog.far = 180; }
-    if (ik) { this.fog.color.set(FOG[ik]); this.fog.near = 18; this.fog.far = 80; }
+    untone(L.fog, this.fog.color); this.fog.density = 0.0025 / Math.max(.2,E.fogK); if (E.night) this.fog.color.set(E.space ? "#020410" : "#0b1236"); else if (E.dim < 0.95) this.fog.color.lerp(new THREE.Color("#4a5468"), 0.5); if (underwater && !E.night) { this.fog.color.set("#286477"); this.fog.density = .0048; } scene.fog = this.fog; scene.background = null;
+    if (bk && !ik) { this.fog.color.set(FOGB[bk]); this.fog.density = bk === "swamp" ? .004 : .0018; }
+    if (s.world?.kind === "sea" || s.world?.kind === "ocean" || s.world?.terrain === "ocean") { this.fog.color.set("#0a2342"); this.fog.density = .0036; }
+    if (ik) { this.fog.color.set(FOG[ik]); this.fog.density = .005; }
 
     // ---- cast ----
     const right = new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld, 0);
@@ -309,8 +326,8 @@ export class StoryWorld {
     // ---- props: the things the narration is about (stickers) ----
     const eo = (x: number) => 1 - Math.pow(1 - Math.min(1, Math.max(0, x)), 3);
     (s.props ?? []).forEach((pd: PropDef, pi: number) => {
-      const pile = (pd.count ?? 1) === 1 && pd.anim !== "fall" && /coins|money|gold/i.test(pd.name), has3p = this.p3.has(pd.name, pile), im = STICKERS.get(pd.name);
-      if (!im && !has3p) return;
+      const pile = (pd.count ?? 1) === 1 && pd.anim !== "fall" && /coins|money|gold/i.test(pd.name), has3p = this.p3.has(pd.name, pile);
+      if (!has3p) return;
       const a0 = pd.at ?? 0, a1 = pd.until ?? 1.01;
       if (u < a0 || u > a1) return;
       const ts = (u - a0) * dur, cnt = Math.max(1, pd.count ?? 1), spr = pd.spread ?? 1.2;
@@ -334,13 +351,10 @@ export class StoryWorld {
           if (pd.to) { const p2 = propAt(pd); X = p2.x + ox; Z = p2.z + oz; mv = Math.hypot(X - px - ox, Z - pz - oz) > 0.01 && u > a0 && u < Math.min(a1, 0.999); dist = Math.hypot(X - px - ox, Z - pz - oz); if (mv) yawv = Math.atan2(pd.to.x - pd.x, pd.to.z - pd.z); else if (orient) yawv = Math.atan2(right.x, right.z) + (pd.flip ? Math.PI : 0); }
           else if (orient) yawv = Math.atan2(right.x, right.z) + (pd.flip ? Math.PI : 0);
           this.p3.put(pd.name, X, yy, Z, h3, sc3, yawv, pd.anim === "fall" ? rot : 0, pile, { dist, t: absT, mv: mv || pd.anim === "bounce" || (pd.anim === "float" && orient) });
-          if (!pd.anim || pd.anim === "static" || pd.anim === "pop" || pd.anim === "grow") blob(st, X, 0, Z, Math.max(0.3, h3 * sc3 * 0.5));
+          blob(st, X, 0, Z, Math.max(0.3, h3 * sc3 * 0.5));
           continue;
         }
-        const hgt = (pd.h ?? 1) * sc3, wid = hgt * (im!.naturalWidth / im!.naturalHeight);
-        st.fx.push({ key: `stk|${pd.name}`, cw: 512, ch: 512, draw: (pn) => { const r2 = im!.naturalHeight / im!.naturalWidth, W = r2 > 1 ? 512 / r2 : 512, H = r2 > 1 ? 512 : 512 * r2; pn.g.drawImage(im!, (512 - W) / 2, 512 - H, W, H); },
-          x: px + ox, y: yy + Math.max(wid, hgt) / 2, z: pz + oz, w: Math.max(wid, hgt), h: Math.max(wid, hgt), rot });
-        if (!pd.anim || pd.anim === "static" || pd.anim === "pop" || pd.anim === "grow") blob(st, px + ox, 0, pz + oz, Math.max(0.3, hgt * 0.5));
+        // No 2D sticker fallback: canon() guarantees an actual procedural 3D model for every noun.
       }
     });
 

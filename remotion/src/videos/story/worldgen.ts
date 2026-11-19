@@ -57,6 +57,22 @@ const heightfieldGround=(g:THREE.Group,kind:string,base:string)=>{
 };
 const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
   const ground=p.terrain==="ocean-floor"?P.seabed:(p.weather==="rain"||p.weather==="storm")?P.shade:seasonGround(p);heightfieldGround(g,p.terrain,ground);
+  if(p.terrain==="river"){
+    const riverGeo=new THREE.PlaneGeometry(24,240,10,80);riverGeo.rotateX(-Math.PI/2);
+    const riverPos=riverGeo.attributes.position,riverCol=new Float32Array(riverPos.count*3);
+    for(let i=0;i<riverPos.count;i++){
+      const z=riverPos.getZ(i),x=riverPos.getX(i)+Math.sin(z*.022)*15;
+      riverPos.setX(i,x);riverPos.setY(i,.055);
+      const edge=Math.abs(riverPos.getX(i)-Math.sin(z*.022)*15)/12;
+      const c=new THREE.Color("#164f6c").lerp(new THREE.Color("#4a9ab0"),.24+edge*.12);
+      riverCol[i*3]=c.r;riverCol[i*3+1]=c.g;riverCol[i*3+2]=c.b;
+    }
+    riverGeo.setAttribute("color",new THREE.BufferAttribute(riverCol,3));riverGeo.computeVertexNormals();
+    const river=new THREE.Mesh(riverGeo,new THREE.MeshPhongMaterial({color:"#ffffff",vertexColors:true,specular:"#a6d8df",shininess:64}));
+    river.position.set(0,0,-42);river.userData.waterWave={baseY:.055,phase:1.2};g.add(river);
+    for(let i=0;i<26;i++){const z=-150+i*8.5,x=Math.sin(z*.022)*15,side=i%2?1:-1;const rock=ball(g,.8+hash(i,201)*1.5,i%3?"#777b70":"#9a917f",x+side*(13+hash(i,202)*4),.35,z,1.4,.75,1.1);rock.rotation.y=hash(i,203)*6.28;}
+    for(let i=0;i<16;i++){const z=-145+i*16,x=Math.sin(z*.022)*15;const foam=box(g,3.5,.035,.28,"#d9edf0",x+Math.sin(i)*10,.11,z);foam.userData.foamAnim={baseY:.11,phase:i*.7};}
+  }
   if(p.terrain==="ocean-floor"){
     // The cast stands on a broad sandy seabed; a translucent animated surface and light shafts
     // establish that the whole set is submerged rather than a flat blue floor.

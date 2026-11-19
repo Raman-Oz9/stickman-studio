@@ -24,15 +24,21 @@ const cylinder=(g:THREE.Group,r:number,h:number,c:string,x:number,y:number,z:num
 const poly=(g:THREE.Group,pts:[number,number,number][],c:string)=>{const v:number[]=[];for(let i=1;i<pts.length-1;i++)v.push(...pts[0],...pts[i],...pts[i+1]);const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.Float32BufferAttribute(v,3));geo.computeVertexNormals();const m=new THREE.Mesh(geo,mat(c));g.add(m);return m;};
 const seasonGround=(p:WorldParams)=>p.season==="winter"?P.sky:p.season==="spring"?P.green:P.earth;
 const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
-  const ground=p.terrain==="ocean-floor"?P.seabed:(p.weather==="rain"||p.weather==="storm")?P.shade:seasonGround(p);box(g,260,0.5,260,ground,0,-0.25,-45);
+  const ground=p.terrain==="ocean-floor"?"#BFA77F":(p.weather==="rain"||p.weather==="storm")?P.shade:seasonGround(p);box(g,260,0.5,260,ground,0,-0.25,-45);
   if(p.terrain==="ocean-floor"){
     // The cast stands on a broad sandy seabed; a translucent animated surface and light shafts
     // establish that the whole set is submerged rather than a flat blue floor.
-    box(g,180,.55,150,P.seabed,0,-.28,-34);
+    box(g,180,.55,150,"#C9B38D",0,-.28,-34);
     for(let i=0;i<16;i++){
       const x=(hash(i,4)-.5)*145,z=-8-hash(i,5)*105,r=1.2+hash(i,6)*3.2;
       const rock=ball(g,r,i%3===0?P.shade:P.stone,x,r*.32,z,1.2,.65,1.05);
       rock.rotation.y=hash(i,7)*Math.PI;
+    }
+    // Fine sediment ripples catch the overhead light and break up the empty sand.
+    for(let i=0;i<54;i++){
+      const x=(hash(i,8)-.5)*150,z=-5-hash(i,9)*112,len=4+hash(i,10)*13;
+      const ripple=box(g,len,.025,.075,i%4===0?"#E7D3AA":"#A88F69",x,.035,z,(hash(i,11)-.5)*.16);
+      ripple.castShadow=false;ripple.receiveShadow=false;
     }
     // Rounded coral gardens: low mounds and branching antler forms, not tree-like stalks.
     for(let i=0;i<30;i++){
@@ -46,6 +52,13 @@ const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
         tip.rotation.z=Math.cos(a)*-.28;
       }
       for(let k=0;k<3;k++)ball(g,.32*scale,k%2?P.accent:P.green,x+(k-1)*.55*scale,.9*scale,z,.8,1.1,.8);
+    }
+    // Mushroom coral plates and low anemone clusters give the reef varied marine silhouettes.
+    for(let i=0;i<11;i++){
+      const x=(hash(i,49)-.5)*118,z=-9-hash(i,50)*88,scale=.72+hash(i,51)*.8;
+      cylinder(g,.28*scale,1.65*scale,i%2?P.reef:P.coral,x,.82*scale,z,8);
+      ball(g,1.45*scale,i%3===0?"#E5A77E":"#D98968",x,1.65*scale,z,1.25,.3,1.12);
+      for(let k=0;k<5;k++){const a=k*Math.PI*2/5;ball(g,.22*scale,P.accent,x+Math.cos(a)*.85*scale,1.86*scale,z+Math.sin(a)*.75*scale,.8,1,.8);}
     }
     // Foreground reef heads frame the explorer with broad, branching silhouettes.
     for(let i=0;i<5;i++){
@@ -82,8 +95,10 @@ const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
       const sg=new THREE.Group();
       for(let j=0;j<6;j++){
         const x=j*1.35;
-        const body=ball(sg,.62,j%3===0?P.accent:P.sky,x,0,0,1.35,.62,.55);
-        body.rotation.z=-.06;
+        const body=ball(sg,.62,j%3===0?"#F4C65A":"#57C6D4",x,0,0,1.35,.62,.55);
+        body.rotation.z=-.06;body.castShadow=false;
+        (body.material as THREE.MeshLambertMaterial).emissive.set(j%3===0?"#49300A":"#073B48");
+        (body.material as THREE.MeshLambertMaterial).emissiveIntensity=.22;
         poly(sg,[[x-.72,0,0],[x-1.42,.48,0],[x-1.28,0,0],[x-1.42,-.48,0]],P.reef);
         poly(sg,[[x+.05,.28,0],[x-.18,.72,0],[x+.42,.34,0]],P.coral);
         ball(sg,.075,P.shade,x+.62,.12,.34,1,1,1);
@@ -110,14 +125,23 @@ const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
     box(g,190,.6,170,P.canyon,0,-.20,-42);
     for(const side of [-1,1]){
       for(let i=0;i<8;i++){
-        const z=28-i*17.5, x=side*(27+hash(i,72)*2.8);
-        const h=25+hash(i,71)*17, lean=side*(1.5+hash(i,74)*2.2);
-        const face=poly(g,[[x-side*5,0,z+9],[x+lean-side*3,h*.72,z+8],[x+lean,h,z+1],[x+lean+side*3,h*.84,z-8],[x+side*5,0,z-9]],i%3===0?P.stone:P.canyon);
-        face.material=mat(i%3===0?"#B87550":"#98513C");
-        for(let layer=0;layer<5;layer++){
-          const yy=4+layer*(h-7)/5+hash(i,layer+73)*.9;
-          const ledge=box(g,1.05,.48,14,layer%3===0?P.sand:layer%2?P.reef:P.stone,x-side*4.1+lean*.35,yy,z,.025*side);
-          ledge.rotation.y=side*.08;
+        const z=26-i*17.5, x=side*(27+hash(i,72)*2.8);
+        const h=23+hash(i,71)*16, lean=side*(1.8+hash(i,74)*3.1);
+        const face=poly(g,[[x-side*5,0,z+9],[x+lean-side*3,h*.68,z+8],[x+lean-side*1.2,h*.91,z+3],[x+lean,h,z+1],[x+lean+side*2.5,h*.79,z-5],[x+side*5,0,z-9]],i%3===0?P.stone:P.canyon);
+        face.material=mat(i%3===0?"#B97851":"#98513C");
+        // Broken, offset strata read as eroded sandstone instead of one smooth wall.
+        for(let layer=0;layer<6;layer++){
+          const yy=3.5+layer*(h-6)/6+hash(i,layer+73)*.8;
+          for(let chunk=0;chunk<3;chunk++){
+            const zz=z-5.2+chunk*5.1+(hash(i,chunk+91)-.5)*1.1;
+            const ledge=box(g,1.05,.34,4.4,layer%3===0?"#D6A16B":layer%2?"#A95F43":"#C08055",x-side*4.1+lean*.35+side*(chunk-1)*.35,yy,zz,.025*side);
+            ledge.rotation.y=side*.08;ledge.castShadow=false;
+          }
+        }
+        for(let groove=0;groove<3;groove++){
+          const gx=x+lean+side*(groove-1)*2.5;
+          const seam=box(g,.22,h*.48,.18,"#784532",gx,h*.25,z+(groove-1)*3.2);
+          seam.castShadow=false;
         }
         const cap=box(g,8,.9,19,i%2?P.earth:P.reef,x+lean*.55,h+.15,z,.035*side);
         cap.rotation.y=side*.06;
@@ -133,16 +157,16 @@ const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
     // Meandering river, deliberately narrow so the canyon floor remains visible on both banks.
     const riverShape=new THREE.Shape();
     const riverPath:[number,number][]=[];
-    for(let i=0;i<=44;i++){const z=24-i*3.25,x=Math.sin(i*.12)*4.8;riverPath.push([x-2.1,-z]);}
-    for(let i=44;i>=0;i--){const z=24-i*3.25,x=Math.sin(i*.12)*4.8;riverPath.push([x+2.1,-z]);}
+    for(let i=0;i<=44;i++){const z=8-i*3.05,x=Math.sin(i*.14)*3.2;riverPath.push([x-1.15,-z]);}
+    for(let i=44;i>=0;i--){const z=8-i*3.05,x=Math.sin(i*.14)*3.2;riverPath.push([x+1.15,-z]);}
     riverShape.moveTo(riverPath[0][0],riverPath[0][1]);
     for(let i=1;i<riverPath.length;i++)riverShape.lineTo(riverPath[i][0],riverPath[i][1]);
     riverShape.closePath();
-    const river=new THREE.Mesh(new THREE.ShapeGeometry(riverShape,1),new THREE.MeshPhongMaterial({color:"#238FB4",shininess:75,flatShading:true}));
+    const river=new THREE.Mesh(new THREE.ShapeGeometry(riverShape,1),new THREE.MeshPhongMaterial({color:"#278EAA",shininess:95,flatShading:true}));
     river.rotation.x=-Math.PI/2;river.position.y=.17;river.receiveShadow=true;g.add(river);
-    for(let i=0;i<14;i++){
-      const side=i%2?1:-1,x=side*(8+hash(i,81)*8),z=19-Math.floor(i/2)*11,r=1.2+hash(i,82)*1.8;
-      const rock=ball(g,r,i%3?P.sand:P.reef,x,r*.38,z,1.55,.58,1.15);rock.rotation.y=hash(i,83)*Math.PI;
+    for(let i=0;i<26;i++){
+      const side=i%2?1:-1,x=side*(3.4+hash(i,81)*9),z=13-Math.floor(i/2)*9.2,r=.55+hash(i,82)*1.45;
+      const rock=ball(g,r,i%4===0?"#D6B17B":i%3?P.sand:P.reef,x,r*.34,z,1.65,.52,1.08);rock.rotation.y=hash(i,83)*Math.PI;rock.castShadow=false;
     }
     for(let i=0;i<8;i++){
       const x=-13+i*3.7,z=-12-hash(i,84)*52;

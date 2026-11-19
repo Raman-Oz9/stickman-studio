@@ -1,0 +1,96 @@
+name: agents-matrix
+# Several free open-source coding agents work the same queue IN PARALLEL: agent k takes the k-th pending task in docs/OPENCODE_QUEUE.md.
+# Every result must pass `tsc --noEmit` before it is merged to main. A broken/unavailable agent never blocks the others.
+on:
+  schedule:
+    - cron: "17 */2 * * *"
+  workflow_dispatch:
+concurrency:
+  group: agents-matrix
+  cancel-in-progress: false
+jobs:
+  work:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    continue-on-error: true
+    permissions: { contents: write, actions: write }
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        include:
+          - { agent: aider-groq,        slot: 1 }
+          - { agent: aider-openrouter,  slot: 2 }
+          - { agent: goose-openrouter,  slot: 3 }
+          - { agent: aider-gemini,      slot: 4 }
+    env:
+      GH_TOKEN: ${{ github.token }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: main, fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Claim a task (slot k = k-th pending task)
+        id: pick
+        run: |
+          git config user.name "agent-${{ matrix.agent }}"; git config user.email "agents@users.noreply.github.com"
+          for t in 1 2 3 4; do
+            git fetch -q origin main; git checkout -q -B main origin/main
+            LINE=$(grep -n '^- \[ \]' docs/OPENCODE_QUEUE.md | sed -n "${{ matrix.slot }}p")
+            if [ -z "$LINE" ]; then echo "task=" >> $GITHUB_OUTPUT; exit 0; fi
+            N=${LINE%%:*}
+            sed -i "${N}s/^- \[ \]/- [~]/" docs/OPENCODE_QUEUE.md
+            git commit -qam "queue: ${{ matrix.agent }} claims task $N"
+            git push -q origin main && break
+            sleep $((RANDOM % 8 + 2))
+          done
+          TASK=$(sed -n "${N}p" docs/OPENCODE_QUEUE.md | cut -c7-)
+          { echo "task<<EOF"; echo "$TASK"; echo "EOF"; echo "n=$N"; } >> $GITHUB_OUTPUT
+      - name: Install agent + run
+        if: steps.pick.outputs.task != ''
+        env:
+          TASK: ${{ steps.pick.outputs.task }}
+        run: |
+          PROMPT="You work on the stickman-studio repo (Remotion + Three.js story video engine). Read AGENTS.md, docs/CONTEXT.md and docs/HANDOFF.md first. Owner rules: everything except characters is real 3D (no 2D sticker props, no floating coins), cinematic depth, characters are 2D ink humans. Do exactly this task, edit only the files it names, keep per-frame render cost low, make 'cd remotion && npx tsc --noEmit' pass, append one line to docs/CONTEXT.md. TASK: $TASK"
+          (cd remotion && npm install --no-audit --no-fund >/dev/null 2>&1) || true
+          case "${{ matrix.agent }}" in
+            aider-groq)       pip install -q aider-chat; aider --yes-always --no-auto-commits --no-check-update --model groq/llama-3.3-70b-versatile --message "$PROMPT" $(echo "$TASK" | grep -oE '[A-Za-z0-9_./-]+\.(ts|tsx|py|mjs|md)' | sort -u | tr '\n' ' ') AGENTS.md docs/CONTEXT.md || true ;;
+            aider-openrouter) pip install -q aider-chat; aider --yes-always --no-auto-commits --no-check-update --model openrouter/openrouter/free --message "$PROMPT" $(echo "$TASK" | grep -oE '[A-Za-z0-9_./-]+\.(ts|tsx|py|mjs|md)' | sort -u | tr '\n' ' ') AGENTS.md docs/CONTEXT.md || true ;;
+            aider-gemini)     pip install -q aider-chat; aider --yes-always --no-auto-commits --no-check-update --model gemini/gemini-3.5-flash --message "$PROMPT" $(echo "$TASK" | grep -oE '[A-Za-z0-9_./-]+\.(ts|tsx|py|mjs|md)' | sort -u | tr '\n' ' ') AGENTS.md docs/CONTEXT.md || true ;;
+            goose-openrouter) curl -fsSL https://github.com/block/goose/releases/download/stable/download_cli.sh | CONFIGURE=false bash || true
+                              export PATH="$HOME/.local/bin:$PATH" GOOSE_PROVIDER=openrouter GOOSE_MODEL=openrouter/free
+                              goose run -t "$PROMPT" || true ;;
+          esac
+      - name: Verify (tsc) and land on main
+        if: steps.pick.outputs.task != ''
+        run: |
+          N=${{ steps.pick.outputs.n }}
+          git checkout -q -- docs/OPENCODE_QUEUE.md remotion/package-lock.json 2>/dev/null || true
+          DONE="!"
+          if [ -n "$(git status --porcelain | grep -v node_modules | grep -v package-lock)" ]; then
+            if (cd remotion && npm install --no-audit --no-fund >/dev/null 2>&1 && npx tsc --noEmit > /tmp/tsc.txt 2>&1); then
+              rm -rf remotion/node_modules
+              git add -A -- . ':!remotion/package-lock.json' ':!remotion/node_modules'
+              git commit -qm "${{ matrix.agent }}: ${TASK:0:70}" || true
+              for t in 1 2 3 4; do
+                git fetch -q origin main; git merge -q --no-edit -X ours origin/main >/dev/null 2>&1 || true
+                git push -q origin HEAD:main && DONE="x" && break
+                sleep 5
+              done
+            else
+              rm -rf remotion/node_modules; git add -A -- . ':!remotion/package-lock.json' ':!remotion/node_modules'
+              git commit -qm "${{ matrix.agent }} (tsc failed): task $N" || true
+              git push -q origin "HEAD:refs/heads/agents/failed-${N}-${{ matrix.agent }}-${GITHUB_RUN_ID}" || true
+            fi
+          fi
+          for t in 1 2 3 4 5; do
+            git fetch -q origin main; git checkout -q -B main origin/main
+            sed -i "${N}s/^- \[~\]/- [${DONE}]/" docs/OPENCODE_QUEUE.md
+            git commit -qam "queue: ${{ matrix.agent }} task $N ${DONE}" && git push -q origin main && break
+            sleep $((RANDOM % 8 + 2))
+          done

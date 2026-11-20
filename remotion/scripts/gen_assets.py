@@ -8,10 +8,10 @@ OUT = os.path.join(os.path.dirname(__file__), "..", "public", "tex")
 os.makedirs(OUT, exist_ok=True)
 STYLE = "seamless tileable texture, top-down flat, even lighting, no objects, no text, painterly stylised game texture"
 ITEMS = {
-  "sand_dune": "rippled desert sand dunes", "dry_dirt": "dry cracked dirt ground", "grass": "lush green grass with small flowers",
+  "sand_dune": "close-up of sand surface with fine wind ripples, flat top-down view", "dry_dirt": "dry cracked dirt ground", "grass": "lush green grass with small flowers",
   "rock": "grey rough rock cliff surface", "snow": "fresh snow with soft shadows", "mud_brick": "ancient mud brick wall",
   "limestone": "sandstone limestone blocks wall", "marble": "white marble with grey veins", "wood_planks": "old wooden ship deck planks",
-  "cobblestone": "medieval cobblestone street", "roof_tiles": "terracotta roof tiles", "thatch": "straw thatch roof",
+  "cobblestone": "flat top-down cobblestone pavement pattern, close-up of stones only", "roof_tiles": "terracotta roof tiles", "thatch": "straw thatch roof",
   "water_deep": "deep blue ocean water surface with soft foam", "forest_floor": "forest floor with leaves and moss", "gravel": "pebbles gravel path",
   "carpet_red": "red royal carpet with gold pattern",
 }
@@ -31,8 +31,15 @@ def pollinations(prompt, w=1024, h=1024):
     url = f"https://image.pollinations.ai/prompt/{urllib.parse.quote(prompt)}?width={w}&height={h}&nologo=true&model=flux"
     return urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "stickman-studio"}), timeout=180).read()
 
+def huggingface(prompt, w=1024, h=1024):
+    tok = os.environ.get("HF_TOKEN")
+    if not tok: raise RuntimeError("no HF_TOKEN")
+    req = urllib.request.Request("https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell",
+        data=json.dumps({"inputs": prompt}).encode(), headers={"Authorization": f"Bearer {tok}", "Content-Type": "application/json"})
+    return urllib.request.urlopen(req, timeout=180).read()
+
 def make(name, prompt, w, h):
-    for fn in (cloudflare, pollinations):
+    for fn in (cloudflare, huggingface, pollinations):
         try:
             data = fn(prompt, w, h)
             if len(data) > 5000:

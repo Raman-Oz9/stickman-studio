@@ -77,7 +77,6 @@ const Cast2D: React.FC<{ board: Board; f: number }> = ({ board, f }) => {
     } else if (rank) {
       const row = Math.floor(k / 5), col = k % 5;
       if(s.world?.kind==="sea"){
-        // Ink soldiers step from the hero ship's landing side across the waterline onto the sandy shore.
         const [shipX,,shipZ]=sailingHeroAt(local/FPS);
         ex=shipX-8+col*2.1+(hh(k,40)-.5)*.35;ez=shipZ+row*2.1+(hh(k,41)-.5)*.3;hd=0;drift=22;w0=.08+(k%4)*.035;
       }else{
@@ -96,11 +95,25 @@ const Cast2D: React.FC<{ board: Board; f: number }> = ({ board, f }) => {
     let kk0 = (pxm * 1.75 * sc) / CHAR_UNITS; if (g.y > 500) kk0 = Math.min(kk0, (g.y - 110) / CHAR_UNITS); kk0 = Math.min(kk0, 2.4);
     return { ...w, g, k: kk0, depth: c.pos.distanceTo(new THREE.Vector3(w.x, 0, w.z)) };
   }).filter((w) => !w.g.behind && w.k > 0.05 && w.g.x > -400 && w.g.x < 1480).sort((a, b) => b.depth - a.depth);
+
   const golden = (s.light ?? (s.tod === "dawn" || s.tod === "dusk" ? "golden" : "day")) === "golden";
   const darkGround=(s.tod==="night"||(s.env??[]).includes("night")||s.world?.timeOfDay==="night");
+  const textNarr = String(s.narration ?? s.caption ?? "");
+  const sadMood = /sad|defeat|loss|died|mourn|ruin|fall|grief|tragedy|tear/i.test(textNarr);
+
+  // Depth-based desaturation / atmospheric tint for far cast members & background
+  const baseFilter = sadMood
+    ? "hue-rotate(185deg) saturate(0.82) contrast(1.04) brightness(0.92)"
+    : golden
+    ? "sepia(.25) saturate(1.15) brightness(.97)"
+    : "saturate(1.06) contrast(1.03)";
+
   return (
-    <svg viewBox="0 0 1080 1920" width="1080" height="1920" style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none", filter: golden ? "sepia(.25) saturate(1.15) brightness(.97)" : "saturate(1.06) contrast(1.03)" }}>
-      <defs><radialGradient id="castGroundShadow"><stop offset="0%" stopColor="#101820" stopOpacity=".36"/><stop offset="100%" stopColor="#101820" stopOpacity="0"/></radialGradient></defs>
+    <svg viewBox="0 0 1080 1920" width="1080" height="1920" style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none", filter: baseFilter }}>
+      <defs>
+        <radialGradient id="castGroundShadow"><stop offset="0%" stopColor="#101820" stopOpacity=".36"/><stop offset="100%" stopColor="#101820" stopOpacity="0"/></radialGradient>
+        <filter id="softBloom"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
       {placed.map((w) => {
         const eraW = w.extra && w.eraW ? w.eraW : (w.extra && s.extrasEra ? s.extrasEra : s.era);
         const o = outfitFor(w.d.role, w.idx, eraW);
@@ -125,7 +138,11 @@ const Cast2D: React.FC<{ board: Board; f: number }> = ({ board, f }) => {
           }
           return w.extra ? { verb: w.moving ? "walk" : "talk", p: u, t, prop: null, holdProp: null } : castPerf(w.d, s, u, t);
         })();
-        return <g key={w.d.id + w.idx}>
+        // Subtle depth fade (distance haze desaturation & opacity nudge)
+        const farDist = Math.max(0, Math.min(1, (w.depth - 15) / 60));
+        const depthStyle = farDist > 0.1 ? { opacity: 1 - farDist * 0.22, filter: `grayscale(${(farDist * 35).toFixed(0)}%)` } : undefined;
+
+        return <g key={w.d.id + w.idx} style={depthStyle}>
           <ellipse cx={w.g.x} cy={w.g.y+1} rx={Math.max(8,w.k*18)} ry={Math.max(2,w.k*4)} fill="url(#castGroundShadow)" opacity={darkGround ? 0.72 : 1}/>
           <Performer2D x={w.g.x} y={w.g.y} scale={w.k} yaw={yaw} skin={o.skin ?? "#f6ead9"} cloth={o.dress ?? o.jacket} hair={o.hair} ink={inkStyleOf(w.d.role, w.idx, eraW, resolveRole(w.d.role, eraW))}
             verb={pf.verb} p={pf.p} t={pf.t} phase={t * 1.15 + w.idx * 0.17} frame={f + w.idx * 13} prop={null} holdProp={null}
@@ -149,6 +166,7 @@ export const StoryHybrid: React.FC = () => {
   const capFull = scene.caption;
   const era = String(scene.era ?? "").toLowerCase();
   const nightGrade = (scene.env ?? []).includes("night") || scene.tod === "night" || (scene.env ?? []).includes("space");
+  const golden = (scene.light ?? (scene.tod === "dawn" || scene.tod === "dusk" ? "golden" : "day")) === "golden";
   const historicCaption = /ancient|egypt|greek|roman|renaissance|medieval|viking/.test(era);
   const captionFont = historicCaption ? "Georgia, 'Times New Roman', serif" : "Arial Black, Impact, Liberation Sans, DejaVu Sans, sans-serif";
   const captionGlow = nightGrade ? "0 0 18px rgba(116,184,255,.28), 0 7px 0 rgba(0,0,0,.38)" : "0 7px 0 rgba(0,0,0,.35)";
@@ -161,12 +179,39 @@ export const StoryHybrid: React.FC = () => {
     const start = (acc / tot) * Math.max(1, n - 6) + 2; cap = ch[idx]; popK = 1 + 0.22 * Math.max(0, 1 - (local - start) / 5);
   }
   if (!kit) return null;
+
   return (
     <AbsoluteFill style={{ background: "#cfe3f2" }}>
       <ThreeCanvas width={1080} height={1920} gl={{ antialias: false, stencil: false, powerPreference: "high-performance" }} camera={{ fov: 40, near: 0.15, far: 1500 }}>
         <Inner kit={kit} board={board} />
       </ThreeCanvas>
       <Cast2D board={board} f={f} />
+
+      {/* Cinematic Post-Processing finishing pass: soft bloom, subtle vignette, film grain & light rays */}
+      <svg viewBox="0 0 1080 1920" width="1080" height="1920" style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+        <defs>
+          <radialGradient id="cinematicVignette" cx="50%" cy="50%" r="70%">
+            <stop offset="60%" stopColor="#000" stopOpacity="0" />
+            <stop offset="100%" stopColor="#050812" stopOpacity="0.42" />
+          </radialGradient>
+          <linearGradient id="sunsetRays" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#ffb347" stopOpacity="0.18" />
+            <stop offset="50%" stopColor="#ffcc00" stopOpacity="0.06" />
+            <stop offset="100%" stopColor="#ff5500" stopOpacity="0" />
+          </linearGradient>
+          <filter id="filmGrainNoise">
+            <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="2" result="noise" />
+            <feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.035 0" />
+          </filter>
+        </defs>
+        {/* Soft Vignette */}
+        <rect width="1080" height="1920" fill="url(#cinematicVignette)" />
+        {/* Light rays overlay for Golden Hour / Dawn / Dusk */}
+        {golden && <rect width="1080" height="1920" fill="url(#sunsetRays)" style={{ mixBlendMode: "screen" }} />}
+        {/* Film Grain Texture */}
+        <rect width="1080" height="1920" filter="url(#filmGrainNoise)" />
+      </svg>
+
       {cap ? <div style={{ position: "absolute", left: 0, right: 0, bottom: 228, display: "flex", justifyContent: "center", padding: "0 52px", pointerEvents: "none" }}><span style={{ display: "inline-block", maxWidth: "100%", textAlign: "center", fontFamily: captionFont, fontWeight: 900, fontSize: cap.length > 12 ? 66 : 76, lineHeight: 1.06, letterSpacing: historicCaption ? "0.5px" : "-0.8px", color: "#fff", WebkitTextStroke: "9px #17131b", paintOrder: "stroke fill", textShadow: captionGlow, padding: "7px 18px 10px", borderRadius: 12, background: "rgba(15,19,24,.24)", boxShadow: "0 5px 18px rgba(0,0,0,.12)", transform: `scale(${popK.toFixed(3)})` }}>{cap}</span></div> : null}
     </AbsoluteFill>
   );

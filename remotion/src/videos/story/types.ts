@@ -41,7 +41,7 @@ export type SceneDef = {
   biome?: string; season?: string; tod?: string;   // terrain (desert|ice|forest|ocean|swamp|savanna|mountain|jungle|farm), season (spring|summer|autumn|winter), time of day (dawn|noon|dusk|night)
   shop?: string; stock?: string[];  // interior "shop": what kind of shop, and the goods on its shelves/counter
   interior?: string;               // palace|cave|mine|house|jail: replaces the plaza with an enclosed interior set (only when the script is inside one)
-  env?: ("rain" | "storm" | "snow" | "night" | "space" | "fog" | "wind")[];   // ambient weather / sky for the whole scene
+  env?: ("rain" | "storm" | "snow" | "night" | "space" | "fog" | "wind" | "sandstorm" | "mist" | "leaves" | "petals")[];   // ambient weather / sky for the whole scene
   fx?: { type: "lightning" | "explosion" | "fire" | "smoke" | "sparkle"; at: number; until?: number; x?: number; z?: number; h?: number }[];  // timed effects (fractions of the scene)
   dur: number;                    // seconds
   light?: "day" | "golden";

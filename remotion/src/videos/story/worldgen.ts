@@ -4,7 +4,7 @@ import * as THREE from "three";
 import { PROC } from "./props3d";
 
 export type TerrainType = "forest"|"jungle"|"ocean"|"ocean-floor"|"mountain"|"canyon"|"desert"|"ice"|"plain"|"river"|"lake"|"coast"|"swamp"|"cave"|"savanna"|"city"|"railway"|"airport"|"harbour"|"space";
-export type WeatherType = "clear"|"rain"|"snow"|"fog"|"storm"|"drought"|"wind";
+export type WeatherType = "clear"|"rain"|"snow"|"fog"|"storm"|"drought"|"wind"|"sandstorm"|"mist"|"dust"|"haze";
 export type EraType = "stone-age"|"ancient"|"classical"|"medieval"|"early-modern"|"industrial"|"modern"|"futuristic"|"viking"|"renaissance"|"victorian"|"1920s"|"ww2"|"near-future"|"china"|"egypt"|"egyptian"|"greek"|"india"|"pirate"|"roman"|"space"|"space-age"|"wild-west"|"ww1";
 export type RegionType = "european"|"african"|"east-asian"|"south-asian"|"middle-eastern"|"mesoamerican";
 export type ArtifactType = "pottery"|"coin"|"tool"|"weapon"|"tablet"|"scroll"|"jewellery"|"bone"|"ruins"|"excavation";

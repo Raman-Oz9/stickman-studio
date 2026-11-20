@@ -124,7 +124,21 @@ export class StoryWorld {
       else c.pos.set(heroShip.position.x+32,13,heroShip.position.z+42);
       c.look.copy(heroShip.position);c.fov=phase<.18?58:phase<.82?48:52;
     }
-    { const ev = new Set<string>(((cur as SceneDef).env ?? []) as string[]); if (s.world?.weather === "rain") ev.add("rain"); if (s.world?.weather === "storm") ev.add("storm"); if (s.world?.weather === "snow") ev.add("snow"); if (s.world?.weather === "fog") ev.add("fog"); if (s.world?.weather === "wind") ev.add("wind"); if (s.tod === "night") ev.add("night"); if (s.season === "winter" && BIOMES[String(s.biome ?? "").toLowerCase()] !== "desert") ev.add("snow"); (cur as SceneDef).env = [...ev] as SceneDef["env"]; }
+    {
+      const ev = new Set<string>(((cur as SceneDef).env ?? []) as string[]);
+      if (s.world?.weather === "rain") ev.add("rain");
+      if (s.world?.weather === "storm") ev.add("storm");
+      if (s.world?.weather === "snow") ev.add("snow");
+      if (s.world?.weather === "fog") ev.add("fog");
+      if (s.world?.weather === "wind") ev.add("wind");
+      if (s.world?.weather === "sandstorm" || s.world?.weather === "dust") ev.add("sandstorm");
+      if (s.world?.weather === "mist" || s.world?.weather === "haze") ev.add("mist");
+      if (s.season === "winter") ev.add("snow");
+      if (s.season === "autumn") ev.add("leaves");
+      if (s.season === "spring") ev.add("petals");
+      if (s.tod === "night") ev.add("night");
+      (cur as SceneDef).env = [...ev] as SceneDef["env"];
+    }
     const E = this.fxe.update(cur, u, dur, c.pos, c.look, absT);
     if (E.shake > 0.01) { const k = E.shake * 0.28; c.pos.x += Math.sin(absT * 61) * k; c.pos.y += Math.sin(absT * 73 + 1) * k; c.look.x += Math.sin(absT * 53 + 2) * k * 0.6; }
     const ik = INTERIOR_ALIAS[String(s.interior ?? "").toLowerCase().replace(/[^a-z]/g, "")] as InteriorKind | undefined;
@@ -173,10 +187,30 @@ export class StoryWorld {
     const warmEra = /ancient|egypt|roman|greek|renaissance|wild-west|pirate/.test(eraGrade);
     if (coldEra) { TONE.uLitCol.value.lerp(new THREE.Vector3(0.663, 0.780, 0.812), 0.14); TONE.uShadeCol.value.lerp(new THREE.Vector3(0.090, 0.302, 0.408), 0.12); }
     else if (warmEra) { TONE.uLitCol.value.lerp(new THREE.Vector3(0.824, 0.639, 0.290), 0.13); TONE.uShadeCol.value.lerp(new THREE.Vector3(0.251, 0.235, 0.224), 0.1); }
-    if (se === "winter") { TONE.uLitCol.value.lerp(new THREE.Vector3(0.663, 0.780, 0.812), 0.18); TONE.uSat.value *= 0.9; }
-    else if (se === "autumn") { TONE.uLitCol.value.lerp(new THREE.Vector3(0.824, 0.639, 0.290), 0.16); TONE.uSat.value *= 1.04; }
-    else if (se === "spring") { TONE.uLitCol.value.lerp(new THREE.Vector3(0.443, 0.545, 0.298), 0.1); TONE.uSat.value *= 1.04; }
-    const wet = (s.env ?? []).includes("rain") || (s.env ?? []).includes("storm") || s.world?.weather === "rain" || s.world?.weather === "storm";
+    if (se === "winter") {
+      this.hemi.groundColor.set("#dcebf8");
+      this.hemi.color.set("#b6d2e8");
+      TONE.uLitCol.value.lerp(new THREE.Vector3(0.72, 0.82, 0.90), 0.22);
+      TONE.uSat.value *= 0.88;
+    } else if (se === "autumn") {
+      this.hemi.groundColor.set("#b59a45");
+      TONE.uLitCol.value.lerp(new THREE.Vector3(0.85, 0.68, 0.35), 0.18);
+    } else if (se === "spring") {
+      this.hemi.groundColor.set("#8fc45a");
+      TONE.uLitCol.value.lerp(new THREE.Vector3(0.55, 0.75, 0.42), 0.14);
+    }
+    const envSet = new Set<string>(((cur as SceneDef).env ?? []) as string[]);
+    if (envSet.has("sandstorm") || s.world?.weather === "sandstorm") {
+      this.hemi.color.set("#d4a359");
+      this.hemi.groundColor.set("#a87838");
+      this.sun.color.set("#f2c16b");
+      this.fog.color.set("#c49852");
+      this.fog.density = 0.006;
+    } else if (envSet.has("mist") || s.world?.weather === "mist" || envSet.has("fog")) {
+      this.fog.color.set("#b5c2cb");
+      this.fog.density = 0.007;
+    }
+    const wet = (cur as SceneDef).env?.includes("rain") || (cur as SceneDef).env?.includes("storm") || s.world?.weather === "rain" || s.world?.weather === "storm";
     if (wet) { TONE.uLitCol.value.lerp(new THREE.Vector3(0.663, 0.780, 0.812), 0.08); TONE.uSat.value *= 0.88; }
     if (s.world?.weather === "drought") { TONE.uLitCol.value.lerp(new THREE.Vector3(0.725, 0.604, 0.416), 0.18); TONE.uSat.value *= 0.92; }
     TONE.uLitCol.value.multiplyScalar(Math.max(0.5, E.dim)); TONE.uShadeCol.value.multiplyScalar(Math.max(0.55, E.dim));

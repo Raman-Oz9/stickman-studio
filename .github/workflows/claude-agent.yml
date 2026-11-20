@@ -1,0 +1,56 @@
+name: claude-agent
+# A second Claude account works the queue. Needs repo secret CLAUDE_CODE_OAUTH_TOKEN (from `claude setup-token`, Pro/Max plan)
+# or ANTHROPIC_API_KEY. Skips itself if neither exists.
+on:
+  schedule:
+    - cron: "11 */3 * * *"
+  workflow_dispatch:
+concurrency:
+  group: claude-agent
+  cancel-in-progress: false
+jobs:
+  work:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions: { contents: write, id-token: write, actions: write }
+    env:
+      HAS_KEY: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' || secrets.ANTHROPIC_API_KEY != '' }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: main, fetch-depth: 0 }
+      - name: Pick a task
+        id: pick
+        if: env.HAS_KEY == 'true'
+        run: |
+          git config user.name "claude-agent"; git config user.email "agents@users.noreply.github.com"
+          for t in 1 2 3 4; do
+            git fetch -q origin main; git checkout -q -B main origin/main
+            LINE=$(grep -n '^- \[ \]' docs/OPENCODE_QUEUE.md | sed -n 1p)
+            [ -z "$LINE" ] && { echo "task=" >> $GITHUB_OUTPUT; exit 0; }
+            N=${LINE%%:*}; sed -i "${N}s/^- \[ \]/- [~]/" docs/OPENCODE_QUEUE.md
+            git commit -qam "queue: claude-agent claims task $N" && git push -q origin main && break; sleep 5
+          done
+          { echo "task<<EOF"; sed -n "${N}p" docs/OPENCODE_QUEUE.md | cut -c7-; echo "EOF"; echo "n=$N"; } >> $GITHUB_OUTPUT
+      - uses: actions/setup-node@v4
+        if: env.HAS_KEY == 'true' && steps.pick.outputs.task != ''
+        with: { node-version: 22 }
+      - uses: anthropics/claude-code-action@v1
+        if: env.HAS_KEY == 'true' && steps.pick.outputs.task != ''
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            Work on this repo (stickman-studio). Read AGENTS.md, docs/CONTEXT.md, docs/HANDOFF.md first.
+            Owner rules: everything except characters is real 3D (no 2D sticker props), cinematic depth, characters are 2D ink humans.
+            Do exactly this task and edit only the files it names: ${{ steps.pick.outputs.task }}
+            Then run `cd remotion && npm install && npx tsc --noEmit`; fix until clean; append one line to docs/CONTEXT.md; commit; `git pull --rebase origin main`; `git push origin HEAD:main`.
+            If tsc cannot be made to pass, do not push to main: push to branch claude-agent/failed-${{ github.run_id }}.
+          claude_args: "--max-turns 60 --allowedTools Bash,Edit,Write,Read,Glob,Grep"
+      - name: Mark task
+        if: always() && env.HAS_KEY == 'true' && steps.pick.outputs.task != ''
+        run: |
+          N=${{ steps.pick.outputs.n }}
+          git fetch -q origin main; git checkout -q -B main origin/main
+          if git log origin/main --since="2 hours ago" --format=%an | grep -qi "claude-agent\|github-actions"; then D=x; else D=" "; fi
+          sed -i "${N}s/^- \[~\]/- [${D}]/" docs/OPENCODE_QUEUE.md
+          git commit -qam "queue: claude-agent task $N [$D]" && git push -q origin main || true

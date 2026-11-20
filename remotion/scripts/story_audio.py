@@ -3,7 +3,7 @@
 usage: story_audio.py board.json narration.wav out_mix.wav
 Music and SFX are synthesised here (numpy only). Levels follow the cartoon-short rule: music = 50 % of the voice level
 (-6 dB gated RMS), SFX = 50 % or less with peaks capped below the voice peak, then one linear gain + peak limiter."""
-import json, subprocess, sys
+import json, re, subprocess, sys
 import numpy as np
 
 SR = 44100

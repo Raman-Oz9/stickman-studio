@@ -11,7 +11,7 @@ RULES=[
 (("snow","winter","ice","arctic","glacier","himalaya","mountain"),("snow","rock","gravel")),
 (("forest","jungle","rainforest","woods","tree"),("forest_floor","grass","rock")),
 (("industrial","factory","steam","railway","train"),("industrial_metal","brick_wall","gravel","wood_planks")),
-(("modern","futuristic","skyscraper","city","airport","highway"),("concrete","asphalt","glass_facade")),
+(("modern","futuristic","skyscraper","skyscrapers","urban","airport","highway"),("concrete","asphalt","glass_facade")),
 (("farm","village","grassland","savanna","plain","field"),("grass","dry_dirt","wood_planks","thatch")),
 (("desert","sahara","dune","sand","camel"),("sand_dune","dry_dirt","rock")),
 (("river","lake","waterfall","flood","water"),("water_deep","rock")),
@@ -19,7 +19,7 @@ RULES=[
 def required(board):
  text=json.dumps(board,ensure_ascii=False).lower(); tokens=set(re.findall(r"[a-z0-9_-]+",text)); out=set()
  for keys,assets in RULES:
-  if any(k in tokens or k in text for k in keys): out.update(assets)
+  if any(k in tokens for k in keys): out.update(assets)
  if any(k in tokens for k in ("night","midnight","moon","stars")): out.add("sky_night")
  elif any(k in tokens for k in ("dusk","sunset","evening","dawn","golden")): out.add("sky_sunset")
  else: out.add("sky_day")
@@ -38,6 +38,9 @@ if __name__=="__main__":
    ({"scenes":[{"props":[{"name":"ancient scroll"}]}]},{"ancient_scroll_paper"})]
   for board,expected in cases:
    assert expected.issubset(set(required(board))),(expected-set(required(board)),board)
+  roman_city=required({"scenes":[{"world":{"era":"roman","terrain":"city"}}]})
+  assert "concrete" not in roman_city and "asphalt" not in roman_city
+  assert "water_deep" not in required({"title":"research methods"})
   print("story asset planner self-test passed")
  elif len(sys.argv)==2:
   for name in required(json.load(open(sys.argv[1],encoding="utf-8"))): print(name)

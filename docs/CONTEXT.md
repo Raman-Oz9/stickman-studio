@@ -185,3 +185,4 @@
 - 2026-11-20 Claude: Cloudflare Workers AI verified (17 textures/skies generated into remotion/public/tex). Pollinations sand_dune had a watermark: regenerated via Cloudflare. HF_TOKEN fallback added to gen_assets.py.
 - 2026-11-20 Claude: gen_assets.py providers now Cloudflare -> OVHcloud SDXL (free, no key) -> Stable Horde (free anon key); Hugging Face and Pollinations removed per owner.
 - 2026-11-20 Claude: gen_assets.py providers: Cloudflare -> OVHcloud SDXL (free, no key) -> Stable Horde (free anon key); Hugging Face and Pollinations removed per owner.
+- 2026-11-20 OpenCode: Added `remotion/scripts/qa_frames.mjs` to extract a frame every 2s with ffmpeg, generate a contact sheet JPG, and report near-uniform (flat colour, std-dev < 12) frames as "empty scene" in a JSON report.

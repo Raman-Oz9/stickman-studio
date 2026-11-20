@@ -35,28 +35,43 @@ const Mitten: React.FC<{ at: Vec; dir: number; grip?: boolean }> = ({ at, dir, g
   </g>
 );
 
-const Face: React.FC<{ expression: Expression; blink: boolean; look: number; lookY: number }> = ({ expression, blink, look, lookY }) => {
+const Face: React.FC<{ expression: Expression; blink: boolean; look: number; lookY: number; isTalking?: boolean; frame?: number }> = ({ expression, blink, look, lookY, isTalking = false, frame = 0 }) => {
   const ey = HEAD_Y - 8, ex = 24;
   const lx = look * 4, ly = lookY * 3;
   const brow = (s: -1 | 1) => {
     const x = s * ex;
     switch (expression) {
       case "angry": return `M ${x - s * 14} ${ey - 24} L ${x + s * 14} ${ey - 12}`;
-      case "shock": return `M ${x - 13} ${ey - 30} Q ${x} ${ey - 38} ${x + 13} ${ey - 30}`;
+      case "shock":
+      case "surprised":
+      case "afraid": return `M ${x - 13} ${ey - 30} Q ${x} ${ey - 38} ${x + 13} ${ey - 30}`;
       case "sad": return `M ${x + s * 13} ${ey - 14} L ${x - s * 13} ${ey - 26}`;
-      case "joy": return `M ${x - 13} ${ey - 28} Q ${x} ${ey - 36} ${x + 13} ${ey - 28}`;
+      case "joy":
+      case "happy": return `M ${x - 13} ${ey - 28} Q ${x} ${ey - 36} ${x + 13} ${ey - 28}`;
+      case "focused":
+      case "thinking": return s === 1 ? `M ${x - 13} ${ey - 32} Q ${x} ${ey - 37} ${x + 13} ${ey - 28}` : `M ${x - 13} ${ey - 25} Q ${x} ${ey - 27} ${x + 13} ${ey - 25}`;
       default: return `M ${x - 13} ${ey - 24} Q ${x} ${ey - 29} ${x + 13} ${ey - 24}`;
     }
   };
   const angryBrow = (s: -1 | 1) => `M ${s * ex + s * 14} ${ey - 24} L ${s * ex - s * 12} ${ey - 11}`;
   const mouth = () => {
     const y = HEAD_Y + 28;
+    if (isTalking) {
+      const ph = Math.floor(frame / 5) % 3;
+      if (ph === 0) return <ellipse cx="0" cy={y + 3} rx="10" ry="13" fill="#8c2a35" stroke={INK} strokeWidth="5" strokeLinejoin="round" />;
+      if (ph === 1) return <path d={`M -14 ${y + 2} Q 0 ${y + 16} 14 ${y + 2} Z`} fill="#8c2a35" stroke={INK} strokeWidth="5" strokeLinejoin="round" />;
+      return <path d={`M -12 ${y + 4} Q 0 ${y} 12 ${y + 4}`} fill="none" stroke={INK} strokeWidth="5" strokeLinecap="round" />;
+    }
     switch (expression) {
-      case "joy": return <path d={`M -26 ${y - 8} Q 0 ${y + 30} 26 ${y - 8} Z`} fill="#8c2a35" stroke={INK} strokeWidth="5" strokeLinejoin="round" />;
-      case "shock": return <ellipse cx="0" cy={y + 4} rx="11" ry="15" fill="#8c2a35" stroke={INK} strokeWidth="5" />;
+      case "joy":
+      case "happy": return <path d={`M -26 ${y - 8} Q 0 ${y + 30} 26 ${y - 8} Z`} fill="#8c2a35" stroke={INK} strokeWidth="5" strokeLinejoin="round" />;
+      case "shock":
+      case "surprised": return <ellipse cx="0" cy={y + 4} rx="11" ry="16" fill="#8c2a35" stroke={INK} strokeWidth="5" />;
+      case "afraid": return <path d={`M -14 ${y + 2} Q -6 ${y + 12} 0 ${y + 4} Q 6 ${y + 12} 14 ${y + 2}`} fill="#8c2a35" stroke={INK} strokeWidth="4.5" strokeLinejoin="round" />;
       case "angry": return <path d={`M -18 ${y + 8} Q 0 ${y - 6} 18 ${y + 8}`} fill="none" stroke={INK} strokeWidth="5.5" strokeLinecap="round" />;
       case "sad": return <path d={`M -16 ${y + 8} Q 0 ${y - 4} 16 ${y + 8}`} fill="none" stroke={INK} strokeWidth="5.5" strokeLinecap="round" />;
-      case "focused": return <path d={`M -14 ${y} L 14 ${y}`} fill="none" stroke={INK} strokeWidth="5.5" strokeLinecap="round" />;
+      case "focused":
+      case "thinking": return <path d={`M -14 ${y} L 14 ${y}`} fill="none" stroke={INK} strokeWidth="5.5" strokeLinecap="round" />;
       default: return <path d={`M -20 ${y - 2} Q 0 ${y + 14} 20 ${y - 2}`} fill="none" stroke={INK} strokeWidth="5.5" strokeLinecap="round" />;
     }
   };

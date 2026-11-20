@@ -4,7 +4,7 @@ import { twoBone } from "./actions";
 // Articulated flat-2D ink stickman. Local space: origin = ground point between the feet,
 // +x = forward (mirrored by `facing`), -y = up. Limbs are solved with two-bone IK so hands
 // land exactly on targets (coin hand-offs, pointing) and knees/elbows bend the right way.
-export type Expression = "smile" | "joy" | "focused" | "shock" | "angry" | "sad";
+export type Expression = "smile" | "joy" | "focused" | "shock" | "angry" | "sad" | "happy" | "afraid" | "surprised" | "thinking";
 export type Vec = [number, number];
 export type CharacterBuild = "lean" | "stocky";
 const BUILD_PROPORTIONS: Record<CharacterBuild, { torso: number; shoulder: number; arm: number; legSpread: number; legLength: number; legWidth: number; head: number; hand: number; shoe: number }> = {

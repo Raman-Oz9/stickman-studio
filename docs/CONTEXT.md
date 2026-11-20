@@ -1,3 +1,6 @@
+### 2026-11-20 — Validate and normalise generated texture files
+- Updated \`remotion/scripts/gen_assets.py\` to decode provider images, resize material textures to 1024×1024 and sky panoramas to 1536×768, convert every output to an actual optimised JPEG, and crossfade opposing texture borders for more reliable seamless tiling.
+- Added Pillow to both manual texture generation and story-driven generation workflows; invalid image responses now fall through to the next free provider and exhausted generation fails clearly rather than silently producing missing resources.
 ### 2026-11-20 — Make story texture generation demand-driven
 - Added `remotion/scripts/story_assets.py` to inspect a planned storyboard and select relevant ground, wall, fabric, water and sky textures from the existing free texture library; includes a self-test.
 - Updated `.github/workflows/story-video.yml` to generate only missing story-required textures during preparation, commit new files to the workflow's source branch, and pass the texture library to every render shard as an artifact.

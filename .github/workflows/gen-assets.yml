@@ -1,5 +1,5 @@
 name: gen-assets
-# Generates textures/skies with free image APIs (Cloudflare Workers AI if secrets exist, else Pollinations) and commits them to remotion/public/tex/
+# Generates validated, correctly sized JPEG textures/skies with free image providers.
 on:
   workflow_dispatch:
     inputs:
@@ -11,13 +11,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 40
     env:
-      ONLY: ${{ github.event.inputs.only }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      ONLY: \${{ github.event.inputs.only }}
+      CLOUDFLARE_ACCOUNT_ID: \${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: \${{ secrets.CLOUDFLARE_API_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         with: { ref: main }
-      - run: python3 remotion/scripts/gen_assets.py ${{ github.event.inputs.names }}
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - name: Install image validation dependency
+        run: python3 -m pip install --disable-pip-version-check Pillow
+      - name: Generate textures
+        run: python3 remotion/scripts/gen_assets.py \${{ github.event.inputs.names }}
       - name: Commit
         run: |
           git config user.name "gen-assets"; git config user.email "agents@users.noreply.github.com"

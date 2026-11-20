@@ -15,7 +15,7 @@ jobs:
   prep:
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.m.outputs.matrix }}
+      matrix: \${{ steps.m.outputs.matrix }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -27,26 +27,27 @@ jobs:
           pip install requests soundfile numpy edge-tts
           pip install torch --index-url https://download.pytorch.org/whl/cpu
           pip install kokoro huggingface_hub
+          pip install Pillow
           for i in 1 2 3 4 5; do pip install "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl" && break; sleep 20; done
       - name: Plan storyboard
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-        run: python3 remotion/scripts/plan_story.py "${{ inputs.script }}" board_plan.json
+          GEMINI_API_KEY: \${{ secrets.GEMINI_API_KEY }}
+          GROQ_API_KEY: \${{ secrets.GROQ_API_KEY }}
+        run: python3 remotion/scripts/plan_story.py "\${{ inputs.script }}" board_plan.json
       - name: Generate missing textures required by this story
         env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: \${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: \${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
           python3 remotion/scripts/story_assets.py --self-test
           mapfile -t requested < <(python3 remotion/scripts/story_assets.py board_plan.json)
           missing=()
-          for name in "${requested[@]}"; do
+          for name in "\${requested[@]}"; do
             [[ -s "remotion/public/tex/$name.jpg" ]] || missing+=("$name")
           done
-          if (( ${#missing[@]} )); then
-            echo "Generating story textures: ${missing[*]}"
-            python3 remotion/scripts/gen_assets.py "${missing[@]}"
+          if (( \${#missing[@]} )); then
+            echo "Generating story textures: \${missing[*]}"
+            python3 remotion/scripts/gen_assets.py "\${missing[@]}"
           else
             echo "All story-required textures already exist."
           fi
@@ -55,9 +56,9 @@ jobs:
           git add remotion/public/tex
           if ! git diff --cached --quiet; then
             git commit -m "assets: generate textures for requested story"
-            git fetch origin "${GITHUB_REF_NAME}"
+            git fetch origin "\${GITHUB_REF_NAME}"
             git rebase FETCH_HEAD
-            git push origin "HEAD:${GITHUB_REF_NAME}"
+            git push origin "HEAD:\${GITHUB_REF_NAME}"
           fi
       - uses: actions/upload-artifact@v4
         with:
@@ -67,11 +68,11 @@ jobs:
           retention-days: 14
       - name: Narration and timing
         env:
-          NARRATOR_VOICE: ${{ inputs.voice }}
+          NARRATOR_VOICE: \${{ inputs.voice }}
         run: PYTHONPATH=. python3 remotion/scripts/make_voice.py board_plan.json prep
       - name: Props (stickers)
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_API_KEY: \${{ secrets.GEMINI_API_KEY }}
         run: python3 remotion/scripts/make_stickers.py prep/board.json prep/stickers
       - name: Music and sound effects
         run: python3 remotion/scripts/story_audio.py prep/board.json prep/narration.wav prep/mix.wav
@@ -82,7 +83,7 @@ jobs:
           import json
           b=json.load(open("prep/board.json"))
           json.dump({"board":b,"post":{"dpr":0.5}},open("prep/props.json","w"))
-          total=sum(max(1,round(s["dur"]*30)) for s in b["scenes"]); n=int("${{ inputs.shards }}"); per=-(-total//n); rows=[]
+          total=sum(max(1,round(s["dur"]*30)) for s in b["scenes"]); n=int("\${{ inputs.shards }}"); per=-(-total//n); rows=[]
           for i in range(n):
               a=i*per; e=min(total-1,a+per-1)
               if a<=total-1: rows.append({"i":i,"a":a,"b":e})
@@ -96,7 +97,7 @@ jobs:
     timeout-minutes: 300
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.prep.outputs.matrix) }}
+      matrix: \${{ fromJson(needs.prep.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -111,15 +112,15 @@ jobs:
         working-directory: remotion
       - run: python3 scripts/fetch_kenney.py
         working-directory: remotion
-      - name: Render frames ${{ matrix.a }}-${{ matrix.b }}
+      - name: Render frames \${{ matrix.a }}-\${{ matrix.b }}
         working-directory: remotion
         run: |
           mkdir -p out
-          npx remotion render src/index.ts StoryShort out/part_${{ matrix.i }}.mp4 --frames=${{ matrix.a }}-${{ matrix.b }} --gl=swangle --codec=h264 --crf=17 --pixel-format=yuv420p --concurrency=1 --props=./public/prep/props.json --timeout=900000 --log=warn
+          npx remotion render src/index.ts StoryShort out/part_\${{ matrix.i }}.mp4 --frames=\${{ matrix.a }}-\${{ matrix.b }} --gl=swangle --codec=h264 --crf=17 --pixel-format=yuv420p --concurrency=1 --props=./public/prep/props.json --timeout=900000 --log=warn
       - uses: actions/upload-artifact@v4
         with:
-          name: part-${{ matrix.i }}
-          path: remotion/out/part_${{ matrix.i }}.mp4
+          name: part-\${{ matrix.i }}
+          path: remotion/out/part_\${{ matrix.i }}.mp4
   join:
     needs: shard
     runs-on: ubuntu-latest
@@ -142,4 +143,4 @@ jobs:
         run: |
           mkdir /tmp/pub && cp video.mp4 prep/board.json /tmp/pub/ && cd /tmp/pub && git init -q && git checkout -q -b story-out
           git config user.name bot && git config user.email bot@users.noreply.github.com
-          git add -A && git commit -qm story && git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" story-out
+          git add -A && git commit -qm story && git push -f "https://x-access-token:\${{ github.token }}@github.com/\${{ github.repository }}" story-out

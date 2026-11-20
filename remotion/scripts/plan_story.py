@@ -558,6 +558,95 @@ def crowds(b, script):
         elif re.search(CROWD, t): sc["extras"] = max(int(sc.get("extras") or 0), 8); sc["extrasRole"] = "townsfolk"
     return b
 
+def _split_durs(dur, n):
+    """Split dur into n parts each in [1.5, 3.5], evenly as possible."""
+    n = max(1, int(n))
+    lo, hi = 1.5, 3.5
+    if n * hi < dur:
+        n = max(1, int(dur / hi + 0.99))
+    if n * lo > dur:
+        n = max(1, int(dur / lo + 0.001))
+    base = dur / n
+    parts = [min(hi, max(lo, base)) for _ in range(n)]
+    total = sum(parts)
+    if total and abs(total - dur) > 0.05:
+        diff = dur - total
+        for _ in range(20):
+            if abs(diff) < 0.05:
+                break
+            cand = [i for i in range(n) if parts[i] < hi - 0.05] if diff > 0 else [i for i in range(n) if parts[i] > lo + 0.05]
+            if not cand:
+                break
+            i = max(cand, key=lambda idx: abs(parts[idx] - (hi if diff > 0 else lo)))
+            parts[i] = max(lo, min(hi, parts[i] + diff))
+            diff = dur - sum(parts)
+    return [round(p, 2) for p in parts]
+
+def _pick_focus_noun(s):
+    """Return the noun/face the sentence names: a prop, a held item, or the target character."""
+    for p in (s.get("props") or []):
+        return "@" + p["name"]
+    for c in s.get("cast", []):
+        if c.get("hold"):
+            return "@" + c["hold"]
+    return s.get("target") or (s.get("cast") or [{}])[0].get("id")
+
+def _reactor(s, main_who):
+    for c in s.get("cast", []):
+        if c.get("expr2") and c["id"] != main_who:
+            return c["id"]
+    for c in s.get("cast", []):
+        if c["id"] != main_who:
+            return c["id"]
+    return main_who
+
+def _word_timings(narration, dur):
+    ws = narration.split()
+    if not ws:
+        return []
+    per = dur / len(ws)
+    return [{"w": w, "t0": round(i * per, 3), "t1": round((i + 1) * per, 3)} for i, w in enumerate(ws)]
+
+SHOT_TEMPLATES = {
+    4: [("wide", "reveal"), ("medium", "pan"), ("close", "push"), ("close", "hold")],
+    3: [("wide", "reveal"), ("medium", "pan"), ("close", "push")],
+    2: [("wide", "reveal"), ("close", "push")],
+    1: [("wide", "reveal")],
+}
+
+def plan_shots(b):
+    """Reference video shot grammar: for every sentence pick establishing wide -> medium -> close-up on the
+    named noun/face -> reaction shot; add per-scene focus word timings; keep each shot 1.5-3.5 s."""
+    for s in b.get("scenes", []):
+        if s.get("fly") or not (s.get("narration") or "").strip():
+            s.pop("shots", None)
+            s.pop("words", None)
+            s.pop("focusWord", None)
+            continue
+        dur = round(max(1.5, min(3.5, float(s.get("dur", 3)))), 2)
+        s["dur"] = dur
+        n = 4 if dur >= 7.0 else 3 if dur >= 4.5 else 2 if dur >= 3.0 else 1
+        tmpl = SHOT_TEMPLATES[n]
+        durs = _split_durs(dur, n)
+        noun = _pick_focus_noun(s)
+        who = s.get("target") or (s.get("cast") or [{}])[0].get("id")
+        reactor = _reactor(s, who)
+        shots = []
+        for k, ((shot, move), d) in enumerate(zip(tmpl, durs)):
+            if k == 0:
+                focus = who
+            elif k == n - 1 and n == 4:
+                focus = reactor
+            else:
+                focus = noun if noun.startswith("@") else who
+            shots.append({"shot": shot, "move": move, "dur": d, "focus": focus})
+        s["shots"] = shots
+        nar = s.get("narration") or ""
+        s["words"] = _word_timings(nar, dur)
+        focus_name = noun[1:].lower() if noun.startswith("@") else noun.lower()
+        s["focusWord"] = next((w for w in nar.split() if w.lower().strip(".,;:!?'\"") == focus_name or focus_name in w.lower()), nar.split()[0] if nar.split() else "")
+    return b
+
 if __name__ == "__main__":
     script = open(sys.argv[1]).read()
     b = llm(script)
@@ -566,5 +655,6 @@ if __name__ == "__main__":
         b, src = heuristic(script), "heuristic"
     b = drop_worn(fly_pass(clean(establish(enrich_world(enrich_actions(enrich(split_clauses(b))))))))
     b = add_auto_models_and_icons(crowds(b, script))
+    b = plan_shots(b)
     json.dump(b, open(sys.argv[2], "w"), indent=1)
     print(f"{src}: {len(b['scenes'])} scenes, {sum(s['dur'] for s in b['scenes']):.0f}s -> {sys.argv[2]}")

@@ -61,7 +61,66 @@ export const subShotsFromNarration = (s: SceneDef, dur: number): Seg[] => {
   const base = s.az ?? 0;
   const tgt = s.target ?? s.cast[0]?.id ?? s.cast[0]?.id;
   const focus = s.focus ? (s.focus.startsWith("@") ? s.focus : "@" + s.focus) : undefined;
-  
+
+  // If scene has pre-defined shots (per-shot sequence), use them; otherwise fall back to word-based segmentation
+  const raw = (s as any).shots as Array<{ shot?: string; move?: string; dur?: number; focus?: string }> | undefined;
+  if (raw && raw.length > 0) {
+    const total = raw.reduce((a, b) => a + (b.dur || 2), 0) || dur;
+    let acc = 0;
+    const cuts = raw.map((sh) => {
+      const u0 = acc / total;
+      acc += (sh.dur || 2);
+      return { u0, sh };
+    });
+    (cuts as any[]).push({ u0: 1, sh: null });  // final cut
+
+    const segs: Seg[] = [];
+    for (let k = 0; k < cuts.length - 1; k++) {
+      const sh = cuts[k].sh;
+      if (!sh) continue;
+      const u0 = cuts[k].u0;
+      const u1 = cuts[k + 1].u0;
+      let lv0 = "char", lv1 = "face";
+      if (sh.shot === "wide") { lv0 = "env"; lv1 = "char"; }
+      else if (sh.shot === "medium") { lv0 = "char"; lv1 = "upper"; }
+      else if (sh.shot === "close") { lv0 = "upper"; lv1 = "face"; }
+      else if (sh.shot === "low") { lv0 = "low"; lv1 = "lowface"; }
+      else if (sh.shot === "high") { lv0 = "high"; lv1 = "high"; }
+      else if (sh.shot === "over") { lv0 = "over"; lv1 = "char"; }
+
+      // Determine who (cast or prop)
+      const who = (sh.focus && sh.focus.startsWith("@")) ? s.target : s.cast.find((c) => c.id === sh.focus)?.id ?? tgt;
+      // Determine camera azimuth (drift limited to 8° per shot)
+      const az0 = base + Math.max(-4, Math.min(4, (k % 2 ? 2 : -2)));
+      const az1 = base + Math.max(-4, Math.min(4, (k % 2 ? -2 : 2)));
+
+      let kfs: KF[];
+      // Handle special move types
+      if (sh.move === "pull") {
+        kfs = [
+          { u: 0, lv: lv1, who, az: az0 },
+          { u: 1, lv: lv0, who, az: az1 }
+        ];
+      } else if (sh.move === "hold") {
+        kfs = [
+          { u: 0, lv: lv0, who, az: az0 },
+          { u: 0.5, lv: lv1, who, az: az0 },
+          { u: 1, lv: lv1, who, az: az1 }
+        ];
+      } else {
+        kfs = [
+          { u: 0, lv: lv0, who, az: az0 },
+          { u: 1, lv: lv1, who, az: az1 }
+        ];
+      }
+
+      segs.push({ u0, u1, ease: "out", kfs });
+    }
+
+    return segs.length > 0 ? segs : [{ u0: 0, u1: 1, kfs: [{ u: 0, lv: "char", who: tgt, az: base }, { u: 1, lv: "face", who: tgt, az: base }] }];
+  }
+
+  // Fallback: word-based segmentation
   const words: WordTiming[] | undefined = (s as any).words;
   let beatTimes: number[] = [];
 
@@ -91,7 +150,7 @@ export const subShotsFromNarration = (s: SceneDef, dur: number): Seg[] => {
 
     let kfs: KF[];
     const who = s.cast[k % s.cast.length]?.id ?? tgt;
-    
+
     if (focus && k === cuts.length - 2) {
       kfs = [
         { u: 0, lv: "upper", who: tgt, az: az0 },

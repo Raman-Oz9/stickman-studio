@@ -1,3 +1,8 @@
+### 2026-11-19 — Add verify_sides.mjs check script for battle scenes and opposing armies
+- Added `remotion/scripts/verify_sides.mjs` to ensure battle scenes emit two distinct eras of extras (side A on the left facing right, side B on the right with `extrasEra` facing left, meeting in the middle).
+- Verified `plan_story.py` and `StoryHybrid.tsx` for `story_alexander2.txt` battle scenes.
+- Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` successfully with zero errors.
+
 ### 2026-11-19 — Verify character contact shadows in StoryHybrid
 - Verified soft radial elliptical contact shadows beneath every projected ink character and extra in `remotion/src/videos/story/StoryHybrid.tsx` and marked task complete in work queue.
 - Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` successfully with zero errors.
@@ -261,9 +266,19 @@
 - Both: update this file on every change; never claim "works" without viewing rendered frames; never send the owner a video that has not been frame-checked.
 ## CHANGELOG
 
+### 2026-11-19 — Add verify_sides.mjs check script for battle scenes and opposing armies
+- Added `remotion/scripts/verify_sides.mjs` to ensure battle scenes emit two distinct eras of extras (side A on the left facing right, side B on the right with `extrasEra` facing left, meeting in the middle).
+- Verified `plan_story.py` and `StoryHybrid.tsx` for `story_alexander2.txt` battle scenes.
+- Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` successfully with zero errors.
+
 ### 2026-11-19 — Implement opposed battle formations and active sword clash animations in plan_story.py and StoryHybrid.tsx
 - Updated `remotion/scripts/plan_story.py` to detect battle/fight narration verbs (charged, attacked, fought, clashed, war, etc.), emit opposing army extras (`extrasEra` for enemy), and position the leader at the front pointing/charging first.
 - Updated `remotion/src/videos/story/StoryHybrid.tsx` `Cast2D` to render two opposing army rows facing each other, clashing in the middle with alternating staggered sword swing/stab/block/fall animations and weapons in hand.
+- Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` successfully with zero errors.
+
+### 2026-11-19 — Add verify_sides.mjs check script for battle scenes and opposing armies
+- Added `remotion/scripts/verify_sides.mjs` to ensure battle scenes emit two distinct eras of extras (side A on the left facing right, side B on the right with `extrasEra` facing left, meeting in the middle).
+- Verified `plan_story.py` and `StoryHybrid.tsx` for `story_alexander2.txt` battle scenes.
 - Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` successfully with zero errors.
 
 ### 2026-11-19 — Verify character contact shadows in StoryHybrid

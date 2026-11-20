@@ -306,7 +306,7 @@ def split_clauses(b):
     out = []
     for s in b.get("scenes", []):
         nar = (s.get("narration") or s.get("caption") or "").strip()
-        parts = [p.strip(" ,;") for p in re.split(r",\s*(?:and |then |but )?|;\s*|\s+and then\s+|\s+then\s+|\s+and\s+(?=(?:he|she|they|the|a|then|[a-z]+ed)\b)", nar) if p and len(p.split()) >= 2]
+        parts = [p.strip(" ,;") for p in re.split(r",\s*|;\s*|\s+(?=and then\b|then\b|and\s+(?=(?:he|she|they|the|a|then|[a-z]+ed)\b))", nar) if p and len(p.split()) >= 2]   # connector words (but/and/then) are kept so the voice reads the full sentence
         if len(nar.split()) < 9 or len(parts) < 2 or s.get("interior"): out.append(s); continue
         parts = parts[:4]; tot = sum(len(p.split()) for p in parts); d0 = float(s.get("dur", 3))
         for k, p in enumerate(parts):

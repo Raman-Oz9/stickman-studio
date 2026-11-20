@@ -44,7 +44,11 @@ def main(board_path, out):
     if cur: groups.append(cur)
     parts = []
     for gi, g in enumerate(groups):
-        text = " ".join(texts[i] for i in g if texts[i]).strip()
+        fr = [texts[i].strip() for i in g if texts[i]]
+        text = ""
+        for k, f in enumerate(fr):   # join fragments with a comma unless they already end in punctuation
+            text += f + ("" if k == len(fr) - 1 else (" " if re.search(r"[.,;:!?…]$", f) else ", "))
+        text = text.strip()
         if not text:
             for i in g:
                 d = round(min(float(sc[i]["dur"]), 0.5) * FPS) / FPS; sc[i]["dur"] = d; parts.append(np.zeros(int(round(d * SR)), dtype="float32"))

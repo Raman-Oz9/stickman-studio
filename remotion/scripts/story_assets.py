@@ -5,9 +5,9 @@ RULES=[
 (("roman","rome","colosseum","aqueduct","legion"),("roman_stone","marble","cobblestone","limestone")),
 (("greek","greece","athens","sparta","parthenon"),("greek_marble","marble","limestone")),
 (("islamic","mosque","minaret","persian","arabia"),("islamic_tile","limestone","carpet_red")),
-(("china","chinese","pagoda","samurai","japan"),("roof_tiles","wood_planks")),
+(("china","chinese","pagoda","samurai","japan"),("pagoda_wood","roof_tiles","wood_planks")),
 (("medieval","castle","knight","viking"),("cobblestone","roof_tiles","thatch","wood_planks")),
-(("ship","sail","boat","harbor","harbour","ocean","sea","coast","pirate"),("wood_planks","water_deep")),
+(("ship","sail","boat","harbor","harbour","ocean","sea","coast","pirate"),("ship_sail_cloth","wood_planks","water_deep")),
 (("snow","winter","ice","arctic","glacier","himalaya","mountain"),("snow","rock","gravel")),
 (("forest","jungle","rainforest","woods","tree"),("forest_floor","grass","rock")),
 (("industrial","factory","steam","railway","train"),("industrial_metal","brick_wall","gravel","wood_planks")),
@@ -27,8 +27,17 @@ def required(board):
  return sorted(out)
 if __name__=="__main__":
  if sys.argv[1:]==["--self-test"]:
-  assert "sand_dune" in required({"scenes":[{"world":{"era":"egypt","terrain":"desert"}}]})
-  assert "water_deep" in required({"scenes":[{"world":{"terrain":"ocean","timeOfDay":"night"}}]})
+  cases=[
+   ({"scenes":[{"world":{"era":"egypt","terrain":"desert"}}]},{"egyptian_temple_wall","sand_dune"}),
+   ({"scenes":[{"world":{"era":"roman","terrain":"city"}}]},{"roman_stone","marble"}),
+   ({"scenes":[{"world":{"era":"greek"}}]},{"greek_marble"}),
+   ({"scenes":[{"world":{"era":"islamic"}}]},{"islamic_tile"}),
+   ({"scenes":[{"world":{"era":"china"}}]},{"pagoda_wood"}),
+   ({"scenes":[{"world":{"terrain":"ocean","timeOfDay":"night"},"props":[{"name":"ship"}]}]},{"ship_sail_cloth","water_deep","sky_night"}),
+   ({"scenes":[{"world":{"era":"modern","terrain":"city"}}]},{"concrete","asphalt","glass_facade"}),
+   ({"scenes":[{"props":[{"name":"ancient scroll"}]}]},{"ancient_scroll_paper"})]
+  for board,expected in cases:
+   assert expected.issubset(set(required(board))),(expected-set(required(board)),board)
   print("story asset planner self-test passed")
  elif len(sys.argv)==2:
   for name in required(json.load(open(sys.argv[1],encoding="utf-8"))): print(name)

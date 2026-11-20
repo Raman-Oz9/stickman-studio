@@ -1,3 +1,7 @@
+### 2026-11-20 — Validate generated texture image outputs
+- The free-provider texture generator now decodes provider responses, normalises materials to 1024×1024 and sky panoramas to 1536×768, converts outputs to real JPEG files, and verifies the saved image before reporting success.
+- Existing files are skipped only when they are valid JPEGs at the expected dimensions. Both manual generation and story-driven generation install Pillow for this validation.
+
 ### 2026-11-20 — Make story texture generation demand-driven
 - Added `remotion/scripts/story_assets.py` to inspect a planned storyboard and select relevant ground, wall, fabric, water and sky textures from the existing free texture library; includes a self-test.
 - Updated `.github/workflows/story-video.yml` to generate only missing story-required textures during preparation, commit new files to the workflow's source branch, and pass the texture library to every render shard as an artifact.

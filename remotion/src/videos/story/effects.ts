@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { NOINK } from "../bridge/ink";
 import type { SceneDef } from "./types";
 
-export type Env = "rain" | "storm" | "snow" | "night" | "space" | "fog" | "wind";
+export type Env = "rain" | "storm" | "snow" | "night" | "space" | "fog" | "wind" | "sandstorm" | "mist" | "leaves" | "petals";
 export type FxEv = { type: "lightning" | "explosion" | "fire" | "smoke" | "sparkle"; at: number; until?: number; x?: number; z?: number; h?: number };
 export type FxOut = { dim: number; flash: number; shake: number; space: boolean; night: boolean; fogK: number };
 
@@ -18,6 +18,10 @@ export class Effects {
   g = new THREE.Group();
   private rain = tag(new THREE.InstancedMesh(new THREE.BoxGeometry(0.022, 0.6, 0.022), basic("#bcd8f2", 0.55), 800));
   private snow = tag(new THREE.InstancedMesh(new THREE.SphereGeometry(0.04, 6, 5), basic("#ffffff"), 600));
+  private sand = tag(new THREE.InstancedMesh(new THREE.BoxGeometry(0.06, 0.02, 0.02), basic("#d49e35", 0.7), 400));
+  private mistParts = tag(new THREE.InstancedMesh(new THREE.SphereGeometry(0.8, 8, 6), basic("#c5d2de", 0.25), 150));
+  private leafParts = tag(new THREE.InstancedMesh(new THREE.BoxGeometry(0.12, 0.08, 0.02), basic("#d9822b", 0.85), 200));
+  private petalParts = tag(new THREE.InstancedMesh(new THREE.BoxGeometry(0.08, 0.06, 0.01), basic("#f4a6c8", 0.85), 200));
   private stars: THREE.Points;
   private moon = tag(new THREE.Mesh(new THREE.SphereGeometry(60, 24, 16), basic(new THREE.Color(2.2, 2.2, 1.9))));
   private planets = new THREE.Group();
@@ -42,8 +46,8 @@ export class Effects {
     mkPlanet(130, "#c9774a", "#e8c89a"); mkPlanet(70, "#4aa0d9"); mkPlanet(35, "#9a8fb8");
     for (let i = 0; i < 16; i++) { const c = tag(new THREE.Mesh(new THREE.SphereGeometry(1, 12, 9), basic("#3b4055"))); c.userData.i = i; this.clouds.add(c); }
     for (let i = 0; i < 9; i++) { const b = tag(new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), basic(new THREE.Color(5, 5, 6)))); this.bolt.add(b); }
-    this.g.add(this.rain, this.snow, this.stars, this.moon, this.planets, this.clouds, this.bolt, this.ball, this.core, this.ring, this.debris, this.smoke, this.flames, this.spark);
-    for (const o of [this.rain, this.snow, this.debris, this.smoke, this.flames, this.spark]) o.visible = false;
+    this.g.add(this.rain, this.snow, this.sand, this.mistParts, this.leafParts, this.petalParts, this.stars, this.moon, this.planets, this.clouds, this.bolt, this.ball, this.core, this.ring, this.debris, this.smoke, this.flames, this.spark);
+    for (const o of [this.rain, this.snow, this.sand, this.mistParts, this.leafParts, this.petalParts, this.debris, this.smoke, this.flames, this.spark]) o.visible = false;
     this.stars.visible = this.moon.visible = this.planets.visible = this.clouds.visible = this.bolt.visible = this.ball.visible = this.core.visible = this.ring.visible = false;
     for (const m of this.mz) { m.f.visible = m.s.visible = false; this.g.add(m.f, m.s); }
     root.add(this.g);
@@ -80,6 +84,39 @@ export class Effects {
       }
       this.snow.instanceMatrix.needsUpdate = true;
     } else this.snow.visible = false;
+    const sandstorm = env.has("sandstorm"), mist = env.has("mist"), leaves = env.has("leaves"), petals = env.has("petals");
+    if (sandstorm) {
+      this.sand.visible = true; out.dim = Math.min(out.dim, 0.82);
+      for (let i = 0; i < 400; i++) {
+        const x = cx + ((hh(i, 1) - 0.5) * 30 + t * 12) % 30 - 15, y = 1 + (hh(i, 2) * 8 + Math.sin(t * 3 + i) * 0.5) % 8, z = cz + (hh(i, 3) - 0.5) * 25;
+        D.position.set(x, y, z); D.rotation.set(t * 2 + i, t * 3, 0); D.scale.setScalar(0.7 + hh(i, 4)); D.updateMatrix(); this.sand.setMatrixAt(i, D.matrix);
+      }
+      this.sand.instanceMatrix.needsUpdate = true;
+    } else this.sand.visible = false;
+    if (mist) {
+      this.mistParts.visible = true;
+      for (let i = 0; i < 150; i++) {
+        const x = cx + (hh(i, 1) - 0.5) * 35 + Math.sin(t * 0.5 + i) * 2, y = 0.5 + (hh(i, 2) * 5 + t * 0.5) % 5, z = cz + (hh(i, 3) - 0.5) * 35;
+        D.position.set(x, y, z); D.rotation.set(0, 0, 0); D.scale.setScalar(2 + hh(i, 4) * 2); D.updateMatrix(); this.mistParts.setMatrixAt(i, D.matrix);
+      }
+      this.mistParts.instanceMatrix.needsUpdate = true;
+    } else this.mistParts.visible = false;
+    if (leaves) {
+      this.leafParts.visible = true;
+      for (let i = 0; i < 200; i++) {
+        const y = 10 - ((hh(i, 3) * 10 + t * 1.8) % 10), x = cx + (hh(i, 1) - 0.5) * 22 + Math.sin(t * 1.5 + i) * 1.2, z = cz + (hh(i, 2) - 0.5) * 22;
+        D.position.set(x, y, z); D.rotation.set(t * 2 + i, t * 4, t * 1.5); D.scale.setScalar(0.8 + hh(i, 4)); D.updateMatrix(); this.leafParts.setMatrixAt(i, D.matrix);
+      }
+      this.leafParts.instanceMatrix.needsUpdate = true;
+    } else this.leafParts.visible = false;
+    if (petals) {
+      this.petalParts.visible = true;
+      for (let i = 0; i < 200; i++) {
+        const y = 8 - ((hh(i, 3) * 8 + t * 1.4) % 8), x = cx + (hh(i, 1) - 0.5) * 20 + Math.sin(t * 2 + i) * 1.5, z = cz + (hh(i, 2) - 0.5) * 20;
+        D.position.set(x, y, z); D.rotation.set(t * 1.5 + i, t * 2, t); D.scale.setScalar(0.7 + hh(i, 4)); D.updateMatrix(); this.petalParts.setMatrixAt(i, D.matrix);
+      }
+      this.petalParts.instanceMatrix.needsUpdate = true;
+    } else this.petalParts.visible = false;
     // storm clouds roll in overhead
     this.clouds.visible = storm || env.has("rain");
     if (this.clouds.visible) this.clouds.children.forEach((c, i) => { const a = (i / 16) * Math.PI * 2 + t * 0.05; c.position.set(cx + Math.cos(a) * (5 + 9 * hh(i, 5)) , 14 + hh(i, 6) * 4, cz + Math.sin(a) * (5 + 9 * hh(i, 7)) - 4); c.scale.set(5 + 3 * hh(i, 8), 1.8 + hh(i, 9), 4 + 2 * hh(i, 10)); });

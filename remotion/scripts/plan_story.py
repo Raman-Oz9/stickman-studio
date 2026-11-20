@@ -121,6 +121,10 @@ def heuristic(script):
         if re.search(r"\b(storm|thunder|lightning)", low): env.append("storm")
         elif re.search(r"\brain", low): env.append("rain")
         if re.search(r"\b(snow|blizzard)", low): env.append("snow")
+        if re.search(r"\b(sandstorm|dust storm|desert storm|dust)\b", low): env.append("sandstorm")
+        if re.search(r"\b(mist|fog|haze|hazy)\b", low): env.append("mist")
+        if re.search(r"\b(leaves|autumn leaves|falling leaves)\b", low): env.append("leaves")
+        if re.search(r"\b(petals|blossoms|cherry blossoms|spring flowers)\b", low): env.append("petals")
         if re.search(r"\b(night|moon|dark)", low): env.append("night")
         if re.search(r"\b(space|planet|galaxy|astronaut|stars?)\b", low): env.append("space")
         if re.search(r"\b(thunder|lightning|bolt)", low): fxs.append({"type": "lightning", "at": 0.35})
@@ -262,7 +266,7 @@ def enrich_actions(b):
 
 
 LOCKW = [("city", r"skyscrapers?|downtown|metropolis|\bcity\b|\bcities\b|skyline|big city|new york|lagos|dubai|tokyo|london"), ("mine", r"gold mine|\bmine\b|mineshaft"), ("cave", r"\bcave\b|cavern"), ("ocean", r"ocean|\bsea\b|harbou?r|\bdock\b|\bport\b|shore|beach|voyage|sail(?:ed|ing|s)?|fleet|galleys?|triremes?|armada|crossed the|across the sea|\bship\b|\bboat\b|lighthouse|lake"), ("desert", r"egypt|babylon|persia|mesopotamia|sahara|arabia|\bnile\b|pyramids?|sphinx|sands?"), ("mountain", r"india|himalaya|\balps\b|everest|khyber|hindu kush"), ("palace", r"palace|castle|throne|royal|kingdom"), ("ice", r"arctic|iceberg|polar|north pole|glacier|tundra|igloo"), ("desert", r"desert|sahara|dunes?|oasis|caravan|camel|pyramid"), ("swamp", r"swamp|marsh|bog|wetland"), ("jungle", r"jungle|rainforest"), ("forest", r"forest|woods|woodland|lumberjack"), ("savanna", r"savanna|grassland|plains|steppe|safari|zebra|giraffe"), ("mountain", r"mountain|alps|himalaya|peak|\bhills?\b|volcano|cliff"), ("farm", r"\bfarm\b|\bfields?\b|harvest|barn|crops?|\bseed\b")]
-SEASONKW = [("winter", r"winter|snowy|snowing|blizzard|frozen|christmas"), ("autumn", r"autumn|\bfall\b|falling leaves"), ("spring", r"spring|blossom|\bbloom")]
+SEASONKW = [("winter", r"winter|snowy|snowing|blizzard|frozen|christmas"), ("autumn", r"autumn|\bfall\b|falling leaves|leaves"), ("spring", r"spring|blossom|\bbloom|petals"), ("summer", r"summer|sunny|hot")]
 TODKW = [("night", r"midnight|at night|\bnight\b|moonlit|moonlight|dark sky|\bstars\b"), ("dusk", r"dusk|sunset|evening|twilight"), ("dawn", r"dawn|sunrise|daybreak|early morning")]
 URBAN = r"town|village|city|market|street|square|shop|store"
 SCENERY = ("skyscraper", "skyscrapers", "city", "tower block", "shop", "store", "stall", "market", "building", "house", "palace", "castle", "mountain", "mountains", "volcano", "pyramid", "cave", "hill", "hills", "mine")
@@ -407,7 +411,7 @@ def clean(b):
             to = p.get("to")
             if isinstance(to, dict) and "x" in to: p["to"] = {"x": max(-16, min(16, float(to["x"]))), "z": max(-3, min(3, float(to.get("z", 0))))}
             else: p.pop("to", None)
-        ENVS = ("rain", "storm", "snow", "night", "space", "fog", "wind"); FXS = ("lightning", "explosion", "fire", "smoke", "sparkle")
+        ENVS = ("rain", "storm", "snow", "night", "space", "fog", "wind", "sandstorm", "mist", "leaves", "petals"); FXS = ("lightning", "explosion", "fire", "smoke", "sparkle")
         env = [e for e in (s.get("env") or []) if e in ENVS]
         if env: s["env"] = env
         else: s.pop("env", None)

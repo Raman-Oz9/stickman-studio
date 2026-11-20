@@ -10,10 +10,11 @@ export type PerformerProps = {
   skin: string; cloth: string; hair?: string; build?: "lean" | "stocky"; seed?: number;
   verb: Verb; p: number; t: number; frame: number; phase?: number;
   ink?: InkStyle; prop?: string | null; holdProp?: string | null; target?: Vec | null; expr?: Expression | null; gaze?: Vec | null;
+  isTalking?: boolean;
 };
 
 // One generic performer: any verb -> pose -> articulated ink stickman with its prop in hand.
-export const Performer2D: React.FC<PerformerProps> = ({ x, y, scale = 1, facing = 1, yaw, skin, cloth, hair, build, seed, verb, p, t, frame, phase, ink, prop, holdProp, target, expr, gaze }) => {
+export const Performer2D: React.FC<PerformerProps> = ({ x, y, scale = 1, facing = 1, yaw, skin, cloth, hair, build, seed, verb, p, t, frame, phase, ink, prop, holdProp, target, expr, gaze, isTalking }) => {
   const ph = phase ?? t * 1.15;
   const o = useMemo(() => perform({ verb, p, t, phase: ph, prop, target }), [verb, p, t, ph, prop, target]);
   const hp = o.hold?.prop ?? holdProp ?? null;
@@ -27,6 +28,7 @@ export const Performer2D: React.FC<PerformerProps> = ({ x, y, scale = 1, facing 
       hipDrop={o.hipDrop} hipX={o.hipX} lean={o.lean} rot={o.rot} headTilt={o.headTilt} grip={o.grip}
       expression={expr ?? o.expr ?? "smile"} gaze={gaze ?? o.gaze ?? null}
       style={ink} held={held} heldAng={o.hold?.ang ?? 0} seat={!!o.chair} extra={fly}
+      isTalking={isTalking ?? verb === "talk"}
     />
   );
 };

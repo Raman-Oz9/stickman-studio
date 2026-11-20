@@ -36,43 +36,57 @@ const Mitten: React.FC<{ at: Vec; dir: number; grip?: boolean }> = ({ at, dir, g
 );
 
 const Face: React.FC<{ expression: Expression; blink: boolean; look: number; lookY: number; isTalking?: boolean; frame?: number }> = ({ expression, blink, look, lookY, isTalking = false, frame = 0 }) => {
-  const ey = HEAD_Y - 8, ex = 24;
-  const lx = look * 4, ly = lookY * 3;
+  const ey = HEAD_Y - 6, ex = 22;
+  const lx = look * 5, ly = lookY * 4;
   const brow = (s: -1 | 1) => {
     const x = s * ex;
     switch (expression) {
-      case "angry": return `M ${x - s * 14} ${ey - 24} L ${x + s * 14} ${ey - 12}`;
+      case "angry":
+        return s === 1 ? `M ${x - 16} ${ey - 24} L ${x + 16} ${ey - 16}` : `M ${x - 16} ${ey - 16} L ${x + 16} ${ey - 24}`;
       case "shock":
       case "surprised":
-      case "afraid": return `M ${x - 13} ${ey - 30} Q ${x} ${ey - 38} ${x + 13} ${ey - 30}`;
-      case "sad": return `M ${x + s * 13} ${ey - 14} L ${x - s * 13} ${ey - 26}`;
+      case "afraid":
+        return `M ${x - 15} ${ey - 34} Q ${x} ${ey - 42} ${x + 15} ${ey - 34}`;
+      case "sad":
+        return `M ${x - 14} ${ey - 18} Q ${x} ${ey - 28} ${x + 14} ${ey - 18}`;
       case "joy":
-      case "happy": return `M ${x - 13} ${ey - 28} Q ${x} ${ey - 36} ${x + 13} ${ey - 28}`;
+      case "happy":
+      case "smile":
+        return `M ${x - 14} ${ey - 28} Q ${x} ${ey - 36} ${x + 14} ${ey - 28}`;
       case "focused":
-      case "thinking": return s === 1 ? `M ${x - 13} ${ey - 32} Q ${x} ${ey - 37} ${x + 13} ${ey - 28}` : `M ${x - 13} ${ey - 25} Q ${x} ${ey - 27} ${x + 13} ${ey - 25}`;
-      default: return `M ${x - 13} ${ey - 24} Q ${x} ${ey - 29} ${x + 13} ${ey - 24}`;
+      case "thinking":
+        return `M ${x - 14} ${ey - 28} Q ${x} ${ey - 33} ${x + 14} ${ey - 28}`;
+      default:
+        return `M ${x - 14} ${ey - 27} Q ${x} ${ey - 33} ${x + 14} ${ey - 27}`;
     }
   };
-  const angryBrow = (s: -1 | 1) => `M ${s * ex + s * 14} ${ey - 24} L ${s * ex - s * 12} ${ey - 11}`;
+  const mouthY = HEAD_Y + 34;
   const mouth = () => {
-    const y = HEAD_Y + 28;
     if (isTalking) {
-      const ph = Math.floor(frame / 5) % 3;
-      if (ph === 0) return <ellipse cx="0" cy={y + 3} rx="10" ry="13" fill="#8c2a35" stroke={INK} strokeWidth="5" strokeLinejoin="round" />;
-      if (ph === 1) return <path d={`M -14 ${y + 2} Q 0 ${y + 16} 14 ${y + 2} Z`} fill="#8c2a35" stroke={INK} strokeWidth="5" strokeLinejoin="round" />;
-      return <path d={`M -12 ${y + 4} Q 0 ${y} 12 ${y + 4}`} fill="none" stroke={INK} strokeWidth="5" strokeLinecap="round" />;
+      const ph = Math.floor(frame / 4) % 4;
+      if (ph === 0) return <ellipse cx="0" cy={mouthY + 2} rx="12" ry="14" fill="#8c2a35" stroke={INK} strokeWidth="4.5" strokeLinejoin="round" />;
+      if (ph === 1) return <path d={`M -14 ${mouthY} Q 0 ${mouthY + 18} 14 ${mouthY} Z`} fill="#8c2a35" stroke={INK} strokeWidth="4.5" strokeLinejoin="round" />;
+      if (ph === 2) return <ellipse cx="0" cy={mouthY + 4} rx="10" ry="8" fill="#8c2a35" stroke={INK} strokeWidth="4.5" strokeLinejoin="round" />;
+      return <path d={`M -12 ${mouthY + 2} Q 0 ${mouthY + 6} 12 ${mouthY + 2}`} fill="none" stroke={INK} strokeWidth="4.5" strokeLinecap="round" />;
     }
     switch (expression) {
       case "joy":
-      case "happy": return <path d={`M -26 ${y - 8} Q 0 ${y + 30} 26 ${y - 8} Z`} fill="#8c2a35" stroke={INK} strokeWidth="5" strokeLinejoin="round" />;
+      case "happy":
+      case "smile":
+        return <path d={`M -22 ${mouthY - 4} Q 0 ${mouthY + 24} 22 ${mouthY - 4} Z`} fill="#8c2a35" stroke={INK} strokeWidth="4.5" strokeLinejoin="round" />;
       case "shock":
-      case "surprised": return <ellipse cx="0" cy={y + 4} rx="11" ry="16" fill="#8c2a35" stroke={INK} strokeWidth="5" />;
-      case "afraid": return <path d={`M -14 ${y + 2} Q -6 ${y + 12} 0 ${y + 4} Q 6 ${y + 12} 14 ${y + 2}`} fill="#8c2a35" stroke={INK} strokeWidth="4.5" strokeLinejoin="round" />;
-      case "angry": return <path d={`M -18 ${y + 8} Q 0 ${y - 6} 18 ${y + 8}`} fill="none" stroke={INK} strokeWidth="5.5" strokeLinecap="round" />;
-      case "sad": return <path d={`M -16 ${y + 8} Q 0 ${y - 4} 16 ${y + 8}`} fill="none" stroke={INK} strokeWidth="5.5" strokeLinecap="round" />;
+      case "surprised":
+      case "afraid":
+        return <ellipse cx="0" cy={mouthY + 4} rx="12" ry="16" fill="#8c2a35" stroke={INK} strokeWidth="4.5" strokeLinejoin="round" />;
+      case "angry":
+        return <path d={`M -18 ${mouthY + 6} Q 0 ${mouthY - 4} 18 ${mouthY + 6} Z`} fill="#8c2a35" stroke={INK} strokeWidth="4.5" strokeLinejoin="round" />;
+      case "sad":
+        return <path d={`M -16 ${mouthY + 8} Q 0 ${mouthY - 4} 16 ${mouthY + 8}`} fill="none" stroke={INK} strokeWidth="4.5" strokeLinecap="round" />;
       case "focused":
-      case "thinking": return <path d={`M -14 ${y} L 14 ${y}`} fill="none" stroke={INK} strokeWidth="5.5" strokeLinecap="round" />;
-      default: return <path d={`M -20 ${y - 2} Q 0 ${y + 14} 20 ${y - 2}`} fill="none" stroke={INK} strokeWidth="5.5" strokeLinecap="round" />;
+      case "thinking":
+        return <path d={`M -14 ${mouthY + 2} L 14 ${mouthY + 2}`} fill="none" stroke={INK} strokeWidth="4.5" strokeLinecap="round" />;
+      default:
+        return <path d={`M -18 ${mouthY} Q 0 ${mouthY + 12} 18 ${mouthY}`} fill="none" stroke={INK} strokeWidth="4.5" strokeLinecap="round" />;
     }
   };
   return (
@@ -82,20 +96,22 @@ const Face: React.FC<{ expression: Expression; blink: boolean; look: number; loo
         const closed = blink || expression === "joy";
         return (
           <g key={s}>
-            <path d={expression === "angry" ? angryBrow(sd) : brow(sd)} fill="none" stroke={INK} strokeWidth="5.5" strokeLinecap="round" />
+            <path d={brow(sd)} fill="none" stroke={INK} strokeWidth="5.5" strokeLinecap="round" />
             {closed ? (
-              <path d={expression === "joy" ? `M ${s * ex - 12} ${ey + 3} Q ${s * ex} ${ey - 11} ${s * ex + 12} ${ey + 3}` : `M ${s * ex - 11} ${ey} Q ${s * ex} ${ey + 7} ${s * ex + 11} ${ey}`} fill="none" stroke={INK} strokeWidth="5.5" strokeLinecap="round" />
-            ) : expression === "shock" ? (
-              <g><circle cx={s * ex} cy={ey} r="13" fill="#fff" stroke={INK} strokeWidth="4.5" /><circle cx={s * ex + lx} cy={ey + ly} r="4.5" fill={INK} /></g>
+              <path d={expression === "joy" ? `M ${s * ex - 12} ${ey + 3} Q ${s * ex} ${ey - 11} ${s * ex + 12} ${ey + 3}` : `M ${s * ex - 12} ${ey} Q ${s * ex} ${ey + 8} ${s * ex + 12} ${ey}`} fill="none" stroke={INK} strokeWidth="5.5" strokeLinecap="round" />
             ) : (
-              <g><ellipse cx={s * ex} cy={ey} rx="11" ry="13" fill="#fffaf1" stroke={INK} strokeWidth="3.5" /><circle cx={s * ex + lx} cy={ey + ly} r={expression === "focused" || expression === "angry" ? 5.5 : 6.5} fill={INK} /><circle cx={s * ex + lx - 2} cy={ey + ly - 2} r="2.1" fill="#fff" /></g>
+              <g>
+                <ellipse cx={s * ex} cy={ey} rx="13" ry="16" fill="#fffaf1" stroke={INK} strokeWidth="3.8" />
+                <circle cx={s * ex + lx} cy={ey + ly} r="6.5" fill={INK} />
+                <circle cx={s * ex + lx - 2.5} cy={ey + ly - 2.5} r="2.5" fill="#fff" />
+              </g>
             )}
           </g>
         );
       })}
-      <path d="M -1 -420 Q 8 -413 2 -407" fill="none" stroke="#8a5b49" strokeWidth="3.5" strokeLinecap="round" opacity=".72" />
-      <ellipse cx="-39" cy="-408" rx="10" ry="5" fill="#d77f73" opacity=".18" />
-      <ellipse cx="39" cy="-408" rx="10" ry="5" fill="#d77f73" opacity=".18" />
+      <path d={`M 0 ${ey + 2} Q 3 ${ey + 12} -1 ${ey + 16}`} fill="none" stroke={INK} strokeWidth="3.5" strokeLinecap="round" />
+      <ellipse cx="-38" cy="-406" rx="9" ry="4.5" fill="#d77f73" opacity=".16" />
+      <ellipse cx="38" cy="-406" rx="9" ry="4.5" fill="#d77f73" opacity=".16" />
       {mouth()}
     </g>
   );
@@ -110,6 +126,7 @@ export type InkStickmanProps = {
   build?: "lean" | "stocky"; seed?: number;
   footFront?: Vec | null; footBack?: Vec | null; hipDrop?: number; hipX?: number; rot?: number; headTilt?: number; open?: number;
   yaw?: number; style?: InkStyle; held?: React.ReactNode; heldAng?: number; seat?: boolean; extra?: React.ReactNode;
+  isTalking?: boolean;
 };
 
 const shade = (hex: string, k: number) => {
@@ -141,6 +158,7 @@ export const InkStickman: React.FC<InkStickmanProps> = ({
   x, y, scale = 1, facing = 1, yaw: yawIn, skin, cloth, hair: hairIn, walk = 0, stand = 1, frontHand = null, backHand = null,
   expression = "smile", frame = 0, look: lookIn = 0, gaze = null, lean = 0, build = "lean", grip = false,
   footFront = null, footBack = null, hipDrop = 0, hipX = 0, rot = 0, headTilt = 0, held = null, heldAng = 0, style: st, seat = false, extra = null,
+  isTalking = false,
 }) => {
   const th = (((yawIn ?? facing * 80) % 360) * Math.PI) / 180, cs = Math.cos(th), sn = Math.sin(th);
   const hair = st && coversHair(st.hat) ? undefined : hairIn;
@@ -227,7 +245,7 @@ export const InkStickman: React.FC<InkStickmanProps> = ({
             <path d={headPath} fill={back ? hairC : skin} stroke={INK} strokeWidth="7" strokeLinejoin="round" />
             {back ? <path d={`M -70 ${HEAD_Y + 40} Q 0 ${HEAD_Y + 70} 70 ${HEAD_Y + 40}`} fill="none" stroke={shade(hairC, 0.6)} strokeWidth="5" /> : null}
             {hair && !back ? <g transform={`translate(0 ${HEAD_Y}) scale(1.38 1.5) translate(0 430)`}><path d="M -63 -438 C -70 -472 -48 -500 -18 -500 C 2 -524 39 -512 51 -485 C 69 -477 70 -452 63 -438 Q 37 -455 19 -457 Q -2 -449 -17 -461 Q -36 -447 -63 -438 Z" fill={hair} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" /><path d="M -25 -483 Q 7 -509 42 -484 Q 14 -492 0 -469" fill="none" stroke="#fff3d5" strokeWidth="4" strokeLinecap="round" opacity=".28" /></g> : null}
-            {!back ? <g transform={`translate(${sn * 44} 0) translate(0 ${HEAD_Y}) scale(${Math.max(0.34, cs) * 1.32} 1.32) translate(0 ${-HEAD_Y})`}><Face expression={expression} blink={blink} look={look} lookY={lookY} /></g> : null}
+            {!back ? <g transform={`translate(${sn * 44} 0) translate(0 ${HEAD_Y}) scale(${Math.max(0.34, cs) * 1.32} 1.32) translate(0 ${-HEAD_Y})`}><Face expression={expression} blink={blink} look={look} lookY={lookY} isTalking={isTalking} frame={frame} /></g> : null}
             {st ? <HatLayer hat={st.hat} color={st.hatColor} accent={st.accent} /> : null}
           </g>
         </g>

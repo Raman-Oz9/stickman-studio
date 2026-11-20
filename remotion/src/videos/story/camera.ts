@@ -8,18 +8,18 @@ import { DEFAULT_H, canon } from "./props3d";
 import { LOCS } from "./realm";
 
 type Lvl = { d: number; h: number; ly: number; fov: number; c: number };
-const LV: Record<string, Lvl> = {
-  env: { d: 11.5, h: 2.7, ly: 1.1, fov: 42, c: 0 },
-  char: { d: 6.4, h: 1.5, ly: 1.2, fov: 40, c: 0 },
-  upper: { d: 4.4, h: 1.6, ly: 1.5, fov: 38, c: 12 },
-  face: { d: 2.9, h: 1.7, ly: 1.72, fov: 36, c: 15 },
-  eyes: { d: 2.0, h: 1.74, ly: 1.76, fov: 33, c: 18 },
-  low: { d: 6.0, h: 0.5, ly: 1.75, fov: 46, c: 0 },
-  lowface: { d: 3.6, h: 0.7, ly: 1.75, fov: 42, c: 0 },
-  high: { d: 10, h: 10.5, ly: 0.3, fov: 48, c: 0 },
-  over: { d: 4.0, h: 1.75, ly: 1.45, fov: 38, c: 0 },
-  feet: { d: 3.8, h: 0.8, ly: 0.35, fov: 42, c: 0 },
-  prop: { d: 3.2, h: 1.3, ly: 0.5, fov: 36, c: 0 },
+const LV: Record<string, Lvl> = {   // tuned against docs/reference/reference-video.mp4: eye-level camera, subject 45-55 % of frame height in mediums, 75-90 % in close-ups
+  env: { d: 8.2, h: 1.9, ly: 1.2, fov: 42, c: 0 },
+  char: { d: 4.1, h: 1.45, ly: 1.15, fov: 40, c: 0 },
+  upper: { d: 2.9, h: 1.55, ly: 1.45, fov: 38, c: 10 },
+  face: { d: 2.0, h: 1.65, ly: 1.68, fov: 36, c: 12 },
+  eyes: { d: 1.45, h: 1.7, ly: 1.72, fov: 33, c: 14 },
+  low: { d: 4.1, h: 1.45, ly: 1.15, fov: 40, c: 0 },         // low-angle shots removed: they looked up at chins/ceilings
+  lowface: { d: 2.0, h: 1.65, ly: 1.68, fov: 36, c: 12 },
+  high: { d: 9, h: 8.5, ly: 0.3, fov: 48, c: 0 },
+  over: { d: 3.2, h: 1.7, ly: 1.4, fov: 38, c: 0 },
+  feet: { d: 4.1, h: 1.45, ly: 1.15, fov: 40, c: 0 },        // floor/feet shots removed: they only showed ground
+  prop: { d: 2.6, h: 1.3, ly: 0.7, fov: 36, c: 0 },
 };
 export type Cam = { pos: THREE.Vector3; look: THREE.Vector3; fov: number; roll: number; cInf: number };
 type KF = { u: number; lv: string; who?: string; az: number; lead?: number };   // who = cast id, undefined = group centre

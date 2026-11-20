@@ -4,12 +4,14 @@ on:
   workflow_dispatch:
     inputs:
       names: { description: "space separated names, empty = all missing", required: false, default: "" }
+      only: { description: "force one provider: cloudflare | ovh | horde (empty = auto)", required: false, default: "" }
 permissions: { contents: write }
 jobs:
   gen:
     runs-on: ubuntu-latest
     timeout-minutes: 40
     env:
+      ONLY: ${{ github.event.inputs.only }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
     steps:

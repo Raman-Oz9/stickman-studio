@@ -46,7 +46,7 @@ def horde(prompt, w=1024, h=1024):
     return urllib.request.urlopen(st["generations"][0]["img"], timeout=120).read()
 
 def make(name, prompt, w, h):
-    for fn in (cloudflare, ovh, horde):
+    for fn in [f for f in (cloudflare, ovh, horde) if not os.environ.get('ONLY') or f.__name__ == os.environ['ONLY']]:
         try:
             data = fn(prompt, w, h)
             if len(data) > 5000:

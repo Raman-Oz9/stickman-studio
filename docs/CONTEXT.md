@@ -1,3 +1,8 @@
+### 2026-11-20 — Make story texture generation demand-driven
+- Added `remotion/scripts/story_assets.py` to inspect a planned storyboard and select relevant ground, wall, fabric, water and sky textures from the existing free texture library; includes a self-test.
+- Updated `.github/workflows/story-video.yml` to generate only missing story-required textures during preparation, commit new files to the workflow's source branch, and pass the texture library to every render shard as an artifact.
+- Higgsfield is not required; generation uses the existing Cloudflare Workers AI, OVHcloud Stable Diffusion XL and Stable Horde fallback chain.
+
 ### 2026-11-20 — Implement 3D weather/season particles, fog, sky color, and ground tint in world.ts
 - Updated `remotion/src/videos/story/world.ts`, `effects.ts`, `types.ts`, `worldgen.ts`, and `plan_story.py` to support comprehensive weather (rain, snow, storm lightning flashes, sandstorm, mist) and season (spring petals, autumn falling leaves, winter snow-covered terrain ground tint) effects as 3D particles/fog with matching sky color and ground tint.
 - Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` successfully with zero errors.

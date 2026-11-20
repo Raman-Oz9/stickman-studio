@@ -17,6 +17,34 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install asset test dependency
+        run: python -m pip install --disable-pip-version-check Pillow
+      - name: Compile and smoke-test the asset factory
+        run: |
+          python -m py_compile remotion/scripts/gen_assets.py remotion/scripts/story_assets.py
+          python remotion/scripts/story_assets.py --self-test
+          python - <<'PY'
+          import importlib.util, io, os, tempfile
+          from PIL import Image
+          spec = importlib.util.spec_from_file_location("gen_assets", "remotion/scripts/gen_assets.py")
+          module = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(module)
+          module.OUT = tempfile.mkdtemp(prefix="asset-factory-")
+          sample = io.BytesIO()
+          Image.new("RGB", (512, 512), (120, 150, 180)).save(sample, format="PNG")
+          for name, width, height in (("material_test", 1024, 1024), ("sky_test", 1536, 768)):
+              size = module.save_valid_jpeg(sample.getvalue(), name, width, height)
+              path = os.path.join(module.OUT, name + ".jpg")
+              with Image.open(path) as image:
+                  assert image.format == "JPEG", image.format
+                  assert image.size == (width, height), image.size
+                  image.verify()
+              assert size > 0
+          print("JPEG conversion smoke test passed")
+          PY
       - name: Install
         working-directory: remotion
         run: npm install --no-audit --no-fund

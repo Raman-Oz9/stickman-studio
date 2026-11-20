@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Generate texture/backdrop resources with FREE image APIs and store them in remotion/public/tex/.
-Order: Cloudflare Workers AI (flux-1-schnell; needs CLOUDFLARE_ACCOUNT_ID + CLOUDFLARE_API_TOKEN) -> Pollinations (no key).
+Order: Cloudflare Workers AI (flux-1-schnell; needs CLOUDFLARE_ACCOUNT_ID + CLOUDFLARE_API_TOKEN) -> OVHcloud Stable Diffusion XL (free, no key) -> Stable Horde (free, no key).
 usage: python3 remotion/scripts/gen_assets.py [name ...]   (no args = every missing item)"""
 import base64, json, os, sys, time, urllib.parse, urllib.request
 
@@ -27,19 +27,26 @@ def cloudflare(prompt, w=1024, h=1024):
     r = json.load(urllib.request.urlopen(req, timeout=120))
     return base64.b64decode(r["result"]["image"])
 
-def pollinations(prompt, w=1024, h=1024):
-    url = f"https://image.pollinations.ai/prompt/{urllib.parse.quote(prompt)}?width={w}&height={h}&nologo=true&model=flux"
-    return urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "stickman-studio"}), timeout=180).read()
-
-def huggingface(prompt, w=1024, h=1024):
-    tok = os.environ.get("HF_TOKEN")
-    if not tok: raise RuntimeError("no HF_TOKEN")
-    req = urllib.request.Request("https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell",
-        data=json.dumps({"inputs": prompt}).encode(), headers={"Authorization": f"Bearer {tok}", "Content-Type": "application/json"})
+def ovh(prompt, w=1024, h=1024):
+    """OVHcloud AI Endpoints, Stable Diffusion XL: free anonymous (rate limited, no key)."""
+    req = urllib.request.Request("https://stable-diffusion-xl.endpoints.kepler.ai.cloud.ovh.net/api/text2image",
+        data=prompt.encode(), headers={"Content-Type": "text/plain", "Accept": "application/octet-stream"})
     return urllib.request.urlopen(req, timeout=180).read()
 
+def horde(prompt, w=1024, h=1024):
+    """Stable Horde (AI Horde): community Stable Diffusion workers, free anonymous key."""
+    H = {"apikey": "0000000000", "Content-Type": "application/json", "Client-Agent": "stickman-studio:1:raman"}
+    body = {"prompt": prompt, "params": {"width": 512, "height": 512, "steps": 25, "n": 1, "sampler_name": "k_euler_a", "cfg_scale": 7}, "nsfw": False, "censor_nsfw": True, "r2": True}
+    rid = json.load(urllib.request.urlopen(urllib.request.Request("https://aihorde.net/api/v2/generate/async", data=json.dumps(body).encode(), headers=H), timeout=60))["id"]
+    for _ in range(60):
+        time.sleep(5)
+        c = json.load(urllib.request.urlopen(urllib.request.Request(f"https://aihorde.net/api/v2/generate/check/{rid}", headers=H), timeout=60))
+        if c.get("done"): break
+    st = json.load(urllib.request.urlopen(urllib.request.Request(f"https://aihorde.net/api/v2/generate/status/{rid}", headers=H), timeout=60))
+    return urllib.request.urlopen(st["generations"][0]["img"], timeout=120).read()
+
 def make(name, prompt, w, h):
-    for fn in (cloudflare, huggingface, pollinations):
+    for fn in (cloudflare, ovh, horde):
         try:
             data = fn(prompt, w, h)
             if len(data) > 5000:

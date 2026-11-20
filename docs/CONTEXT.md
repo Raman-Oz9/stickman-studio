@@ -175,3 +175,4 @@
 - This is an incremental set-dressing pass, not universal world coverage or visual acceptance. Strict `cd remotion && npx tsc --noEmit` and native-resolution StoryHybrid still review are still required. No video is claimed.
 - 2026-11-20 Claude: Cloudflare Workers AI verified (17 textures/skies generated into remotion/public/tex). Pollinations sand_dune had a watermark: regenerated via Cloudflare. HF_TOKEN fallback added to gen_assets.py.
 - 2026-11-20 Claude: gen_assets.py providers now Cloudflare -> OVHcloud SDXL (free, no key) -> Stable Horde (free anon key); Hugging Face and Pollinations removed per owner.
+- 2026-11-20 Claude: gen_assets.py providers: Cloudflare -> OVHcloud SDXL (free, no key) -> Stable Horde (free anon key); Hugging Face and Pollinations removed per owner.

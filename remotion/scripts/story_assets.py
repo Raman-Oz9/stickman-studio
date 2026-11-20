@@ -1,20 +1,21 @@
 #!/usr/bin/env python3
 import json, re, sys
 RULES=[
-(("egypt","egyptian","pharaoh","pyramid","sphinx","nile"),("limestone","mud_brick","sand_dune","carpet_red")),
-(("roman","rome","colosseum","aqueduct","legion"),("marble","cobblestone","limestone")),
-(("greek","greece","athens","sparta","parthenon"),("marble","limestone")),
-(("islamic","mosque","minaret","persian","arabia"),("limestone","carpet_red")),
+(("egypt","egyptian","pharaoh","pyramid","sphinx","nile"),("egyptian_temple_wall","limestone","mud_brick","sand_dune","carpet_red")),
+(("roman","rome","colosseum","aqueduct","legion"),("roman_stone","marble","cobblestone","limestone")),
+(("greek","greece","athens","sparta","parthenon"),("greek_marble","marble","limestone")),
+(("islamic","mosque","minaret","persian","arabia"),("islamic_tile","limestone","carpet_red")),
 (("china","chinese","pagoda","samurai","japan"),("roof_tiles","wood_planks")),
 (("medieval","castle","knight","viking"),("cobblestone","roof_tiles","thatch","wood_planks")),
 (("ship","sail","boat","harbor","harbour","ocean","sea","coast","pirate"),("wood_planks","water_deep")),
 (("snow","winter","ice","arctic","glacier","himalaya","mountain"),("snow","rock","gravel")),
 (("forest","jungle","rainforest","woods","tree"),("forest_floor","grass","rock")),
-(("industrial","factory","steam","railway","train"),("gravel","wood_planks")),
-(("modern","futuristic","skyscraper","city","airport","highway"),("gravel","cobblestone")),
+(("industrial","factory","steam","railway","train"),("industrial_metal","brick_wall","gravel","wood_planks")),
+(("modern","futuristic","skyscraper","city","airport","highway"),("concrete","asphalt","glass_facade")),
 (("farm","village","grassland","savanna","plain","field"),("grass","dry_dirt","wood_planks","thatch")),
 (("desert","sahara","dune","sand","camel"),("sand_dune","dry_dirt","rock")),
-(("river","lake","waterfall","flood","water"),("water_deep","rock"))]
+(("river","lake","waterfall","flood","water"),("water_deep","rock")),
+(("scroll","parchment","papyrus","manuscript","scribe"),("ancient_scroll_paper",))]
 def required(board):
  text=json.dumps(board,ensure_ascii=False).lower(); tokens=set(re.findall(r"[a-z0-9_-]+",text)); out=set()
  for keys,assets in RULES:

@@ -2,7 +2,8 @@
 """Generate texture/backdrop resources with FREE image APIs and store them in remotion/public/tex/.
 Order: Cloudflare Workers AI (flux-1-schnell; needs CLOUDFLARE_ACCOUNT_ID + CLOUDFLARE_API_TOKEN) -> OVHcloud Stable Diffusion XL (free, no key) -> Stable Horde (free, no key).
 usage: python3 remotion/scripts/gen_assets.py [name ...]   (no args = every missing item)"""
-import base64, json, os, sys, time, urllib.parse, urllib.request
+import base64, io, json, os, sys, time, urllib.parse, urllib.request
+from PIL import Image
 
 OUT = os.path.join(os.path.dirname(__file__), "..", "public", "tex")
 os.makedirs(OUT, exist_ok=True)
@@ -57,12 +58,29 @@ def horde(prompt, w=1024, h=1024):
     st = json.load(urllib.request.urlopen(urllib.request.Request(f"https://aihorde.net/api/v2/generate/status/{rid}", headers=H), timeout=60))
     return urllib.request.urlopen(st["generations"][0]["img"], timeout=120).read()
 
+
+def save_valid_jpeg(data, name, w, h):
+    """Decode provider output, normalise dimensions/format, and verify the saved JPEG."""
+    with Image.open(io.BytesIO(data)) as source:
+        image = source.convert("RGB")
+    if image.size != (w, h):
+        image = image.resize((w, h), Image.Resampling.LANCZOS)
+    path = os.path.join(OUT, name + ".jpg")
+    image.save(path, format="JPEG", quality=90, optimize=True, progressive=True)
+    with Image.open(path) as check:
+        if check.format != "JPEG" or check.size != (w, h):
+            raise ValueError("saved image failed JPEG/dimension validation")
+        check.verify()
+    return os.path.getsize(path)
+
 def make(name, prompt, w, h):
     for fn in [f for f in (cloudflare, ovh, horde) if not os.environ.get('ONLY') or f.__name__ == os.environ['ONLY']]:
         try:
             data = fn(prompt, w, h)
             if len(data) > 5000:
-                open(os.path.join(OUT, name + ".jpg"), "wb").write(data); print("ok", name, fn.__name__, len(data)); return True
+                size = save_valid_jpeg(data, name, w, h)
+                print("ok", name, fn.__name__, f"{w}x{h}", f"{size} bytes")
+                return True
         except Exception as e:
             print("  ", fn.__name__, "failed:", str(e)[:100])
         time.sleep(2)
@@ -74,7 +92,14 @@ def main():
     n = 0
     for name, prompt, w, h in jobs:
         if want and name not in want: continue
-        if not want and os.path.exists(os.path.join(OUT, name + ".jpg")): continue
+        existing = os.path.join(OUT, name + ".jpg")
+        if not want and os.path.exists(existing):
+            try:
+                with Image.open(existing) as image:
+                    if image.format == "JPEG" and image.size == (w, h):
+                        continue
+            except Exception:
+                pass
         n += make(name, prompt, w, h)
     print("generated", n)
 

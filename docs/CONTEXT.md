@@ -1,3 +1,9 @@
+### 2026-11-20 — Make story texture generation demand-driven
+- Added \`remotion/scripts/story_assets.py\` to inspect a planned storyboard and select only the material/sky textures relevant to its era, biome, location, weather and named resources; includes deterministic self-tests.
+- Expanded the free-provider texture catalogue with era-specific Egyptian, Roman, Greek, Islamic, East Asian, industrial, modern and ship materials.
+- Updated \`.github/workflows/story-video.yml\` to generate only missing story-required textures during preparation, commit newly generated files to \`main\`, and pass the complete texture library to every render shard as an artifact. Existing procedural materials remain the fallback when a free provider is unavailable.
+- Higgsfield is not required; generation uses the existing Cloudflare Workers AI / Hugging Face / Pollinations fallback chain.
+
 ### 2026-11-20 — Implement 3D weather/season particles, fog, sky color, and ground tint in world.ts
 - Updated `remotion/src/videos/story/world.ts`, `effects.ts`, `types.ts`, `worldgen.ts`, and `plan_story.py` to support comprehensive weather (rain, snow, storm lightning flashes, sandstorm, mist) and season (spring petals, autumn falling leaves, winter snow-covered terrain ground tint) effects as 3D particles/fog with matching sky color and ground tint.
 - Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` successfully with zero errors.
@@ -174,3 +180,5 @@
 - Extended `worldgen.ts` with dedicated `ocean-floor` and `canyon` terrain presets. Ocean-floor dressing includes sandy seabed, rock scatter, branching coral, small animated fish schools, translucent light shafts and an animated translucent water sheet. Open-water/coast/river scenes now have a broader water body and animated wave marks. Canyon dressing adds stratified opposing cliff walls, a winding river and foreground hoodoo forms.
 - This is an incremental set-dressing pass, not universal world coverage or visual acceptance. Strict `cd remotion && npx tsc --noEmit` and native-resolution StoryHybrid still review are still required. No video is claimed.
 - 2026-11-20 Claude: Cloudflare Workers AI verified (17 textures/skies generated into remotion/public/tex). Pollinations sand_dune had a watermark: regenerated via Cloudflare. HF_TOKEN fallback added to gen_assets.py.
+- 2026-11-20 Claude: gen_assets.py providers now Cloudflare -> OVHcloud SDXL (free, no key) -> Stable Horde (free anon key); Hugging Face and Pollinations removed per owner.
+- 2026-11-20 Claude: gen_assets.py providers: Cloudflare -> OVHcloud SDXL (free, no key) -> Stable Horde (free anon key); Hugging Face and Pollinations removed per owner.

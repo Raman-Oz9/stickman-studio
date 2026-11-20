@@ -1,3 +1,7 @@
+### 2026-11-20 — Slow camera moves to 60% speed in camera.ts
+- Updated `remotion/src/videos/story/camera.ts` to slow every camera move to about 60% speed: minimum shot length 2.2 s, push/pull durations x1.6, beat interval at least 2.5 s (no more than one move per 2.5 s), and longer holds on faces and props.
+- Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` successfully with zero errors.
+
 ### 2026-11-19 — Add verify_sides.mjs check script for battle scenes and opposing armies
 - Added `remotion/scripts/verify_sides.mjs` to ensure battle scenes emit two distinct eras of extras (side A on the left facing right, side B on the right with `extrasEra` facing left, meeting in the middle).
 - Verified `plan_story.py` and `StoryHybrid.tsx` for `story_alexander2.txt` battle scenes.
@@ -265,6 +269,10 @@
 - Avoid collisions: ChatGPT owns `worldgen.ts`, `IllustratedProof.tsx`, boards/sample scripts for new world types. Claude owns `world.ts` mounts/actions, `props3d.ts` models, camera shot logic unless coordinated here. If both need `camera.ts`/`world.ts`, write the intent in this file first, make small commits, rebase on `main` before pushing.
 - Both: update this file on every change; never claim "works" without viewing rendered frames; never send the owner a video that has not been frame-checked.
 ## CHANGELOG
+
+### 2026-11-20 — Slow camera moves to 60% speed in camera.ts
+- Updated `remotion/src/videos/story/camera.ts` to slow every camera move to about 60% speed: minimum shot length 2.2 s, push/pull durations x1.6, beat interval at least 2.5 s (no more than one move per 2.5 s), and longer holds on faces and props.
+- Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` successfully with zero errors.
 
 ### 2026-11-19 — Add verify_sides.mjs check script for battle scenes and opposing armies
 - Added `remotion/scripts/verify_sides.mjs` to ensure battle scenes emit two distinct eras of extras (side A on the left facing right, side B on the right with `extrasEra` facing left, meeting in the middle).

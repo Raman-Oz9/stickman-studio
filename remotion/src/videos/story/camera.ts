@@ -65,11 +65,15 @@ export const subShotsFromNarration = (s: SceneDef, dur: number): Seg[] => {
   // If scene has pre-defined shots (per-shot sequence), use them; otherwise fall back to word-based segmentation
   const raw = (s as any).shots as Array<{ shot?: string; move?: string; dur?: number; focus?: string }> | undefined;
   if (raw && raw.length > 0) {
-    const total = raw.reduce((a, b) => a + (b.dur || 2), 0) || dur;
+    const adjustedShots = raw.map((sh) => ({
+      ...sh,
+      dur: Math.max(2.2, (sh.dur || 2.5) * 1.6)
+    }));
+    const total = adjustedShots.reduce((a, b) => a + (b.dur || 2.5), 0) || dur;
     let acc = 0;
-    const cuts = raw.map((sh) => {
+    const cuts = adjustedShots.map((sh) => {
       const u0 = acc / total;
-      acc += (sh.dur || 2);
+      acc += (sh.dur || 2.5);
       return { u0, sh };
     });
     (cuts as any[]).push({ u0: 1, sh: null });  // final cut
@@ -95,21 +99,23 @@ export const subShotsFromNarration = (s: SceneDef, dur: number): Seg[] => {
       const az1 = base + Math.max(-4, Math.min(4, (k % 2 ? -2 : 2)));
 
       let kfs: KF[];
-      // Handle special move types
+      // Handle special move types with longer holds on face/prop (push/pull durations x1.6, slower moves)
       if (sh.move === "pull") {
         kfs = [
           { u: 0, lv: lv1, who, az: az0 },
+          { u: 0.25, lv: lv1, who, az: az0 },
           { u: 1, lv: lv0, who, az: az1 }
         ];
       } else if (sh.move === "hold") {
         kfs = [
           { u: 0, lv: lv0, who, az: az0 },
-          { u: 0.5, lv: lv1, who, az: az0 },
+          { u: 0.25, lv: lv1, who, az: az0 },
           { u: 1, lv: lv1, who, az: az1 }
         ];
       } else {
         kfs = [
           { u: 0, lv: lv0, who, az: az0 },
+          { u: 0.3, lv: lv1, who, az: az0 },
           { u: 1, lv: lv1, who, az: az1 }
         ];
       }
@@ -117,28 +123,39 @@ export const subShotsFromNarration = (s: SceneDef, dur: number): Seg[] => {
       segs.push({ u0, u1, ease: "out", kfs });
     }
 
-    return segs.length > 0 ? segs : [{ u0: 0, u1: 1, kfs: [{ u: 0, lv: "char", who: tgt, az: base }, { u: 1, lv: "face", who: tgt, az: base }] }];
+    return segs.length > 0 ? segs : [{ u0: 0, u1: 1, kfs: [{ u: 0, lv: "char", who: tgt, az: base }, { u: 0.3, lv: "face", who: tgt, az: base }, { u: 1, lv: "face", who: tgt, az: base }] }];
   }
 
-  // Fallback: word-based segmentation
+  // Fallback: word-based segmentation (min shot length 2.2 s, no more than one move per 2.5 s)
   const words: WordTiming[] | undefined = (s as any).words;
-  let beatTimes: number[] = [];
+  const rawBeats: number[] = [];
 
   if (words && words.length > 0) {
-    for (let i = 0; i < words.length; i += 4) {
+    for (let i = 0; i < words.length; i += 8) {
       const t = words[Math.min(i, words.length - 1)].t0;
-      if (t > 0 && t < dur) beatTimes.push(t / dur);
+      if (t > 0 && t < dur) rawBeats.push(t);
     }
   } else if (s.narration) {
     const textWords = s.narration.split(/\s+/).filter(Boolean);
-    const timePerWord = Math.min(0.4, dur / Math.max(1, textWords.length));
-    for (let i = 4; i < textWords.length; i += 4) {
+    const timePerWord = Math.min(0.5, dur / Math.max(1, textWords.length));
+    for (let i = 8; i < textWords.length; i += 8) {
       const t = i * timePerWord;
-      if (t < dur) beatTimes.push(t / dur);
+      if (t < dur) rawBeats.push(t);
     }
   }
 
-  const cuts = [0, ...beatTimes.filter((t) => t > 0 && t < 1), 1];
+  const minInterval = 2.5;
+  const filteredBeats: number[] = [];
+  let lastT = 0;
+  for (const t of rawBeats) {
+    if (t - lastT >= minInterval && dur - t >= 2.2) {
+      filteredBeats.push(t);
+      lastT = t;
+    }
+  }
+  const beatTimes = filteredBeats.map(t => t / dur);
+
+  const cuts = [0, ...beatTimes, 1];
   const segs: Seg[] = [];
 
   for (let k = 0; k < cuts.length - 1; k++) {
@@ -154,24 +171,26 @@ export const subShotsFromNarration = (s: SceneDef, dur: number): Seg[] => {
     if (focus && k === cuts.length - 2) {
       kfs = [
         { u: 0, lv: "upper", who: tgt, az: az0 },
-        { u: 0.5, lv: "prop", who: focus, az: az0 },
+        { u: 0.3, lv: "prop", who: focus, az: az0 },
         { u: 1, lv: "prop", who: focus, az: az1 }
       ];
     } else if (k === 0 && s.shot === "wide") {
       kfs = [
         { u: 0, lv: "env", az: az0 },
+        { u: 0.3, lv: "char", who: tgt, az: az0 },
         { u: 1, lv: "char", who: tgt, az: az1 }
       ];
     } else if (k % 2 === 1 && s.cast.length > 1) {
       const reactWho = s.cast.find((c) => c.id !== who)?.id ?? who;
       kfs = [
         { u: 0, lv: "upper", who: who, az: az0 },
-        { u: 0.4, lv: "face", who: reactWho, az: az0 },
-        { u: 1, lv: "eyes", who: reactWho, az: az1 }
+        { u: 0.25, lv: "face", who: reactWho, az: az0 },
+        { u: 1, lv: "face", who: reactWho, az: az1 }
       ];
     } else {
       kfs = [
         { u: 0, lv: "char", who, az: az0 },
+        { u: 0.3, lv: "face", who, az: az1 },
         { u: 1, lv: "face", who, az: az1 }
       ];
     }
@@ -179,7 +198,7 @@ export const subShotsFromNarration = (s: SceneDef, dur: number): Seg[] => {
     segs.push({ u0, u1, ease: "out", kfs });
   }
 
-  return segs.length > 0 ? segs : [{ u0: 0, u1: 1, kfs: [{ u: 0, lv: "char", who: tgt, az: base }, { u: 1, lv: "face", who: tgt, az: base }] }];
+  return segs.length > 0 ? segs : [{ u0: 0, u1: 1, kfs: [{ u: 0, lv: "char", who: tgt, az: base }, { u: 0.3, lv: "face", who: tgt, az: base }, { u: 1, lv: "face", who: tgt, az: base }] }];
 };
 
 const VEHICLES = new Set([

@@ -42,7 +42,7 @@ def cloudflare(prompt, w=1024, h=1024):
 def ovh(prompt, w=1024, h=1024):
     """OVHcloud AI Endpoints, Stable Diffusion XL: free anonymous (rate limited, no key)."""
     req = urllib.request.Request("https://stable-diffusion-xl.endpoints.kepler.ai.cloud.ovh.net/api/text2image",
-        data=prompt.encode(), headers={"Content-Type": "text/plain", "Accept": "application/octet-stream"})
+        data=json.dumps({"prompt": prompt, "negative_prompt": "text, watermark, people"}).encode(), headers={"Content-Type": "application/json", "Accept": "image/jpeg"})
     return urllib.request.urlopen(req, timeout=180).read()
 
 def horde(prompt, w=1024, h=1024):

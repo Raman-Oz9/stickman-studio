@@ -1,3 +1,7 @@
+### 2026-11-20 — Make town, city, and village locations denser and more believable in realm.ts
+- Updated `remotion/src/videos/story/realm.ts` to add a rich procedural `buildTown` function and integrated it at the town/village center `(0,0)`, featuring cobblestone streets, houses with varied heights and pitched/gabled/flat roofs, canopy market stalls with goods, stone wells, perimeter fences, lamp posts, people-scale props (barrels and crates), and chimney smoke stacks.
+- Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` successfully with zero errors.
+
 ### 2026-11-20 — Add zero-cost cinematic finishing pass to StoryHybrid.tsx
 - Updated `remotion/src/videos/story/StoryHybrid.tsx` with a low-cost SVG/CSS post-processing finishing layer: mood-based colour grading (warm golden for epic/dawn/dusk, cool blue desaturated for sad/tragedy), radial vignette gradient, lightweight film grain noise, soft SVG bloom filter, sunset light rays, and depth-based desaturation on distant cast members.
 - Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` successfully with zero errors.

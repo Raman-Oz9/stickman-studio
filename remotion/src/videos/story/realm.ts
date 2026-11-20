@@ -80,6 +80,84 @@ const caveMouth = () => { const g = grp(mk(new THREE.DodecahedronGeometry(1, 0),
 const winTex = (seed: number) => { const c = document.createElement("canvas"); c.width = 64; c.height = 128; const g = c.getContext("2d")!; g.fillStyle = "#3a4660"; g.fillRect(0, 0, 64, 128); let r = seed; const rn = () => ((r = (r * 16807) % 2147483647) / 2147483647);
   for (let y = 0; y < 16; y++) for (let x = 0; x < 8; x++) { g.fillStyle = rn() < 0.14 ? "#fff1b8" : rn() < 0.6 ? "#8fc4ee" : "#4a6fa0"; g.fillRect(x * 8 + 1, y * 8 + 1, 6, 5); }
   const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.magFilter = THREE.NearestFilter; t.colorSpace = THREE.SRGBColorSpace; return t; };
+export const buildTown = (se: Season) => {
+  const g = new THREE.Group();
+  let sd = 137; const rnd = () => ((sd = (sd * 16807) % 2147483647) / 2147483647);
+  g.add(mk(B(140, 0.08, 140), "#b8a88a", 0, 0.02, 0));
+  g.add(mk(B(200, 0.06, 14), "#a69575", 0, 0.03, 0), mk(B(14, 0.06, 200), "#a69575", 0, 0.03, 0));
+  g.add(
+    mk(C(1.2, 1.4, 1.4, 12), "#8a8f9c", 0, 0.7, 0),
+    mk(C(1.0, 1.0, 0.2, 12), "#2a6fa0", 0, 1.3, 0),
+    mk(C(0.12, 0.12, 2.2, 8), "#6b3f1c", -0.9, 1.1, 0),
+    mk(C(0.12, 0.12, 2.2, 8), "#6b3f1c", 0.9, 1.1, 0),
+    mk(B(2.2, 0.12, 0.3), "#6b3f1c", 0, 2.1, 0),
+    mk(C(0.25, 0.2, 0.4, 8), "#8a5a2b", 0, 1.2, 0)
+  );
+  const stallPositions = [[-14, -14], [14, -14], [-14, 14], [14, 14], [0, -18], [0, 18]];
+  const canopyColors = ["#e23b3b", "#f5c32c", "#3a86ff", "#2a9d8f", "#9b5de5", "#f15bb5"];
+  stallPositions.forEach(([x, z], idx) => {
+    const cc = canopyColors[idx % canopyColors.length];
+    g.add(
+      mk(B(2.8, 1.1, 1.8), "#8a5a2b", x, 0.55, z),
+      mk(C(0.06, 0.06, 2.2, 6), "#5a3b1e", x - 1.2, 1.1, z - 0.7),
+      mk(C(0.06, 0.06, 2.2, 6), "#5a3b1e", x + 1.2, 1.1, z - 0.7),
+      mk(C(0.06, 0.06, 2.2, 6), "#5a3b1e", x - 1.2, 1.1, z + 0.7),
+      mk(C(0.06, 0.06, 2.2, 6), "#5a3b1e", x + 1.2, 1.1, z + 0.7),
+      mk(B(3.0, 0.35, 2.0), cc, x, 2.3, z, 1, 1, 1, 0.15),
+      mk(B(0.6, 0.4, 0.5), "#d9a15a", x - 0.5, 0.95, z),
+      mk(B(0.5, 0.35, 0.5), "#f0c27a", x + 0.5, 0.92, z)
+    );
+  });
+  const wallColors = ["#f0d9a8", "#e8dcc4", "#c8b99b", "#d2c4a8", "#bfa888", "#d8cda8"];
+  const roofColors = ["#c0353a", "#7a4b24", "#5a3b2a", "#8a5a2b", "#4a5568", "#2b3a4a"];
+  for (let k = 0; k < 16; k++) {
+    const angle = (k / 16) * Math.PI * 2 + 0.15;
+    const r = 26 + (k % 4) * 7;
+    const hx = Math.sin(angle) * r, hz = Math.cos(angle) * r;
+    const width = 4.2 + (k % 3) * 1.4, depth = 4.2 + ((k + 1) % 2) * 1.2, height = 5 + (k % 5) * 2.4;
+    const wc = wallColors[k % wallColors.length];
+    const rc = roofColors[k % roofColors.length];
+    const roofType = k % 3;
+
+    g.add(mk(B(width, height, depth), wc, hx, height / 2, hz, 1, 1, 1, 0, angle));
+    if (roofType === 0) {
+      g.add(mk(cone(Math.max(width, depth) * 0.7, 2.4, 4), rc, hx, height + 1.2, hz, 1, 1, 1, 0, angle + Math.PI / 4));
+    } else if (roofType === 1) {
+      g.add(mk(cone(Math.max(width, depth) * 0.65, 3.4, 8), rc, hx, height + 1.7, hz, 1, 1, 1, 0, angle));
+    } else {
+      g.add(
+        mk(B(width + 0.2, 0.4, depth + 0.2), "#7a7a84", hx, height + 0.2, hz, 1, 1, 1, 0, angle),
+        mk(B(1.4, 1.2, 1.4), "#6a6a74", hx, height + 0.8, hz)
+      );
+    }
+    const chimX = hx + Math.sin(angle) * 0.8, chimZ = hz + Math.cos(angle) * 0.8;
+    g.add(
+      mk(B(0.6, 2.2, 0.6), "#7a4b24", chimX, height + 2.1, chimZ),
+      mk(S(0.35, 8, 6), "#d8dce4", chimX, height + 3.4, chimZ, 1, 1.4, 1),
+      mk(S(0.28, 8, 6), "#e2e6ed", chimX + 0.2, height + 4.0, chimZ + 0.1, 0.8, 1.2, 0.8)
+    );
+    g.add(
+      mk(B(0.9, 1.8, 0.1), "#3a251c", hx, 0.9, hz + depth / 2 * Math.cos(angle)),
+      mk(B(0.5, 0.6, 0.08), "#bfe6f5", hx - width * 0.3 * Math.sin(angle), height * 0.6, hz),
+      mk(B(width + 0.4, 0.8, 0.15), "#8a5a2b", hx, 0.4, hz + depth / 2 * Math.cos(angle) + 0.8)
+    );
+  }
+  for (let i = 0; i < 20; i++) {
+    const a = (i / 20) * Math.PI * 2;
+    const rx = Math.sin(a) * 19, rz = Math.cos(a) * 19;
+    g.add(
+      mk(C(0.1, 0.1, 4.5, 6), "#2a2a30", rx, 2.25, rz),
+      mk(S(0.35, 8, 6), "#ffe9a8", rx, 4.6, rz)
+    );
+    if (i % 2 === 0) {
+      g.add(
+        mk(C(0.4, 0.4, 0.8, 12), "#8a5a2b", rx * 0.8, 0.4, rz * 0.8),
+        mk(B(0.6, 0.6, 0.6), "#6b4a2b", rx * 0.85 + 0.6, 0.3, rz * 0.85)
+      );
+    }
+  }
+  return g;
+};
 export const buildCity = () => {
   const g = new THREE.Group(); const tex = [1, 2, 3, 4].map((i) => winTex(i * 7919)); let sd = 31; const rnd = () => ((sd = (sd * 16807) % 2147483647) / 2147483647);
   g.add(mk(B(300, 0.3, 300), "#4a4d57", 0, 0.02, 0));                                                                          // asphalt
@@ -117,6 +195,7 @@ export const buildRealm = (se: Season) => {
   for(const [px,ph,pw,pz] of pyramidSpecs){const py=new THREE.Group(),levels=6;for(let k=0;k<levels;k++){const f=1-k/levels,w=pw*f+.8,h=ph/levels;py.add(mk(B(w,h,w),k%2?"#d5b47c":"#e0c18a",0,k*h+h/2,0));}py.position.set(LOCS.desert[0]+px,0,LOCS.desert[1]+pz);py.rotation.y=Math.PI/4;R.add(py);}
   const sphinx=grp(mk(B(13,3.8,28),"#c8ad7d",0,1.9,0),mk(S(3.2,14,10),"#d2b889",0,4.7,9,1,1.15,1),mk(B(5.4,2.8,4.2),"#315477",0,4.3,7));sphinx.position.set(LOCS.desert[0]+12,0,LOCS.desert[1]+12);R.add(sphinx);
   const oc = buildBiome("ocean", se, false); oc.position.set(LOCS.ocean[0], 0, LOCS.ocean[1]); R.add(oc);
+  const tw = buildTown(se); tw.name = "townPlaza"; tw.position.set(LOCS.town[0], 0, LOCS.town[1]); R.add(tw);
   const ct = buildCity(); ct.name = "modernCity"; ct.position.set(LOCS.city[0], 0, LOCS.city[1]); R.add(ct);
   const pc = castle(); pc.position.set(LOCS.palace[0], 0, LOCS.palace[1] - 28); R.add(pc);
   const mm = mineMouth(); mm.position.set(LOCS.mine[0], 0, LOCS.mine[1] - 14); R.add(mm);

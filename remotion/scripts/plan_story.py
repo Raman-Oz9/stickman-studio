@@ -345,6 +345,30 @@ def enrich_world(b):
             if h: s["tod"] = h
         if s.get("season") not in (None, "spring", "summer", "autumn", "winter"): s.pop("season")
         if s.get("tod") not in (None, "dawn", "noon", "dusk", "night"): s.pop("tod")
+        env_set = set(s.get("env") or [])
+        if re.search(r"\b(storm|thunder|lightning)\b", t): env_set.add("storm")
+        if re.search(r"\brain\b", t): env_set.add("rain")
+        if re.search(r"\b(snow|blizzard)\b", t): env_set.add("snow")
+        if re.search(r"\b(sandstorm|dust storm|desert storm|dust)\b", t): env_set.add("sandstorm")
+        if re.search(r"\b(mist|fog|haze|hazy)\b", t): env_set.add("mist")
+        if re.search(r"\b(leaves|autumn leaves|falling leaves)\b", t): env_set.add("leaves")
+        if re.search(r"\b(petals|blossoms|cherry blossoms|spring flowers)\b", t): env_set.add("petals")
+        if re.search(r"\b(night|moon|dark)\b", t): env_set.add("night")
+        if re.search(r"\b(space|planet|galaxy|astronaut|stars?)\b", t): env_set.add("space")
+        if s.get("season") == "winter": env_set.add("snow")
+        elif s.get("season") == "autumn": env_set.add("leaves")
+        elif s.get("season") == "spring": env_set.add("petals")
+        if env_set: s["env"] = list(env_set)
+        if s.get("world"):
+            if env_set and not s["world"].get("weather"):
+                for w in ("storm", "rain", "snow", "sandstorm", "mist", "fog"):
+                    if w in env_set: s["world"]["weather"] = w; break
+            if s.get("season") and not s["world"].get("season"): s["world"]["season"] = s["season"]
+        elif env_set or s.get("season"):
+            w_val = next((w for w in ("storm", "rain", "snow", "sandstorm", "mist", "fog") if w in env_set), None)
+            s.setdefault("world", {})
+            if w_val: s["world"]["weather"] = w_val
+            if s.get("season"): s["world"]["season"] = s["season"]
         # scenery lives at its own place of the realm, never as a prop in the wrong place; drop tiny unmentioned decorations
         s["props"] = [] if s.get("interior") else [p for p in (s.get("props") or []) if p["name"] not in SCENERY and (p.get("h", 1) >= 1.0 or p["name"].rstrip("s") in t or p["name"] in t)]
         seen = []; keep = []

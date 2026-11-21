@@ -126,17 +126,20 @@ export class StoryWorld {
     }
     {
       const ev = new Set<string>(((cur as SceneDef).env ?? []) as string[]);
-      if (s.world?.weather === "rain") ev.add("rain");
-      if (s.world?.weather === "storm") ev.add("storm");
-      if (s.world?.weather === "snow") ev.add("snow");
-      if (s.world?.weather === "fog") ev.add("fog");
-      if (s.world?.weather === "wind") ev.add("wind");
-      if (s.world?.weather === "sandstorm" || s.world?.weather === "dust") ev.add("sandstorm");
-      if (s.world?.weather === "mist" || s.world?.weather === "haze") ev.add("mist");
-      if (s.season === "winter") ev.add("snow");
-      if (s.season === "autumn") ev.add("leaves");
-      if (s.season === "spring") ev.add("petals");
-      if (s.tod === "night") ev.add("night");
+      const weather = s.weather ?? s.world?.weather;
+      if (weather === "rain") ev.add("rain");
+      if (weather === "storm") ev.add("storm");
+      if (weather === "snow") ev.add("snow");
+      if (weather === "fog") ev.add("fog");
+      if (weather === "wind") ev.add("wind");
+      if (weather === "sandstorm" || weather === "dust") ev.add("sandstorm");
+      if (weather === "mist" || weather === "haze") ev.add("mist");
+      const se = s.season ?? s.world?.season;
+      if (se === "winter") ev.add("snow");
+      if (se === "autumn") ev.add("leaves");
+      if (se === "spring") ev.add("petals");
+      const tod = s.tod ?? s.world?.timeOfDay;
+      if (tod === "night") ev.add("night");
       (cur as SceneDef).env = [...ev] as SceneDef["env"];
     }
     const E = this.fxe.update(cur, u, dur, c.pos, c.look, absT);

@@ -38,7 +38,7 @@ export type SceneDef = {
 
   est?: boolean;   // establishing shot of a building from outside
   loc?: string; fly?: { from: string; to: string }; front?: string;   // loc: which place of the realm this scene is in; fly: glide between two places; front: shop front sign text
-  biome?: string; season?: string; tod?: string;   // terrain (desert|ice|forest|ocean|swamp|savanna|mountain|jungle|farm), season (spring|summer|autumn|winter), time of day (dawn|noon|dusk|night)
+  biome?: string; season?: string; tod?: string; weather?: string;   // terrain (desert|ice|forest|ocean|swamp|savanna|mountain|jungle|farm), season (spring|summer|autumn|winter), time of day (dawn|noon|dusk|night)
   shop?: string; stock?: string[];  // interior "shop": what kind of shop, and the goods on its shelves/counter
   interior?: string;               // palace|cave|mine|house|jail: replaces the plaza with an enclosed interior set (only when the script is inside one)
   env?: ("rain" | "storm" | "snow" | "night" | "space" | "fog" | "wind" | "sandstorm" | "mist" | "leaves" | "petals")[];   // ambient weather / sky for the whole scene

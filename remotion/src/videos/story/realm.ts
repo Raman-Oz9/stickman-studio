@@ -1,6 +1,7 @@
 // The REALM: one big connected world (town in the middle, roads out to the palace, farm, forest, desert, harbor + sea, swamp, jungle,
 // savanna, ice, mountains with a gold mine and a cave). A scene sets `loc`; the whole realm slides so that location sits at the origin
 // (all scene coordinates stay local), neighbours are visible in the distance, and `fly` scenes glide the camera between locations.
+import { TEX } from "./texcache";
 import * as THREE from "three";
 import { twoTone } from "../bridge/shade";
 import { mk, B, C, S, cone, grp } from "./props3d";
@@ -184,7 +185,7 @@ export const buildRealm = (se: Season) => {
   const waterPos=waterGeo.attributes.position,waterCol=new Float32Array(waterPos.count*3);
   for(let i=0;i<waterPos.count;i++){const z=waterPos.getZ(i),c=new THREE.Color("#0b3c60").lerp(new THREE.Color("#367fa0"),(z+750)/1500*.45+.2);waterCol[i*3]=c.r;waterCol[i*3+1]=c.g;waterCol[i*3+2]=c.b;}
   waterGeo.setAttribute("color",new THREE.BufferAttribute(waterCol,3));waterGeo.computeVertexNormals();
-  const water=new THREE.Mesh(waterGeo,new THREE.MeshPhongMaterial({color:"#ffffff",vertexColors:true,specular:"#9bd7e4",shininess:72}));water.position.set(1480,0,-520);water.userData.waterSurface={baseY:-1.6,phase:.6};water.receiveShadow=false;R.add(water);
+  const wmat=new THREE.MeshPhongMaterial({color:"#ffffff",vertexColors:true,specular:"#9bd7e4",shininess:72});if(TEX.water_deep){const wt=TEX.water_deep.clone();wt.needsUpdate=true;wt.repeat.set(90,75);wmat.map=wt;}const water=new THREE.Mesh(waterGeo,wmat);water.position.set(1480,0,-520);water.userData.waterSurface={baseY:-1.6,phase:.6};water.receiveShadow=false;R.add(water);
   const waves: THREE.Mesh[] = []; let sd = 9; const rnd = () => ((sd = (sd * 16807) % 2147483647) / 2147483647);
   for (let i = 0; i < 160; i++) { const w = mk(B(8 + rnd() * 14, 0.2, 0.9), "#9ed3f7", 560 + rnd() * 900, -1.4, 0 - rnd() * 900); w.castShadow = false; waves.push(w); R.add(w); }
   R.userData.waves = waves;

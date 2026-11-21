@@ -105,7 +105,7 @@ def _find(words, low):
     return [n for _, n in sorted(out) if n]
 
 def heuristic(script):
-    sents = [s.strip() for s in re.split(r"(?<=[.!?])\s+", script.strip()) if s.strip()]
+    sents = [s.strip() for s in re.split(r"(?<=[.!?])[\"'”’)\]]*\s+", script.strip()) if s.strip()]
     low_all = script.lower()
     era0 = next((e for p, e in ERAKW if re.search(p, low_all)), None); era = era0
     scenes, cast_seen, n = [], [], len(sents)
@@ -247,6 +247,7 @@ def enrich(b):
 ACTV = [("dig", r"\b(dug|dig|digging)\b", "shovel"), ("write", r"\b(wrote|write|writing|signed)\b", "pen"), ("drink", r"\b(drank|drink|drinking|sipped)\b", "cup"), ("throw", r"\b(threw|throw|throwing|tossed|hurled)\b", None), ("handOver", r"\b(handed|gave|passed him|passed her)\b", None), ("place", r"\b(placed|set down|put down|laid|put the)\b", None), ("open", r"\bopened the (door|gate|chest|box)\b", None), ("push", r"\bpushed\b", None), ("pull", r"\bpulled\b", None), ("lean", r"\bleaned\b", None), ("climb", r"\bclimbed\b", None)]
 def enrich_actions(b):
     for s in b.get("scenes", []):
+        if s.get("quote"): continue
         t = ((s.get("narration") or "") + " " + (s.get("caption") or "")).lower(); cast = s.get("cast") or []
         if not cast or any(c.get("do") or c.get("mount") or c.get("act") == "run" for c in cast): continue
         for typ, rx, prop in ACTV:
@@ -275,6 +276,11 @@ def enrich_world(b):
     """Place every scene at its own location of the realm (carried forward until the story moves), plus season / time of day."""
     cur = None
     for s in b.get("scenes", []):
+        if s.get("quote"):
+            # quote scenes inherit location from cur (same as the narration context)
+            s.setdefault("loc", cur or "town")
+            # skip world-place/tod/season inference
+            continue
         t = ((s.get("narration") or "") + " " + (s.get("caption") or "")).lower()
         if s.get("interior"): s["loc"] = "town"; cur = None; continue
         hit = next((k for k, rx in LOCKW if re.search(rx, t)), None) or (s.get("loc") if s.get("loc") in LOCS and s.get("loc") != "town" else None)
@@ -305,6 +311,8 @@ def split_clauses(b):
     """One scene per clause so every verb gets its own live beat (crept in / grabbed the coins / jumped on the horse)."""
     out = []
     for s in b.get("scenes", []):
+        if s.get("quote"):
+            out.append(s); continue
         nar = (s.get("narration") or s.get("caption") or "").strip()
         parts = [p.strip(" ,;") for p in re.split(r",\s*|;\s*|\s+(?=and then\b|then\b|and\s+(?=(?:he|she|they|the|a|then|[a-z]+ed)\b))", nar) if p and len(p.split()) >= 2]   # connector words (but/and/then) are kept so the voice reads the full sentence
         if len(nar.split()) < 9 or len(parts) < 2 or s.get("interior"): out.append(s); continue
@@ -349,7 +357,7 @@ def fly_pass(b, limit=4):
     """When two consecutive outdoor scenes are in different places, glide the camera through the sky from one to the other."""
     out = []; n = 0
     for i, s in enumerate(b.get("scenes", [])):
-        if out and not s.get("interior") and not out[-1].get("interior") and s.get("loc") and out[-1].get("loc") and s["loc"] != out[-1]["loc"] and n < limit and not s.get("front") and not out[-1].get("front"):
+        if out and not s.get("quote") and not out[-1].get("quote") and not s.get("interior") and not out[-1].get("interior") and s.get("loc") and out[-1].get("loc") and s["loc"] != out[-1]["loc"] and n < limit and not s.get("front") and not out[-1].get("front"):
             who = copy.deepcopy(s["cast"][0]); who["x"] = 5000; who["z"] = 5000; who.pop("to", None); who.pop("act", None); who.pop("mount", None); who.pop("hold", None); who.pop("do", None)
             out.append({"dur": 2.2, "shot": "wide", "cast": [who], "target": who["id"], "loc": s["loc"], "light": s.get("light", "day"), "caption": "", "narration": "", "fly": {"from": out[-1]["loc"], "to": s["loc"]}, "extras": 0}); n += 1
         out.append(s)
@@ -463,6 +471,117 @@ def clean(b):
     b["models"] = lib
     return b
 
+# ---------- quote cutaways (owner P0) ----------
+# Detect quoted lines ("..." / ‘...’ / said X, ...) inside a sentence and split the
+# scene into narration / quote / narration sub-scenes. The quote scene is tagged with
+# speaker, mood and shot="close" so make_voice.py and StoryHybrid.tsx can give the
+# character their own voice, a face close-up and talking-mouth animation.
+QUOTE_RE = re.compile(r'["“]([^"”]{2,}?)["”]')
+_SAYV = r"(?:said|says|shouted|shouts|replied|replies|declared|declares|whispered|whispers|cried|cries|yelled|yells|asked|asks|roared|roars|exclaimed|exclaims|answered|answers|murmured|murmurs|announced|announces|called|calls|begged|begs|proclaimed|proclaims|snapped|snaps)"
+_MOODV = [
+    (r"\b(shout|shouts|shouted|yell|yells|yelled|roar|roars|roared|snap|snaps|furious|angry|command|orders|demand)\b", "stern"),
+    (r"\b(whisper|whispers|whispered|murmur|murmurs|mutter|muttered|afraid|nervous|trembl|scared|worried)\b", "nervous"),
+    (r"\b(laugh|laughs|laughed|joke|joked|grin|grinned|smile|smiled|happy|joy|celebrat)\b", "laugh"),
+    (r"\b(cry|cries|cried|wept|weep|sad|sorrow|mourn|pain|hurt)\b", "pained"),
+    (r"\b(declare|declares|declared|proclaim|proclaims|proud|boast)\b", "stern"),
+    (r"\b(ask|asks|asked|beg|begs|begged|plead|pleaded)\b", "nervous"),
+    (r"\b(shock|shocked|gasps|gasped|surprise|surprised|impossible)\b", "shock"),
+]
+_EXPRS = set(EXPR)
+
+def _mood_for(text):
+    low = text.lower()
+    for rx, m in _MOODV:
+        if re.search(rx, low): return m
+    if re.search(r"!", low): return "stern"
+    return "smile"
+
+def _speaker_from(text, cast, default):
+    low = text.lower(); cands = []
+    for c in cast:
+        for nm in {str(c.get("id", "")).lower(), str(c.get("role", "")).lower()}:
+            if nm and re.search(r"\b" + re.escape(nm) + r"\b", low):
+                cands.append((low.find(nm), c.get("id")))
+    if cands: return sorted(cands)[0][1]
+    return default
+
+def _extract_quote(nar):
+    """Return (pre, quote, post) for a sentence containing a quoted line, else None."""
+    m = QUOTE_RE.search(nar)
+    if m:
+        q = m.group(1).strip()
+        if len(q.split()) >= 1:
+            return nar[:m.start()].strip(" ,;:.-"), q, nar[m.end():].strip(" ,;:.-")
+    m = re.search(r"\b" + _SAYV + r"\b\s*[,:]\s*(.+)$", nar, re.I)
+    if m and len(m.group(1).split()) >= 3:
+        q = m.group(1).strip(" ,;:.!?\"'“”")
+        pre = nar[:m.start()].rstrip(" ,;:.-")
+        if len(pre.split()) >= 1 and len(q.split()) >= 3:
+            return pre, q, ""
+    return None
+
+def detect_quotes(b):
+    out = []
+    for s in b.get("scenes", []):
+        nar = (s.get("narration") or s.get("caption") or "").strip()
+        if not nar or s.get("quote"):
+            out.append(s); continue
+        got = _extract_quote(nar)
+        if not got:
+            out.append(s); continue
+        pre, q, post = got
+        cast = s.get("cast") or []
+        speaker = _speaker_from(pre + " " + q + " " + post, cast, s.get("target") or (cast[0]["id"] if cast else "narrator"))
+        mood = _mood_for(pre + " " + q)
+        mood = mood if mood in _EXPRS else "smile"
+
+        def clone(narr, dur):
+            n = copy.deepcopy(s)
+            n["narration"] = n["caption"] = narr
+            n["dur"] = round(dur, 2)
+            return n
+
+        n_words = max(1, len(nar.split()))
+        if len(pre.split()) >= 2:
+            out.append(clone(pre, max(1.6, float(s.get("dur", 3)) * len(pre.split()) / n_words)))
+        qs = clone(q, max(2.0, min(5.0, 0.55 + len(q.split()) / 2.5)))
+        qs["quote"] = True; qs["speaker"] = speaker; qs["mood"] = mood; qs["shot"] = "close"; qs["move"] = "push"
+        spdef = next((copy.deepcopy(c) for c in cast if c.get("id") == speaker), {"id": speaker, "role": "man"})
+        for k in ("to", "act", "do", "mount", "hold", "holdAt", "aim", "walkAt"):
+            spdef.pop(k, None)
+        spdef["x"] = 0.0; spdef["z"] = 0.2
+        spdef["expr"] = mood; spdef.pop("expr2", None); spdef.pop("at2", None)
+        spdef["look"] = "cam"
+        qs["cast"] = [spdef]; qs["target"] = spdef["id"]; qs["extras"] = 0
+        qs["props"] = []
+        for k in ("focus", "fx", "shots", "words", "focusWord"): qs.pop(k, None)
+        out.append(qs)
+        if len(post.split()) >= 2:
+            out.append(clone(post, max(1.6, float(s.get("dur", 3)) * len(post.split()) / n_words)))
+    b["scenes"] = out
+    return b
+
+def quotes_finalize(b):
+    """After the other passes, lock each quote scene down to one centred speaker."""
+    act_by_mood = {"stern": "point", "laugh": "cheer", "grin": "cheer", "shock": "wave", "smile": "nod"}
+    for s in b.get("scenes", []):
+        if not s.get("quote"): continue
+        cast = s.get("cast") or []
+        keep = next((c for c in cast if c.get("id") == s.get("speaker")), cast[0] if cast else None)
+        if keep is None: continue
+        keep["x"] = 0.0; keep["z"] = 0.2; keep["look"] = "cam"
+        for k in ("to", "do", "mount", "hold", "holdAt", "aim", "walkAt"): keep.pop(k, None)
+        mood = s.get("mood") or "smile"
+        keep["expr"] = mood if mood in _EXPRS else "smile"
+        keep.pop("expr2", None); keep.pop("at2", None)
+        act = act_by_mood.get(mood)
+        if act: keep["act"] = act
+        s["cast"] = [keep]; s["target"] = keep["id"]
+        s["extras"] = 0; s["props"] = []
+        s["shot"] = "close"; s["move"] = "push"
+        s["narration"] = s["caption"] = str(s.get("narration") or "").strip()
+    return b
+
 def _load_props3d_known():
     known = set(LIB) | set(ROLES)
     try:
@@ -536,6 +655,10 @@ def crowds(b, script):
     """Dedupe repeated scenes, set the era (dominant era of the story, per-scene override), armies/crowds as visible groups."""
     seen, out = set(), []
     for sc in b["scenes"]:
+        if sc.get("quote"):
+            # quote scenes bypass dedup and extras assignment (single speaker only)
+            out.append(sc)
+            continue
         cap = (sc.get("narration") or sc.get("caption") or "").strip().lower()
         if cap and cap in seen: continue
         if cap: seen.add(cap)
@@ -544,6 +667,7 @@ def crowds(b, script):
     low = script.lower()
     main = next((e for p, e in ERAKW if re.search(p, low) and e != "arabian"), None)     # protagonists' era (Alexander -> greek)
     for sc in b["scenes"]:
+        if sc.get("quote"): continue
         t = (sc.get("narration") or sc.get("caption") or "").lower()
         here = next((e for p, e in ERAKW if re.search(p, t) and e not in ("arabian",)), None)
         sc["era"] = here or sc.get("era") or main
@@ -657,7 +781,7 @@ if __name__ == "__main__":
     src = "llm"
     if not b or not b.get("scenes"):
         b, src = heuristic(script), "heuristic"
-    b = drop_worn(fly_pass(clean(establish(enrich_world(enrich_actions(enrich(split_clauses(b))))))))
+    b = drop_worn(fly_pass(quotes_finalize(clean(establish(enrich_world(enrich_actions(enrich(split_clauses(detect_quotes(b)))))))))
     b = add_auto_models_and_icons(crowds(b, script))
     b = plan_shots(b)
     json.dump(b, open(sys.argv[2], "w"), indent=1)

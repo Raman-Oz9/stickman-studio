@@ -192,3 +192,4 @@
 - 2026-11-21: plan_story.py: fix unclosed paren in __main__ (agent landing broke Plan storyboard)
 - 2026-11-21 OpenCode: Added a soft ground contact shadow ellipse under character feet in InkStickman.tsx (blurred, 35% black, scaled by body width, skewed away from key light, drawn before legs). Verified clean TypeScript compilation.
 - 2026-11-21: texcache.ts + heightfieldGround uses generated tex (grass/sand/rock/forest/gravel/snow); StoryHybrid preloads textures
+- 2026-11-21: realm.ts water uses water_deep texture

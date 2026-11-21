@@ -26,7 +26,7 @@ const ball=(g:THREE.Group,r:number,c:string,x:number,y:number,z:number,sx=1,sy=1
 const cylinder=(g:THREE.Group,r:number,h:number,c:string,x:number,y:number,z:number,seg=8)=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,seg),mat(c));m.position.set(x,y,z);m.castShadow=true;g.add(m);return m;};
 const poly=(g:THREE.Group,pts:[number,number,number][],c:string)=>{const v:number[]=[];for(let i=1;i<pts.length-1;i++)v.push(...pts[0],...pts[i],...pts[i+1]);const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.Float32BufferAttribute(v,3));geo.computeVertexNormals();const m=new THREE.Mesh(geo,mat(c));g.add(m);return m;};
 const seasonGround=(p:WorldParams)=>p.season==="winter"?P.sky:p.season==="spring"?P.green:P.earth;
-const heightfieldGround=(g:THREE.Group,kind:string,base:string)=>{
+const heightfieldGround=(g:THREE.Group,kind:string,base:string,season?:string)=>{
   const seg=52,geo=new THREE.PlaneGeometry(260,260,seg,seg);geo.rotateX(-Math.PI/2);
   const pos=geo.attributes.position,col=new Float32Array(pos.count*3),baseCol=new THREE.Color(base);
   const hAt=(x:number,z:number)=>{
@@ -67,8 +67,8 @@ const heightfieldGround=(g:THREE.Group,kind:string,base:string)=>{
     c.multiplyScalar(.88+hash(i,kind.length)*.2);col[i*3]=c.r;col[i*3+1]=c.g;col[i*3+2]=c.b;
   }
   geo.setAttribute("color",new THREE.BufferAttribute(col,3));geo.computeVertexNormals();
-  const gtex=TEX[groundTexName(kind)];
-  if(gtex){const t=gtex.clone();t.needsUpdate=true;t.repeat.set(34,34);const cc=geo.attributes.color as THREE.BufferAttribute;for(let i=0;i<cc.count;i++)cc.setXYZ(i,.5+cc.getX(i)*.62,.5+cc.getY(i)*.62,.5+cc.getZ(i)*.62);}
+  const gtex=TEX[groundTexName(kind,season)];
+  if(gtex){const cc=geo.attributes.color as THREE.BufferAttribute;for(let i=0;i<cc.count;i++)cc.setXYZ(i,.5+cc.getX(i)*.62,.5+cc.getY(i)*.62,.5+cc.getZ(i)*.62);}
   const gmat=new THREE.MeshLambertMaterial({vertexColors:true,flatShading:false});
   if(gtex){const t=gtex.clone();t.needsUpdate=true;t.repeat.set(34,34);gmat.map=t;}
   const mesh=new THREE.Mesh(geo,gmat);mesh.receiveShadow=false;g.add(mesh);
@@ -101,7 +101,7 @@ const heightfieldGround=(g:THREE.Group,kind:string,base:string)=>{
   }
 };
 const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{
-  const ground=p.terrain==="ocean-floor"?P.seabed:(p.weather==="rain"||p.weather==="storm")?P.shade:seasonGround(p);heightfieldGround(g,p.terrain,ground);
+  const ground=p.terrain==="ocean-floor"?P.seabed:(p.weather==="rain"||p.weather==="storm")?P.shade:seasonGround(p);heightfieldGround(g,p.terrain,ground,p.season);
   if(["ocean","lake","coast","ocean-floor"].includes(p.terrain)){
     const waterGeo=new THREE.PlaneGeometry(300,250,32,28);waterGeo.rotateX(-Math.PI/2);
     const wp=waterGeo.attributes.position,wc=new Float32Array(wp.count*3);
@@ -690,7 +690,7 @@ const seaWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
 };
 
 const oceanWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
-  heightfieldGround(g,"ocean-floor","#122030");
+  heightfieldGround(g,"ocean-floor","#122030",p.season);
   const surfaceGeo=new THREE.PlaneGeometry(260,260,32,32);surfaceGeo.rotateX(-Math.PI/2);
   const surfacePos=surfaceGeo.attributes.position,surfaceCol=new Float32Array(surfacePos.count*3);
   for(let i=0;i<surfacePos.count;i++){const z=surfacePos.getZ(i),c=new THREE.Color("#063451").lerp(new THREE.Color("#2d7897"),(z+130)/260*.4+.2);surfaceCol[i*3]=c.r;surfaceCol[i*3+1]=c.g;surfaceCol[i*3+2]=c.b;}
@@ -821,7 +821,7 @@ const greeceWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
 };
 
 const egyptWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
-  heightfieldGround(g,"desert",P.earth);
+  heightfieldGround(g,"desert",P.earth,p.season);
   box(g,260,0.2,35,P.sky,0,-0.05,-15);
   for(let i=0;i<25;i++){
     const x=(hash(i,50)-.5)*220, z=-22+hash(i,51)*14;
@@ -991,7 +991,7 @@ const grandCanyonWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
 
 const coneMesh=(g:THREE.Group,r:number,h:number,c:string,x:number,y:number,z:number,seg=7)=>{const m=new THREE.Mesh(new THREE.ConeGeometry(r,h,seg),mat(c));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;g.add(m);return m;};
 const mountainsWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
-  heightfieldGround(g,"mountain","#66716d");
+  heightfieldGround(g,"mountain","#66716d",p.season);
   for(let i=0;i<9;i++){
     const x=-80+i*20, h=22+hash(i,110)*18, r=12+hash(i,111)*8;
     poly(g,[[x-r,0,-50],[x,h,-50-r],[x+r,0,-50]],i%2===0?"#7b7f8e":"#646975");
@@ -1042,7 +1042,7 @@ const glacierWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
 };
 
 const desertDunesWorld=(g:THREE.Group,p:WorldParams,t:number)=>{
-  heightfieldGround(g,"desert","#d7b777");
+  heightfieldGround(g,"desert","#d7b777",p.season);
   for(let i=0;i<30;i++){
     const r=16+hash(i,160)*80, a=hash(i,161)*6.283, w=14+hash(i,162)*26;
     const m=ball(g,1,i%3===0?"#e9c887":i%3===1?"#dcb774":"#c9a05b",Math.cos(a)*r,0,Math.sin(a)*r-15,w,2.5+hash(i,163)*4,w*0.7);

@@ -781,7 +781,7 @@ if __name__ == "__main__":
     src = "llm"
     if not b or not b.get("scenes"):
         b, src = heuristic(script), "heuristic"
-    b = drop_worn(fly_pass(quotes_finalize(clean(establish(enrich_world(enrich_actions(enrich(split_clauses(detect_quotes(b)))))))))
+    b = drop_worn(fly_pass(quotes_finalize(clean(establish(enrich_world(enrich_actions(enrich(split_clauses(detect_quotes(b))))))))))
     b = add_auto_models_and_icons(crowds(b, script))
     b = plan_shots(b)
     json.dump(b, open(sys.argv[2], "w"), indent=1)

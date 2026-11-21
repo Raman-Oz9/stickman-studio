@@ -3,6 +3,7 @@
 // scale with depth, and the whole shot parallaxes like a normal 3D scene while the people stay clean hand-inked 2D.
 import React, { useEffect, useMemo, useState } from "react";
 import * as THREE from "three";
+import { loadTextures } from "./texcache";
 import { AbsoluteFill, continueRender, delayRender, useCurrentFrame } from "remotion";
 import { ThreeCanvas } from "@remotion/three";
 import { loadKit } from "../bridge/world";
@@ -159,7 +160,7 @@ export const StoryHybrid: React.FC = () => {
   const [kit, setKit] = useState<Kit | null>(null);
   const [handle] = useState(() => delayRender("hybrid kit"));
   useEffect(() => {
-    loadKit().then((k) => { setKit(k); continueRender(handle); });
+    Promise.all([loadKit(), loadTextures()]).then(([k]) => { setKit(k); continueRender(handle); });
   }, [handle, board]);
   const { i, local, n } = sceneAt(board, f);
   const scene = board.scenes[i];

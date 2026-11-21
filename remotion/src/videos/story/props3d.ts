@@ -1,6 +1,7 @@
 // Real 3D props for the story world: low-poly toon models built from three.js primitives (or Kenney GLBs where the pack has the
 // thing), shaded with the same two-tone material as the town so they sit in the scene like Blender-rendered set pieces.
 import * as THREE from "three";
+import { TEX } from "./texcache";
 import { twoTone } from "../bridge/shade";
 import { kitClone, Kit } from "../bridge/build";
 import { MORPH } from "../bridge/world";
@@ -307,7 +308,13 @@ export class Props3D {
     if (c === "appletree") {
       const t = kitClone(this.kit, "tree_oak", 5);
       if (t) { o = new THREE.Group(); o.add(t); const R = [[0.9, 3.4, 0.7], [-1.0, 3.9, 0.5], [0.3, 4.4, 1.0], [-0.5, 3.1, -1.0], [1.3, 3.8, -0.4], [-1.3, 3.3, 0.9], [0.1, 3.6, 1.3]]; for (const [x, y, z] of R) o.add(mk(S(0.22, 12, 10), RED, x, y, z)); }
-    } else if (c in KEN) o = kitClone(this.kit, KEN[c], 1);
+    } else if (c in KEN) {
+      o = kitClone(this.kit, KEN[c], 1);
+      if (o && /^(ship|pirateship|boat)$/.test(c)) { // real wood on the kit ship instead of flat orange
+        const wt = TEX.wood_planks;
+        o.traverse((x) => { const m = x as THREE.Mesh; if (!m.isMesh) return; const mat = (Array.isArray(m.material) ? m.material[0] : m.material) as THREE.MeshLambertMaterial; const col = (mat as THREE.MeshLambertMaterial).color; if (!col) return; const hsl = { h: 0, s: 0, l: 0 }; col.getHSL(hsl); if (hsl.h > 0.04 && hsl.h < 0.14 && hsl.s > 0.35) { const nm = new THREE.MeshLambertMaterial({ color: "#c89a6a" }); if (wt) { const t = wt.clone(); t.needsUpdate = true; t.repeat.set(2, 2); nm.map = t; } m.material = nm; } });
+      }
+    }
     if (!o && c in PROC) o = PROC[c]();
     if (!o) o = keywordProp(c);
     if (o && (c === "coin" || c === "goldcoin" || c === "silvercoin")) { const bx = new THREE.Box3().setFromObject(o), m = Math.max(bx.max.x - bx.min.x, bx.max.z - bx.min.z, 0.001); const g2 = new THREE.Group(); o.scale.multiplyScalar(1 / m); g2.add(o); o = g2; }   // flat discs: normalise by diameter, not thickness

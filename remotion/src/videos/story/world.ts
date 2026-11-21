@@ -224,7 +224,8 @@ export class StoryWorld {
       this.hemi.color.set("#69b4c5"); this.hemi.groundColor.set("#174b5a"); this.sun.color.set("#b2e2e5");
       this.hemi.intensity *= 0.82; this.sun.intensity *= 0.58;
     }
-    if (E.night) { for (let k = 0; k < 5; k++) { const cv = su["c" + k].value as THREE.Color; cv.multiplyScalar(E.space ? 0.02 : 0.16).lerp(new THREE.Color(E.space ? "#020410" : "#0b1236"), 0.55); } }
+    if (E.night) { ["#03050d", "#060b1e", "#0d1738", "#12204a", "#1b3066"].forEach((h, k) => untone(h, su["c" + k].value)); }
+    else if (s.tod === "dusk" || s.tod === "dawn") { ["#ffc47c", "#f7ae78", "#e8967c", "#d47a55", "#b85a3a"].forEach((h, k) => untone(h, su["c" + k].value)); }
     else if (E.dim < 0.95) for (let k = 0; k < 5; k++) (su["c" + k].value as THREE.Color).multiplyScalar(E.dim * 0.8).lerp(new THREE.Color("#4a5468"), 0.35);
     this.sky.position.copy(cam.position);
     untone(L.fog, this.fog.color); this.fog.density = 0.0025 / Math.max(.2,E.fogK); if (E.night) this.fog.color.set(E.space ? "#020410" : "#0b1236"); else if (E.dim < 0.95) this.fog.color.lerp(new THREE.Color("#4a5468"), 0.5); if (underwater && !E.night) { this.fog.color.set("#286477"); this.fog.density = .0048; } scene.fog = this.fog; scene.background = null;

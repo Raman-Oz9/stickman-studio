@@ -54,7 +54,7 @@ export const LOOK: Record<"day" | "golden", WorldLook> = {
   golden: {
     // sunset, not dusk: #ffd08a horizon, peach/orange through ~10 deg, warm rose at 20, muted warm mauve only near the top
     // (the golden grade adds ~+11/255 blue to shadows/mids, so these lean warm)
-    sky: { c: ["#ffc47c", "#f7ae78", "#e8967c", "#c4848e", "#8a6f8a"], e: [0, 4, 10, 20, 40] },
+    sky: { c: ["#ffc47c", "#f7ae78", "#e8967c", "#d47a55", "#b85a3a"], e: [0, 4, 10, 20, 40] },
     water: { near: "#1e3a6e", mid: "#355f96", far: "#d4a48e", crest: "#d9a088", trough: "#16294f", glint: "#ffe2b0", shade: [0.42, 0.46, 0.72] },
     cloud: { lit: "#ffd2a8", mid: "#f2a08f", shade: "#a98fc4" },
     bounce: [0.04, 0.02, 0.0],

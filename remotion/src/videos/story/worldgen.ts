@@ -31,29 +31,68 @@ const heightfieldGround=(g:THREE.Group,kind:string,base:string)=>{
   const hAt=(x:number,z:number)=>{
     const broad=Math.sin(x*.018+Math.sin(z*.012)*1.8)*Math.cos(z*.021)*2.2;
     const mid=Math.sin(x*.052+z*.031)*Math.cos(z*.047-x*.013)*.9;
-    if(kind==="mountain")return broad*2.2+mid*2.4+Math.pow(1-Math.abs(Math.sin(x*.013+z*.009)),2)*17;
-    if(kind==="desert"||kind==="dunes")return broad*1.8+Math.sin(x*.075+z*.026)*2.6+Math.sin(x*.16+z*.05)*.55+mid*.6;
-    if(kind==="ocean-floor")return broad*.14+Math.sin(x*.035+z*.02)*.16;
-    if(kind==="ocean"||kind==="lake"||kind==="coast")return broad*.08+Math.sin(x*.035+z*.02)*.06;
-    return broad*.65+mid*.35+Math.sin(x*.19+Math.sin(z*.11))*.22;
+    const micro=Math.sin(x*.35)*Math.cos(z*.31)*0.15 + Math.cos(x*.7)*0.06;
+    if(kind==="mountain")return broad*2.2+mid*2.4+micro+Math.pow(1-Math.abs(Math.sin(x*.013+z*.009)),2)*17;
+    if(kind==="desert"||kind==="dunes")return broad*1.8+Math.sin(x*.075+z*.026)*2.6+Math.sin(x*.16+z*.05)*.55+mid*.6+micro;
+    if(kind==="ocean-floor")return broad*.14+Math.sin(x*.035+z*.02)*.16+micro*.2;
+    if(kind==="ocean"||kind==="lake"||kind==="coast")return broad*.08+Math.sin(x*.035+z*.02)*.06+micro*.1;
+    return broad*.65+mid*.35+micro+Math.sin(x*.19+Math.sin(z*.11))*.22;
   };
   for(let i=0;i<pos.count;i++){
     const x=pos.getX(i),z=pos.getZ(i),h=hAt(x,z),slope=Math.hypot(hAt(x+1,z)-h,hAt(x,z+1)-h);
     pos.setY(i,h-.25);const c=baseCol.clone();
+    const n1=Math.sin(x*0.04+z*0.03)*0.5+0.5;
+    const n2=Math.cos(x*0.12-z*0.1)*0.5+0.5;
+    const n3=Math.sin(x*0.35+z*0.3)*0.5+0.5;
+    const grassCol=new THREE.Color("#5a8f42");
+    const sandCol=new THREE.Color("#e8c46a");
+    const rockCol=new THREE.Color("#827d72");
+    const dirtCol=new THREE.Color("#8a5a2b");
+    if(kind!=="desert"&&kind!=="ocean-floor"&&kind!=="canyon"){
+      if(n1>0.6)c.lerp(grassCol,0.35*n2);
+      else if(n1<0.35)c.lerp(dirtCol,0.3*n3);
+      else if(n2>0.7)c.lerp(sandCol,0.25);
+    }else if(kind==="desert"){
+      c.lerp(new THREE.Color("#f1d69a"),.12+.15*n1);
+      if(n3>0.75)c.lerp(new THREE.Color("#c49852"),0.3);
+    }
     if(kind==="mountain"&&h>15)c.lerp(new THREE.Color("#edf3f6"),Math.min(.82,(h-15)/22));
-    if(kind==="desert"||kind==="dunes")c.lerp(new THREE.Color("#f1d69a"),.12+.08*Math.sin(x*.11+z*.08));
     if(slope>.32)c.lerp(new THREE.Color(kind==="desert"?"#786b59":"#626b70"),Math.min(.7,(slope-.32)*1.4));
+    const distFromCenter=Math.hypot(x,z);
+    if(distFromCenter>90){
+      const hazeFactor=Math.min(1,(distFromCenter-90)/40);
+      c.lerp(new THREE.Color(P.sky),hazeFactor*0.65);
+    }
     c.multiplyScalar(.88+hash(i,kind.length)*.2);col[i*3]=c.r;col[i*3+1]=c.g;col[i*3+2]=c.b;
   }
   geo.setAttribute("color",new THREE.BufferAttribute(col,3));geo.computeVertexNormals();
   const mesh=new THREE.Mesh(geo,new THREE.MeshLambertMaterial({vertexColors:true,flatShading:true}));mesh.receiveShadow=false;g.add(mesh);
-  if(["plain","farm","savanna","forest"].includes(kind)){
-    const dummy=new THREE.Object3D(),blades=new THREE.InstancedMesh(new THREE.ConeGeometry(.055,.62,4),new THREE.MeshLambertMaterial({color:"#719c49"}),360);
-    for(let i=0;i<360;i++){dummy.position.set((hash(i,81)-.5)*220,.22,-10-hash(i,82)*190);dummy.rotation.z=(hash(i,83)-.5)*.4;dummy.scale.set(.6+hash(i,84),.7+hash(i,85),.6+hash(i,86));dummy.updateMatrix();blades.setMatrixAt(i,dummy.matrix);}
+  if(["plain","farm","savanna","forest","canyon","mountain","desert"].includes(kind)){
+    const dummy=new THREE.Object3D();
+    const blades=new THREE.InstancedMesh(new THREE.ConeGeometry(.06,.55,4),new THREE.MeshLambertMaterial({color:"#629442"}),320);
+    for(let i=0;i<320;i++){
+      const rx=(hash(i,81)-.5)*210,rz=-10-hash(i,82)*190;
+      dummy.position.set(rx,hAt(rx,rz),rz);dummy.rotation.z=(hash(i,83)-.5)*.4;
+      dummy.scale.set(.6+hash(i,84),.7+hash(i,85),.6+hash(i,86));dummy.updateMatrix();blades.setMatrixAt(i,dummy.matrix);
+    }
     blades.instanceMatrix.needsUpdate=true;g.add(blades);
-    const flowers=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(.12,0),new THREE.MeshLambertMaterial({color:"#e7c66b"}),28);
-    for(let i=0;i<28;i++){dummy.position.set((hash(i,91)-.5)*190,.34,-8-hash(i,92)*170);dummy.scale.setScalar(.6+hash(i,93)*.7);dummy.updateMatrix();flowers.setMatrixAt(i,dummy.matrix);}
-    flowers.instanceMatrix.needsUpdate=true;g.add(flowers);
+    const rockGeo=new THREE.IcosahedronGeometry(0.35,0);
+    const rockMat=new THREE.MeshLambertMaterial({color:"#827d72",flatShading:true});
+    const scatteredRocks=new THREE.InstancedMesh(rockGeo,rockMat,90);
+    for(let i=0;i<90;i++){
+      const rx=(hash(i,121)-.5)*190,rz=-10-hash(i,122)*170;
+      dummy.position.set(rx,hAt(rx,rz)+0.1,rz);dummy.rotation.set(hash(i,123)*Math.PI,hash(i,124)*Math.PI,0);
+      const sc=0.5+hash(i,125)*1.6;dummy.scale.set(sc,sc*0.6,sc);dummy.updateMatrix();scatteredRocks.setMatrixAt(i,dummy.matrix);
+    }
+    scatteredRocks.instanceMatrix.needsUpdate=true;g.add(scatteredRocks);
+    if(["plain","farm","savanna","forest"].includes(kind)){
+      const flowers=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(.12,0),new THREE.MeshLambertMaterial({color:"#e7c66b"}),24);
+      for(let i=0;i<24;i++){
+        const rx=(hash(i,91)-.5)*170,rz=-8-hash(i,92)*150;
+        dummy.position.set(rx,hAt(rx,rz)+0.15,rz);dummy.scale.setScalar(.6+hash(i,93)*.7);dummy.updateMatrix();flowers.setMatrixAt(i,dummy.matrix);
+      }
+      flowers.instanceMatrix.needsUpdate=true;g.add(flowers);
+    }
   }
 };
 const terrain=(g:THREE.Group,p:WorldParams,t:number)=>{

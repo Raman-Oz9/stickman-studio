@@ -6,7 +6,7 @@ export const TEX: Record<string, THREE.Texture> = {};
 const NAMES = [
   "grass", "sand_dune", "rock", "forest_floor", "gravel", "snow", "dry_dirt",
   "cobblestone", "mud_brick", "limestone", "marble", "wood_planks", "carpet_red",
-  "water_deep", "egyptian_temple_wall", "roman_stone", "greek_marble",
+  "water_deep", "roof_tiles", "thatch", "egyptian_temple_wall", "roman_stone", "greek_marble",
   "islamic_tile", "pagoda_wood", "industrial_metal", "brick_wall", "concrete",
   "asphalt", "glass_facade", "ship_sail_cloth", "ancient_scroll_paper",
   "sky_day", "sky_sunset", "sky_night"

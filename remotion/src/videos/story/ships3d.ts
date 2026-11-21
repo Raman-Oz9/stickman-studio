@@ -39,7 +39,7 @@ const sail = (w: number, h: number, belly: number, band = true) => {
     cols.push(c.r * shade, c.g * shade, c.b * shade);
   }
   g.setAttribute("color", new THREE.Float32BufferAttribute(cols, 3)); g.computeVertexNormals();
-  const o = mesh(g, new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide })); o.castShadow = false; return o;
+  const o = mesh(g, new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide, emissive: "#8c8470" })); o.castShadow = false; return o;
 };
 
 export const buildGalleon = (): THREE.Object3D => {
@@ -63,7 +63,7 @@ export const buildGalleon = (): THREE.Object3D => {
   // ---- deck + bulwarks
   const deck: THREE.Vector3[][] = [];
   for (let i = 0; i <= N; i++) { const t = i / N, w = beam(t) * 0.985, y = deckAt(t) + 0.01, z = -L / 2 + t * L; deck.push([V(-w, y, z), V(0, y, z), V(w, y, z)]); }
-  G.add(mesh(grid(deck, (i, j) => [j * 1.6, (i / N) * 6]), wood("#c79a62", 1, 1, THREE.DoubleSide)));
+  G.add(mesh(grid(deck, (i, j) => [j * 1.6, (i / N) * 6]), wood("#a88a64", 1, 1, THREE.DoubleSide)));
   for (const s of [-1, 1]) {
     const wall: THREE.Vector3[][] = [], top: THREE.Vector3[][] = [];
     for (let i = 1; i < N; i++) { const t = i / N, w = beam(t), y = deckAt(t), z = -L / 2 + t * L; wall.push([V(s * w, y, z), V(s * w * 0.99, y + 0.34, z)]); top.push([V(s * w * 1.03, y + 0.34, z), V(s * w * 0.9, y + 0.36, z)]); }
@@ -105,7 +105,7 @@ export const buildGalleon = (): THREE.Object3D => {
   // ---- bowsprit, jib and stays
   const bsy = deckAt(0.9) + 0.1, tip = V(0, bsy + 0.55, L / 2 + 1.35);
   { const bs = mesh(new THREE.CylinderGeometry(0.045, 0.07, 2.1, 7), flat("#4a2f1a")); const a = V(0, bsy, L / 2 - 0.45), d = tip.clone().sub(a); bs.position.copy(a.clone().add(tip).multiplyScalar(0.5)); bs.quaternion.setFromUnitVectors(V(0, 1, 0), d.clone().normalize()); G.add(bs); }
-  { const fb = deckAt(tOf(1.95)), top = V(0, fb + 4.3 * 0.97, 1.95), low = V(0, bsy + 0.1, L / 2 - 0.5); const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute([tip.x, tip.y, tip.z, top.x, top.y - 0.4, top.z + 0.1, low.x, low.y, low.z], 3)); g.setIndex([0, 1, 2]); g.computeVertexNormals(); const j = mesh(g, flat("#f3ead2", THREE.DoubleSide)); j.castShadow = false; j.userData.flap = 2.2; G.add(j);
+  { const fb = deckAt(tOf(1.95)), top = V(0, fb + 4.3 * 0.97, 1.95), low = V(0, bsy + 0.1, L / 2 - 0.5); const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute([tip.x, tip.y, tip.z, top.x, top.y - 0.4, top.z + 0.1, low.x, low.y, low.z], 3)); g.setIndex([0, 1, 2]); g.computeVertexNormals(); const j = mesh(g, new THREE.MeshLambertMaterial({ color: "#f3ead2", emissive: "#8c8470", side: THREE.DoubleSide })); j.castShadow = false; j.userData.flap = 2.2; G.add(j);
     G.add(rope(V(0, deckAt(tOf(0.45)) + 5.3, 0.45), V(0, deckAt(tOf(1.95)) + 4.3, 1.95)), rope(V(0, deckAt(tOf(1.95)) + 4.3, 1.95), tip), rope(V(0, deckAt(tOf(0.45)) + 5.3, 0.45), V(0, deckAt(tOf(-1.75)) + 3.7, -1.75))); }
   // ---- helm wheel, barrels, crates on deck
   { const wh = mesh(new THREE.TorusGeometry(0.2, 0.025, 6, 16), flat("#8a5a2f")); wh.position.set(0, deckAt(0.3) + 0.5, -L / 2 + 1.95); G.add(wh); const st = mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.5, 5), flat("#4a2f1a")); st.position.set(0, deckAt(0.3) + 0.25, -L / 2 + 1.95); G.add(st); }

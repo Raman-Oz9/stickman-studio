@@ -132,8 +132,10 @@ const Cast2D: React.FC<{ board: Board; f: number }> = ({ board, f }) => {
         } else if (!Number.isNaN(hv[0])) { const hl = Math.hypot(hv[0], hv[1]) || 1, hx = hv[0] / hl, hz = hv[1] / hl; yaw = (Math.atan2(hx * rightXZ[0] + hz * rightXZ[1], hx * tc[0] + hz * tc[1]) * 180) / Math.PI; }
         const pf = (() => {
           if (battle && w.extra) {
-            const vIdx = (w.idx + Math.floor(u * 8 + t * 3)) % 4;
-            const verb = vIdx === 0 ? "swing" : vIdx === 1 ? "stab" : vIdx === 2 ? "block" : "fall";
+            const extraIdx = w.idx - 20;
+            const isFallen = extraIdx >= 0 && extraIdx < 3;
+            const vIdx = (w.idx + Math.floor(u * 8 + t * 3)) % 3;
+            const verb = isFallen && u > 0.4 ? "lie" : vIdx === 0 ? "swing" : vIdx === 1 ? "stab" : "block";
             const pVal = (u * 1.5 + w.idx * 0.2) % 1;
             return { verb, p: pVal, t, prop: null, holdProp: "sword" };
           }

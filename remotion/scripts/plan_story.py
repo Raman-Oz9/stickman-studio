@@ -745,16 +745,18 @@ def crowds(b, script):
         here = next((e for p, e in ERAKW if re.search(p, t) and e not in ("arabian",)), None)
         sc["era"] = here or sc.get("era") or main
         if sc["era"] == "arabian" and main: sc["era"] = main
-        if re.search(r"persian\s+(soldiers?|army|armies|troops|warriors|forces)|babylonian|assyrian", t): sc["extrasEra"] = "arabian"
+        if re.search(r"persian\s+(soldiers?|army|armies|troops|warriors|forces)|babylonian|assyrian", t): sc["extrasEra"] = "ocean-explorer"
         if re.search(r"\b(charg\w*|attack\w*|fought|fight|clash\w*|held the line|crush\w*|battle|war)\b", t):
             sc["extras"] = max(int(sc.get("extras") or 0), 14)
             sc["extrasRole"] = "soldier"
             if not sc.get("extrasEra"):
-                sc["extrasEra"] = "arabian" if sc.get("era") == "greek" else ("barbarian" if sc.get("era") == "roman" else "viking")
+                sc["extrasEra"] = "ocean-explorer" if sc.get("era") == "greek" else "space"
             if sc.get("cast"):
                 leader = sc["cast"][0]
-                leader["x"] = -1.2
+                leader["x"] = -2.0
+                leader["z"] = 0.0
                 leader["act"] = leader.get("act") or "point"
+                leader["hold"] = leader.get("hold") or "sword"
         if re.search(ARMY, t): sc["extras"] = max(int(sc.get("extras") or 0), 10); sc["extrasRole"] = "soldier"
         elif re.search(CROWD, t): sc["extras"] = max(int(sc.get("extras") or 0), 8); sc["extrasRole"] = "townsfolk"
     return b

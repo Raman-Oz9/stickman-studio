@@ -195,3 +195,4 @@
 - 2026-11-21: realm.ts water uses water_deep texture
 - 2026-11-21: kit ship orange materials -> wood_planks texture
 - 2026-11-21: fetch_kenney.py: +18 more CC0 Kenney kit slugs (failures tolerated)
+- 2026-11-21: ships3d.ts: procedural galleon (lofted hull, deck, bulwarks, stern castle, 3 masts + belly sails, flag, bowsprit/jib, rigging, cannons) replaces kit ship for ship/pirateship/galleon; flags/sails flutter

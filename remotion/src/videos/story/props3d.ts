@@ -2,6 +2,7 @@
 // thing), shaded with the same two-tone material as the town so they sit in the scene like Blender-rendered set pieces.
 import * as THREE from "three";
 import { TEX } from "./texcache";
+import { buildGalleon } from "./ships3d";
 import { twoTone } from "../bridge/shade";
 import { kitClone, Kit } from "../bridge/build";
 import { MORPH } from "../bridge/world";
@@ -308,6 +309,8 @@ export class Props3D {
     if (c === "appletree") {
       const t = kitClone(this.kit, "tree_oak", 5);
       if (t) { o = new THREE.Group(); o.add(t); const R = [[0.9, 3.4, 0.7], [-1.0, 3.9, 0.5], [0.3, 4.4, 1.0], [-0.5, 3.1, -1.0], [1.3, 3.8, -0.4], [-1.3, 3.3, 0.9], [0.1, 3.6, 1.3]]; for (const [x, y, z] of R) o.add(mk(S(0.22, 12, 10), RED, x, y, z)); }
+    } else if (/^(ship|pirateship|galleon)$/.test(c)) {
+      o = buildGalleon();
     } else if (c in KEN) {
       o = kitClone(this.kit, KEN[c], 1);
       if (o && /^(ship|pirateship|boat)$/.test(c)) { // real wood on the kit ship instead of flat orange
@@ -335,7 +338,7 @@ export class Props3D {
     if (list.length <= i) { const t = this.tpl.get(c)!; const inst = t.clone(true); (inst.userData as { hNat?: number }).hNat = t.userData.hNat; this.root.add(inst); list.push(inst); }
     const o = list[i], k = (h * sc) / o.userData.hNat;
     o.visible = true; o.position.set(x, y + (h * sc) / 2, z); o.scale.setScalar(k); o.rotation.order = "YXZ"; o.rotation.set(an?.rx ?? tumble, yaw, an?.rz ?? 0);
-    if(an?.mv&&["galleon","ship","boat","sailboat","steamship","romanship","vikinglongship"].includes(c)){o.position.y+=Math.sin(an.t*1.7)*.12;o.rotation.x+=Math.sin(an.t*1.1)*.025;o.rotation.z+=Math.cos(an.t*1.35)*.018;}
+    if(an?.mv&&["galleon","ship","pirateship","boat","sailboat","steamship","romanship","vikinglongship"].includes(c)){o.position.y+=Math.sin(an.t*1.7)*.12;o.traverse((n)=>{if(n.userData.flap!==undefined)n.rotation.y=Math.sin(an.t*3+(n.userData.flap as number))*.07;});o.rotation.x+=Math.sin(an.t*1.1)*.025;o.rotation.z+=Math.cos(an.t*1.35)*.018;}
     if (c === "horse" && MORPH.horse && an) {   // morph-target gallop: phase = distance travelled
       const M = MORPH.horse, ts = M.times, T = ts[ts.length - 1] || 1, ph = an.mv ? ((an.dist / 2.4) % 1) * T : 0.35 * T;
       let mm = o.userData.mm as THREE.Mesh | undefined; if (!mm) { o.traverse((n) => { const m2 = n as THREE.Mesh; if (!mm && m2.isMesh && m2.morphTargetInfluences) mm = m2; }); o.userData.mm = mm; }

@@ -45,6 +45,8 @@ jobs:
               assert size > 0
           print("JPEG conversion smoke test passed")
           PY
+      - name: Verify story texture catalogue coverage
+        run: python remotion/scripts/verify_texture_coverage.py
       - name: Install
         working-directory: remotion
         run: npm install --no-audit --no-fund
@@ -112,6 +114,12 @@ jobs:
       - name: Publish frames to branch
         if: always()
         run: |
-          cd remotion/out && git init -q -b proof-actions && git config user.name bot && git config user.email bot@x
-          git add . && git commit -qm frames
+          mkdir -p remotion/out
+          cd remotion/out
+          git init -q -b proof-actions
+          git config user.name bot
+          git config user.email bot@x
+          git add .
+          git diff --cached --quiet && exit 0
+          git commit -qm frames
           git push -f https://x-access-token:${{ github.token }}@github.com/${{ github.repository }} proof-actions

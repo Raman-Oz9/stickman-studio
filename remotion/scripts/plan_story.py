@@ -81,7 +81,7 @@ KW = {"king": "king", "queen": "queen", "knight": "knight", "soldier": "soldier"
       "mother": "mother", "father": "father", "man": "man", "woman": "woman", "police": "police", "cop": "police", "thief": "thief", "robber": "thief",
       "doctor": "doctor", "nurse": "nurse", "chef": "chef", "teacher": "teacher", "pirate": "pirate", "grandma": "grandma", "grandmother": "grandma", "grandpa": "grandpa",
       "prince": "prince", "gladiator": "gladiator", "centurion": "centurion", "legionary": "legionary", "cowboy": "cowboy", "sheriff": "sheriff", "outlaw": "outlaw", "viking": "viking", "pharaoh": "pharaoh", "samurai": "samurai", "ninja": "ninja", "caveman": "caveman", "astronaut": "astronaut", "gangster": "gangster", "sultan": "sultan", "emperor": "king", "captain": "pirate_captain", "detective": "detective", "scientist": "scientist", "monk": "monk", "pilot": "pilot", "worker": "worker", "queen_": "queen", "princess": "princess", "witch": "witch", "judge": "judge", "student": "student", "sailor": "sailor"}
-PROPKW = {w: w for w in ["coin","mango","apple","tree","seed","chicken","egg","crown","sword","key","castle","house","bread","cow","dog","cat","car","book","heart","flower","phone","boat","fish","cake"]}
+PROPKW = {w: w for w in ["coin","mango","apple","tree","seed","chicken","egg","crown","sword","key","castle","house","bread","cow","dog","cat","car","book","heart","flower","phone","boat","rock","fire","bone","fish","cake"]}
 PROPKW.update({"coins":"gold coin","gold":"gold coin","treasure":"treasure chest","purse":"purse","wallet":"purse","bag":"purse","money":"coins","hen":"chicken","jewel":"gem","diamond":"gem"})
 MOOD = [("shock|gone|suddenly|impossible|disappear", "shock"), ("laugh|joke|funny|hilarious", "laugh"), ("angry|furious|demand|shout", "stern"),
         ("afraid|scared|nervous|trembl|worried", "nervous"), ("sad|cry|lost|died|pain|hurt", "pained"), ("smile|happy|joy|celebrat|grin", "grin"),
@@ -202,14 +202,61 @@ PLACES = [("mine", r"gold mine|\bmine\b|mineshaft"), ("palace", r"palace|throne 
 INSIDE = r"inside|into|entered|enter|walked in|crept in|deep in|\bin (his|her|the|a|their)\b|opened|stood in|sat in|\bat (his|her|the)\b"
 SHOPKW = r"(?:(\w+) )?(?:seller|shop|store|stall|barber|blacksmith|baker|bakery|market|tailor|butcher|grocer)"
 STOCK = {"mango": ["mango"], "fruit": ["mango", "apple"], "apple": ["apple"], "sword": ["sword", "dagger", "shield"], "weapon": ["sword", "dagger", "shield", "axe"], "blacksmith": ["sword", "axe", "hammer", "shield"], "baker": ["bread", "cake"], "bakery": ["bread", "cake"], "cake": ["cake", "bread"], "book": ["book"], "gem": ["gem", "crown"], "jewel": ["gem", "crown", "gold coin"], "key": ["key"], "padlock": ["key"], "flower": ["flower"], "barber": ["book", "gem"], "butcher": ["pig", "chicken"], "grocer": ["apple", "mango", "bread"]}
+SEA_ARRIVAL_KW = r"\b(led his army across the sea|sailed across|crossed the sea|sailed to|arrived at shore|reached the shore|landed on the beach|disembarked|sailed his fleet|led (his|her|their) fleet)\b"
+
 def enrich(b):
     """Director's pass over the LLM storyboard: make sure each sentence really gets its interior, shop goods, vehicle/animal ride, so the weak planner can't skip them."""
     prev = None; shopctx = None
     LEAVE = r"marched|march|journey|travel|east|west|north|south|across|empire|continent|edge of|babylon|india|egypt|persia|desert|sea|battle|outside|ran out|fled|escaped|jumped on|hopped on|rode|galloped|drove|street|road|outdoors|left the|exited|chased"
     INS2 = r"inside|into|entered|crept in|crept into|shelves|counter|behind the|walked in|stepped in|stepped inside"
     SHOPW = r"seller|shop|stall|barber|blacksmith|bakery|baker|market|tailor|butcher|grocer|store"
+    
+    new_scenes = []
     for s in b.get("scenes", []):
         t = ((s.get("narration") or "") + " " + (s.get("caption") or "")).lower(); cast = s.get("cast") or []
+        
+        # P0 Rule: "led his army across the sea" / ocean arrival requires 3-shot sequence (fleet at sea -> coastal pull-in -> beach disembarkation)
+        if re.search(SEA_ARRIVAL_KW, t):
+            leader = next((c for c in cast if c.get("role") not in ("soldier", "guard")), cast[0] if cast else {"id": "hero", "role": "soldier"})
+            leader_role = leader.get("role", "soldier")
+            caption_text = s.get("caption") or s.get("narration") or ""
+            dur_total = float(s.get("dur", 7.5))
+            d1, d2, d3 = round(dur_total * 0.35, 1), round(dur_total * 0.3, 1), round(dur_total * 0.35, 1)
+
+            # Shot 1: Wide fleet sailing across the open sea
+            sc1 = copy.deepcopy(s)
+            sc1.update({
+                "dur": max(2.5, d1), "shot": "wide", "move": "pan", "loc": "ocean",
+                "caption": caption_text, "narration": caption_text,
+                "extras": 14, "extrasRole": "soldier",
+                "cast": [{"id": leader.get("id", "leader"), "role": leader_role, "x": -24, "z": -78, "to": {"x": 24, "z": -78}, "mount": "galleon", "act": "run"}]
+            })
+
+            # Shot 2: Hero ship reaching and pulling up to the shore
+            sc2 = copy.deepcopy(s)
+            sc2.update({
+                "dur": max(2.2, d2), "shot": "medium", "move": "track", "loc": "ocean",
+                "caption": caption_text, "narration": caption_text,
+                "extras": 10, "extrasRole": "soldier",
+                "cast": [{"id": leader.get("id", "leader"), "role": leader_role, "x": -10, "z": -78, "to": {"x": 2, "z": -78}, "mount": "galleon", "act": "run"}]
+            })
+
+            # Shot 3: Hero ship anchored at coast, leader & soldiers disembarking onto the beach
+            sc3 = copy.deepcopy(s)
+            sc3.update({
+                "dur": max(2.5, d3), "shot": "wide", "move": "reveal", "loc": "ocean",
+                "caption": caption_text, "narration": caption_text,
+                "extras": 12, "extrasRole": "soldier",
+                "cast": [
+                    {"id": leader.get("id", "leader"), "role": leader_role, "x": -2.0, "z": 0.2, "to": {"x": 1.5, "z": 0.2}, "act": "run", "expr": "stern"},
+                    {"id": "s1", "role": "soldier", "x": -4.0, "z": 0.4, "to": {"x": -0.5, "z": 0.4}, "act": "run", "walkAt": 0.1, "expr": "stern"},
+                    {"id": "s2", "role": "soldier", "x": -6.0, "z": 0.6, "to": {"x": -2.5, "z": 0.6}, "act": "run", "walkAt": 0.2, "expr": "stern"}
+                ]
+            })
+
+            new_scenes.extend([sc1, sc2, sc3])
+            continue
+
         leave = re.search(LEAVE, t)
         if not s.get("interior"):
             place = next((k for k, rx in PLACES if re.search(rx, t)), None)
@@ -242,6 +289,8 @@ def enrich(b):
                 who["act"] = who.get("act") or "run"
                 if v in ("galleon", "sailboat", "steamship", "canoe", "submarine"): who["z"] = -78; who["x"] = -24; who["to"] = {"x": 24, "z": -78}; s["loc"] = "ocean"
                 if s.get("move") not in ("track",): s["move"] = "track"
+        new_scenes.append(s)
+    b["scenes"] = new_scenes
     return b
 
 ACTV = [("dig", r"\b(dug|dig|digging)\b", "shovel"), ("write", r"\b(wrote|write|writing|signed)\b", "pen"), ("drink", r"\b(drank|drink|drinking|sipped)\b", "cup"), ("throw", r"\b(threw|throw|throwing|tossed|hurled)\b", None), ("handOver", r"\b(handed|gave|passed him|passed her)\b", None), ("place", r"\b(placed|set down|put down|laid|put the)\b", None), ("open", r"\bopened the (door|gate|chest|box)\b", None), ("push", r"\bpushed\b", None), ("pull", r"\bpulled\b", None), ("lean", r"\bleaned\b", None), ("climb", r"\bclimbed\b", None)]
@@ -315,7 +364,7 @@ def split_clauses(b):
             out.append(s); continue
         nar = (s.get("narration") or s.get("caption") or "").strip()
         parts = [p.strip(" ,;") for p in re.split(r",\s*|;\s*|\s+(?=and then\b|then\b|and\s+(?=(?:he|she|they|the|a|then|[a-z]+ed)\b))", nar) if p and len(p.split()) >= 2]   # connector words (but/and/then) are kept so the voice reads the full sentence
-        if len(nar.split()) < 9 or len(parts) < 2 or s.get("interior"): out.append(s); continue
+        if len(nar.split()) < 9 or len(parts) < 2 or s.get("interior") or s.get("loc") == "ocean": out.append(s); continue
         parts = parts[:4]; tot = sum(len(p.split()) for p in parts); d0 = float(s.get("dur", 3))
         for k, p in enumerate(parts):
             n = copy.deepcopy(s); n["narration"] = n["caption"] = p; n["dur"] = max(1.6, d0 * len(p.split()) / tot)

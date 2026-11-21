@@ -195,3 +195,4 @@
 - 2026-11-21: realm.ts water uses water_deep texture
 - 2026-11-21: kit ship orange materials -> wood_planks texture
 - 2026-11-21: fetch_kenney.py: +18 more CC0 Kenney kit slugs (failures tolerated)
+- 2026-11-21: plan_story.py: add 3-shot sea arrival sequence (wide ocean fleet -> coast pull-in -> beach disembarkation) for sea crossing narrations; verified tsc.

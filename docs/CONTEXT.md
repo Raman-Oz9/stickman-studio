@@ -195,4 +195,9 @@
 - 2026-11-21: realm.ts water uses water_deep texture
 - 2026-11-21: kit ship orange materials -> wood_planks texture
 - 2026-11-21: fetch_kenney.py: +18 more CC0 Kenney kit slugs (failures tolerated)
+<<<<<<< HEAD
 - 2026-11-21: plan_story.py: add 3-shot sea arrival sequence (wide ocean fleet -> coast pull-in -> beach disembarkation) for sea crossing narrations; verified tsc.
+=======
+- 2026-11-21: ships3d.ts: procedural galleon (lofted hull, deck, bulwarks, stern castle, 3 masts + belly sails, flag, bowsprit/jib, rigging, cannons) replaces kit ship for ship/pirateship/galleon; flags/sails flutter
+>>>>>>> 8485531 (Procedural lightweight galleon replaces kit ship (hull, deck, masts, sails, rigging, cannons))
+- 2026-11-21: queue: +5 P0 tasks (egypt temple, bed/death, readable fights, wire Kenney models, ambientCG textures); Claude takes ship arrival + faces + crown

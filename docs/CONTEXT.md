@@ -1,3 +1,7 @@
+### 2026-11-21 — Apply generated textures to real 3D set props
+- Added `remotion/src/videos/story/propTextures.ts` to map generated wood, limestone, marble, mud-brick and carpet textures onto matching surfaces of procedural 3D props (furniture, carts, ships, ancient monuments and huts).
+- Integrated it into `Props3D.build` without replacing geometry or Kenney-authored maps. Only untextured toon materials with matching base colours receive a generated map; missing textures retain the original procedural material.
+
 ### 2026-11-20 — Validate generated texture image outputs
 - The free-provider texture generator now decodes provider responses, normalises materials to 1024×1024 and sky panoramas to 1536×768, converts outputs to real JPEG files, and verifies the saved image before reporting success.
 - Existing files are skipped only when they are valid JPEGs at the expected dimensions. Both manual generation and story-driven generation install Pillow for this validation.

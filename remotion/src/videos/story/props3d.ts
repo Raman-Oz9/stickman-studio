@@ -4,6 +4,7 @@ import * as THREE from "three";
 import { twoTone } from "../bridge/shade";
 import { kitClone, Kit } from "../bridge/build";
 import { MORPH } from "../bridge/world";
+import { applyPropTextures } from "./propTextures";
 
 const mats = new Map<string, THREE.Material>();
 const M = (c: string) => { let m = mats.get(c); if (!m) { m = twoTone(new THREE.MeshLambertMaterial({ color: c })); mats.set(c, m); } return m; };
@@ -312,6 +313,7 @@ export class Props3D {
     if (!o) o = keywordProp(c);
     if (o && (c === "coin" || c === "goldcoin" || c === "silvercoin")) { const bx = new THREE.Box3().setFromObject(o), m = Math.max(bx.max.x - bx.min.x, bx.max.z - bx.min.z, 0.001); const g2 = new THREE.Group(); o.scale.multiplyScalar(1 / m); g2.add(o); o = g2; }   // flat discs: normalise by diameter, not thickness
     if (c in KEN && c in KFIX && o) { const g = new THREE.Group(); o.rotation.y = KFIX[c]; g.add(o); o = g; }
+    if (o) applyPropTextures(o, c);
     const box = new THREE.Box3().setFromObject(o), sz = box.getSize(new THREE.Vector3()), ctr = box.getCenter(new THREE.Vector3());
     const w = new THREE.Group(), inner = new THREE.Group();
     inner.add(o); inner.position.set(-ctr.x, -ctr.y, -ctr.z); inner.scale.setScalar(1);

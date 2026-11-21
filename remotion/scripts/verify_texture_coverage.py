@@ -31,7 +31,7 @@ if missing or unknown:
     raise SystemExit(f"texture cache mismatch: missing={missing}, not_generated={unknown}")
 
 # Also check every story-planner rule points to an asset the generator can create.
-namespace = {}
+namespace = {"__name__": "texture_coverage_check"}
 exec(compile(ast.parse(planner_path.read_text(encoding="utf-8")), str(planner_path), "exec"), namespace)
 rule_assets = {name for _, assets in namespace["RULES"] for name in assets}
 unavailable = sorted(rule_assets - generated)

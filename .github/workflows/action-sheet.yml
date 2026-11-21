@@ -45,6 +45,8 @@ jobs:
               assert size > 0
           print("JPEG conversion smoke test passed")
           PY
+      - name: Verify story texture catalogue coverage
+        run: python remotion/scripts/verify_texture_coverage.py
       - name: Install
         working-directory: remotion
         run: npm install --no-audit --no-fund

@@ -1,3 +1,7 @@
+### 2026-11-21 — Keep runtime texture cache aligned with story asset catalogue
+- Expanded the 3D runtime texture preload list to include every generated material and sky asset, not only the original common ground textures.
+- Sky panoramas now clamp vertically while material textures repeat on both axes.
+- Added a CI coverage check that compares generator ITEMS/SKY, story-planner asset rules, and the runtime preload catalogue to prevent silent asset omissions.
 ### 2026-11-20 — Validate generated texture image outputs
 - The free-provider texture generator now decodes provider responses, normalises materials to 1024×1024 and sky panoramas to 1536×768, converts outputs to real JPEG files, and verifies the saved image before reporting success.
 - Existing files are skipped only when they are valid JPEGs at the expected dimensions. Both manual generation and story-driven generation install Pillow for this validation.

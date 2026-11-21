@@ -1,6 +1,6 @@
 # OpenCode work queue (non-stop loop)
 A scheduled workflow (`.github/workflows/opencode-loop.yml`) takes the FIRST line starting with `- [ ] P0 BUG (seen in proof-actions hyb-*.jpg on main 8978fed): town/plaza ground renders as a grey slab with blue and orange TRIANGLE wedges fanning from one point (broken floor geometry/pattern, likely a fan mesh/ring or checker texture in realm.ts or worldgen.ts town floor), and characters' bodies are cropped at the bottom edge with only hats/crowns visible. Fix: replace that floor with a proper textured cobblestone/grass plane using remotion/public/tex/*.jpg, and re-check framing so full heads+torsos are in frame (camera.ts char level).
-- [~]`, marks it `[~]`, runs OpenCode on it, opens a PR, then marks it `[x]`.
+- [x]`, marks it `[~]`, runs OpenCode on it, opens a PR, then marks it `[x]`.
 Owner/Claude/ChatGPT: add tasks at the bottom (one line each, self-contained, scoped to 1-3 files). Always: read AGENTS.md, docs/REFERENCE_VIDEO_V2.md, run `cd remotion && npm install && npx tsc --noEmit` before finishing, log in docs/CONTEXT.md.
 
 - [x] OWNER PRIORITY P0 (faces): InkStickman faces look awful: redesign eyes (larger, with pupils and highlights, blink), eyebrows that express emotion, a nose line, and mouth shapes (smile, frown, open-surprise, shout, neutral). NO speech bubbles and NO comic styling anywhere. Mouth moves only while that character is speaking a quote (see the quote cutaway task). tsc must pass.

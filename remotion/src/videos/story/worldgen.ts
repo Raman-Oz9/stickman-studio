@@ -2,6 +2,7 @@
 // All geometry is assembled from flat primitives; drawWorld(params,t) is deterministic for a given time.
 import * as THREE from "three";
 import { PROC } from "./props3d";
+import { TEX, groundTexName } from "./texcache";
 
 export type TerrainType = "forest"|"jungle"|"ocean"|"ocean-floor"|"mountain"|"canyon"|"desert"|"ice"|"plain"|"river"|"lake"|"coast"|"swamp"|"cave"|"savanna"|"city"|"railway"|"airport"|"harbour"|"space";
 export type WeatherType = "clear"|"rain"|"snow"|"fog"|"storm"|"drought"|"wind"|"sandstorm"|"mist"|"dust"|"haze";
@@ -66,7 +67,11 @@ const heightfieldGround=(g:THREE.Group,kind:string,base:string)=>{
     c.multiplyScalar(.88+hash(i,kind.length)*.2);col[i*3]=c.r;col[i*3+1]=c.g;col[i*3+2]=c.b;
   }
   geo.setAttribute("color",new THREE.BufferAttribute(col,3));geo.computeVertexNormals();
-  const mesh=new THREE.Mesh(geo,new THREE.MeshLambertMaterial({vertexColors:true,flatShading:true}));mesh.receiveShadow=false;g.add(mesh);
+  const gtex=TEX[groundTexName(kind)];
+  if(gtex){const t=gtex.clone();t.needsUpdate=true;t.repeat.set(34,34);const cc=geo.attributes.color as THREE.BufferAttribute;for(let i=0;i<cc.count;i++)cc.setXYZ(i,.5+cc.getX(i)*.62,.5+cc.getY(i)*.62,.5+cc.getZ(i)*.62);}
+  const gmat=new THREE.MeshLambertMaterial({vertexColors:true,flatShading:false});
+  if(gtex){const t=gtex.clone();t.needsUpdate=true;t.repeat.set(34,34);gmat.map=t;}
+  const mesh=new THREE.Mesh(geo,gmat);mesh.receiveShadow=false;g.add(mesh);
   if(["plain","farm","savanna","forest","canyon","mountain","desert"].includes(kind)){
     const dummy=new THREE.Object3D();
     const blades=new THREE.InstancedMesh(new THREE.ConeGeometry(.06,.55,4),new THREE.MeshLambertMaterial({color:"#629442"}),320);

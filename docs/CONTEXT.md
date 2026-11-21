@@ -191,3 +191,4 @@
 - 2026-11-20 OpenCode: Redesigned InkStickman faces: larger expressive eyes with pupils and highlights, blink animation, emotion-expressing eyebrows, a clean nose line, distinct mouth shapes (smile, frown, open-surprise, shout, neutral), and quote-driven talking mouth animation (`isTalking`) with zero speech bubbles or comic styling. Strict TypeScript verification passed.
 - 2026-11-21: plan_story.py: fix unclosed paren in __main__ (agent landing broke Plan storyboard)
 - 2026-11-21 OpenCode: Added a soft ground contact shadow ellipse under character feet in InkStickman.tsx (blurred, 35% black, scaled by body width, skewed away from key light, drawn before legs). Verified clean TypeScript compilation.
+- 2026-11-21: texcache.ts + heightfieldGround uses generated tex (grass/sand/rock/forest/gravel/snow); StoryHybrid preloads textures

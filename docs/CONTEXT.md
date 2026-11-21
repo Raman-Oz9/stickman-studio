@@ -1,3 +1,7 @@
+### 2026-11-21 — Pass season into generated terrain texture selection
+- Fixed seasonal terrain texture selection so winter scenes pass `season` into the ground texture resolver and use the cached snow texture where appropriate, including specialised ocean-floor, Egypt, mountain and dune worlds.
+- Removed an unused duplicate texture clone in the ground material setup; the mapped clone remains configured with repeat tiling.
+
 ### 2026-11-20 — Validate generated texture image outputs
 - The free-provider texture generator now decodes provider responses, normalises materials to 1024×1024 and sky panoramas to 1536×768, converts outputs to real JPEG files, and verifies the saved image before reporting success.
 - Existing files are skipped only when they are valid JPEGs at the expected dimensions. Both manual generation and story-driven generation install Pillow for this validation.

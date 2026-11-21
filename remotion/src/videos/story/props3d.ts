@@ -408,7 +408,25 @@ const pagoda = () => { const g = new THREE.Group(); const c = "#c0353a", w = "#f
 const catapult = withWheels(grp(mk(B(1.0, 0.4, 1.8), "#6b3f1c", 0, 0.5, 0), mk(C(0.08, 0.08, 1.4, 8), "#4a2f1a", 0, 1.1, -0.4, 1, 1, 1, Math.PI / 2), mk(B(0.15, 1.8, 0.15), "#8a5a2b", 0, 1.2, 0.3, 1, 1, 1, -0.4), mk(S(0.35, 10, 8), "#2a2a30", 0, 2.0, 0.7)), [[0.55, 0.4], [-0.55, 0.4], [0.55, -0.4], [-0.55, -0.4]], 0.35, 0.12);
 const vikinglongship = () => grp(hull("#5a3b2a", 4.2), mk(new THREE.ConeGeometry(0.4, 1.2, 4), "#8a5a2b", 0, 0.7, 2.2, 1, 1, 1, Math.PI / 2), mk(new THREE.ConeGeometry(0.4, 1.2, 4), "#8a5a2b", 0, 0.7, -2.2, 1, 1, 1, -Math.PI / 2), mk(C(0.05, 0.05, 3.4, 8), "#3a2414", 0, 1.9, 0), mk(B(0.04, 2.2, 1.8), "#d2362e", 0.02, 2.0, 0), ...([-1.6, -0.8, 0, 0.8, 1.6].map(z => mk(C(0.12, 0.12, 0.15, 12), "#f5c32c", 0.72, 0.45, z, 1, 1, 1, Math.PI / 2))));
 
-const bed3 = () => grp(mk(B(2.5,.32,4.2),"#6b4630",0,.62,0),mk(B(2.35,.34,4),"#e8e2d6",0,.95,0),mk(B(2.2,.42,.75),"#f2eee5",0,1.25,1.45),mk(B(2.5,1.25,.22),"#8a5a2b",0,1.1,-2.05),...[-1,1].flatMap(x=>[-1,1].map(z=>mk(C(.09,.12,.75,8),"#6b4630",x*1.08,.35,z*1.78))));
+const bed = () => grp(
+  mk(B(2.5, 0.32, 4.2), "#8a5a2b", 0, 0.62, 0),
+  mk(B(2.35, 0.34, 4.0), "#e8e0d0", 0, 0.95, 0),
+  mk(B(2.0, 0.35, 0.75), "#f2eee5", 0, 1.25, 1.45),
+  mk(B(2.2, 0.36, 2.4), "#d2362e", 0, 1.22, -0.4),
+  mk(B(2.5, 1.25, 0.22), "#8a5a2b", 0, 1.1, -2.05),
+  ...[-1, 1].flatMap(x => [-1, 1].map(z => mk(C(0.09, 0.12, 1.8, 8), "#8a5a2b", x * 1.08, 1.1, z * 1.78))),
+  mk(B(2.4, 0.08, 3.6), "#8a5a2b", 0, 2.0, 0)
+);
+
+const deathbed = () => grp(
+  mk(B(2.5, 0.32, 4.2), "#5a3a2a", 0, 0.62, 0),
+  mk(B(2.35, 0.34, 4.0), "#e8e0d0", 0, 0.95, 0),
+  mk(B(2.0, 0.35, 0.75), "#f2eee5", 0, 1.25, 1.45),
+  mk(B(2.2, 0.36, 2.4), "#4a2a2a", 0, 1.22, -0.4),
+  mk(B(2.5, 1.35, 0.22), "#3a241a", 0, 1.15, -2.05),
+  ...[-1, 1].flatMap(x => [-1, 1].map(z => mk(C(0.09, 0.12, 1.8, 8), "#3a241a", x * 1.08, 1.1, z * 1.78))),
+  mk(B(2.4, 0.08, 3.6), "#3a241a", 0, 2.0, 0)
+);
 const throne3 = () => grp(mk(B(1.8,.35,1.7),"#7b3c25",0,.8,0),mk(B(1.8,2.2,.3),"#8b4b2e",0,1.95,-.72),mk(B(.28,1.05,1.5),"#b58a43",-.92,1.25,0),mk(B(.28,1.05,1.5),"#b58a43",.92,1.25,0),...[-.62,.62].flatMap(x=>[-.55,.55].map(z=>mk(C(.09,.12,.75,8),"#b58a43",x,.38,z))),mk(new THREE.ConeGeometry(.16,.45,5),"#f5c32c",0,3.28,-.7));
 const table3 = () => grp(mk(B(2.5,.22,1.65),"#8a5a2b",0,1.1,0),...[-1,1].flatMap(x=>[-1,1].map(z=>mk(B(.16,1,.16),"#6b3f1c",x*1.05,.5,z*.62))));
 const chair3 = () => grp(mk(B(1.2,.2,1.2),"#8a5a2b",0,.75,0),mk(B(1.2,1.5,.18),"#8a5a2b",0,1.55,-.52),...[-1,1].flatMap(x=>[-1,1].map(z=>mk(B(.12,.72,.12),"#6b3f1c",x*.48,.36,z*.48))));
@@ -417,7 +435,7 @@ const bird3 = () => grp(mk(S(.48,14,10),"#3f6f9f",0,.65,0,.9,.8,1.2),mk(S(.25,10
 const campfire3 = () => grp(...[0,1,2].map(i=>mk(C(.13,.16,1.7,7),"#6b3f1c",0,.12,0,1,1,1,0,0,i*Math.PI/3)),mk(new THREE.ConeGeometry(.48,1.25,8),"#f06a1e",0,.8,0),mk(new THREE.ConeGeometry(.25,.82,8),"#ffd23a",0,.66,.05));
 const calculator3 = () => grp(mk(B(1.2,.12,1.55),"#414a55",0,.12,0),mk(B(1.08,.035,1.38),"#aeb8b6",0,.2,0),mk(B(.72,.08,.26),"#243c43",0,.27,-.48),...Array.from({length:12},(_,i)=>mk(B(.13,.06,.13),i%4===0?"#d2a64d":"#59616a",-.42+(i%4)*.28,.27,.05+Math.floor(i/4)*.28)));
 const laptop3 = () => grp(mk(B(1.9,.12,1.35),"#6d7880",0,.08,.35),mk(B(1.9,1.25,.1),"#53616d",0,.7,-.28,0),mk(B(1.72,1.07,.035),"#244d61",0,.72,-.22),mk(B(1.86,.07,.16),"#aab2b6",0,.18,-.22));
-Object.assign(PROC, { bed: bed3, deathbed: bed3, royalbed: bed3, throne: throne3, table: table3, chair: chair3, scroll: scroll3, bird: bird3, birds: bird3, campfire: campfire3 });
+Object.assign(PROC, { bed, deathbed, royalbed: bed, throne: throne3, table: table3, chair: chair3, scroll: scroll3, bird: bird3, birds: bird3, campfire: campfire3 });
 Object.assign(PROC, { calculator: calculator3, laptop: laptop3 });
 Object.assign(DEFAULT_H, { calculator: .42, laptop: 1.3 });
 Object.assign(ALIAS, { "laptop computer": "laptop", computer: "laptop", "mobile phone": "phone", calculator: "calculator" });

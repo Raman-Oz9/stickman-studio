@@ -194,3 +194,4 @@
 - 2026-11-21: texcache.ts + heightfieldGround uses generated tex (grass/sand/rock/forest/gravel/snow); StoryHybrid preloads textures
 - 2026-11-21: realm.ts water uses water_deep texture
 - 2026-11-21: kit ship orange materials -> wood_planks texture
+- 2026-11-21: fetch_kenney.py: +18 more CC0 Kenney kit slugs (failures tolerated)

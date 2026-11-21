@@ -36,7 +36,7 @@ def embed(glb: bytes, z, base: str) -> bytes:
         return b"glTF" + struct.pack("<II", 2, 12 + len(out)) + out
     except Exception as e:
         print("embed failed", base, repr(e)[:100]); return glb
-for slug in ["nature-kit", "fantasy-town-kit", "pirate-kit", "city-kit-suburban", "furniture-kit", "car-kit", "city-kit-commercial", "city-kit-roads", "city-kit-industrial", "watercraft-pack", "space-kit", "train-kit", "blaster-kit", "cube-pets", "survival-kit", "castle-kit", "mini-dungeon", "food-kit", "weapon-pack", "toy-car-kit", "blocky-characters"]:
+for slug in ["nature-kit", "fantasy-town-kit", "pirate-kit", "city-kit-suburban", "furniture-kit", "car-kit", "city-kit-commercial", "city-kit-roads", "city-kit-industrial", "watercraft-pack", "space-kit", "train-kit", "blaster-kit", "cube-pets", "survival-kit", "castle-kit", "mini-dungeon", "food-kit", "weapon-pack", "toy-car-kit", "blocky-characters", "animal-pack", "graveyard-kit", "retro-medieval-kit", "modular-buildings", "building-kit", "platformer-kit", "holiday-kit", "hexagon-kit", "tower-defense-kit", "mini-market", "mini-characters", "brick-kit", "pirate-pack", "medieval-town-base", "castle-kit-2", "desert-kit", "ancient-kit", "fish-pack"]:
     try:
         html = get(f"https://kenney.nl/assets/{slug}").decode("utf8", "ignore")
         m = re.search(r"data-download-id='([0-9a-f]+)'", html)

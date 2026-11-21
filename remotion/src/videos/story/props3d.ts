@@ -44,24 +44,37 @@ type Q = { body: string; head?: string; belly?: string; L?: number; H?: number; 
 /** articulated four-legged animal: forward +z, legs are pivot groups (userData.leg) the world swings while it moves */
 const quad2 = (q: Q) => {
   const L = q.L ?? 1, H = q.H ?? 1, lh = (q.legH ?? 0.55) * H, lr = q.legR ?? 0.075, by = lh + 0.3 * H, head = q.head ?? q.body, g = new THREE.Group(), nk = q.neck ?? 0.35, hl = q.headL ?? 1;
-  g.add(mk(S(0.5), q.body, 0, by, 0, 0.62, 0.6 * H, 1.25 * L));
+  const bodyMesh = mk(S(0.5), q.body, 0, by, 0, 0.62, 0.6 * H, 1.25 * L); bodyMesh.userData.part = "body"; g.add(bodyMesh);
   if (q.belly) g.add(mk(S(0.4), q.belly, 0, by - 0.12 * H, 0.05, 0.5, 0.35 * H, 1.0 * L));
   if (q.fluff) for (let i = 0; i < 9; i++) g.add(mk(S(0.28), q.body, Math.sin(i * 2.4) * 0.28, by + (i % 3) * 0.1 * H, (i / 8 - 0.5) * 1.1 * L, 1, 1, 1));
   if (q.humps) for (let i = 0; i < q.humps; i++) g.add(mk(S(0.3), q.body, 0, by + 0.42 * H, (i - (q.humps - 1) / 2) * 0.6 * L, 0.75, 1.0, 0.8));
   const hz = 0.62 * L + nk * 0.5, hy = by + 0.18 * H + nk * 0.7 * H;
   g.add(mk(C(0.16, 0.24, nk * 1.3 * H, 10), q.mane && !q.trunk ? q.body : q.body, 0, by + 0.1 * H + nk * 0.35 * H, 0.55 * L + nk * 0.2, 1, 1, 1, 0.55 * (nk > 0.5 ? 1 : 0.6)));
-  g.add(mk(S(0.22 * hl ** 0.3), head, 0, hy, hz, 0.8, 0.85, 1.1 * hl), mk(S(0.12), q.snout ?? head, 0, hy - 0.05 * H, hz + 0.2 * hl, 0.9, 0.75, 1.1));
-  g.add(mk(S(0.032, 8, 6), "#1a1a1e", 0.1, hy + 0.06, hz + 0.1 * hl), mk(S(0.032, 8, 6), "#1a1a1e", -0.1, hy + 0.06, hz + 0.1 * hl));
+  
+  const headGroup = new THREE.Group(); headGroup.position.set(0, hy, hz); headGroup.userData.part = "head";
+  headGroup.add(mk(S(0.22 * hl ** 0.3), head, 0, 0, 0, 0.8, 0.85, 1.1 * hl), mk(S(0.12), q.snout ?? head, 0, -0.05 * H, 0.2 * hl, 0.9, 0.75, 1.1));
+  headGroup.add(mk(S(0.032, 8, 6), "#1a1a1e", 0.1, 0.06, 0.1 * hl), mk(S(0.032, 8, 6), "#1a1a1e", -0.1, 0.06, 0.1 * hl));
   const ew = q.ears === "long" ? [0.07, 0.42] : q.ears === "big" ? [0.3, 0.34] : [0.07, 0.17];
-  if (q.ears !== "none") g.add(mk(S(1), q.earC ?? head, 0.11, hy + 0.2 * H, hz - 0.06, ew[0], ew[1], 0.06 + (q.ears === "big" ? 0.04 : 0)), mk(S(1), q.earC ?? head, -0.11, hy + 0.2 * H, hz - 0.06, ew[0], ew[1], 0.06 + (q.ears === "big" ? 0.04 : 0)));
-  if (q.mane) { for (let i = 0; i < 6; i++) g.add(mk(S(0.1), q.mane, 0, by + 0.35 * H + nk * 0.7 * H * (1 - i / 6) + 0.15, 0.5 * L + nk * 0.28 - i * 0.05, 0.6, 1.2, 1.2)); if (q.tail !== "none") g.add(mk(S(0.14), q.mane, 0, hy + 0.14, hz - 0.1, 0.7, 0.8, 1)); }
-  if (q.horns) g.add(mk(new THREE.ConeGeometry(0.05, 0.22, 6), q.horns, 0.14, hy + 0.2 * H, hz - 0.04, 1, 1, 1, 0, 0, -0.5), mk(new THREE.ConeGeometry(0.05, 0.22, 6), q.horns, -0.14, hy + 0.2 * H, hz - 0.04, 1, 1, 1, 0, 0, 0.5));
-  if (q.antlers) for (const sg of [-1, 1]) { g.add(mk(C(0.025, 0.03, 0.5, 6), "#d9c9a0", sg * 0.12, hy + 0.4 * H, hz - 0.04, 1, 1, 1, 0, 0, -sg * 0.45)); g.add(mk(C(0.02, 0.025, 0.3, 6), "#d9c9a0", sg * 0.25, hy + 0.55 * H, hz - 0.04, 1, 1, 1, 0, 0, -sg * 0.9)); }
-  if (q.trunk) { for (let i = 0; i < 4; i++) g.add(mk(C(0.11 - i * 0.015, 0.13 - i * 0.015, 0.3, 8), head, 0, hy - 0.08 - i * 0.2, hz + 0.28 + i * 0.07 + Math.max(0, i - 2) * 0.1, 1, 1, 1, -0.18 - i * 0.08)); }
-  if (q.tusks) for (const sg of [-1, 1]) g.add(mk(new THREE.ConeGeometry(0.05, 0.5, 6), "#f4eed8", sg * 0.15, hy - 0.2, hz + 0.3, 1, 1, 1, 1.9, 0, sg * 0.2));
+  if (q.ears !== "none") {
+    const eR = mk(S(1), q.earC ?? head, 0.11, 0.2 * H, -0.06, ew[0], ew[1], 0.06 + (q.ears === "big" ? 0.04 : 0)); eR.userData.part = "earR";
+    const eL = mk(S(1), q.earC ?? head, -0.11, 0.2 * H, -0.06, ew[0], ew[1], 0.06 + (q.ears === "big" ? 0.04 : 0)); eL.userData.part = "earL";
+    headGroup.add(eR, eL);
+  }
+  if (q.horns) headGroup.add(mk(new THREE.ConeGeometry(0.05, 0.22, 6), q.horns, 0.14, 0.2 * H, -0.04, 1, 1, 1, 0, 0, -0.5), mk(new THREE.ConeGeometry(0.05, 0.22, 6), q.horns, -0.14, 0.2 * H, -0.04, 1, 1, 1, 0, 0, 0.5));
+  if (q.antlers) for (const sg of [-1, 1]) { headGroup.add(mk(C(0.025, 0.03, 0.5, 6), "#d9c9a0", sg * 0.12, 0.4 * H, -0.04, 1, 1, 1, 0, 0, -sg * 0.45)); headGroup.add(mk(C(0.02, 0.025, 0.3, 6), "#d9c9a0", sg * 0.25, 0.55 * H, -0.04, 1, 1, 1, 0, 0, -sg * 0.9)); }
+  if (q.trunk) { for (let i = 0; i < 4; i++) headGroup.add(mk(C(0.11 - i * 0.015, 0.13 - i * 0.015, 0.3, 8), head, 0, -0.08 - i * 0.2, 0.28 + i * 0.07 + Math.max(0, i - 2) * 0.1, 1, 1, 1, -0.18 - i * 0.08)); }
+  if (q.tusks) for (const sg of [-1, 1]) headGroup.add(mk(new THREE.ConeGeometry(0.05, 0.5, 6), "#f4eed8", sg * 0.15, -0.2, 0.3, 1, 1, 1, 1.9, 0, sg * 0.2));
+  g.add(headGroup);
+
+  if (q.mane) { for (let i = 0; i < 6; i++) g.add(mk(S(0.1), q.mane, 0, by + 0.35 * H + nk * 0.7 * H * (1 - i / 6) + 0.15, 0.5 * L + nk * 0.28 - i * 0.05, 0.6, 1.2, 1.2)); }
   if (q.spots) { g.add(mk(S(0.25), q.spots, 0.2, by + 0.05, 0.1 * L, 0.6, 0.8 * H, 1), mk(S(0.22), q.spots, -0.25, by, -0.3 * L, 0.6, 0.8 * H, 1)); }
   if (q.stripes) for (let i = 0; i < 5; i++) g.add(mk(B(0.64, 0.05, 0.08), q.stripes, 0, by + 0.2 * H, (i - 2) * 0.28 * L));
-  if (q.tail !== "none") g.add(mk(C(0.04, q.tail === "long" ? 0.09 : 0.05, (q.tail === "short" ? 0.25 : 0.55) * H, 6), q.mane ?? q.body, 0, by + 0.1 * H, -0.62 * L, 1, 1, 1, 0.5));
+  if (q.tail !== "none") {
+    const tailGroup = new THREE.Group(); tailGroup.position.set(0, by + 0.1 * H, -0.62 * L); tailGroup.userData.part = "tail";
+    tailGroup.add(mk(C(0.04, q.tail === "long" ? 0.09 : 0.05, (q.tail === "short" ? 0.25 : 0.55) * H, 6), q.mane ?? q.body, 0, -((q.tail === "short" ? 0.25 : 0.55) * H) / 2, 0, 1, 1, 1, 0.5));
+    if (q.mane && q.tail !== "none") tailGroup.add(mk(S(0.14), q.mane, 0, 0.04, 0, 0.7, 0.8, 1));
+    g.add(tailGroup);
+  }
   const lx = 0.2 * (q.trunk ? 1.4 : 1), lz = 0.42 * L;
   [[lx, lz, 0], [-lx, lz, 1], [lx, -lz, 3], [-lx, -lz, 2]].forEach(([x, z, i]) => g.add(legG(x, z, lh, lr * (q.trunk ? 1.8 : 1), q.body, i, lh + 0.02)));
   return g;
@@ -87,8 +100,7 @@ const bird = (body: string, belly: string, beak: string, big = 1, long = false, 
   const g = grp(mk(S(0.5), body, 0, 0.6, 0, 0.8, 0.9, 1.15), mk(S(0.3), belly, 0, 0.52, 0.2, 0.7, 0.7, 0.9), mk(S(0.25), body, 0, 1.08, 0.46), mk(new THREE.ConeGeometry(0.08, 0.28, 8), beak, 0, 1.04, 0.74, 1, 1, 1, Math.PI / 2), mk(S(0.035, 8, 6), "#111", 0.13, 1.14, 0.62), mk(S(0.035, 8, 6), "#111", -0.13, 1.14, 0.62), mk(new THREE.ConeGeometry(0.2, long ? 0.9 : 0.5, 8), crest ?? body, 0, 0.5, -0.8, 1, 1, 0.4, -1.2));
   if (crest) g.add(mk(S(0.1), crest, 0, 1.36, 0.42, 0.7, 1.6, 0.7));
   for (const sg of [-1, 1]) { const w = new THREE.Group(); w.position.set(sg * 0.38, 0.8, 0); w.userData.wing = sg; w.add(mk(S(0.5), crest ?? body, sg * 0.45 * big, 0, 0, 1.1 * big, 0.12, 0.7)); g.add(w); }
-  g.add(mk(C(0.025, 0.025, 0.25, 6), beak, 0.12, 0.15, 0.05), mk(C(0.025, 0.025, 0.25, 6), beak, -0.12, 0.15, 0.05)); return g;
-};
+  g.add(mk(C(0.025, 0.025, 0.25, 6), beak, 0.12, 0.15, 0.05), mk(C(0.025, 0.025, 0.25, 6), beak, -0.12, 0.15, 0.05)); return g; };
 const parrot = () => bird("#d2362e", "#f0c84a", "#2a2a34", 0.9, true, "#2f6fb5");
 const eagle = () => bird("#6b4a2f", "#f4f2ec", "#f0c84a", 1.8);
 const duck = () => bird("#f4e8c0", "#fff6d8", "#f5a623", 0.8);
@@ -133,7 +145,13 @@ const canoe = () => grp(hull("#b8863a", 2.2));
 const scooter = () => withWheels(grp(mk(B(0.25, 0.1, 0.8), "#2f9f5a", 0, 0.25, 0), mk(C(0.02, 0.02, 0.9, 6), "#888", 0, 0.7, 0.4)), [[0, 0.4], [0, -0.4]], 0.15, 0.06);
 const firetruck = () => { const g = truck(); g.add(mk(B(0.7, 0.08, 2.2), "#c9ccd2", 0, 1.5, -0.6, 1, 1, 1, 0.15)); return g; };
 const ambulance = () => truck();
-const fish = () => grp(mk(S(0.5), "#3fa7d6", 0, 0.5, 0, 1.3, 0.8, 0.5), mk(new THREE.ConeGeometry(0.35, 0.5, 4), "#2f8ab8", -0.8, 0.5, 0, 1, 1, 0.3, 0, 0, Math.PI / 2), mk(S(0.07, 8, 6), "#fff", 0.45, 0.58, 0.22));
+const fish = () => {
+  const g = grp(mk(S(0.5), "#3fa7d6", 0, 0.5, 0, 1.3, 0.8, 0.5), mk(S(0.07, 8, 6), "#fff", 0.45, 0.58, 0.22));
+  const tailGroup = new THREE.Group(); tailGroup.position.set(-0.6, 0.5, 0); tailGroup.userData.part = "tail";
+  tailGroup.add(mk(new THREE.ConeGeometry(0.35, 0.5, 4), "#2f8ab8", -0.2, 0, 0, 1, 1, 0.3, 0, 0, Math.PI / 2));
+  g.add(tailGroup);
+  return g;
+};
 const crown = () => { const g = grp(mk(C(0.5, 0.42, 0.34, 20), GOLD, 0, 0.17, 0)); for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2; g.add(mk(new THREE.ConeGeometry(0.11, 0.35, 8), GOLD, Math.cos(a) * 0.43, 0.5, Math.sin(a) * 0.43), mk(S(0.07, 8, 6), i % 2 ? RED : "#2f9fd8", Math.cos(a) * 0.43, 0.7, Math.sin(a) * 0.43)); } return g; };
 const sword = () => grp(mk(B(0.14, 1.1, 0.04), "#cfd6dd", 0, 0.9, 0), mk(new THREE.ConeGeometry(0.1, 0.2, 4), "#cfd6dd", 0, 1.55, 0, 1, 1, 0.4), mk(B(0.5, 0.08, 0.1), BROWN, 0, 0.32, 0), mk(C(0.04, 0.04, 0.3, 8), "#6b3f1c", 0, 0.14, 0), mk(S(0.07, 8, 6), GOLD, 0, -0.02, 0));
 const key = () => grp(mk(new THREE.TorusGeometry(0.22, 0.07, 8, 20), GOLD, 0, 0.85, 0), mk(C(0.05, 0.05, 0.9, 8), GOLD, 0, 0.3, 0), mk(B(0.2, 0.08, 0.06), GOLD, 0.1, 0.05, 0), mk(B(0.15, 0.08, 0.06), GOLD, 0.08, 0.2, 0));
@@ -336,10 +354,35 @@ export class Props3D {
     }
     if (an) o.traverse((n) => {   // articulated parts: legs swing with distance travelled, wheels roll, wings flap, rotors and props spin
       const d = n.userData;
-      if (d.leg !== undefined) n.rotation.x = an.mv ? Math.sin((an.dist / Math.max(0.2, 1.3 * h * sc)) * 6.283 + (d.leg === 0 || d.leg === 3 ? 0 : Math.PI)) * 0.75 : 0;
-      else if (d.wing !== undefined) n.rotation.z = d.wing * Math.sin(an.t * (an.mv ? 13 : 6)) * 0.7;
-      else if (d.wheel) n.rotation.x = -an.dist / (d.wheel * k);
-      else if (d.spin) n.rotation[d.spin as "x" | "y" | "z"] = an.t * 32;
+      const tSec = an.t;
+      if (d.leg !== undefined) {
+        // Walk cycle leg swinging when moving OR idle breathing/stepping
+        const phaseShift = (d.leg === 0 || d.leg === 3) ? 0 : Math.PI;
+        const swing = an.mv ? Math.sin((an.dist / Math.max(0.2, 1.3 * h * sc)) * 6.283 + phaseShift) * 0.75 : Math.sin(tSec * 2.5 + phaseShift) * 0.08;
+        n.rotation.x = swing;
+      }
+      else if (d.part === "head") {
+        n.rotation.y = Math.sin(tSec * 1.5 + i) * 0.12;
+        n.rotation.x = Math.sin(tSec * 2.2 + i * 0.5) * 0.06;
+      }
+      else if (d.part === "tail") {
+        n.rotation.y = Math.sin(tSec * 4.0 + i) * 0.25;
+      }
+      else if (d.part === "earR") {
+        n.rotation.z = Math.sin(tSec * 3.2 + i) * 0.15;
+      }
+      else if (d.part === "earL") {
+        n.rotation.z = -Math.sin(tSec * 3.2 + i) * 0.15;
+      }
+      else if (d.wing !== undefined) {
+        n.rotation.z = d.wing * Math.sin(tSec * (an.mv ? 13 : 8)) * 0.7;
+      }
+      else if (d.wheel) {
+        n.rotation.x = -an.dist / (d.wheel * k);
+      }
+      else if (d.spin) {
+        n.rotation[d.spin as "x" | "y" | "z"] = tSec * 32;
+      }
     });
     return true;
   }

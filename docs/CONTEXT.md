@@ -171,7 +171,7 @@
 ### 2026-11-18 — Refine StoryHybrid caption treatment
 - Kept the established white lettering with a heavy ink outline and lower-safe-area placement, while making caption typography respond to scene era: a restrained serif treatment for historical eras and the bold sans treatment for modern/futuristic scenes.
 - Night/space scenes receive a cool restrained glow; all captions now have a subtle translucent backing for contrast, with slightly tighter sizing for longer words.
-- Caption work is limited to the StoryHybrid overlay; character projection and rig code are unchanged. Visual acceptance still depends on native-resolution still review, especially hand/face clearance.
+- Caption work is limited to the StoryHybrid overlay; character projection and rig code are unchanged. Caption typography needs visual QA.
 
 ### 2026-11-18 — Expand 3D era architecture presets
 - Extended the procedural 3D settlement vocabulary with dedicated Viking longhouse/longship dressing, Renaissance palazzo and dome, Victorian terraces and street lamps, 1920s stepped skyline, WWII defensive emplacement, near-future towers/elevated transit, space-age landing pad/habitats, Egyptian pyramidal/obelisk forms, and Roman/Greek civic architecture.
@@ -189,3 +189,4 @@
 - 2026-11-20 Claude: voice 'cuts/skips' root cause: planner clause-split removed connectors (but/and/then) so narration was choppier than the script, and fragments were joined with no punctuation. Now connectors kept in fragments and make_voice joins with commas. Also merged ChatGPT PR #14 (texture validation); OVH SDXL verified working (Stable Horde 403 from CI).
 - 2026-11-20 Claude: camera framing re-tuned from the reference video contact sheet (characters 45-55 % of frame height in mediums, 75-90 % in close-ups; eye-level; no floor/feet/low-angle shots). LV table distances ~35 % closer (char d 6.4->4.1, env 11.5->8.2, face 2.9->2.0).
 - 2026-11-20 OpenCode: Redesigned InkStickman faces: larger expressive eyes with pupils and highlights, blink animation, emotion-expressing eyebrows, a clean nose line, distinct mouth shapes (smile, frown, open-surprise, shout, neutral), and quote-driven talking mouth animation (`isTalking`) with zero speech bubbles or comic styling. Strict TypeScript verification passed.
+- 2026-11-20 — Animated animal limb, head, tail, ear, wing, and body motion added to procedural 3D animals in props3d.ts.

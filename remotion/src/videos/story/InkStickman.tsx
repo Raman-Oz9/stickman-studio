@@ -227,7 +227,21 @@ export const InkStickman: React.FC<InkStickmanProps> = ({
   return (
     <g transform={`translate(${x} ${y}) scale(${scale}) rotate(${rot})`}>
       <GarmentDefs />
-      <ellipse cx={cx0} cy="6" rx={70 + 12 * Math.abs(sn)} ry="14" fill="#2b2128" opacity=".22" />
+      <defs>
+        <filter id="inkShadow" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="6" />
+        </filter>
+      </defs>
+      <ellipse
+        cx={cx0 + 10 * (sn >= 0 ? 1 : -1)}
+        cy="6"
+        rx={tw * 1.35 + 10 * Math.abs(sn)}
+        ry="13"
+        fill="#000000"
+        opacity="0.35"
+        filter="url(#inkShadow)"
+        transform={`skewX(${-15 * (sn >= 0 ? 1 : -1)})`}
+      />
       {seat ? <g stroke={INK} strokeWidth="6" strokeLinejoin="round" strokeLinecap="round"><rect x={cx0 - 52 - 14 * Math.abs(sn)} y={-HY + 14} width={104 + 28 * Math.abs(sn)} height="16" rx="5" fill="#9a6a42" /><path d={`M ${cx0 - 44} ${-HY + 30} V 0 M ${cx0 + 44} ${-HY + 30} V 0`} fill="none" />{Math.abs(cs) < 0.9 ? <path d={`M ${cx0 - 50 * poseSgn} ${-HY + 14} V ${-HY - 150}`} fill="none" /> : null}</g> : null}
       {firstBehind ? limb(arms[0].a, arms[0].s, arms[0].f) : null}
       {legsOrder.map(([l, s, k], i) => leg(l, s, shade(legC, k), shade(shoeC, k), "l" + i))}

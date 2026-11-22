@@ -214,3 +214,5 @@
 ### 2026-11-22 OpenCode: Improved film engine sky in film/index.html: replaced scene.background colour with a vertical gradient sky dome ShaderMaterial featuring visible sun disc and soft glow, and night version with moon, preserving DAY/NIGHT lerp.
 
 ### 2026-11-22 OpenCode: Added `scatterDetail()` function in film/index.html called once after terrain creation, creating InstancedMesh (< 3000 instances) for grass blades, flower sprites, shoreline foam ring, and daytime flying birds.
+
+### 2026-11-22 OpenCode: Added 3 new scenes after the crown scene in film/index.html (a council in the palace/temple, a march across the plain with 8 soldiers walking in formation, and a final wide shot) with slow, eye-level camera choreography.

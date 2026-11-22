@@ -23,7 +23,7 @@
   #start p { margin: 0 0 18px; opacity: .85; }
   #end > div { display: flex; flex-direction: column; gap: 10px; align-items: center; }
   body.exp .hud, body.exp .bar, body.exp #start, body.exp #prog { display: none !important; }
-  body.exp #cap { font-size: 34px; bottom: 11%; width: calc(100% - 48px); }
+  body.exp #cap { font-size: 34px; bottom: 6%; width: 100%; padding: 70px 24px 22px; box-sizing: border-box; background: linear-gradient(transparent, rgba(0,0,0,.62) 55%); }
   button.big { font-size: 17px; padding: 13px 30px; background: var(--accent); color: var(--ink); border-color: var(--accent); }
   #prog { position: fixed; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom, 0px) + 64px); height: 3px; background: rgba(255,255,255,.2); }
   #prog i { display: block; height: 100%; width: 0; background: var(--accent); }
@@ -95,7 +95,7 @@
   function mk(g, c, x, y, z) { var m = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ color: c })); m.position.set(x, y, z); return m; }
   for (i = 0; i < 160; i++) {
     var tx = (hash(i * 5.1) - 0.5) * 70, tz = (hash(i * 7.3) - 0.5) * 70, th = H(tx, tz);
-    if (th < 1.0 || th > 4.3 || Math.hypot(tx - 14, tz - 12) < 8 || Math.hypot(tx + 6, tz - 12) < 6) continue;
+    if (th < 1.0 || th > 4.3 || Math.hypot(tx - 14, tz - 12) < 8 || Math.hypot(tx + 6, tz - 12) < 6 || Math.hypot(tx - 20, tz + 16) < 14) continue;
     var s = 0.8 + hash(i) * 0.8, tr = new THREE.Group();
     tr.add(mk(new THREE.CylinderGeometry(0.12 * s, 0.18 * s, 1.1 * s, 6), "#6b4a2b", 0, 0.55 * s, 0));
     tr.add(mk(new THREE.ConeGeometry(0.85 * s, 1.6 * s, 7), "#2f7d4a", 0, 1.7 * s, 0)); tr.add(mk(new THREE.ConeGeometry(0.62 * s, 1.3 * s, 7), "#3b9157", 0, 2.4 * s, 0));
@@ -280,11 +280,11 @@
       setup: function () { chars.forEach(function (c) { c.hide = !(c === player || c.key === "queen"); }); place(player, -2.2, 6, -4, 8.6); place(chars[chars.length - 1], -6, 9.4); },
       cam: function (u) { var cx = lerp(16, 3, u), cz = lerp(0, 3, u); return { p: V3(cx, H(cx, cz) + lerp(4.5, 2.4, u), cz), l: V3(-5, lerp(7, 7.6, u), 10) }; } },
     { text: "She smiled at him, and said:", quote: "Welcome to Egypt. Gold is only sand that someone loved.", dur: 9.5, chapter: "Quote",
-      setup: function () { var q = chars[chars.length - 1]; place(player, -4.4, 8.2); place(q, -5.6, 9.6); q.pose = "talk"; q.until = nowMs() + 7500; },
+      setup: function () { var q = chars[chars.length - 1]; chars.forEach(function (c) { c.hide = c !== q; }); place(player, -4.4, 8.2); place(q, -5.6, 9.6); q.pose = "talk"; q.until = nowMs() + 7500; },
       cam: function (u) { var q = chars[chars.length - 1], y = H(q.x, q.z), cx = q.x + 1.4 - u * 0.4, cz = q.z - 3.6 + u * 1.2; return { p: V3(cx, Math.max(y + 1.9, H(cx, cz) + 1.3), cz), l: V3(q.x, y + 1.75, q.z) }; } },
     { text: "But the Persians marched against him, and the two armies clashed on the plain.", dur: 9, chapter: "Battle",
       setup: function () { chars.forEach(function (c) { c.hide = !(c !== chars[chars.length - 1]); }); showTeals(true); battle = true; place(player, BC[0] - 5, BC[1]); player.tx = BC[0] - 2.6; player.tz = BC[1]; reds.forEach(function (c, i) { place(c, BC[0] - 6 - i * 0.5, BC[1] + (i - 1.5) * 1.3); }); teals.forEach(function (c, i) { place(c, BC[0] + 6 + i * 0.5, BC[1] + (i - 1.5) * 1.3); }); },
-      cam: function (u) { var an = -0.7 + u * 1.2, cx = BC[0] + Math.sin(an) * 15, cz = BC[1] + Math.cos(an) * 15, y = H(BC[0], BC[1]); return { p: V3(cx, Math.max(y + 3.4 - u, H(cx, cz) + 2.4), cz), l: V3(BC[0], y + 1.4, BC[1]) }; } },
+      cam: function (u) { var an = -0.7 + u * 1.2, cx = BC[0] + Math.sin(an) * 15, cz = BC[1] + Math.cos(an) * 15, y = H(BC[0], BC[1]); return { p: V3(cx, Math.max(y + 4.2 - u, H(cx, cz) + 3.0), cz), l: V3(BC[0], y + 1.4, BC[1]) }; } },
     { text: "Victorious, Alexander knelt, and the queen placed the crown upon his head.", dur: 9.5, chapter: "Crown",
       setup: function () { battle = false; chars.forEach(function (c) { c.hide = !(c === player || c.key === "queen"); }); var q = chars[chars.length - 1]; place(player, -4.6, 9.6); place(q, -8.2, 10.6, -5.5, 9.8); },
       cam: function (u) { var y = H(-5, 9.7), cx = -5 + 2.6 - u * 1.2, cz = 9.7 - 5.0 + u * 2.2; return { p: V3(cx, Math.max(y + 2.0 - u * 0.25, H(cx, cz) + 1.3), cz), l: V3(-5, y + 1.8, 9.7) }; },

@@ -79,5 +79,5 @@ Owner/Claude/ChatGPT: add tasks at the bottom (one line each, self-contained, sc
 - [x] In remotion/src/videos/story/InkStickman.tsx add facial expressions driven by scene mood (happy, sad, angry, afraid, surprised, thinking) and talking mouth animation while narration plays; keep rig API unchanged. tsc must pass.
 - [ ] In remotion/src/videos/story/pose2d.ts add 20 more verbs with natural poses: ride (horse), row, sail, climb, swim, dig, hammer, cook, plant, harvest, pray, kneel, bow, salute, dance, cheer, cry, sleep, heal, build. Map in castPerf.ts and VERB_ALIASES. tsc must pass.
 - [ ] In remotion/src/videos/story/StoryHybrid.tsx add subtle camera-matched film grain, light bloom on bright props and a soft background blur layer used ONLY for face/upper close-ups (focus distance from camera target); tsc must pass.
-- [~] Add docs/PROGRESS.md listing every landed feature with date and a 3-line "how to test" for each; keep it updated by appending when you finish a task.
+- [ ] Add docs/PROGRESS.md listing every landed feature with date and a 3-line "how to test" for each; keep it updated by appending when you finish a task.
 

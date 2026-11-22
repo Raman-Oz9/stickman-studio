@@ -242,7 +242,22 @@ const lighthouse = () => grp(mk(C(0.45, 0.7, 3.4, 18), "#f3f0ea", 0, 1.7, 0), mk
 const windmill = () => { const g = grp(mk(C(0.5, 0.85, 2.4, 14), "#e8dcc4", 0, 1.2, 0), mk(cone(0.7, 0.8, 14), "#a0522d", 0, 2.8, 0), mk(B(0.4, 0.7, 0.1), "#5a3b2a", 0, 0.4, 0.8)); const arm = new THREE.Group(); arm.position.set(0, 2.5, 0.62); arm.userData.spin = "z"; for (let i = 0; i < 4; i++) { const pv = new THREE.Group(); pv.rotation.z = (i * Math.PI) / 2; pv.add(mk(B(0.32, 1.5, 0.05), "#f2ede0", 0, 0.8, 0)); arm.add(pv); } g.add(arm); return g; };
 const tent = () => grp(mk(cone(1.3, 1.5, 4), "#d9a441", 0, 0.75, 0, 1, 1, 1, 0, Math.PI / 4), mk(B(0.5, 0.8, 0.05), "#3a2a1a", 0, 0.4, 0.92));
 const tower = () => grp(mk(C(0.7, 0.8, 3.6, 16), "#b8bfc9", 0, 1.8, 0), mk(C(0.9, 0.8, 0.4, 16), "#a2aab6", 0, 3.8, 0), mk(cone(1.0, 1.0, 16), "#c0353a", 0, 4.5, 0), mk(B(0.3, 0.5, 0.05), "#2a1830", 0, 2.4, 0.78));
-const temple = () => { const g = grp(mk(B(4, 0.25, 2.6), "#e9e2d2", 0, 0.12, 0), mk(B(3.8, 0.3, 2.4), "#f3eee2", 0, 2.35, 0), mk(cone(2.2, 0.9, 4), "#e9e2d2", 0, 3.0, 0, 1.0, 1, 0.5, 0, Math.PI / 4)); for (let i = -3; i <= 3; i++) for (const z of [-0.95, 0.95]) g.add(mk(C(0.14, 0.16, 2.1, 12), "#f6f1e6", i * 0.55, 1.3, z)); return g; };
+const temple = () => {
+  const g = grp(
+    mkTex(B(4.8, 0.25, 3.6), "limestone", "#d8b878", 0, 0.12, 0),
+    mkTex(B(4.2, 0.25, 3.0), "limestone", "#d8b878", 0, 0.37, 0),
+    mkTex(B(3.6, 0.25, 2.4), "limestone", "#d8b878", 0, 0.62, 0),
+    mkTex(B(3.8, 0.3, 2.6), "limestone", "#d8b878", 0, 2.35, 0),
+    mkTex(B(4.0, 0.35, 2.8), "limestone", "#d8b878", 0, 3.15, 0)
+  );
+  for (let i = -1; i <= 1; i++) {
+    for (const z of [-1.0, 1.0]) {
+      g.add(mkTex(C(0.14, 0.16, 2.1, 12), "limestone", "#d8b878", i * 1.3, 1.4, z));
+      g.add(mkTex(B(0.32, 0.1, 0.32), "limestone", "#f2ebd9", i * 1.3, 2.5, z));
+    }
+  }
+  return g;
+};
 const colosseum = () => { const g = new THREE.Group(); for (let i = 0; i < 20; i++) { const a = (i / 20) * Math.PI * 2; for (let r = 0; r < 3; r++) g.add(mk(B(0.75, 0.9, 0.5), r % 2 ? "#d8c39a" : "#cdb78a", Math.cos(a) * 2.2, 0.45 + r * 0.9, Math.sin(a) * 2.2, 1, 1, 1, 0, -a + Math.PI / 2)); } g.add(mk(C(1.8, 1.8, 0.1, 24), "#d9b36a", 0, 0.05, 0)); return g; };
 const bridgeM = () => grp(mk(B(4, 0.2, 1), "#8a5a2b", 0, 0.7, 0), mk(B(4, 0.08, 0.06), "#6b3f1c", 0, 1.1, 0.45), mk(B(4, 0.08, 0.06), "#6b3f1c", 0, 1.1, -0.45), mk(B(0.3, 0.7, 0.9), "#9aa0ab", -1.7, 0.35, 0), mk(B(0.3, 0.7, 0.9), "#9aa0ab", 1.7, 0.35, 0));
 const piratesail = () => grp(mk(B(0.9, 0.5, 2.6), "#5a3b2a", 0, 0.35, 0, 1, 1, 1, 0, 0), mk(B(0.5, 0.5, 1.2), "#6b4630", 0, 0.8, -1.3), mk(C(0.05, 0.05, 2.6, 8), "#3a2a1a", 0, 1.8, 0.2), mk(B(0.04, 1.4, 1.3), "#f2ecd8", 0.02, 1.9, 0.2), mk(B(0.04, 0.3, 0.4), "#111", 0.05, 3.0, 0.2), mk(cone(0.45, 0.8, 8), "#5a3b2a", 0, 0.4, 1.6, 1, 1, 1, Math.PI / 2, 0, 0));
@@ -414,8 +429,30 @@ const cavefire = () => grp(mk(B(1.2, 0.15, 1.2), "#3a2f2a", 0, 0.08, 0), ...[0, 
 const mammoth = () => quad2({ body: "#6b5442", mane: "#543d2b", L: 1.5, H: 1.6, legH: 0.65, neck: 0.5, headL: 1.4, ears: "big", tail: "short", trunk: true, tusks: true, legR: 0.14, fluff: true });
 const huntingtools = () => grp(mk(C(0.025, 0.03, 1.6, 8), "#6b3f1c", 0, 0.8, 0), mk(new THREE.ConeGeometry(0.06, 0.25, 4), STEEL, 0, 1.65, 0, 1, 1, 0.4), mk(B(0.18, 0.06, 0.22), "#5a3a22", 0.4, 0.5, 0), mk(new THREE.ConeGeometry(0.08, 0.2, 4), "#cfd6dd", 0.52, 0.55, 0, 1, 1, 1, 0, 0, -1.2));
 const hut = () => grp(mk(C(1.1, 1.3, 1.2, 16), "#b08d57", 0, 0.6, 0), mk(cone(1.4, 1.1, 16), "#6e4e2b", 0, 1.75, 0), mk(B(0.35, 0.65, 0.08), "#4a3520", 0, 0.32, 1.0));
-const obelisk = () => grp(mk(C(0.4, 0.5, 3.8, 4), "#d9d0c1", 0, 1.9, 0, 1, 1, 1, 0, Math.PI / 4), mk(cone(0.42, 0.7, 4), "#d9d0c1", 0, 4.15, 0, 1, 1, 1, 0, Math.PI / 4));
-const sphinx = () => grp(mk(B(1.6, 1.0, 3.2), "#d4c3a3", 0, 0.5, 0), mk(S(0.7, 14, 10), "#d4c3a3", 0, 1.3, 1.3), mk(B(1.1, 0.2, 0.6), "#234975", 0, 1.55, 1.1, 1, 1, 1, -0.2), mk(B(1.4, 0.15, 1.8), "#c8b797", 0, 0.08, 0));
+const obelisk = () => grp(
+  mkTex(B(1.2, 0.3, 1.2), "limestone", "#d8b878", 0, 0.15, 0),
+  mkTex(C(0.35, 0.48, 3.8, 4), "limestone", "#d8b878", 0, 2.1, 0, 1, 1, 1, 0, Math.PI / 4),
+  mkTex(cone(0.4, 0.7, 4), "limestone", "#f2ebd9", 0, 4.25, 0, 1, 1, 1, 0, Math.PI / 4)
+);
+const sphinx = () => grp(
+  mkTex(B(1.6, 1.0, 3.2), "limestone", "#d8b878", 0, 0.5, 0),
+  mkTex(S(0.65, 12, 10), "limestone", "#d8b878", 0, 1.3, 1.3),
+  mk(B(1.1, 0.2, 0.6), "#234975", 0, 1.55, 1.1, 1, 1, 1, -0.2),
+  mkTex(B(1.4, 0.15, 1.8), "limestone", "#d4c3a3", 0, 0.08, 0)
+);
+const columnrow = () => {
+  const g = grp(mkTex(B(3.8, 0.2, 1.0), "limestone", "#d8b878", 0, 0.1, 0));
+  for (let i = -2; i <= 2; i++) {
+    g.add(mkTex(C(0.13, 0.15, 2.2, 12), "limestone", "#d8b878", i * 0.8, 1.3, 0));
+    g.add(mkTex(B(0.28, 0.08, 0.28), "limestone", "#f2ebd9", i * 0.8, 2.45, 0));
+  }
+  g.add(mkTex(B(3.8, 0.2, 1.0), "limestone", "#d8b878", 0, 2.65, 0));
+  return g;
+};
+const stonewall = () => grp(
+  mkTex(B(3.6, 1.8, 0.6), "limestone", "#d8b878", 0, 0.9, 0),
+  ...[-1.2, 0, 1.2].map(x => mkTex(B(0.5, 0.2, 0.65), "limestone", "#f2ebd9", x, 1.9, 0))
+);
 const aqueduct = () => grp(mk(B(3.6, 0.5, 1.4), "#b8b2a5", 0, 2.25, 0), mk(B(3.4, 0.2, 1.2), "#b8b2a5", 0, 1.95, 0), ...[-1.2, 0, 1.2].map(x => grp(mk(B(0.6, 1.8, 1.1), "#b8b2a5", x, 1.0, 0), mk(C(0.4, 0.4, 1.2, 12), "#1a1a20", x, 0.8, 0, 1, 1, 1, Math.PI / 2))));
 const romanship = () => grp(hull("#8a5a2b", 4.0), mk(C(0.05, 0.05, 3.2, 8), "#5a3a22", 0, 2.0, 0), mk(B(0.04, 2.2, 1.8), "#f4f2ec", 0.05, 2.2, 0), ...[-1.2, -0.4, 0.4, 1.2].map(z => mk(B(0.3, 0.08, 0.08), "#3a2a1a", 0.65, 0.6, z)), mk(new THREE.ConeGeometry(0.5, 1.2, 4), "#c0353a", 0, 0.8, 2.1, 1, 1, 1, Math.PI / 2));
 const greektemple = () => grp(mk(B(4.2, 0.3, 2.8), "#f5f0e6", 0, 0.15, 0), mk(B(3.8, 0.2, 2.4), "#f5f0e6", 0, 2.5, 0), mk(cone(2.3, 1.2, 4), "#c0353a", 0, 3.3, 0, 1, 1, 0.5, 0, Math.PI / 4), ...([-1.6, -0.8, 0, 0.8, 1.6].flatMap(x => [-1.1, 1.1].map(z => mk(C(0.12, 0.14, 2.2, 12), "#faf6ed", x, 1.3, z)))));
@@ -458,8 +495,8 @@ Object.assign(DEFAULT_H, { calculator: .42, laptop: 1.3 });
 Object.assign(ALIAS, { "laptop computer": "laptop", computer: "laptop", "mobile phone": "phone", calculator: "calculator" });
 Object.assign(DEFAULT_H, { bed: 1.4, deathbed: 1.4, royalbed: 1.6, throne: 3.2, table: 1.1, chair: 1.8, scroll: .35, bird: .9, birds: .9, campfire: 1.4 });
 Object.assign(ALIAS, { "royal bed": "royalbed", "death bed": "deathbed", "king bed": "royalbed", "camp fire": "campfire", carriage: "wagon", scroll: "scroll" });
-Object.assign(PROC, { cavefire, mammoth, huntingtools, hut, obelisk, sphinx, aqueduct, romanship, greektemple, trireme, junk, pagoda, catapult, vikinglongship });
-Object.assign(DEFAULT_H, { cavefire: 0.9, mammoth: 2.8, huntingtools: 0.8, hut: 2.5, obelisk: 4.5, sphinx: 2.2, aqueduct: 3.5, romanship: 4.0, greektemple: 5.0, trireme: 4.2, junk: 4.0, pagoda: 5.5, catapult: 1.8, vikinglongship: 4.2 });
+Object.assign(PROC, { cavefire, mammoth, huntingtools, hut, obelisk, sphinx, columnrow, stonewall, aqueduct, romanship, greektemple, trireme, junk, pagoda, catapult, vikinglongship });
+Object.assign(DEFAULT_H, { cavefire: 0.9, mammoth: 2.8, huntingtools: 0.8, hut: 2.5, obelisk: 4.5, sphinx: 2.2, columnrow: 2.5, stonewall: 2.0, aqueduct: 3.5, romanship: 4.0, greektemple: 5.0, trireme: 4.2, junk: 4.0, pagoda: 5.5, catapult: 1.8, vikinglongship: 4.2 });
 Object.assign(ALIAS, {
   "cave fire": "cavefire",
   "woolly mammoth": "mammoth",
@@ -480,7 +517,18 @@ Object.assign(ALIAS, {
   "chinese junk": "junk",
   "viking longship": "vikinglongship",
   longship: "vikinglongship",
-  catapults: "catapult"
+  catapults: "catapult",
+  temple: "temple",
+  shrine: "temple",
+  parthenon: "temple",
+  obelisk: "obelisk",
+  sphinx: "sphinx",
+  pillar: "columnrow",
+  pillars: "columnrow",
+  colonnade: "columnrow",
+  gate: "stonewall",
+  "castle gate": "stonewall",
+  "castle-gate": "stonewall"
 });
 for (const k of ["mammoth", "romanship", "trireme", "junk", "vikinglongship", "catapult"]) ORIENT.add(k);
 Object.assign(SADDLE, { mammoth: 0.65, romanship: 0.5, trireme: 0.5, junk: 0.5, vikinglongship: 0.5 });

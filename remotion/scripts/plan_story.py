@@ -94,7 +94,7 @@ THINGS = ["coins","coin","gold","money","purse","wallet","bag","mango","apple","
 ERAKW = [("roman|rome|caesar|gladiator|legion", "roman"), ("greek|greece|athens|sparta|zeus|alexander|macedon|troy|achilles|hellen", "greek"), ("persian|persia|babylon|darius|mesopotamia|assyria|ottoman|caliph", "arabian"), ("cowboy|wild west|sheriff|saloon|outlaw", "wildwest"), ("viking", "viking"), ("pharaoh|egypt|pyramid", "egypt"),
          ("samurai|shogun|ninja|feudal japan", "samurai"), ("pirate", "pirate"), ("astronaut", "space"), ("world war|ww2|wwii", "ww2"), ("1920|prohibition|gangster|speakeasy", "1920s"), ("victorian", "victorian"),
          ("sultan|arabian|caravan", "arabian"), ("maharaja", "india"), ("caveman|stone age|prehistoric", "prehistoric"), ("dynasty|ancient china|emperor of china", "china")]
-ALIASW = {"airplane": "plane", "spaceship": "rocket", "motorcycle": "motorcycle", "hen": "chicken", "wallet": "purse", "bag": "purse", "money": "coins", "gold": "coins", "jewel": "gem", "diamond": "gem", "treasure": "treasure chest", "chest": "treasure chest", "coin": "coins", "gun": "pistol", "katana": "sword", "carriage": "wagon", "yacht": "sailboat"}
+ALIASW = {"airplane": "plane", "spaceship": "rocket", "motorcycle": "motorcycle", "hen": "chicken", "wallet": "purse", "bag": "purse", "money": "coins", "gold": "coins", "jewel": "gem", "diamond": "gem", "treasure": "treasure chest", "chest": "treasure chest", "coin": "coins", "gun": "pistol", "katana": "sword", "carriage": "wagon", "yacht": "sailboat", "pillar": "columnrow", "colonnade": "columnrow", "temple": "temple", "obelisk": "obelisk", "sphinx": "sphinx", "shrine": "temple"}
 FAR = 9.0
 
 def _find(words, low):
@@ -485,6 +485,8 @@ def clean(b):
             if p.get("anim") not in ("pop", "grow", "bounce", "float", "fall", "spin", "static"): p["anim"] = "pop"
             if re.search(r"boat|ship|galleon|canoe|vessel|yacht|ferry|trireme", p["name"]): p["count"] = 1; p["anim"] = "static"; p.pop("spread", None)   # one ship, no bouncing pile
             if p["name"] in ("bed", "royal_bed", "deathbed", "death_bed"): p["name"] = "bed"; p["count"] = 1; p["anim"] = "static"
+            if (s.get("loc") == "desert" or s.get("era") in ("egypt", "egyptian")) and p["name"] in ("gate", "castle gate", "castle-gate"):
+                p["name"] = "temple"
             pr.append(p)
         s["props"] = pr
         if s.get("era") not in ("roman","greek","wildwest","viking","egypt","samurai","pirate","space","ww2","1920s","victorian","arabian","india","prehistoric","china"): s.pop("era", None)

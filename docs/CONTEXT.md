@@ -216,3 +216,5 @@
 ### 2026-11-22 OpenCode: Added `scatterDetail()` function in film/index.html called once after terrain creation, creating InstancedMesh (< 3000 instances) for grass blades, flower sprites, shoreline foam ring, and daytime flying birds.
 
 ### 2026-11-22 OpenCode: Added 3 new scenes after the crown scene in film/index.html (a council in the palace/temple, a march across the plain with 8 soldiers walking in formation, and a final wide shot) with slow, eye-level camera choreography.
+
+### 2026-11-22 OpenCode: Added procedural architectural 3D builders in remotion/src/videos/story/props3d.ts (temple with stepped base, 6 round columns with capitals and limestone texture via TEX.limestone; obelisk; sphinx; columnrow; stonewall) and mapped temple/pillar/obelisk/sphinx/colonnade/gate in canon() and plan_story.py so Egypt/desert scenes render temples instead of castle gates. Strict TypeScript check passed.

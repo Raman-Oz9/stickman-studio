@@ -84,8 +84,31 @@ const winTex = (seed: number) => { const c = document.createElement("canvas"); c
 export const buildTown = (se: Season) => {
   const g = new THREE.Group();
   let sd = 137; const rnd = () => ((sd = (sd * 16807) % 2147483647) / 2147483647);
-  g.add(mk(B(140, 0.08, 140), "#b8a88a", 0, 0.02, 0));
-  g.add(mk(B(200, 0.06, 14), "#a69575", 0, 0.03, 0), mk(B(14, 0.06, 200), "#a69575", 0, 0.03, 0));
+  const cobMat = new THREE.MeshLambertMaterial({ color: "#ffffff", flatShading: false });
+  if (TEX.cobblestone) {
+    const ct = TEX.cobblestone.clone();
+    ct.needsUpdate = true;
+    ct.repeat.set(28, 28);
+    cobMat.map = ct;
+  }
+  const grassMat = new THREE.MeshLambertMaterial({ color: "#ffffff", flatShading: false });
+  if (TEX.grass) {
+    const gt = TEX.grass.clone();
+    gt.needsUpdate = true;
+    gt.repeat.set(32, 6);
+    grassMat.map = gt;
+  }
+  const floorMesh = new THREE.Mesh(new THREE.BoxGeometry(140, 0.08, 140), cobMat);
+  floorMesh.position.set(0, 0.02, 0);
+  floorMesh.receiveShadow = true;
+  g.add(floorMesh);
+  const roadX = new THREE.Mesh(new THREE.BoxGeometry(200, 0.06, 16), grassMat);
+  roadX.position.set(0, 0.03, 0);
+  roadX.receiveShadow = true;
+  const roadZ = new THREE.Mesh(new THREE.BoxGeometry(16, 0.06, 200), grassMat);
+  roadZ.position.set(0, 0.03, 0);
+  roadZ.receiveShadow = true;
+  g.add(roadX, roadZ);
   g.add(
     mk(C(1.2, 1.4, 1.4, 12), "#8a8f9c", 0, 0.7, 0),
     mk(C(1.0, 1.0, 0.2, 12), "#2a6fa0", 0, 1.3, 0),

@@ -1,3 +1,8 @@
+### 2026-11-21 — Replace town plaza ground with textured cobblestone and grass planes using remotion/public/tex/*.jpg and retune camera char framing
+- Updated `remotion/src/videos/story/realm.ts` (`buildTown`) to replace plain ground boxes with textured cobblestone plane (`TEX.cobblestone`) and grass paths (`TEX.grass`) using `remotion/public/tex/*.jpg`.
+- Updated `remotion/src/videos/story/camera.ts` (`char` level and headroom offset) so full heads and torsos remain fully in frame without bottom edge cropping.
+- Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` successfully with zero errors.
+
 ### 2026-11-20 — Validate generated texture image outputs
 - The free-provider texture generator now decodes provider responses, normalises materials to 1024×1024 and sky panoramas to 1536×768, converts outputs to real JPEG files, and verifies the saved image before reporting success.
 - Existing files are skipped only when they are valid JPEGs at the expected dimensions. Both manual generation and story-driven generation install Pillow for this validation.

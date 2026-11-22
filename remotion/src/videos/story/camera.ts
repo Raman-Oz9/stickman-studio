@@ -10,15 +10,15 @@ import { LOCS } from "./realm";
 type Lvl = { d: number; h: number; ly: number; fov: number; c: number };
 const LV: Record<string, Lvl> = {   // tuned against docs/reference/reference-video.mp4: eye-level camera, subject 45-55 % of frame height in mediums, 75-90 % in close-ups
   env: { d: 8.2, h: 1.9, ly: 1.2, fov: 42, c: 0 },
-  char: { d: 4.1, h: 1.45, ly: 1.15, fov: 40, c: 0 },
-  upper: { d: 2.9, h: 1.55, ly: 1.45, fov: 38, c: 10 },
-  face: { d: 2.0, h: 1.65, ly: 1.68, fov: 36, c: 12 },
-  eyes: { d: 1.45, h: 1.7, ly: 1.72, fov: 33, c: 14 },
-  low: { d: 4.1, h: 1.45, ly: 1.15, fov: 40, c: 0 },         // low-angle shots removed: they looked up at chins/ceilings
-  lowface: { d: 2.0, h: 1.65, ly: 1.68, fov: 36, c: 12 },
+  char: { d: 4.6, h: 1.35, ly: 0.9, fov: 40, c: 0 },
+  upper: { d: 2.9, h: 1.55, ly: 1.35, fov: 38, c: 10 },
+  face: { d: 2.0, h: 1.65, ly: 1.62, fov: 36, c: 12 },
+  eyes: { d: 1.45, h: 1.7, ly: 1.68, fov: 33, c: 14 },
+  low: { d: 4.6, h: 1.35, ly: 0.9, fov: 40, c: 0 },         // low-angle shots removed: they looked up at chins/ceilings
+  lowface: { d: 2.0, h: 1.65, ly: 1.62, fov: 36, c: 12 },
   high: { d: 9, h: 8.5, ly: 0.3, fov: 48, c: 0 },
   over: { d: 3.2, h: 1.7, ly: 1.4, fov: 38, c: 0 },
-  feet: { d: 4.1, h: 1.45, ly: 1.15, fov: 40, c: 0 },        // floor/feet shots removed: they only showed ground
+  feet: { d: 4.6, h: 1.35, ly: 0.9, fov: 40, c: 0 },        // floor/feet shots removed: they only showed ground
   prop: { d: 2.6, h: 1.3, ly: 0.7, fov: 36, c: 0 },
 };
 export type Cam = { pos: THREE.Vector3; look: THREE.Vector3; fov: number; roll: number; cInf: number };
@@ -308,7 +308,7 @@ export const camAt = (s: SceneDef, i: number, u: number, t: number, dur = 3): Ca
   const look = new THREE.Vector3(fx, L(A.ly, B.ly), fz);
   const pos = new THREE.Vector3(fx + Math.sin(az) * d, h, fz + Math.cos(az) * d);
   const mixHigh = A.high || B.high;
-  if (!mixHigh) look.y -= Math.tan((fov * Math.PI) / 360) * d * 0.2;  // headroom: lift the subject above the caption band
+  if (!mixHigh && a.lv !== "char") look.y -= Math.tan((fov * Math.PI) / 360) * d * 0.2;  // headroom: lift the subject above the caption band
   const over = a.lv === "over" && s.cast.length > 1;
   if (over) {
     const tg = focusOf(s, a.who), ot = s.cast.find((c) => c.id !== a.who) ?? s.cast[0];

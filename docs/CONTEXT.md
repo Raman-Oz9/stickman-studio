@@ -207,3 +207,4 @@
 - 2026-11-22 OpenCode: Added garment shading and lit-edge rim strokes in remotion/src/videos/story/InkGarments.tsx (linear gradient overlay darkening the side away from the light 0% to 28% black clipped to each garment path, plus a 2px lighter rim stroke on the lit edge). Strict TypeScript compilation passed.
 - 2026-11-22 OpenCode: Added head shading (soft radial gradient with lighter forehead and 20% black jaw/neck clipped to head path) and a thin darker line under the hair in remotion/src/videos/story/InkStickman.tsx. Strict TypeScript compilation passed.
 - 2026-11-22: PROC.galleon = procedural buildGalleon (ocean fleet + mounted ships use it); deck standing height 0.275*h
+- 2026-11-22: worldgen palette de-oranged: earth #C2A878, stone #9A9486, sand #E6CF9A

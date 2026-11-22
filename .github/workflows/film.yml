@@ -27,7 +27,7 @@ jobs:
           pip install torch --index-url https://download.pytorch.org/whl/cpu
           pip install kokoro huggingface_hub
           for i in 1 2 3 4 5; do pip install "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl" && break || sleep 5; done
-          cd film && npm init -y >/dev/null && npm i playwright three@0.169.0 esbuild >/dev/null && npx playwright install --with-deps chromium >/dev/null
+          cd film && npm init -y >/dev/null && npm i playwright three@0.169.0 postprocessing@6.36.4 esbuild >/dev/null && npx playwright install --with-deps chromium >/dev/null
       - name: Bundle the original world engine for the browser
         run: |
           cd film && NODE_PATH=$PWD/node_modules npx esbuild engine.ts --bundle --format=iife --global-name=Eng --alias:remotion=./remotion-stub.ts --loader:.ts=ts --outfile=engine.js --log-level=warning

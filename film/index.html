@@ -373,7 +373,7 @@ Eng.loadTextures().catch(function () {}).then(function () {
       setup: function () { chars.forEach(function (c) { c.hide = c === QUEEN(); }); showTeals(true); battle = true; place(player, BC[0] - 5, BC[1]); player.tx = BC[0] - 2.6; player.tz = BC[1]; reds.forEach(function (c, i) { place(c, BC[0] - 6 - i * 0.5, BC[1] + (i - 1.5) * 1.3); }); teals.forEach(function (c, i) { place(c, BC[0] + 6 + i * 0.5, BC[1] + (i - 1.5) * 1.3); }); },
       cam: function (u) { var an = -0.7 + u * 1.2, cx = BC[0] + Math.sin(an) * 15, cz = BC[1] + Math.cos(an) * 15, y = H(BC[0], BC[1]); return { p: V3(cx, Math.max(y + 4.2 - u, H(cx, cz) + 3.0), cz), l: V3(BC[0], y + 1.4, BC[1]) }; } },
     { text: "Victorious, Alexander knelt, and the queen placed the crown upon his head.", dur: 9.5, chapter: "Crown",
-      setup: function () { battle = false; chars.forEach(function (c) { c.hide = !(c === player || c === QUEEN()); }); place(player, PL[0] + 4, PL[1] + 24, PL[0], PL[1] + 10); place(QUEEN(), PL[0] - 6, PL[1] + 6, PL[0] - 2.4, PL[1] + 9.4); },
+      setup: function () { battle = false; chars.forEach(function (c) { c.hide = !(c === player || c === QUEEN()); }); place(player, PL[0] + 1.5, PL[1] + 15, PL[0], PL[1] + 10); place(QUEEN(), PL[0] - 6, PL[1] + 6, PL[0] - 2.4, PL[1] + 9.4); },
       cam: function (u) { var cx = PL[0] + 3 - u * 1.4, cz = PL[1] + 16 - u * 3; return { p: V3(cx, H(cx, cz) + 2.1, cz), l: V3(PL[0] - 1, H(PL[0], PL[1] + 10) + 1.8, PL[1] + 10) }; },
       tick: function (u) { if (u > 0.55 && player.key !== "alexc") player.key = "alexc"; } },
     { text: "In the marble halls of the temple, the council gathered to plan the realm's future.", dur: 8.5, chapter: "Council",
@@ -386,7 +386,7 @@ Eng.loadTextures().catch(function () {}).then(function () {
       setup: function () { battle = false; nightT = 0; showTeals(true); chars.forEach(function (c) { c.hide = false; }); place(player, 0, 0, 0, 0); reds.forEach(function (c, i) { place(c, -4 + i * 2, 4); }); teals.forEach(function (c, i) { place(c, -4 + i * 2, -4); }); place(QUEEN(), 0, 6); },
       cam: function (u) { var an = u * 0.6, cx = Math.sin(an) * 45, cz = Math.cos(an) * 45; return { p: V3(cx, H(cx, cz) + 2.4, cz), l: V3(0, H(0, 0) + 1.8, 0) }; } },
     { text: "And when night fell, the king looked back at the sea he had crossed.", dur: 9, chapter: "Night",
-      setup: function () { chars.forEach(function (c) { c.hide = !(c === player || reds.indexOf(c) >= 0); }); nightT = 1; place(player, BEACH[0] - 2, BEACH[1]); reds.forEach(function (c, i) { place(c, BEACH[0] - 5 - i * 1.0, BEACH[1] + 1.2 + (i % 2) * 1.6); }); },
+      setup: function () { chars.forEach(function (c) { c.hide = !(c === player || reds.indexOf(c) >= 0); }); nightT = 1; place(player, BEACH[0] - 2, BEACH[1]); reds.forEach(function (c, i) { place(c, BEACH[0] - 1.5 - i * 0.9, BEACH[1] - 2.2 - (i % 2) * 1.2); }); },
       cam: function (u) { var cx = BEACH[0] - 13 + u * 3; return { p: V3(cx, H(cx, BEACH[1] + 6) + 2.2, BEACH[1] + 6), l: V3(SHX + 30 + u * 12, 4 + u * 2, SHZ - 4) }; } }
   ];
   if (window.__DUR) SCENES.forEach(function (sc, i) { if (window.__DUR[i]) sc.dur = window.__DUR[i]; });
@@ -485,7 +485,7 @@ Eng.loadTextures().catch(function () {}).then(function () {
     if (!directed && capT > 0) { capT -= dt; if (capT <= 0) cap.className = ""; }
     $("progi").style.width = (sc ? (elapsedBefore[si] + st) / total * 100 : 0) + "%";
     // camera
-    if (directed && !freeLook && sc) { var kf = sc.cam(ease(u)); tmpV.set(kf.p[0], kf.p[1], kf.p[2]); tmpL.set(kf.l[0], kf.l[1], kf.l[2]); camera.position.copy(tmpV); camera.lookAt(tmpL); }
+    if (directed && !freeLook && sc) { var kf = sc.cam(ease(u)); (function () { var need = kf.p[1], dx = kf.p[0] - kf.l[0], dz = kf.p[2] - kf.l[2]; for (var k = 1; k <= 16; k++) { var t = k / 16, hh = H(kf.l[0] + dx * t, kf.l[2] + dz * t) + (k > 14 ? 1.2 : 3.2); need = Math.max(need, kf.l[1] + (hh - kf.l[1]) / t); } kf.p = V3(kf.p[0], Math.min(need, kf.p[1] + 22), kf.p[2]); })(); tmpV.set(kf.p[0], kf.p[1], kf.p[2]); tmpL.set(kf.l[0], kf.l[1], kf.l[2]); camera.position.copy(tmpV); camera.lookAt(tmpL); }
     else if (directed && !freeLook) { camera.position.set(-40, 14, 22); camera.lookAt(-10, 2, 0); }
     else controls.update();
     renderer.render(scene, camera);

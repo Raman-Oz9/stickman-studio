@@ -211,4 +211,4 @@
 - 2026-11-22: film engine characters rebuilt (shaded tunics, helmets+crests, capes, shields/spears, eyes/brows, hair); +4 FILM ENGINE agent tasks
 - 2026-11-22: film engine now bundles the ORIGINAL world code (buildRealm/heightAt/ships) via esbuild (film/engine.ts, remotion stub); scenes staged across realm locations (ocean shore, desert pyramids+sphinx, savanna, palace); season input
 
-### 2026-11-22 OpenCode: Enhanced and verified deterministic layered heightfields, rippled dunes, slope-driven rock and vertex colour variation, instanced grass/flowers, snow caps, distant mountain silhouettes, meandering 3D river, varied shoreline, and biome scatter across terrain worldgen presets. Strict TypeScript compilation passed.
+### 2026-11-22 OpenCode: Improved film engine sky in film/index.html: replaced scene.background colour with a vertical gradient sky dome ShaderMaterial featuring visible sun disc and soft glow, and night version with moon, preserving DAY/NIGHT lerp.

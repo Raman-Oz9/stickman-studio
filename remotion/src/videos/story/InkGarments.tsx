@@ -7,11 +7,30 @@ const dk = (hex: string, k: number) => { const n = parseInt(hex.slice(1), 16); c
 const S = { stroke: INK, strokeWidth: 5.5, strokeLinejoin: "round" as const, strokeLinecap: "round" as const };
 
 export const Shine: React.FC<{ d: string; amt: number }> = ({ d, amt }) => <path d={d} fill="url(#inkShine)" opacity={amt} stroke="none" />;
+export const GarmentOverlay: React.FC<{ d: string }> = ({ d }) => (
+  <>
+    <path d={d} fill="url(#garmentShade)" stroke="none" />
+    <path d={d} fill="none" stroke="#fff" strokeWidth={2} clipPath="url(#garmentLitEdgeClip)" />
+  </>
+);
+export const GarmentOverlayRect: React.FC<{ x: number; y: number; width: number; height: number; rx?: number }> = ({ x, y, width, height, rx }) => (
+  <>
+    <rect x={x} y={y} width={width} height={height} rx={rx} fill="url(#garmentShade)" stroke="none" />
+    <rect x={x} y={y} width={width} height={height} rx={rx} fill="none" stroke="#fff" strokeWidth={2} clipPath="url(#garmentLitEdgeClip)" />
+  </>
+);
 export const GarmentDefs: React.FC = () => (
   <defs>
     <linearGradient id="inkShine" x1="0" y1="0" x2="1" y2="0.6"><stop offset="0" stopColor="#fff" stopOpacity=".7" /><stop offset=".32" stopColor="#fff" stopOpacity=".05" /><stop offset=".7" stopColor="#000" stopOpacity=".12" /><stop offset="1" stopColor="#000" stopOpacity=".45" /></linearGradient>
     <linearGradient id="inkMetal" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#f6f9fc" /><stop offset=".45" stopColor="#aeb8c4" /><stop offset="1" stopColor="#5f6a78" /></linearGradient>
     <radialGradient id="inkGlass" cx=".35" cy=".3" r=".8"><stop offset="0" stopColor="#fff" stopOpacity=".55" /><stop offset=".5" stopColor="#bfe6f5" stopOpacity=".2" /><stop offset="1" stopColor="#6fb4d8" stopOpacity=".3" /></radialGradient>
+    <linearGradient id="garmentShade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stopColor="#000" stopOpacity="0" />
+      <stop offset="100%" stopColor="#000" stopOpacity="0.28" />
+    </linearGradient>
+    <clipPath id="garmentLitEdgeClip">
+      <rect x="-300" y="-800" width="300" height="1200" />
+    </clipPath>
   </defs>
 );
 
@@ -19,14 +38,32 @@ export const HEM: Record<string, number> = { tunic: -122, dress: -66, robe: -20,
 export const TorsoExtras: React.FC<{ st: InkStyle; tw: number }> = ({ st, tw }) => {
   const k = st.kind, a = st.accent, t = st.trim;
   switch (k) {
-    case "tunic": case "dress": return <g {...S}><rect x={-tw + 2} y={HIP_Y - 18} width={tw * 2 - 4} height="16" rx="5" fill={a} /><rect x="-9" y={HIP_Y - 18} width="18" height="16" rx="3" fill="#f1d07a" /></g>;
-    case "toga": return <g {...S}><path d={`M ${-tw + 4} ${SH_Y + 8} L ${tw - 6} ${HIP_Y - 8} L ${tw - 6} ${HIP_Y + 6} L ${-tw + 30} ${SH_Y + 20} Z`} fill="#fffaf0" /><path d={`M ${-tw + 12} ${SH_Y + 14} L ${tw - 14} ${HIP_Y - 4}`} fill="none" stroke="#b5303a" strokeWidth="7" /></g>;
-    case "armor": return <g {...S}><path d={`M ${-tw + 2} ${SH_Y + 4} Q 0 ${SH_Y - 8} ${tw - 2} ${SH_Y + 4} L ${tw - 8} ${HIP_Y - 4} L ${-tw + 8} ${HIP_Y - 4} Z`} fill="url(#inkMetal)" /><path d={`M 0 ${SH_Y + 8} V ${HIP_Y - 8} M ${-tw + 10} ${SH_Y + 50} H ${tw - 10} M ${-tw + 12} ${SH_Y + 90} H ${tw - 12}`} fill="none" strokeWidth="4" /><ellipse cx={-tw - 4} cy={SH_Y + 10} rx="26" ry="20" fill="url(#inkMetal)" /><ellipse cx={tw + 4} cy={SH_Y + 10} rx="26" ry="20" fill="url(#inkMetal)" /><path d={`M ${-tw + 2} ${HIP_Y - 14} H ${tw - 2}`} stroke={a} strokeWidth="9" fill="none" /></g>;
-    case "suit": return <g {...S}><path d={`M -22 ${SH_Y + 2} L 0 ${SH_Y + 70} L 22 ${SH_Y + 2} Z`} fill="#fbf7ef" /><path d={`M -4 ${SH_Y + 12} L 4 ${SH_Y + 12} L 8 ${SH_Y + 80} L 0 ${SH_Y + 96} L -8 ${SH_Y + 80} Z`} fill={a === "#e8c45a" ? "#b5303a" : a} /><path d={`M -22 ${SH_Y + 2} L -4 ${SH_Y + 80} L -26 ${SH_Y + 96}`} fill="none" /><path d={`M 22 ${SH_Y + 2} L 4 ${SH_Y + 80} L 26 ${SH_Y + 96}`} fill="none" /></g>;
-    case "coat": return <g {...S}><path d={`M -20 ${SH_Y + 2} L 0 ${HIP_Y - 8} L 20 ${SH_Y + 2} Z`} fill="#efe6cf" /><path d={`M ${-tw + 4} ${HIP_Y - 16} H ${tw - 4}`} stroke={a} strokeWidth="11" fill="none" /><rect x="-10" y={HIP_Y - 24} width="20" height="16" rx="3" fill="#e8c45a" /></g>;
-    case "spacesuit": return <g {...S}><rect x="-26" y={SH_Y + 38} width="52" height="42" rx="8" fill="#d2d7de" /><circle cx="-12" cy={SH_Y + 52} r="5" fill="#d2362e" /><circle cx="4" cy={SH_Y + 52} r="5" fill="#2f8fe0" /><path d={`M -14 ${SH_Y + 68} H 16`} strokeWidth="4" /><path d={`M ${-tw + 4} ${SH_Y + 6} L ${-tw + 4} ${HIP_Y}`} stroke="#8c96a4" strokeWidth="4" fill="none" /><rect x={-tw + 2} y={HIP_Y - 14} width={tw * 2 - 4} height="12" rx="5" fill="#9aa4b2" /></g>;
-    case "fur": return <g {...S}><path d={`M ${-tw} ${SH_Y + 10} L ${tw - 4} ${SH_Y + 30} L ${tw + 4} ${HIP_Y - 30} L ${tw - 18} ${HIP_Y - 8} L ${tw - 30} ${HIP_Y - 36} L ${tw - 46} ${HIP_Y - 4} L ${-tw + 14} ${HIP_Y - 32} L ${-tw + 4} ${HIP_Y - 2} Z`} fill="#8a5a36" /><circle cx="-14" cy={SH_Y + 60} r="7" fill="#5a3a22" stroke="none" /><circle cx="14" cy={SH_Y + 96} r="6" fill="#5a3a22" stroke="none" /><path d={`M -34 ${SH_Y + 4} Q 0 ${SH_Y + 40} 34 ${SH_Y + 4}`} fill="none" stroke="#f4ead2" strokeWidth="8" strokeDasharray="1 16" /></g>;
-    case "kilt": return <g {...S}><path d={`M -48 ${SH_Y + 4} Q 0 ${SH_Y + 66} 48 ${SH_Y + 4} Q 0 ${SH_Y + 30} -48 ${SH_Y + 4} Z`} fill="#e8c45a" /><path d={`M -30 ${SH_Y + 12} Q 0 ${SH_Y + 44} 30 ${SH_Y + 12}`} fill="none" stroke="#2f5fb5" strokeWidth="6" /></g>;
+    case "tunic": case "dress": return <g {...S}><rect x={-tw + 2} y={HIP_Y - 18} width={tw * 2 - 4} height="16" rx="5" fill={a} /><GarmentOverlayRect x={-tw + 2} y={HIP_Y - 18} width={tw * 2 - 4} height={16} rx={5} /><rect x="-9" y={HIP_Y - 18} width="18" height="16" rx="3" fill="#f1d07a" /></g>;
+    case "toga": {
+      const d = `M ${-tw + 4} ${SH_Y + 8} L ${tw - 6} ${HIP_Y - 8} L ${tw - 6} ${HIP_Y + 6} L ${-tw + 30} ${SH_Y + 20} Z`;
+      return <g {...S}><path d={d} fill="#fffaf0" /><GarmentOverlay d={d} /><path d={`M ${-tw + 12} ${SH_Y + 14} L ${tw - 14} ${HIP_Y - 4}`} fill="none" stroke="#b5303a" strokeWidth="7" /></g>;
+    }
+    case "armor": {
+      const d = `M ${-tw + 2} ${SH_Y + 4} Q 0 ${SH_Y - 8} ${tw - 2} ${SH_Y + 4} L ${tw - 8} ${HIP_Y - 4} L ${-tw + 8} ${HIP_Y - 4} Z`;
+      return <g {...S}><path d={d} fill="url(#inkMetal)" /><GarmentOverlay d={d} /><path d={`M 0 ${SH_Y + 8} V ${HIP_Y - 8} M ${-tw + 10} ${SH_Y + 50} H ${tw - 10} M ${-tw + 12} ${SH_Y + 90} H ${tw - 12}`} fill="none" strokeWidth="4" /><ellipse cx={-tw - 4} cy={SH_Y + 10} rx="26" ry="20" fill="url(#inkMetal)" /><ellipse cx={tw + 4} cy={SH_Y + 10} rx="26" ry="20" fill="url(#inkMetal)" /><path d={`M ${-tw + 2} ${HIP_Y - 14} H ${tw - 2}`} stroke={a} strokeWidth="9" fill="none" /></g>;
+    }
+    case "suit": {
+      const d1 = `M -22 ${SH_Y + 2} L 0 ${SH_Y + 70} L 22 ${SH_Y + 2} Z`;
+      return <g {...S}><path d={d1} fill="#fbf7ef" /><GarmentOverlay d={d1} /><path d={`M -4 ${SH_Y + 12} L 4 ${SH_Y + 12} L 8 ${SH_Y + 80} L 0 ${SH_Y + 96} L -8 ${SH_Y + 80} Z`} fill={a === "#e8c45a" ? "#b5303a" : a} /><path d={`M -22 ${SH_Y + 2} L -4 ${SH_Y + 80} L -26 ${SH_Y + 96}`} fill="none" /><path d={`M 22 ${SH_Y + 2} L 4 ${SH_Y + 80} L 26 ${SH_Y + 96}`} fill="none" /></g>;
+    }
+    case "coat": {
+      const d = `M -20 ${SH_Y + 2} L 0 ${HIP_Y - 8} L 20 ${SH_Y + 2} Z`;
+      return <g {...S}><path d={d} fill="#efe6cf" /><GarmentOverlay d={d} /><path d={`M ${-tw + 4} ${HIP_Y - 16} H ${tw - 4}`} stroke={a} strokeWidth="11" fill="none" /><rect x="-10" y={HIP_Y - 24} width="20" height="16" rx="3" fill="#e8c45a" /></g>;
+    }
+    case "spacesuit": return <g {...S}><rect x="-26" y={SH_Y + 38} width="52" height="42" rx="8" fill="#d2d7de" /><GarmentOverlayRect x={-26} y={SH_Y + 38} width={52} height={42} rx={8} /><circle cx="-12" cy={SH_Y + 52} r="5" fill="#d2362e" /><circle cx="4" cy={SH_Y + 52} r="5" fill="#2f8fe0" /><path d={`M -14 ${SH_Y + 68} H 16`} strokeWidth="4" /><path d={`M ${-tw + 4} ${SH_Y + 6} L ${-tw + 4} ${HIP_Y}`} stroke="#8c96a4" strokeWidth="4" fill="none" /><rect x={-tw + 2} y={HIP_Y - 14} width={tw * 2 - 4} height="12" rx="5" fill="#9aa4b2" /></g>;
+    case "fur": {
+      const d = `M ${-tw} ${SH_Y + 10} L ${tw - 4} ${SH_Y + 30} L ${tw + 4} ${HIP_Y - 30} L ${tw - 18} ${HIP_Y - 8} L ${tw - 30} ${HIP_Y - 36} L ${tw - 46} ${HIP_Y - 4} L ${-tw + 14} ${HIP_Y - 32} L ${-tw + 4} ${HIP_Y - 2} Z`;
+      return <g {...S}><path d={d} fill="#8a5a36" /><GarmentOverlay d={d} /><circle cx="-14" cy={SH_Y + 60} r="7" fill="#5a3a22" stroke="none" /><circle cx="14" cy={SH_Y + 96} r="6" fill="#5a3a22" stroke="none" /><path d={`M -34 ${SH_Y + 4} Q 0 ${SH_Y + 40} 34 ${SH_Y + 4}`} fill="none" stroke="#f4ead2" strokeWidth="8" strokeDasharray="1 16" /></g>;
+    }
+    case "kilt": {
+      const d = `M -48 ${SH_Y + 4} Q 0 ${SH_Y + 66} 48 ${SH_Y + 4} Q 0 ${SH_Y + 30} -48 ${SH_Y + 4} Z`;
+      return <g {...S}><path d={d} fill="#e8c45a" /><GarmentOverlay d={d} /><path d={`M -30 ${SH_Y + 12} Q 0 ${SH_Y + 44} 30 ${SH_Y + 12}`} fill="none" stroke="#2f5fb5" strokeWidth="6" /></g>;
+    }
     case "robe": return <g {...S}><path d={`M -22 ${SH_Y + 2} L 0 ${SH_Y + 60} L 22 ${SH_Y + 2}`} fill="none" /><path d={`M ${-tw + 2} ${HIP_Y - 22} H ${tw - 2}`} stroke={a} strokeWidth="12" fill="none" /></g>;
     default: return null;
   }
@@ -42,6 +79,7 @@ export const LowerGarment: React.FC<{ st: InkStyle; tw: number }> = ({ st, tw })
     <g {...S}>
       <path d={d} fill={col} />
       <Shine d={d} amt={st.shine} />
+      <GarmentOverlay d={d} />
       {st.kind === "armor" ? [-2, -1, 0, 1, 2].map((i) => <path key={i} d={`M ${i * 22 - 11} ${HIP_Y - 8} V ${hem - 4}`} fill="none" strokeWidth="3.5" />) : null}
       {st.kind === "robe" || st.kind === "dress" || st.kind === "toga" || st.kind === "kilt" ? <path d={`M ${-tw - flare + 4} ${hem - 4} Q 0 ${hem + 10} ${tw + flare - 4} ${hem - 4}`} fill="none" stroke={dk(col, 0.7)} strokeWidth="6" /> : null}
       {st.kind === "kilt" ? <path d={`M ${-tw + 6} ${HIP_Y + 24} H ${tw - 6}`} stroke="#e8c45a" strokeWidth="7" fill="none" /> : null}

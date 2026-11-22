@@ -39,7 +39,7 @@ export const buildBiome = (b: Biome, se: Season, ground = true): THREE.Group => 
     return g;
   }
   if (b === "desert") {
-    for (let i = 0; i < 26; i++) { const r = 14 + rnd() * 90, a = rnd() * 6.283, w = 10 + rnd() * 22; g.add(mk(S(1, 14, 10), i % 3 ? "#e9c887" : "#dcb774", Math.cos(a) * r, 0, Math.sin(a) * r - 10, w, 2 + rnd() * 5, w * 0.6, 0, rnd() * 3)); }
+    for (let i = 0; i < 26; i++) { const r = 48 + rnd() * 90, a = rnd() * 6.283, w = 10 + rnd() * 22; g.add(mk(S(1, 14, 10), i % 3 ? "#e9c887" : "#dcb774", Math.cos(a) * r, 0, Math.sin(a) * r - 10, w, 2 + rnd() * 5, w * 0.6, 0, rnd() * 3)); }
     for (let i = 0; i < 16; i++) { const x = (rnd() - 0.5) * 60, z = -6 - rnd() * 50, h = 1.5 + rnd() * 1.6; g.add(mk(C(0.25, 0.28, h, 8), "#4f9a52", x, h / 2, z), mk(C(0.14, 0.16, 0.9, 6), "#4f9a52", x + 0.4, h * 0.6, z, 1, 1, 1, 0, 0, 0.5), mk(C(0.14, 0.16, 0.7, 6), "#4f9a52", x - 0.4, h * 0.45, z, 1, 1, 1, 0, 0, -0.5)); }
     for (let i = 0; i < 12; i++) g.add(mk(new THREE.DodecahedronGeometry(0.5 + rnd() * 0.5, 0), "#b8996a", (rnd() - 0.5) * 50, 0.2, -3 - rnd() * 30, 1, 0.6, 1, rnd(), rnd() * 6, 0));
     for (let i = 0; i < 4; i++) { const x = (rnd() - 0.5) * 50, z = -12 - rnd() * 30; g.add(mk(C(0.14, 0.2, 3.4, 8), "#7a4b24", x, 1.7, z, 1, 1, 1, 0, 0, 0.12)); for (let k = 0; k < 6; k++) g.add(mk(S(0.2, 8, 6), "#3f9f3f", x + Math.cos(k) * 0.8, 3.5, z + Math.sin(k) * 0.8, 3, 0.35, 0.9, 0, k)); }

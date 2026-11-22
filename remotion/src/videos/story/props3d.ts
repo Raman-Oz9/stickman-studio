@@ -13,6 +13,23 @@ type G = THREE.BufferGeometry;
 export const mk = (g: G, c: string, x = 0, y = 0, z = 0, sx = 1, sy = 1, sz = 1, rx = 0, ry = 0, rz = 0) => {
   const m = new THREE.Mesh(g, M(c)); m.position.set(x, y, z); m.scale.set(sx, sy, sz); m.rotation.set(rx, ry, rz); m.castShadow = true; m.receiveShadow = true; return m;
 };
+export const mkTex = (g: G, texName: string, c: string, x = 0, y = 0, z = 0, sx = 1, sy = 1, sz = 1, rx = 0, ry = 0, rz = 0, rxRep = 1, ryRep = 1) => {
+  const m = new THREE.MeshLambertMaterial({ color: c });
+  if (TEX[texName]) {
+    const t = TEX[texName].clone();
+    t.needsUpdate = true;
+    t.repeat.set(rxRep, ryRep);
+    m.map = t;
+  }
+  const mat = twoTone(m);
+  const mesh = new THREE.Mesh(g, mat);
+  mesh.position.set(x, y, z);
+  mesh.scale.set(sx, sy, sz);
+  mesh.rotation.set(rx, ry, rz);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  return mesh;
+};
 export const S = (r: number, w = 20, h = 14) => new THREE.SphereGeometry(r, w, h);
 export const B = (x: number, y: number, z: number) => new THREE.BoxGeometry(x, y, z);
 export const C = (rt: number, rb: number, h: number, n = 20) => new THREE.CylinderGeometry(rt, rb, h, n);

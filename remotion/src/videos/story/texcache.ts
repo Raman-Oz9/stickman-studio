@@ -6,7 +6,9 @@ const NAMES = [
   "grass","sand_dune","rock","forest_floor","gravel","snow","dry_dirt","cobblestone",
   "mud_brick","limestone","marble","wood_planks","carpet_red","water_deep","roof_tiles",
   "thatch","sky_day","sky_sunset","sky_night","greek_marble","islamic_tile",
-  "egyptian_temple_wall","ship_sail_cloth"
+  "egyptian_temple_wall","ship_sail_cloth",
+  "gold_metal","royal_fabric","wood_dark","stone_throne","canvas_tent","sail_cloth",
+  "temple_wall","hieroglyph_wall","silk","wool","leather","linen","armor_metal"
 ];
 export const loadTextures = (): Promise<void> =>
   Promise.all(NAMES.map((n) => new Promise<void>((res) => {

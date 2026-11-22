@@ -8,7 +8,7 @@ const br = await chromium.launch({ args: ["--use-gl=angle", "--use-angle=swiftsh
 const pg = await br.newPage({ viewport: { width: +w, height: +h } });
 pg.on("pageerror", (e) => console.error("PAGEERROR", e.message)); pg.on("console", (m) => { if (m.type() === "error") console.error("CONSOLE", m.text()); });
 if (mode === "render") { const durs = JSON.parse(fs.readFileSync(a1, "utf8")); await pg.addInitScript((d) => { window.__DUR = d; }, durs); }
-await pg.goto(`http://localhost:${port}/index.html?export=1`); await pg.waitForFunction(() => window.__film, null, { timeout: 60000 });
+await pg.goto(`http://localhost:${port}/index.html?export=1&season=${process.env.FILM_SEASON || "summer"}`); await pg.waitForFunction(() => window.__film, null, { timeout: 60000 });
 if (mode === "texts") { fs.writeFileSync(a1, JSON.stringify(await pg.evaluate(() => window.__film.texts))); }
 else {
   const durs = JSON.parse(fs.readFileSync(a1, "utf8")), total = durs.reduce((x, y) => x + y, 0), N = Math.ceil(total * 30) + 20;

@@ -44,76 +44,39 @@
   <button id="bLook" aria-pressed="false">Look around</button>
   <span id="chap"></span>
 </div>
-<script src="three.min.js"></script>
-<script src="OrbitControls.js"></script>
+<script src="engine.js"></script>
 <script>
 (function () {
   var EXPORT = /[?&]export/.test(location.search); if (EXPORT) document.body.className = "exp"; var nowMs = function () { return EXPORT ? time * 1000 : performance.now(); };
-  var THREE_ = window.THREE;
+  var THREE = window.Eng.THREE, Eng = window.Eng, LI = 2.6;
   var canvas = document.getElementById("c");
   var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
   renderer.setPixelRatio(EXPORT ? 1 : Math.min(2, window.devicePixelRatio || 1));
   var scene = new THREE.Scene();
   var camera = new THREE.PerspectiveCamera(55, 1, 0.1, 400);
-  camera.position.set(26, 16, 30);
-  var controls = new THREE.OrbitControls(camera, canvas);
+  camera.position.set(26, 16, 30); camera.far = 5000; camera.updateProjectionMatrix();
+  var controls = new Eng.OrbitControls(camera, canvas);
   controls.target.set(0, 3, 0); controls.enableDamping = true; controls.dampingFactor = 0.08;
   controls.minDistance = 4; controls.maxDistance = 110; controls.maxPolarAngle = Math.PI * 0.485;
 
   var DAY = { sky: new THREE.Color("#8fd0f5"), water: new THREE.Color("#2e9ac9") };
   var NIGHT = { sky: new THREE.Color("#0b1230"), water: new THREE.Color("#0f2b57") };
-  scene.background = DAY.sky.clone(); scene.fog = new THREE.Fog(0x8fd0f5, 60, 190);
-  var hemi = new THREE.HemisphereLight(0xffffff, 0x8a7a55, 0.95); scene.add(hemi);
-  var sun = new THREE.DirectionalLight(0xfff2d6, 0.95); sun.position.set(40, 60, 25); scene.add(sun);
+  scene.background = DAY.sky.clone(); scene.fog = new THREE.Fog(0x8fd0f5, 160, 1100);
+  var hemi = new THREE.HemisphereLight(0xffffff, 0x8a7a55, 0.95 * LI); scene.add(hemi);
+  var sun = new THREE.DirectionalLight(0xfff2d6, 0.95 * LI); sun.position.set(40, 60, 25); scene.add(sun);
 
-  // ---------- terrain ----------
-  function hash(n) { var s = Math.sin(n * 127.1) * 43758.5453; return s - Math.floor(s); }
-  function H(x, z) {
-    var r = Math.sqrt(x * x + z * z), base = Math.max(0, 1 - Math.pow(r / 36, 2.2)) * 7.5;
-    var n = (Math.sin(x * 0.21) + Math.sin(z * 0.17) + Math.sin((x + z) * 0.11) * 1.3) * 0.5;
-    var dm = (x + 16) * (x + 16) + (z + 12) * (z + 12), peak = 9.5 * Math.exp(-dm / 55);
-    return Math.max(-2, base + n * (base / 7.5) * 1.1 + peak - 0.9);
-  }
-  var SEG = 110, SZ = 140, tg = new THREE.PlaneGeometry(SZ, SZ, SEG, SEG); tg.rotateX(-Math.PI / 2);
-  var tp = tg.attributes.position, tc = new Float32Array(tp.count * 3), col = new THREE.Color();
-  for (var i = 0; i < tp.count; i++) {
-    var x = tp.getX(i), z = tp.getZ(i), h = H(x, z); tp.setY(i, h);
-    var j = (hash(i) - 0.5) * 0.08;
-    if (h < 0.2) col.set("#cdb985"); else if (h < 1.0) col.set("#e4d29b"); else if (h < 4.4) col.set(hash(i * 3) > 0.5 ? "#79a84f" : "#6c9c48"); else if (h < 7.0) col.set("#8a8578"); else col.set("#f3f6f8");
-    tc[i * 3] = Math.min(1, col.r + j); tc[i * 3 + 1] = Math.min(1, col.g + j); tc[i * 3 + 2] = Math.min(1, col.b + j);
-  }
-  tg.setAttribute("color", new THREE.BufferAttribute(tc, 3)); tg.computeVertexNormals();
-  var terrain = new THREE.Mesh(tg, new THREE.MeshLambertMaterial({ vertexColors: true })); scene.add(terrain);
-
-  // ---------- sea ----------
-  var wg = new THREE.PlaneGeometry(400, 400, 80, 80); wg.rotateX(-Math.PI / 2);
-  var wmat = new THREE.MeshPhongMaterial({ color: DAY.water.clone(), shininess: 80, specular: 0x99ddee, transparent: true, opacity: 0.88 });
-  var sea = new THREE.Mesh(wg, wmat); sea.position.y = 0; scene.add(sea);
-  var wp = wg.attributes.position, wbase = []; for (i = 0; i < wp.count; i++) wbase.push([wp.getX(i), wp.getZ(i)]);
-
-  // ---------- scenery ----------
+  // ---------- the ORIGINAL pipeline world: realm (town, palace, farm, forest, desert+pyramids+sphinx, savanna, swamp, jungle, ice, ocean, city, mountain...) ----------
+  var Q = new URLSearchParams(location.search), SEASON = Q.get("season") || "summer";
+  var realm = Eng.buildRealm(SEASON); scene.add(realm);
+  var gC = {}; function H(x, z) { var k = (Math.round(x) * 7919) ^ Math.round(z); return Math.max(0, Eng.heightAt(x, z)); }
+  function hash(n) { var s2 = Math.sin(n * 127.1) * 43758.5453; return s2 - Math.floor(s2); }
+  var terrain = realm, wmat = { color: new THREE.Color() }, wp = { count: 0 }, wbase = [];
   function mk(g, c, x, y, z) { var m = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ color: c })); m.position.set(x, y, z); return m; }
-  for (i = 0; i < 160; i++) {
-    var tx = (hash(i * 5.1) - 0.5) * 70, tz = (hash(i * 7.3) - 0.5) * 70, th = H(tx, tz);
-    if (th < 1.0 || th > 4.3 || Math.hypot(tx - 14, tz - 12) < 8 || Math.hypot(tx + 6, tz - 12) < 6 || Math.hypot(tx - 20, tz + 16) < 14) continue;
-    var s = 0.8 + hash(i) * 0.8, tr = new THREE.Group();
-    tr.add(mk(new THREE.CylinderGeometry(0.12 * s, 0.18 * s, 1.1 * s, 6), "#6b4a2b", 0, 0.55 * s, 0));
-    tr.add(mk(new THREE.ConeGeometry(0.85 * s, 1.6 * s, 7), "#2f7d4a", 0, 1.7 * s, 0)); tr.add(mk(new THREE.ConeGeometry(0.62 * s, 1.3 * s, 7), "#3b9157", 0, 2.4 * s, 0));
-    tr.position.set(tx, th, tz); scene.add(tr);
-  }
-  for (i = 0; i < 40; i++) { var rx = (hash(i * 11.7) - 0.5) * 80, rz = (hash(i * 13.1) - 0.5) * 80, rh = H(rx, rz); if (rh < 0.2) continue; var rk = mk(new THREE.DodecahedronGeometry(0.3 + hash(i) * 0.5, 0), "#8d8a82", rx, rh + 0.15, rz); rk.rotation.set(hash(i), hash(i + 1), 0); scene.add(rk); }
-  function pyramid(x, z, s) { var p = mk(new THREE.ConeGeometry(s, s * 0.95, 4, 1), "#d9bf86", x, H(x, z) + s * 0.42, z); p.rotation.y = Math.PI / 4; scene.add(p); }
-  pyramid(14, 12, 5); pyramid(20, 8, 3); pyramid(9, 17, 2.2);
-  (function temple() {
-    var g = new THREE.Group(), gx = -6, gz = 12; g.position.set(gx, H(gx, gz), gz);
-    g.add(mk(new THREE.BoxGeometry(6.4, 0.3, 4.2), "#d8cdb2", 0, 0.15, 0)); g.add(mk(new THREE.BoxGeometry(5.8, 0.25, 3.6), "#e6dcc3", 0, 0.42, 0));
-    for (var k = 0; k < 6; k++) for (var q = -1; q <= 1; q += 2) { g.add(mk(new THREE.CylinderGeometry(0.2, 0.24, 2.2, 10), "#efe6cf", -2.3 + k * 0.92, 1.6, q * 1.4)); g.add(mk(new THREE.BoxGeometry(0.55, 0.14, 0.55), "#d8cdb2", -2.3 + k * 0.92, 2.75, q * 1.4)); }
-    g.add(mk(new THREE.BoxGeometry(5.6, 0.35, 3.4), "#d8cdb2", 0, 2.95, 0)); g.add(mk(new THREE.ConeGeometry(2.6, 0.9, 4), "#c9a977", 0, 3.55, 0)); g.children[g.children.length - 1].rotation.y = Math.PI / 4; scene.add(g);
-  })();
-  var clouds = [];
-  for (i = 0; i < 9; i++) { var cg = new THREE.Group(); for (var q = 0; q < 4; q++) { var cb = new THREE.Mesh(new THREE.SphereGeometry(2 + hash(i + q) * 2, 10, 8), new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.92 })); cb.position.set(q * 2.6 - 4, hash(q + i) * 0.8, hash(q * 2 + i) * 1.6); cb.scale.y = 0.55; cg.add(cb); } cg.position.set((hash(i * 3) - 0.5) * 200, 30 + hash(i * 5) * 12, (hash(i * 9) - 0.5) * 160); scene.add(cg); clouds.push(cg); }
+  function findShore(z) { for (var x = 380; x < 620; x += 2) { if (Eng.heightAt(x, z) < 0.35) return x - 8; } return 470; }
+  var clouds = [], skyG = new THREE.Group(); scene.add(skyG);
+  for (i = 0; i < 9; i++) { var cg = new THREE.Group(); for (var q = 0; q < 4; q++) { var cb = new THREE.Mesh(new THREE.SphereGeometry(2 + hash(i + q) * 2, 10, 8), new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.92 })); cb.position.set(q * 2.6 - 4, hash(q + i) * 0.8, hash(q * 2 + i) * 1.6); cb.scale.y = 0.55; cg.add(cb); } cg.position.set((hash(i * 3) - 0.5) * 600, 70 + hash(i * 5) * 30, (hash(i * 9) - 0.5) * 500); cg.scale.setScalar(2.4); skyG.add(cg); clouds.push(cg); }
   var starsG = new THREE.BufferGeometry(), sp = []; for (i = 0; i < 400; i++) { var a = hash(i) * 6.283, b = hash(i + 9) * 1.3 + 0.15, R = 170; sp.push(Math.cos(a) * Math.cos(b) * R, Math.sin(b) * R, Math.sin(a) * Math.cos(b) * R); }
-  starsG.setAttribute("position", new THREE.Float32BufferAttribute(sp, 3)); var starsM = new THREE.PointsMaterial({ color: 0xffffff, size: 1.3, transparent: true, opacity: 0, fog: false }); scene.add(new THREE.Points(starsG, starsM));
+  starsG.setAttribute("position", new THREE.Float32BufferAttribute(sp, 3)); var starsM = new THREE.PointsMaterial({ color: 0xffffff, size: 1.3, transparent: true, opacity: 0, fog: false }); skyG.add(new THREE.Points(starsG, starsM));
 
   // ---------- galleon (lofted hull, planked deck, 3 masts, belly sails) ----------
   var L = 7, BM = 1.25, DP = 0.95, DK = 0.55;
@@ -157,7 +120,7 @@
     rope(new THREE.Vector3(0, deckAt(0.6) + 5.3, 0.45), new THREE.Vector3(0, deckAt(0.9) + 4.3, 1.95), G); rope(new THREE.Vector3(0, deckAt(0.9) + 4.3, 1.95), tip, G);
     G.userData.lant = lant; return G;
   }
-  var ship = buildShip(); ship.scale.setScalar(1.7); scene.add(ship);
+  var ship = buildShip(); ship.scale.setScalar(2.2); scene.add(ship);
   var shipLight = new THREE.PointLight(0xffc766, 0, 24); ship.add(shipLight); shipLight.position.set(0, 2.2, -2.6);
 
   // ---------- 2D ink characters (the only 2D thing) ----------
@@ -212,7 +175,7 @@
     if (kind.king) { x.fillStyle = "#f2c14e"; x.strokeStyle = INK; x.lineWidth = 4; x.beginPath(); x.moveTo(cx - 26, hy - 20 + bob); x.lineTo(cx - 28, hy - 50 + bob); x.lineTo(cx - 13, hy - 34 + bob); x.lineTo(cx, hy - 56 + bob); x.lineTo(cx + 13, hy - 34 + bob); x.lineTo(cx + 28, hy - 50 + bob); x.lineTo(cx + 26, hy - 20 + bob); x.closePath(); x.fill(); x.stroke(); ball(cx, hy - 52 + bob, 4, "#d8433a"); }
     if (kind.helm) { x.fillStyle = grad(hy - R, hy, shade(kind.helm, 1.2), shade(kind.helm, 0.7)); x.strokeStyle = INK; x.lineWidth = 4.5; x.beginPath(); x.moveTo(cx - 33, hy + 12 + bob); x.quadraticCurveTo(cx - 38, hy - 40 + bob, cx, hy - 42 + bob); x.quadraticCurveTo(cx + 38, hy - 40 + bob, cx + 33, hy + 12 + bob); x.lineTo(cx + 26, hy + 14 + bob); x.lineTo(cx + 26, hy - 14 + bob); x.lineTo(cx - 26, hy - 14 + bob); x.lineTo(cx - 26, hy + 14 + bob); x.closePath(); x.fill(); x.stroke();
       if (kind.crest) { x.fillStyle = kind.crest; x.beginPath(); x.moveTo(cx - 24, hy - 38 + bob); x.quadraticCurveTo(cx, hy - 68 + bob, cx + 24, hy - 38 + bob); x.quadraticCurveTo(cx, hy - 46 + bob, cx - 24, hy - 38 + bob); x.fill(); x.stroke(); } }
-    var t = new THREE.CanvasTexture(c); t.minFilter = THREE.LinearFilter; t.anisotropy = 4; return t;
+    var t = new THREE.CanvasTexture(c); t.minFilter = THREE.LinearFilter; t.anisotropy = 4; t.colorSpace = THREE.SRGBColorSpace; return t;
   }
   var KINDS = {
     alex: { cloak: "#f2ead8", cape: "#b82f2a", curls: "#6b4a26", crown: true, name: "Alexander" },
@@ -256,42 +219,43 @@
     var hit = ray.intersectObjects(sprites, false)[0]; if (hit) { say(hit.object.userData.c); return; }
     var g = ray.intersectObject(terrain, false)[0]; if (g && g.point.y > 0.3 && !directed) { player.tx = g.point.x; player.tz = g.point.z; }
   });
-  var directed = true, freeLook = false, playing = false, voiceOn = true, night = 0, nightT = 0, battle = false, BC = [20, -16];
+  var directed = true, freeLook = false, playing = false, voiceOn = true, night = 0, nightT = 0, battle = false;
   var $ = function (id) { return document.getElementById(id); };
   function resize() { var w = window.innerWidth, h = window.innerHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
   window.addEventListener("resize", resize); resize();
   function lerp(a, b, u) { return a + (b - a) * u; } function ease(u) { u = Math.max(0, Math.min(1, u)); return u * u * (3 - 2 * u); }
 
   // ---------- the film: scenes with narration, camera path and staging ----------
-  var SHIP_A = [-70, -34], SHIP_B = [44, 9], shipHead = Math.atan2(SHIP_B[0] - SHIP_A[0], SHIP_B[1] - SHIP_A[1]);
-  var BEACH = [31.5, 8.5];
+  var SHX = findShore(-50), SHZ = -50, SHIP_A = [SHX + 300, SHZ - 130], SHIP_B = [SHX + 42, SHZ - 6], shipHead = Math.atan2(SHIP_B[0] - SHIP_A[0], SHIP_B[1] - SHIP_A[1]);
+  var BEACH = [SHX - 4, SHZ], D = Eng.LOCS.desert, SV = Eng.LOCS.savanna, PL = Eng.LOCS.palace, BC = [SV[0], SV[1]];
   function V3(x, y, z) { return [x, y, z]; }
   function shipPos() { return ship.position; }
   function place(c, x, z, tx, tz, yoff) { c.x = x; c.z = z; c.tx = tx === undefined ? x : tx; c.tz = tz === undefined ? z : tz; c.yoff = yoff || 0; }
   function showTeals(v) { teals.forEach(function (c) { c.hide = !v; }); }
+  var QUEEN = function () { return chars[chars.length - 1]; };
   var SCENES = [
     { text: "Alexander led his army across the sea.", dur: 7.5, chapter: "Sea",
       setup: function () { nightT = 0; battle = false; showTeals(false); player.key = "alex"; chars.forEach(function (c) { c.hide = true; }); },
-      cam: function (u) { var p = shipPos(); return { p: V3(p.x - 34 + u * 22, 12 - u * 6, p.z + 30 - u * 14), l: V3(p.x, 3, p.z) }; } },
+      cam: function (u) { var p = shipPos(); return { p: V3(p.x + 34 - u * 22, 11 - u * 5, p.z + 28 - u * 14), l: V3(p.x, 3.5, p.z) }; } },
     { text: "At last the fleet reached the shore, and his soldiers stepped onto the sand.", dur: 8.5, chapter: "Shore",
-      setup: function () { chars.forEach(function (c) { c.hide = !(c === player || reds.indexOf(c) >= 0); }); var sp = shipPos(); place(player, sp.x - 4, sp.z - 1, BEACH[0], BEACH[1], 2.0); reds.forEach(function (c, i) { place(c, sp.x - 3 - i * 0.9, sp.z - 2 + (i % 2) * 1.8, BEACH[0] - 1 - i * 1.0, BEACH[1] - 2 + (i % 2) * 2.5, 2.0); }); },
-      cam: function (u) { return { p: V3(BEACH[0] - 6 + u * 2.5, 3.2 - u * 1.2, BEACH[1] + 12 - u * 5), l: V3(lerp(shipPos().x - 4, BEACH[0] - 2, u), 2.2, lerp(shipPos().z - 1, BEACH[1], u)) }; } },
-    { text: "In Egypt, among the ancient temples, a queen was waiting for him.", dur: 7.5, chapter: "Egypt",
-      setup: function () { chars.forEach(function (c) { c.hide = !(c === player || c.key === "queen"); }); place(player, -2.2, 6, -4, 8.6); place(chars[chars.length - 1], -6, 9.4); },
-      cam: function (u) { var cx = lerp(16, 3, u), cz = lerp(0, 3, u); return { p: V3(cx, H(cx, cz) + lerp(4.5, 2.4, u), cz), l: V3(-5, lerp(7, 7.6, u), 10) }; } },
+      setup: function () { chars.forEach(function (c) { c.hide = !(c === player || reds.indexOf(c) >= 0); }); place(player, SHX + 22, SHZ - 1, BEACH[0], BEACH[1], 0); reds.forEach(function (c, i) { place(c, SHX + 24 + i * 1.1, SHZ - 3 + (i % 2) * 2, BEACH[0] + 1.5 - i * 1.0, BEACH[1] - 2 + (i % 2) * 2.5, 0); }); },
+      cam: function (u) { var cx = SHX - 10 + u * 4; return { p: V3(cx, H(cx, SHZ + 7) + 2.4, SHZ + 7), l: V3(lerp(SHX + 14, SHX - 2, u), H(SHX, SHZ) + 1.6, SHZ) }; } },
+    { text: "In Egypt, beneath the great pyramids, a queen was waiting for him.", dur: 7.5, chapter: "Egypt",
+      setup: function () { chars.forEach(function (c) { c.hide = !(c === player || c === QUEEN()); }); place(player, D[0] - 10, D[1] + 34, D[0] - 3, D[1] + 8); place(QUEEN(), D[0] + 7, D[1] - 2); },
+      cam: function (u) { var cx = lerp(-46, -16, u) + D[0], cz = lerp(70, 44, u) + D[1]; return { p: V3(cx, H(cx, cz) + lerp(8, 3.2, u), cz), l: V3(D[0], H(D[0], D[1]) + lerp(9, 4, u), D[1] - 26) }; } },
     { text: "She smiled at him, and said:", quote: "Welcome to Egypt. Gold is only sand that someone loved.", dur: 9.5, chapter: "Quote",
-      setup: function () { var q = chars[chars.length - 1]; chars.forEach(function (c) { c.hide = c !== q; }); place(player, -4.4, 8.2); place(q, -5.6, 9.6); q.pose = "talk"; q.until = nowMs() + 7500; },
-      cam: function (u) { var q = chars[chars.length - 1], y = H(q.x, q.z), cx = q.x + 1.4 - u * 0.4, cz = q.z - 3.6 + u * 1.2; return { p: V3(cx, Math.max(y + 1.9, H(cx, cz) + 1.3), cz), l: V3(q.x, y + 1.75, q.z) }; } },
+      setup: function () { var q = QUEEN(); chars.forEach(function (c) { c.hide = c !== q; }); place(q, D[0] + 6, D[1] + 2); q.pose = "talk"; q.until = nowMs() + 7500; },
+      cam: function (u) { var q = QUEEN(), cx = q.x - 1.4 + u * 0.7, cz = q.z + 4.4 - u * 1.3; return { p: V3(cx, Math.max(H(q.x, q.z) + 1.9, H(cx, cz) + 1.4), cz), l: V3(q.x, H(q.x, q.z) + 1.75, q.z) }; } },
     { text: "But the Persians marched against him, and the two armies clashed on the plain.", dur: 9, chapter: "Battle",
-      setup: function () { chars.forEach(function (c) { c.hide = !(c !== chars[chars.length - 1]); }); showTeals(true); battle = true; place(player, BC[0] - 5, BC[1]); player.tx = BC[0] - 2.6; player.tz = BC[1]; reds.forEach(function (c, i) { place(c, BC[0] - 6 - i * 0.5, BC[1] + (i - 1.5) * 1.3); }); teals.forEach(function (c, i) { place(c, BC[0] + 6 + i * 0.5, BC[1] + (i - 1.5) * 1.3); }); },
+      setup: function () { chars.forEach(function (c) { c.hide = c === QUEEN(); }); showTeals(true); battle = true; place(player, BC[0] - 5, BC[1]); player.tx = BC[0] - 2.6; player.tz = BC[1]; reds.forEach(function (c, i) { place(c, BC[0] - 6 - i * 0.5, BC[1] + (i - 1.5) * 1.3); }); teals.forEach(function (c, i) { place(c, BC[0] + 6 + i * 0.5, BC[1] + (i - 1.5) * 1.3); }); },
       cam: function (u) { var an = -0.7 + u * 1.2, cx = BC[0] + Math.sin(an) * 15, cz = BC[1] + Math.cos(an) * 15, y = H(BC[0], BC[1]); return { p: V3(cx, Math.max(y + 4.2 - u, H(cx, cz) + 3.0), cz), l: V3(BC[0], y + 1.4, BC[1]) }; } },
     { text: "Victorious, Alexander knelt, and the queen placed the crown upon his head.", dur: 9.5, chapter: "Crown",
-      setup: function () { battle = false; chars.forEach(function (c) { c.hide = !(c === player || c.key === "queen"); }); var q = chars[chars.length - 1]; place(player, -4.6, 9.6); place(q, -8.2, 10.6, -5.5, 9.8); },
-      cam: function (u) { var y = H(-5, 9.7), cx = -5 + 2.6 - u * 1.2, cz = 9.7 - 5.0 + u * 2.2; return { p: V3(cx, Math.max(y + 2.0 - u * 0.25, H(cx, cz) + 1.3), cz), l: V3(-5, y + 1.8, 9.7) }; },
+      setup: function () { battle = false; chars.forEach(function (c) { c.hide = !(c === player || c === QUEEN()); }); place(player, PL[0], PL[1] + 40, PL[0], PL[1] + 10); place(QUEEN(), PL[0] - 6, PL[1] + 6, PL[0] - 2.4, PL[1] + 9.4); },
+      cam: function (u) { var cx = PL[0] + 3 - u * 1.4, cz = PL[1] + 16 - u * 3; return { p: V3(cx, H(cx, cz) + 2.1, cz), l: V3(PL[0] - 1, H(PL[0], PL[1] + 10) + 1.8, PL[1] + 10) }; },
       tick: function (u) { if (u > 0.55 && player.key !== "alexc") player.key = "alexc"; } },
     { text: "And when night fell, the king looked back at the sea he had crossed.", dur: 9, chapter: "Night",
-      setup: function () { chars.forEach(function (c) { c.hide = !(c === player || reds.indexOf(c) >= 0); }); nightT = 1; place(player, 29.8, 7.6); reds.forEach(function (c, i) { place(c, 28.6 - i * 0.9, 8.6 + (i % 2) * 1.4); }); },
-      cam: function (u) { var y = H(29.8, 7.6); return { p: V3(lerp(24, 26, u), y + 2.2, lerp(12.5, 11, u)), l: V3(lerp(36, 44, u), 3 + u * 1.5, lerp(8, 10, u)) }; } }
+      setup: function () { chars.forEach(function (c) { c.hide = !(c === player || reds.indexOf(c) >= 0); }); nightT = 1; place(player, BEACH[0] - 2, BEACH[1]); reds.forEach(function (c, i) { place(c, BEACH[0] - 5 - i * 1.0, BEACH[1] + 1.2 + (i % 2) * 1.6); }); },
+      cam: function (u) { var cx = BEACH[0] - 13 + u * 3; return { p: V3(cx, H(cx, BEACH[1] + 6) + 2.2, BEACH[1] + 6), l: V3(SHX + 30 + u * 12, 4 + u * 2, SHZ - 4) }; } }
   ];
   if (window.__DUR) SCENES.forEach(function (sc, i) { if (window.__DUR[i]) sc.dur = window.__DUR[i]; });
   var chapEl = $("chap"); SCENES.forEach(function (sc, i) { var b = document.createElement("b"); b.textContent = i + 1; b.title = sc.chapter; b.onclick = function () { goScene(i); }; chapEl.appendChild(b); });
@@ -321,11 +285,11 @@
   var clock = new THREE.Clock(), time = 0, tmpV = new THREE.Vector3(), tmpL = new THREE.Vector3(), exploreA = 0;
   function tick(dt) {
     time += dt;
-    for (var k = 0; k < wp.count; k++) { var b = wbase[k]; wp.setY(k, Math.sin(b[0] * 0.09 + time * 1.4) * 0.28 + Math.cos(b[1] * 0.11 + time * 1.1) * 0.22); } wp.needsUpdate = true;
+    Eng.realmWaves(realm, time); skyG.position.set(camera.position.x, 0, camera.position.z);
     night += (nightT - night) * Math.min(1, dt * 1.6);
     scene.background.copy(DAY.sky).lerp(NIGHT.sky, night); scene.fog.color.copy(scene.background); wmat.color.copy(DAY.water).lerp(NIGHT.water, night);
-    hemi.intensity = 0.95 - 0.7 * night; sun.intensity = 0.95 - 0.8 * night; sun.color.setHex(night > 0.5 ? 0x8fa6ff : 0xfff2d6); starsM.opacity = Math.max(0, night * 1.2 - 0.2); shipLight.intensity = night * 1.6; ship.userData.lant.scale.setScalar(1 + night * 1.4);
-    clouds.forEach(function (c, i) { c.position.x += dt * (0.8 + i * 0.07); if (c.position.x > 120) c.position.x = -120; });
+    hemi.intensity = (0.95 - 0.7 * night) * LI; sun.intensity = (0.95 - 0.8 * night) * LI; sun.color.setHex(night > 0.5 ? 0x8fa6ff : 0xfff2d6); starsM.opacity = Math.max(0, night * 1.2 - 0.2); shipLight.intensity = night * 1.6; ship.userData.lant.scale.setScalar(1 + night * 1.4);
+    clouds.forEach(function (c, i) { c.position.x += dt * (1.5 + i * 0.1); if (c.position.x > 320) c.position.x = -320; });
     // director clock
     if (directed && playing && si >= 0) { st += dt; if (st >= SCENES[si].dur) { if (si >= SCENES.length - 1) finish(); else { si++; enterScene(); } } }
     var sc = directed && si >= 0 ? SCENES[si] : null, u = sc ? Math.min(1, st / sc.dur) : 0;
@@ -334,7 +298,7 @@
       var sp;
       if (si <= 0) sp = ease(u) * 0.0 + ease(Math.min(1, (si < 0 ? 0 : st) / SCENES[0].dur)); else sp = 1;
       var px = lerp(SHIP_A[0], SHIP_B[0], sp), pz = lerp(SHIP_A[1], SHIP_B[1], sp), hd = shipHead;
-      if (si === 6) { px += st * 1.1; pz += st * 0.7; hd = Math.atan2(1.1, 0.7); }
+      if (si === 6) { px += st * 1.6; pz -= st * 0.5; hd = Math.atan2(1.6, -0.5); }
       ship.position.set(px, 0.05 + Math.sin(time * 1.6) * 0.1, pz); ship.rotation.y = hd;
     } else { exploreA += dt * 0.06; var R = 52, ex = Math.cos(exploreA) * R, ez = Math.sin(exploreA) * R * 0.85; ship.position.set(ex, 0.05 + Math.sin(time * 1.6) * 0.1, ez); ship.rotation.y = Math.atan2(-Math.sin(exploreA) * R, Math.cos(exploreA) * R * 0.85); }
     ship.rotation.z = Math.sin(time * 1.3) * 0.04; ship.rotation.x = Math.sin(time * 1.1) * 0.025;

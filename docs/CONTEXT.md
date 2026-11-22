@@ -209,3 +209,4 @@
 - 2026-11-22: PROC.galleon = procedural buildGalleon (ocean fleet + mounted ships use it); deck standing height 0.275*h
 - 2026-11-22: film/ real-time engine + exporter (Playwright frame capture + Kokoro narration + music -> mp4 on branch film-out); workflow film.yml
 - 2026-11-22: film engine characters rebuilt (shaded tunics, helmets+crests, capes, shields/spears, eyes/brows, hair); +4 FILM ENGINE agent tasks
+- 2026-11-22: film engine now bundles the ORIGINAL world code (buildRealm/heightAt/ships) via esbuild (film/engine.ts, remotion stub); scenes staged across realm locations (ocean shore, desert pyramids+sphinx, savanna, palace); season input

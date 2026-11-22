@@ -5,6 +5,9 @@ on:
       size:
         description: "WxH (720x1280 vertical, 1280x720 wide)"
         default: "720x1280"
+      season:
+        description: "spring | summer | autumn | winter"
+        default: "summer"
 permissions:
   contents: write
 jobs:
@@ -24,8 +27,11 @@ jobs:
           pip install torch --index-url https://download.pytorch.org/whl/cpu
           pip install kokoro huggingface_hub
           for i in 1 2 3 4 5; do pip install "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl" && break || sleep 5; done
-          cd film && npm init -y >/dev/null && npm i playwright three@0.128.0 >/dev/null && npx playwright install --with-deps chromium >/dev/null
-          cp node_modules/three/build/three.min.js . && cp node_modules/three/examples/js/controls/OrbitControls.js .
+          cd film && npm init -y >/dev/null && npm i playwright three@0.169.0 esbuild >/dev/null && npx playwright install --with-deps chromium >/dev/null
+      - name: Bundle the original world engine for the browser
+        run: |
+          cd film && NODE_PATH=$PWD/node_modules npx esbuild engine.ts --bundle --format=iife --global-name=Eng --alias:remotion=./remotion-stub.ts --loader:.ts=ts --outfile=engine.js --log-level=warning
+          ls -la engine.js
       - name: Texts, narration, timing
         run: |
           cd film && node export.mjs texts ../texts.json
@@ -33,7 +39,7 @@ jobs:
       - name: Render film
         run: |
           S="${{ inputs.size }}"; W=${S%x*}; H=${S#*x}
-          cd film && node export.mjs render ../out/durs.json ../out/mix.wav ../out/film.mp4 $W $H
+          cd film && FILM_SEASON="${{ inputs.season }}" node export.mjs render ../out/durs.json ../out/mix.wav ../out/film.mp4 $W $H
       - name: Publish
         run: |
           cd out && git init -q && git checkout -q -b film-out && git config user.name film && git config user.email film@users.noreply.github.com

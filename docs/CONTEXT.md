@@ -212,3 +212,5 @@
 - 2026-11-22: film engine now bundles the ORIGINAL world code (buildRealm/heightAt/ships) via esbuild (film/engine.ts, remotion stub); scenes staged across realm locations (ocean shore, desert pyramids+sphinx, savanna, palace); season input
 
 ### 2026-11-22 OpenCode: Improved film engine sky in film/index.html: replaced scene.background colour with a vertical gradient sky dome ShaderMaterial featuring visible sun disc and soft glow, and night version with moon, preserving DAY/NIGHT lerp.
+
+### 2026-11-22 OpenCode: Added `scatterDetail()` function in film/index.html called once after terrain creation, creating InstancedMesh (< 3000 instances) for grass blades, flower sprites, shoreline foam ring, and daytime flying birds.

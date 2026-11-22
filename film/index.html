@@ -68,6 +68,82 @@ Eng.loadTextures().catch(function () {}).then(function () {
   // ---------- the ORIGINAL pipeline world: realm (town, palace, farm, forest, desert+pyramids+sphinx, savanna, swamp, jungle, ice, ocean, city, mountain...) ----------
   var Q = new URLSearchParams(location.search), SEASON = Q.get("season") || "summer";
   var realm = Eng.buildRealm(SEASON); scene.add(realm);
+  var birdsMesh, foamMesh;
+  function scatterDetail() {
+    var dummy = new THREE.Object3D();
+    var grassGeo = new THREE.ConeGeometry(0.08, 0.45, 4);
+    var grassMat = new THREE.MeshLambertMaterial({ color: 0x5a9e42 });
+    var grassMesh = new THREE.InstancedMesh(grassGeo, grassMat, 1200);
+    for (var i = 0; i < 1200; i++) {
+      var x = (hash(i * 1.1) - 0.5) * 350, z = (hash(i * 2.3) - 0.5) * 350;
+      var h = Eng.heightAt(x, z);
+      if (h > 0.1 && h < 18) {
+        dummy.position.set(x, h + 0.2, z);
+        dummy.scale.setScalar(0.6 + hash(i * 3.7) * 0.8);
+        dummy.updateMatrix();
+        grassMesh.setMatrixAt(i, dummy.matrix);
+      } else {
+        dummy.position.set(0, -999, 0);
+        dummy.updateMatrix();
+        grassMesh.setMatrixAt(i, dummy.matrix);
+      }
+    }
+    grassMesh.instanceMatrix.needsUpdate = true;
+    scene.add(grassMesh);
+
+    var flowerGeo = new THREE.IcosahedronGeometry(0.12, 0);
+    var flowerMat = new THREE.MeshLambertMaterial({ color: 0xe7c66b });
+    var flowerMesh = new THREE.InstancedMesh(flowerGeo, flowerMat, 250);
+    for (var i = 0; i < 250; i++) {
+      var x = (hash(i * 4.1) - 0.5) * 300, z = (hash(i * 5.3) - 0.5) * 300;
+      var h = Eng.heightAt(x, z);
+      if (h > 0.2 && h < 15) {
+        dummy.position.set(x, h + 0.15, z);
+        dummy.scale.setScalar(0.7 + hash(i * 6.7) * 0.6);
+        dummy.updateMatrix();
+        flowerMesh.setMatrixAt(i, dummy.matrix);
+      } else {
+        dummy.position.set(0, -999, 0);
+        dummy.updateMatrix();
+        flowerMesh.setMatrixAt(i, dummy.matrix);
+      }
+    }
+    flowerMesh.instanceMatrix.needsUpdate = true;
+    scene.add(flowerMesh);
+
+    var foamGeo = new THREE.PlaneGeometry(3.5, 0.35);
+    foamGeo.rotateX(-Math.PI / 2);
+    var foamMat = new THREE.MeshLambertMaterial({ color: 0xd0e7ef, transparent: true, opacity: 0.8 });
+    foamMesh = new THREE.InstancedMesh(foamGeo, foamMat, 300);
+    for (var i = 0; i < 300; i++) {
+      var z = -150 + i * 1.0;
+      var x = 380 + Math.sin(z * 0.05) * 12;
+      dummy.position.set(x, 0.12, z);
+      dummy.rotation.set(0, (hash(i) - 0.5) * 0.5, 0);
+      dummy.scale.setScalar(0.8 + hash(i * 2) * 0.5);
+      dummy.updateMatrix();
+      foamMesh.setMatrixAt(i, dummy.matrix);
+    }
+    foamMesh.instanceMatrix.needsUpdate = true;
+    scene.add(foamMesh);
+
+    var birdGeo = new THREE.ConeGeometry(0.06, 0.25, 4);
+    birdGeo.rotateX(Math.PI / 2);
+    var birdMat = new THREE.MeshLambertMaterial({ color: 0x1d1a20 });
+    birdsMesh = new THREE.InstancedMesh(birdGeo, birdMat, 40);
+    for (var i = 0; i < 40; i++) {
+      var bx = (hash(i * 7.1) - 0.5) * 400;
+      var by = 40 + hash(i * 8.3) * 60;
+      var bz = (hash(i * 9.7) - 0.5) * 400;
+      dummy.position.set(bx, by, bz);
+      dummy.scale.setScalar(0.8 + hash(i * 3) * 0.5);
+      dummy.updateMatrix();
+      birdsMesh.setMatrixAt(i, dummy.matrix);
+    }
+    birdsMesh.instanceMatrix.needsUpdate = true;
+    scene.add(birdsMesh);
+  }
+  scatterDetail();
   var gC = {}; function H(x, z) { var k = (Math.round(x) * 7919) ^ Math.round(z); return Math.max(0, Eng.heightAt(x, z)); }
   function hash(n) { var s2 = Math.sin(n * 127.1) * 43758.5453; return s2 - Math.floor(s2); }
   var terrain = realm, wmat = { color: new THREE.Color() }, wp = { count: 0 }, wbase = [];
@@ -339,6 +415,34 @@ Eng.loadTextures().catch(function () {}).then(function () {
     scene.fog.color.copy(curSky); wmat.color.copy(DAY.water).lerp(NIGHT.water, night);
     hemi.intensity = (0.95 - 0.7 * night) * LI; sun.intensity = (0.95 - 0.8 * night) * LI; sun.color.setHex(night > 0.5 ? 0x8fa6ff : 0xfff2d6); starsM.opacity = Math.max(0, night * 1.2 - 0.2); shipLight.intensity = night * 1.6; ship.userData.lant.scale.setScalar(1 + night * 1.4);
     clouds.forEach(function (c, i) { c.position.x += dt * (1.5 + i * 0.1); if (c.position.x > 320) c.position.x = -320; });
+    if (birdsMesh && night < 0.5) {
+      var bDummy = new THREE.Object3D();
+      for (var bi = 0; bi < 40; bi++) {
+        birdsMesh.getMatrixAt(bi, bDummy.matrix);
+        bDummy.matrix.decompose(bDummy.position, bDummy.quaternion, bDummy.scale);
+        bDummy.position.x += dt * (12 + bi * 0.5);
+        if (bDummy.position.x > 300) bDummy.position.x = -300;
+        bDummy.position.y += Math.sin(time * 4 + bi) * 0.05;
+        bDummy.updateMatrix();
+        birdsMesh.setMatrixAt(bi, bDummy.matrix);
+      }
+      birdsMesh.instanceMatrix.needsUpdate = true;
+      birdsMesh.visible = true;
+    } else if (birdsMesh) {
+      birdsMesh.visible = false;
+    }
+    if (foamMesh) {
+      var fDummy = new THREE.Object3D();
+      for (var fi = 0; fi < 300; fi++) {
+        foamMesh.getMatrixAt(fi, fDummy.matrix);
+        fDummy.matrix.decompose(fDummy.position, fDummy.quaternion, fDummy.scale);
+        var sc = 0.8 + 0.3 * Math.sin(time * 3 + fi * 0.5);
+        fDummy.scale.set(sc, 1, sc);
+        fDummy.updateMatrix();
+        foamMesh.setMatrixAt(fi, fDummy.matrix);
+      }
+      foamMesh.instanceMatrix.needsUpdate = true;
+    }
     // director clock
     if (directed && playing && si >= 0) { st += dt; if (st >= SCENES[si].dur) { if (si >= SCENES.length - 1) finish(); else { si++; enterScene(); } } }
     var sc = directed && si >= 0 ? SCENES[si] : null, u = sc ? Math.min(1, st / sc.dur) : 0;

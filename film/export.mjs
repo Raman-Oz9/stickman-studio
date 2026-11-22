@@ -1,7 +1,7 @@
 // Usage: node export.mjs texts <out.json>   |   node export.mjs render <durs.json> <mix.wav> <out.mp4> [w] [h]
 import http from "http"; import fs from "fs"; import path from "path"; import { spawn } from "child_process"; import { chromium } from "playwright";
 const dir = path.dirname(new URL(import.meta.url).pathname);
-const srv = http.createServer((q, r) => { const f = path.join(dir, q.url.split("?")[0] === "/" ? "index.html" : q.url.split("?")[0]); fs.readFile(f, (e, d) => { if (e) { r.writeHead(404); r.end(); } else { r.writeHead(200, { "Content-Type": f.endsWith(".html") ? "text/html" : "text/javascript" }); r.end(d); } }); }).listen(0);
+const srv = http.createServer((q, r) => { const f = path.join(dir, q.url.split("?")[0] === "/" ? "index.html" : q.url.split("?")[0]); fs.readFile(f, (e, d) => { if (e) { r.writeHead(404); r.end(); } else { r.writeHead(200, { "Content-Type": f.endsWith(".html") ? "text/html" : f.endsWith(".jpg") ? "image/jpeg" : f.endsWith(".png") ? "image/png" : "text/javascript" }); r.end(d); } }); }).listen(0);
 await new Promise((r) => srv.on("listening", r)); const port = srv.address().port;
 const [mode, a1, a2, a3, w = "720", h = "1280"] = process.argv.slice(2);
 const br = await chromium.launch({ args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist", "--no-sandbox"] });

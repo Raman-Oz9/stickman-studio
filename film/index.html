@@ -46,7 +46,7 @@
 </div>
 <script src="engine.js"></script>
 <script>
-(function () {
+Eng.loadTextures().catch(function () {}).then(function () {
   var EXPORT = /[?&]export/.test(location.search); if (EXPORT) document.body.className = "exp"; var nowMs = function () { return EXPORT ? time * 1000 : performance.now(); };
   var THREE = window.Eng.THREE, Eng = window.Eng, LI = 2.6;
   var canvas = document.getElementById("c");
@@ -236,21 +236,21 @@
   var SCENES = [
     { text: "Alexander led his army across the sea.", dur: 7.5, chapter: "Sea",
       setup: function () { nightT = 0; battle = false; showTeals(false); player.key = "alex"; chars.forEach(function (c) { c.hide = true; }); },
-      cam: function (u) { var p = shipPos(); return { p: V3(p.x + 34 - u * 22, 11 - u * 5, p.z + 28 - u * 14), l: V3(p.x, 3.5, p.z) }; } },
+      cam: function (u) { var p = shipPos(); return { p: V3(p.x + 78 - u * 34, 17 - u * 7, p.z + 58 - u * 24), l: V3(p.x, 4, p.z) }; } },
     { text: "At last the fleet reached the shore, and his soldiers stepped onto the sand.", dur: 8.5, chapter: "Shore",
-      setup: function () { chars.forEach(function (c) { c.hide = !(c === player || reds.indexOf(c) >= 0); }); place(player, SHX + 22, SHZ - 1, BEACH[0], BEACH[1], 0); reds.forEach(function (c, i) { place(c, SHX + 24 + i * 1.1, SHZ - 3 + (i % 2) * 2, BEACH[0] + 1.5 - i * 1.0, BEACH[1] - 2 + (i % 2) * 2.5, 0); }); },
-      cam: function (u) { var cx = SHX - 10 + u * 4; return { p: V3(cx, H(cx, SHZ + 7) + 2.4, SHZ + 7), l: V3(lerp(SHX + 14, SHX - 2, u), H(SHX, SHZ) + 1.6, SHZ) }; } },
+      setup: function () { chars.forEach(function (c) { c.hide = !(c === player || reds.indexOf(c) >= 0); }); place(player, SHX + 10, SHZ - 1, BEACH[0], BEACH[1], 0); reds.forEach(function (c, i) { place(c, SHX + 12 + i * 1.1, SHZ - 3 + (i % 2) * 2, BEACH[0] + 1.5 - i * 1.0, BEACH[1] - 2 + (i % 2) * 2.5, 0); }); },
+      cam: function (u) { var cx = SHX - 7 + u * 2; return { p: V3(cx, H(cx, SHZ + 6) + 2.2, SHZ + 6), l: V3(lerp(SHX + 8, SHX - 3, u), H(SHX, SHZ) + 1.6, SHZ) }; } },
     { text: "In Egypt, beneath the great pyramids, a queen was waiting for him.", dur: 7.5, chapter: "Egypt",
-      setup: function () { chars.forEach(function (c) { c.hide = !(c === player || c === QUEEN()); }); place(player, D[0] - 10, D[1] + 34, D[0] - 3, D[1] + 8); place(QUEEN(), D[0] + 7, D[1] - 2); },
-      cam: function (u) { var cx = lerp(-46, -16, u) + D[0], cz = lerp(70, 44, u) + D[1]; return { p: V3(cx, H(cx, cz) + lerp(8, 3.2, u), cz), l: V3(D[0], H(D[0], D[1]) + lerp(9, 4, u), D[1] - 26) }; } },
+      setup: function () { chars.forEach(function (c) { c.hide = !(c === player || c === QUEEN()); }); place(player, D[0] - 26, D[1] + 34, D[0] - 17, D[1] + 9); place(QUEEN(), D[0] - 14, D[1] + 4); },
+      cam: function (u) { var cx = lerp(-60, -30, u) + D[0], cz = lerp(80, 40, u) + D[1]; return { p: V3(cx, H(cx, cz) + lerp(9, 3.4, u), cz), l: V3(D[0] - 14, H(D[0], D[1]) + lerp(10, 4.5, u), D[1] - 20) }; } },
     { text: "She smiled at him, and said:", quote: "Welcome to Egypt. Gold is only sand that someone loved.", dur: 9.5, chapter: "Quote",
-      setup: function () { var q = QUEEN(); chars.forEach(function (c) { c.hide = c !== q; }); place(q, D[0] + 6, D[1] + 2); q.pose = "talk"; q.until = nowMs() + 7500; },
+      setup: function () { var q = QUEEN(); chars.forEach(function (c) { c.hide = c !== q; }); place(q, D[0] - 14, D[1] + 4); q.pose = "talk"; q.until = nowMs() + 7500; },
       cam: function (u) { var q = QUEEN(), cx = q.x - 1.4 + u * 0.7, cz = q.z + 4.4 - u * 1.3; return { p: V3(cx, Math.max(H(q.x, q.z) + 1.9, H(cx, cz) + 1.4), cz), l: V3(q.x, H(q.x, q.z) + 1.75, q.z) }; } },
     { text: "But the Persians marched against him, and the two armies clashed on the plain.", dur: 9, chapter: "Battle",
       setup: function () { chars.forEach(function (c) { c.hide = c === QUEEN(); }); showTeals(true); battle = true; place(player, BC[0] - 5, BC[1]); player.tx = BC[0] - 2.6; player.tz = BC[1]; reds.forEach(function (c, i) { place(c, BC[0] - 6 - i * 0.5, BC[1] + (i - 1.5) * 1.3); }); teals.forEach(function (c, i) { place(c, BC[0] + 6 + i * 0.5, BC[1] + (i - 1.5) * 1.3); }); },
       cam: function (u) { var an = -0.7 + u * 1.2, cx = BC[0] + Math.sin(an) * 15, cz = BC[1] + Math.cos(an) * 15, y = H(BC[0], BC[1]); return { p: V3(cx, Math.max(y + 4.2 - u, H(cx, cz) + 3.0), cz), l: V3(BC[0], y + 1.4, BC[1]) }; } },
     { text: "Victorious, Alexander knelt, and the queen placed the crown upon his head.", dur: 9.5, chapter: "Crown",
-      setup: function () { battle = false; chars.forEach(function (c) { c.hide = !(c === player || c === QUEEN()); }); place(player, PL[0], PL[1] + 40, PL[0], PL[1] + 10); place(QUEEN(), PL[0] - 6, PL[1] + 6, PL[0] - 2.4, PL[1] + 9.4); },
+      setup: function () { battle = false; chars.forEach(function (c) { c.hide = !(c === player || c === QUEEN()); }); place(player, PL[0] + 4, PL[1] + 24, PL[0], PL[1] + 10); place(QUEEN(), PL[0] - 6, PL[1] + 6, PL[0] - 2.4, PL[1] + 9.4); },
       cam: function (u) { var cx = PL[0] + 3 - u * 1.4, cz = PL[1] + 16 - u * 3; return { p: V3(cx, H(cx, cz) + 2.1, cz), l: V3(PL[0] - 1, H(PL[0], PL[1] + 10) + 1.8, PL[1] + 10) }; },
       tick: function (u) { if (u > 0.55 && player.key !== "alexc") player.key = "alexc"; } },
     { text: "And when night fell, the king looked back at the sea he had crossed.", dur: 9, chapter: "Night",
@@ -331,5 +331,5 @@
   function frame() { tick(Math.min(0.05, clock.getDelta())); requestAnimationFrame(frame); }
   window.__film = { texts: SCENES.map(function (sc) { return { text: sc.text, quote: sc.quote || "" }; }), step: function () { tick(1 / 30); }, start: function () { $("start").hidden = true; playing = true; goScene(0); tick(0.0001); } };
   if (!EXPORT) frame();
-})();
+});
 </script>

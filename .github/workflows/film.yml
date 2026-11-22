@@ -32,6 +32,8 @@ jobs:
         run: |
           cd film && NODE_PATH=$PWD/node_modules npx esbuild engine.ts --bundle --format=iife --global-name=Eng --alias:remotion=./remotion-stub.ts --loader:.ts=ts --outfile=engine.js --log-level=warning
           ls -la engine.js
+      - name: Textures for the world
+        run: cp -r remotion/public/tex film/tex
       - name: Texts, narration, timing
         run: |
           cd film && node export.mjs texts ../texts.json

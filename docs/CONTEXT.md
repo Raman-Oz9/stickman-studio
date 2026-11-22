@@ -210,3 +210,5 @@
 - 2026-11-22: film/ real-time engine + exporter (Playwright frame capture + Kokoro narration + music -> mp4 on branch film-out); workflow film.yml
 - 2026-11-22: film engine characters rebuilt (shaded tunics, helmets+crests, capes, shields/spears, eyes/brows, hair); +4 FILM ENGINE agent tasks
 - 2026-11-22: film engine now bundles the ORIGINAL world code (buildRealm/heightAt/ships) via esbuild (film/engine.ts, remotion stub); scenes staged across realm locations (ocean shore, desert pyramids+sphinx, savanna, palace); season input
+
+### 2026-11-22 OpenCode: Enhanced and verified deterministic layered heightfields, rippled dunes, slope-driven rock and vertex colour variation, instanced grass/flowers, snow caps, distant mountain silhouettes, meandering 3D river, varied shoreline, and biome scatter across terrain worldgen presets. Strict TypeScript compilation passed.

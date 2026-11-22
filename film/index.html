@@ -162,32 +162,65 @@
 
   // ---------- 2D ink characters (the only 2D thing) ----------
   var TEX = {};
+  function shade(hex, k) { var c = new THREE.Color(hex); c.r = Math.min(1, c.r * k); c.g = Math.min(1, c.g * k); c.b = Math.min(1, c.b * k); return "#" + c.getHexString(); }
   function inkTex(kind, pose, f) {
-    var c = document.createElement("canvas"); c.width = 128; c.height = 256; var x = c.getContext("2d");
-    x.lineCap = "round"; x.lineJoin = "round"; x.strokeStyle = "#17120d"; x.fillStyle = "#17120d";
-    var cx = 64, hy = 56, ny = 84, hipY = 150, leg = pose === "walk" ? [0.5, -0.5, 0.2, -0.2][f % 4] : 0, sw = pose === "walk" ? [-0.4, 0.4, 0.15, -0.15][f % 4] : 0;
-    function ln(x1, y1, x2, y2, w, st) { x.strokeStyle = st || "#17120d"; x.lineWidth = w; x.beginPath(); x.moveTo(x1, y1); x.lineTo(x2, y2); x.stroke(); }
-    var body = kind.cloak, skin = "#f4d6b0";
-    // legs
-    ln(cx, hipY, cx + Math.sin(leg) * 34, 232, 11); ln(cx, hipY, cx + Math.sin(-leg) * 34, 232, 11);
-    // torso / tunic
-    x.fillStyle = body; x.strokeStyle = "#17120d"; x.lineWidth = 5; x.beginPath(); x.moveTo(cx - 20, ny); x.lineTo(cx + 20, ny); x.lineTo(cx + 26, hipY + 10); x.lineTo(cx - 26, hipY + 10); x.closePath(); x.fill(); x.stroke();
-    if (kind.armor) { x.fillStyle = "#b9bfc9"; x.fillRect(cx - 18, ny + 2, 36, 30); x.strokeRect(cx - 18, ny + 2, 36, 30); }
-    // arms
-    var ra = pose === "wave" ? -2.5 + Math.sin(f * 1.6) * 0.5 : pose === "fight" ? -2.1 + Math.sin(f * 1.7) * 0.9 : sw, la = pose === "walk" ? -sw : 0.12;
-    ln(cx + 18, ny + 8, cx + 18 + Math.sin(ra) * 40, ny + 8 + Math.cos(ra) * 40, 9); ln(cx - 18, ny + 8, cx - 18 + Math.sin(-la) * 40, ny + 8 + Math.cos(la) * 40, 9);
-    if (pose === "fight") { var ex = cx + 18 + Math.sin(ra) * 40, ey = ny + 8 + Math.cos(ra) * 40; ln(ex, ey, ex + Math.sin(ra) * 40, ey + Math.cos(ra) * 40, 5, "#dfe6ee"); }
-    // head
-    x.fillStyle = skin; x.strokeStyle = "#17120d"; x.lineWidth = 6; x.beginPath(); x.arc(cx, hy, 30, 0, 6.283); x.fill(); x.stroke();
-    x.fillStyle = "#17120d"; x.beginPath(); x.arc(cx - 10, hy - 3, 4, 0, 6.283); x.arc(cx + 10, hy - 3, 4, 0, 6.283); x.fill();
-    x.lineWidth = 3; x.beginPath(); if (pose === "talk" || pose === "wave") x.arc(cx, hy + 11, 5 + (f % 2) * 3, 0, 6.283); else x.arc(cx, hy + 7, 8, 0.15 * Math.PI, 0.85 * Math.PI); x.stroke();
-    if (kind.crown) { x.strokeStyle = "#2c8a3e"; x.lineWidth = 5; x.beginPath(); x.arc(cx, hy - 2, 31, Math.PI * 1.08, Math.PI * 1.92); x.stroke(); }
-    if (kind.king) { x.fillStyle = "#f2c14e"; x.strokeStyle = "#17120d"; x.lineWidth = 4; x.beginPath(); x.moveTo(cx - 24, hy - 24); x.lineTo(cx - 24, hy - 50); x.lineTo(cx - 12, hy - 36); x.lineTo(cx, hy - 54); x.lineTo(cx + 12, hy - 36); x.lineTo(cx + 24, hy - 50); x.lineTo(cx + 24, hy - 24); x.closePath(); x.fill(); x.stroke(); }
-    if (kind.helm) { x.fillStyle = kind.helm; x.strokeStyle = "#17120d"; x.lineWidth = 5; x.beginPath(); x.arc(cx, hy - 6, 31, Math.PI, 0); x.closePath(); x.fill(); x.stroke(); }
-    if (kind.hair) { x.fillStyle = kind.hair; x.beginPath(); x.arc(cx, hy - 8, 31, Math.PI * 1.02, Math.PI * 1.98); x.lineTo(cx + 30, hy + 28); x.lineTo(cx + 22, hy - 2); x.lineTo(cx - 22, hy - 2); x.lineTo(cx - 30, hy + 28); x.closePath(); x.fill(); x.stroke(); }
-    var t = new THREE.CanvasTexture(c); t.minFilter = THREE.LinearFilter; return t;
+    var c = document.createElement("canvas"); c.width = 256; c.height = 512; var x = c.getContext("2d"); x.scale(2, 2);
+    x.lineCap = "round"; x.lineJoin = "round"; var INK = "#17120d", cx = 64, hy = 56, R = 31, ny = 90, hip = 152;
+    var skin = kind.skin || "#f0c49b", tun = kind.cloak, walk = pose === "walk", ph = f % 4;
+    var leg = walk ? [0.55, 0.1, -0.55, -0.1][ph] : 0, bob = walk ? [0, -2, 0, -2][ph] : (pose === "idle" ? Math.sin(f) * 0.6 : 0);
+    function grad(y0, y1, c0, c1) { var g = x.createLinearGradient(0, y0, 0, y1); g.addColorStop(0, c0); g.addColorStop(1, c1); return g; }
+    function limb(x1, y1, x2, y2, w, col) { x.strokeStyle = INK; x.lineWidth = w + 5; x.beginPath(); x.moveTo(x1, y1); x.lineTo(x2, y2); x.stroke(); x.strokeStyle = col; x.lineWidth = w; x.beginPath(); x.moveTo(x1, y1); x.lineTo(x2, y2); x.stroke(); }
+    function ball(px, py, r, col) { x.fillStyle = col; x.strokeStyle = INK; x.lineWidth = 3.5; x.beginPath(); x.arc(px, py, r, 0, 6.283); x.fill(); x.stroke(); }
+    // ground shadow handled in 3D; cape behind
+    if (kind.cape) { x.fillStyle = grad(ny, 215, kind.cape, shade(kind.cape, 0.6)); x.strokeStyle = INK; x.lineWidth = 4; var sway = walk ? [-5, 0, 5, 0][ph] : 0; x.beginPath(); x.moveTo(cx - 24, ny + bob); x.lineTo(cx + 24, ny + bob); x.lineTo(cx + 40 + sway, 212); x.lineTo(cx - 40 + sway, 216); x.closePath(); x.fill(); x.stroke(); }
+    // legs + sandals
+    var lx = cx - 12 + Math.sin(-leg) * 26, rx = cx + 12 + Math.sin(leg) * 26;
+    limb(cx - 10, hip + bob, lx, 232, 13, skin); limb(cx + 10, hip + bob, rx, 232, 13, skin);
+    x.fillStyle = "#5a3a1c"; x.strokeStyle = INK; x.lineWidth = 3; [[lx, -1], [rx, 1]].forEach(function (q) { x.beginPath(); x.ellipse(q[0] + q[1] * 5, 236, 13, 6, 0, 0, 6.283); x.fill(); x.stroke(); });
+    // tunic body (flared skirt) with cel shading
+    x.save(); x.beginPath(); x.moveTo(cx - 24, ny + bob); x.quadraticCurveTo(cx - 30, 120, cx - 34, 180); x.lineTo(cx + 34, 180); x.quadraticCurveTo(cx + 30, 120, cx + 24, ny + bob); x.closePath();
+    x.fillStyle = grad(ny, 180, shade(tun, 1.08), shade(tun, 0.78)); x.fill(); x.clip(); x.fillStyle = "rgba(20,10,0,.2)"; x.fillRect(cx + 6, 80, 40, 110); x.fillStyle = "rgba(255,255,255,.14)"; x.fillRect(cx - 40, 80, 12, 110); x.restore();
+    x.strokeStyle = INK; x.lineWidth = 4; x.beginPath(); x.moveTo(cx - 24, ny + bob); x.quadraticCurveTo(cx - 30, 120, cx - 34, 180); x.lineTo(cx + 34, 180); x.quadraticCurveTo(cx + 30, 120, cx + 24, ny + bob); x.closePath(); x.stroke();
+    x.fillStyle = "#e0b04a"; x.fillRect(cx - 27, 128 + bob, 54, 8); x.strokeStyle = INK; x.lineWidth = 2.5; x.strokeRect(cx - 27, 128 + bob, 54, 8);
+    if (kind.armor) { x.fillStyle = grad(ny, 128, "#d4d9e2", "#8e96a4"); x.beginPath(); x.moveTo(cx - 22, ny + 2 + bob); x.lineTo(cx + 22, ny + 2 + bob); x.lineTo(cx + 26, 128 + bob); x.lineTo(cx - 26, 128 + bob); x.closePath(); x.fill(); x.strokeStyle = INK; x.lineWidth = 3.5; x.stroke(); x.lineWidth = 2; x.beginPath(); x.moveTo(cx, ny + 8 + bob); x.lineTo(cx, 124 + bob); x.moveTo(cx - 18, 106 + bob); x.quadraticCurveTo(cx - 8, 112 + bob, cx, 106 + bob); x.moveTo(cx + 18, 106 + bob); x.quadraticCurveTo(cx + 8, 112 + bob, cx, 106 + bob); x.stroke();
+      x.fillStyle = shade(kind.cloak, 0.9); for (var q = -3; q <= 3; q++) { x.fillRect(cx + q * 7.5 - 3.4, 136 + bob, 6.8, 18); x.strokeRect(cx + q * 7.5 - 3.4, 136 + bob, 6.8, 18); } }
+    // arms (back arm first), sleeve then hand
+    var ra = pose === "wave" ? -2.6 + Math.sin(f * 1.7) * 0.45 : pose === "fight" ? -2.0 + Math.sin(f * 1.8) * 1.0 : (walk ? [-0.5, -0.1, 0.5, 0.1][ph] : 0.05), la = walk ? -ra : 0.15;
+    var sx = cx - 23, sy = ny + 8 + bob, lh = [sx + Math.sin(-la) * 42, sy + Math.cos(la) * 42];
+    limb(sx, sy, lh[0], lh[1], 11, shade(tun, 0.92)); ball(lh[0], lh[1], 7, skin);
+    if (kind.spear && !(pose === "fight")) { x.strokeStyle = INK; x.lineWidth = 5; x.beginPath(); x.moveTo(lh[0], 236); x.lineTo(lh[0], 18); x.stroke(); x.strokeStyle = "#8a6a3a"; x.lineWidth = 2.5; x.beginPath(); x.moveTo(lh[0], 236); x.lineTo(lh[0], 20); x.stroke(); x.fillStyle = "#cfd6df"; x.strokeStyle = INK; x.lineWidth = 2.5; x.beginPath(); x.moveTo(lh[0], 2); x.lineTo(lh[0] - 5, 22); x.lineTo(lh[0] + 5, 22); x.closePath(); x.fill(); x.stroke(); }
+    if (kind.shield) { x.fillStyle = grad(lh[1] - 22, lh[1] + 22, kind.shield, shade(kind.shield, 0.65)); x.strokeStyle = INK; x.lineWidth = 4; x.beginPath(); x.arc(lh[0] - 6, lh[1], 22, 0, 6.283); x.fill(); x.stroke(); x.fillStyle = "#f2c14e"; x.beginPath(); x.arc(lh[0] - 6, lh[1], 7, 0, 6.283); x.fill(); x.stroke(); }
+    var rsx = cx + 23, rh = [rsx + Math.sin(ra) * 42, sy + Math.cos(ra) * 42];
+    limb(rsx, sy, rh[0], rh[1], 11, shade(tun, 1.0)); ball(rh[0], rh[1], 7, skin);
+    if (pose === "fight") { var dx2 = Math.sin(ra), dy2 = Math.cos(ra); x.strokeStyle = INK; x.lineWidth = 8; x.beginPath(); x.moveTo(rh[0], rh[1]); x.lineTo(rh[0] + dx2 * 52, rh[1] + dy2 * 52); x.stroke(); x.strokeStyle = "#e6edf5"; x.lineWidth = 4; x.beginPath(); x.moveTo(rh[0], rh[1]); x.lineTo(rh[0] + dx2 * 50, rh[1] + dy2 * 50); x.stroke(); }
+    // neck + head
+    x.fillStyle = shade(skin, 0.92); x.fillRect(cx - 7, hy + 24 + bob, 14, 16); 
+    x.fillStyle = grad(hy - R, hy + R, shade(skin, 1.06), shade(skin, 0.86)); x.strokeStyle = INK; x.lineWidth = 4.5; x.beginPath(); x.ellipse(cx, hy + bob, R * 0.96, R, 0, 0, 6.283); x.fill(); x.stroke();
+    ball(cx - R * 0.96, hy + 4 + bob, 5, skin); ball(cx + R * 0.96, hy + 4 + bob, 5, skin);
+    // eyes, brows, nose, mouth
+    var ey = hy - 2 + bob, blink = (Math.floor(f * 0.7) % 11 === 0 && pose === "idle");
+    [-11.5, 11.5].forEach(function (o) { if (blink) { x.strokeStyle = INK; x.lineWidth = 3; x.beginPath(); x.moveTo(cx + o - 6, ey); x.lineTo(cx + o + 6, ey); x.stroke(); } else { x.fillStyle = "#fff"; x.strokeStyle = INK; x.lineWidth = 2.5; x.beginPath(); x.ellipse(cx + o, ey, 7.2, 8.4, 0, 0, 6.283); x.fill(); x.stroke(); x.fillStyle = kind.eye || "#3a2a1a"; x.beginPath(); x.arc(cx + o + 1, ey + 1, 4.2, 0, 6.283); x.fill(); x.fillStyle = "#fff"; x.beginPath(); x.arc(cx + o + 2.5, ey - 1, 1.5, 0, 6.283); x.fill(); } });
+    x.strokeStyle = INK; x.lineWidth = 3.2; var br = pose === "fight" ? 3 : pose === "talk" ? -1.5 : 0; x.beginPath(); x.moveTo(cx - 19, ey - 13 + br); x.lineTo(cx - 5, ey - 13 - br); x.moveTo(cx + 5, ey - 13 - br); x.lineTo(cx + 19, ey - 13 + br); x.stroke();
+    x.lineWidth = 2.2; x.beginPath(); x.moveTo(cx + 1, ey + 6); x.quadraticCurveTo(cx + 5, ey + 14, cx, ey + 15); x.stroke();
+    x.strokeStyle = INK; x.lineWidth = 3; x.beginPath(); if (pose === "talk") { x.fillStyle = "#7a2a2a"; x.ellipse(cx, hy + 17 + bob, 6, 3.5 + (f % 2) * 3.5, 0, 0, 6.283); x.fill(); x.stroke(); } else if (pose === "fight") { x.moveTo(cx - 8, hy + 19 + bob); x.quadraticCurveTo(cx, hy + 13 + bob, cx + 8, hy + 19 + bob); x.stroke(); } else { x.arc(cx, hy + 12 + bob, 8, 0.2 * Math.PI, 0.8 * Math.PI); x.stroke(); }
+    x.fillStyle = "rgba(230,110,100,.28)"; x.beginPath(); x.arc(cx - 20, hy + 10 + bob, 5, 0, 6.283); x.arc(cx + 20, hy + 10 + bob, 5, 0, 6.283); x.fill();
+    // hair / helmet / crowns
+    if (kind.hair) { x.fillStyle = grad(hy - R, hy + 40, kind.hair, shade(kind.hair, 0.55)); x.strokeStyle = INK; x.lineWidth = 4; x.beginPath(); x.moveTo(cx - 33, hy + 34 + bob); x.quadraticCurveTo(cx - 40, hy - 34 + bob, cx, hy - 38 + bob); x.quadraticCurveTo(cx + 40, hy - 34 + bob, cx + 33, hy + 34 + bob); x.lineTo(cx + 24, hy + 34 + bob); x.quadraticCurveTo(cx + 26, hy - 14 + bob, cx, hy - 20 + bob); x.quadraticCurveTo(cx - 26, hy - 14 + bob, cx - 24, hy + 34 + bob); x.closePath(); x.fill(); x.stroke();
+      if (kind.band) { x.strokeStyle = "#e0b04a"; x.lineWidth = 6; x.beginPath(); x.arc(cx, hy - 10 + bob, 31, Math.PI * 1.1, Math.PI * 1.9); x.stroke(); x.strokeStyle = "#2b6fb5"; x.lineWidth = 2.5; x.stroke(); } }
+    if (kind.curls) { x.fillStyle = kind.curls; x.strokeStyle = INK; x.lineWidth = 3.5; for (var q = 0; q < 9; q++) { var an = Math.PI * (1.05 + q * 0.1); x.beginPath(); x.arc(cx + Math.cos(an) * 29, hy + bob + Math.sin(an) * 29 - 2, 8, 0, 6.283); x.fill(); x.stroke(); } }
+    if (kind.crown) { x.strokeStyle = "#3f9b4a"; x.fillStyle = "#4fb35a"; x.lineWidth = 2.5; for (var q = 0; q < 8; q++) { var an2 = Math.PI * (1.08 + q * 0.12); x.save(); x.translate(cx + Math.cos(an2) * 32, hy - 3 + bob + Math.sin(an2) * 32); x.rotate(an2 + 1.57); x.beginPath(); x.ellipse(0, 0, 4, 9, 0, 0, 6.283); x.fill(); x.stroke(); x.restore(); } }
+    if (kind.king) { x.fillStyle = "#f2c14e"; x.strokeStyle = INK; x.lineWidth = 4; x.beginPath(); x.moveTo(cx - 26, hy - 20 + bob); x.lineTo(cx - 28, hy - 50 + bob); x.lineTo(cx - 13, hy - 34 + bob); x.lineTo(cx, hy - 56 + bob); x.lineTo(cx + 13, hy - 34 + bob); x.lineTo(cx + 28, hy - 50 + bob); x.lineTo(cx + 26, hy - 20 + bob); x.closePath(); x.fill(); x.stroke(); ball(cx, hy - 52 + bob, 4, "#d8433a"); }
+    if (kind.helm) { x.fillStyle = grad(hy - R, hy, shade(kind.helm, 1.2), shade(kind.helm, 0.7)); x.strokeStyle = INK; x.lineWidth = 4.5; x.beginPath(); x.moveTo(cx - 33, hy + 12 + bob); x.quadraticCurveTo(cx - 38, hy - 40 + bob, cx, hy - 42 + bob); x.quadraticCurveTo(cx + 38, hy - 40 + bob, cx + 33, hy + 12 + bob); x.lineTo(cx + 26, hy + 14 + bob); x.lineTo(cx + 26, hy - 14 + bob); x.lineTo(cx - 26, hy - 14 + bob); x.lineTo(cx - 26, hy + 14 + bob); x.closePath(); x.fill(); x.stroke();
+      if (kind.crest) { x.fillStyle = kind.crest; x.beginPath(); x.moveTo(cx - 24, hy - 38 + bob); x.quadraticCurveTo(cx, hy - 68 + bob, cx + 24, hy - 38 + bob); x.quadraticCurveTo(cx, hy - 46 + bob, cx - 24, hy - 38 + bob); x.fill(); x.stroke(); } }
+    var t = new THREE.CanvasTexture(c); t.minFilter = THREE.LinearFilter; t.anisotropy = 4; return t;
   }
-  var KINDS = { alex: { cloak: "#f4efe4", crown: true, name: "Alexander" }, alexc: { cloak: "#f4efe4", king: true, name: "King Alexander" }, red: { cloak: "#c9372c", armor: true, helm: "#9aa3b0", name: "Macedonian soldier" }, teal: { cloak: "#2f9c93", armor: true, helm: "#6e5a8a", name: "Persian soldier" }, queen: { cloak: "#f2e7c9", hair: "#2a1d12", name: "The Queen" } };
+  var KINDS = {
+    alex: { cloak: "#f2ead8", cape: "#b82f2a", curls: "#6b4a26", crown: true, name: "Alexander" },
+    alexc: { cloak: "#f2ead8", cape: "#b82f2a", curls: "#6b4a26", king: true, name: "King Alexander" },
+    red: { cloak: "#b82f2a", armor: true, helm: "#b8a05a", crest: "#c9372c", spear: true, shield: "#b82f2a", name: "Macedonian soldier" },
+    teal: { cloak: "#25807a", armor: true, helm: "#5f5a8f", crest: "#25807a", spear: true, shield: "#25807a", skin: "#d9a779", name: "Persian soldier" },
+    queen: { cloak: "#f4edd9", hair: "#1b1410", band: true, skin: "#d9a273", cape: "#2b6fb5", name: "The Queen" }
+  };
   function tex(key, pose, f) { var k = key + pose + f; return TEX[k] || (TEX[k] = inkTex(KINDS[key], pose, f)); }
   var LINES = {
     alex: ["We cross the sea at dawn. Not one ship turns back.", "A king who hides is only a man with a crown.", "Stand with me, and Persia will remember this day."],

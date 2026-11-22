@@ -397,7 +397,7 @@ const galleon = () => {
   for (const x of [-0.78, 0.78]) for (const z of [-1, 0, 1]) g.add(mk(C(0.1, 0.12, 0.5, 8), "#222", x, 0.75, z, 1, 1, 1, 0, 0, Math.PI / 2));
   return g;
 };
-Object.assign(PROC, { galleon }); Object.assign(DEFAULT_H, { galleon: 5.4 }); Object.assign(SADDLE, { galleon: 0.17, steamship: 0.2, sailboat: 0.3, canoe: 0.3 });
+Object.assign(PROC, { galleon: buildGalleon }); Object.assign(DEFAULT_H, { galleon: 5.4 }); Object.assign(SADDLE, { galleon: 0.17, steamship: 0.2, sailboat: 0.3, canoe: 0.3 });
 Object.assign(ALIAS, { ship: "galleon", pirateship: "galleon", piratesship: "galleon", boat: "galleon", vessel: "galleon", frigate: "galleon", warship: "galleon" });
 
 // paper currency

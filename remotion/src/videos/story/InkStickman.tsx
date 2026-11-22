@@ -231,6 +231,13 @@ export const InkStickman: React.FC<InkStickmanProps> = ({
         <filter id="inkShadow" x="-40%" y="-40%" width="180%" height="180%">
           <feGaussianBlur stdDeviation="6" />
         </filter>
+        <clipPath id="headClip">
+          <path d={headPath} />
+        </clipPath>
+        <radialGradient id="headShade" cx=".5" cy=".25" r=".75">
+          <stop offset="0%" stopColor="#000" stopOpacity="0" />
+          <stop offset="100%" stopColor="#000" stopOpacity="0.2" />
+        </radialGradient>
       </defs>
       <ellipse
         cx={cx0 + 10 * (sn >= 0 ? 1 : -1)}
@@ -257,6 +264,8 @@ export const InkStickman: React.FC<InkStickmanProps> = ({
             <ellipse cx={-84 * Math.abs(cs)} cy={HEAD_Y + 6} rx="10" ry="15" fill={skin} stroke={INK} strokeWidth="5" />
             <ellipse cx={84 * Math.abs(cs)} cy={HEAD_Y + 6} rx="10" ry="15" fill={skin} stroke={INK} strokeWidth="5" />
             <path d={headPath} fill={back ? hairC : skin} stroke={INK} strokeWidth="7" strokeLinejoin="round" />
+            <path d={headPath} fill="url(#headShade)" stroke="none" clipPath="url(#headClip)" />
+            {hair && !back ? <path d={`M -52 ${HEAD_Y - 28} Q 0 ${HEAD_Y - 20} 52 ${HEAD_Y - 28}`} fill="none" stroke={shade(skin, 0.75)} strokeWidth="3" /> : null}
             {back ? <path d={`M -70 ${HEAD_Y + 40} Q 0 ${HEAD_Y + 70} 70 ${HEAD_Y + 40}`} fill="none" stroke={shade(hairC, 0.6)} strokeWidth="5" /> : null}
             {hair && !back ? <g transform={`translate(0 ${HEAD_Y}) scale(1.38 1.5) translate(0 430)`}><path d="M -63 -438 C -70 -472 -48 -500 -18 -500 C 2 -524 39 -512 51 -485 C 69 -477 70 -452 63 -438 Q 37 -455 19 -457 Q -2 -449 -17 -461 Q -36 -447 -63 -438 Z" fill={hair} stroke={INK} strokeWidth="5.5" strokeLinejoin="round" /><path d="M -25 -483 Q 7 -509 42 -484 Q 14 -492 0 -469" fill="none" stroke="#fff3d5" strokeWidth="4" strokeLinecap="round" opacity=".28" /></g> : null}
             {!back ? <g transform={`translate(${sn * 44} 0) translate(0 ${HEAD_Y}) scale(${Math.max(0.34, cs) * 1.32} 1.32) translate(0 ${-HEAD_Y})`}><Face expression={expression} blink={blink} look={look} lookY={lookY} isTalking={isTalking} frame={frame} /></g> : null}

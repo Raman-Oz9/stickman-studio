@@ -384,7 +384,7 @@ Eng.loadTextures().catch(function () {}).then(function () {
       cam: function (u) { var cx = BC[0] - 8 + u * 16, cz = BC[1] + 7; return { p: V3(cx, H(cx, cz) + 2.3, cz), l: V3(BC[0] - 4 + u * 8, H(BC[0], BC[1]) + 1.8, BC[1]) }; } },
     { text: "From mountain peak to distant sea, the empire stood eternal under the open sky.", dur: 8.5, chapter: "Wide",
       setup: function () { battle = false; nightT = 0; showTeals(true); chars.forEach(function (c) { c.hide = false; }); place(player, 0, 0, 0, 0); reds.forEach(function (c, i) { place(c, -4 + i * 2, 4); }); teals.forEach(function (c, i) { place(c, -4 + i * 2, -4); }); place(QUEEN(), 0, 6); },
-      cam: function (u) { var an = u * 0.6, cx = Math.sin(an) * 45, cz = Math.cos(an) * 45; return { p: V3(cx, H(cx, cz) + 2.4, cz), l: V3(0, H(0, 0) + 1.8, 0) }; } },
+      cam: function (u) { var an = 0.5 + u * 0.5, cx = Math.sin(an) * 95, cz = Math.cos(an) * 95; return { p: V3(cx, 30 - u * 6, cz), l: V3(0, 3, 0) }; } },
     { text: "And when night fell, the king looked back at the sea he had crossed.", dur: 9, chapter: "Night",
       setup: function () { chars.forEach(function (c) { c.hide = !(c === player || reds.indexOf(c) >= 0); }); nightT = 1; place(player, BEACH[0] - 2, BEACH[1]); reds.forEach(function (c, i) { place(c, BEACH[0] - 1.5 - i * 0.9, BEACH[1] - 2.2 - (i % 2) * 1.2); }); },
       cam: function (u) { var cx = BEACH[0] - 13 + u * 3; return { p: V3(cx, H(cx, BEACH[1] + 6) + 2.2, BEACH[1] + 6), l: V3(SHX + 30 + u * 12, 4 + u * 2, SHZ - 4) }; } }

@@ -8,6 +8,9 @@ on:
       season:
         description: "spring | summer | autumn | winter"
         default: "summer"
+      era:
+        description: "ancient | medieval | modern | future"
+        default: "ancient"
 permissions:
   contents: write
 jobs:
@@ -41,7 +44,7 @@ jobs:
       - name: Render film
         run: |
           S="${{ inputs.size }}"; W=${S%x*}; H=${S#*x}
-          cd film && FILM_SEASON="${{ inputs.season }}" node export.mjs render ../out/durs.json ../out/mix.wav ../out/film.mp4 $W $H
+          cd film && FILM_SEASON="${{ inputs.season }}" FILM_ERA="${{ inputs.era }}" node export.mjs render ../out/durs.json ../out/mix.wav ../out/film.mp4 $W $H
       - name: Publish
         run: |
           cd out && git init -q && git checkout -q -b film-out && git config user.name film && git config user.email film@users.noreply.github.com

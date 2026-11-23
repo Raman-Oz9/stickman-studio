@@ -202,7 +202,20 @@ export const buildCity = () => {
 };
 const dockStuff = () => grp(mk(B(14, 0.3, 40), "#8a5a2b", 0, -0.12, -22), ...Array.from({ length: 30 }, (_, i) => mk(B(14, 0.02, 0.1), "#6b3f1c", 0, 0.05, -2 - i * 1.3)), ...Array.from({ length: 8 }, (_, i) => mk(C(0.25, 0.25, 3, 8), "#5a3b1e", i % 2 ? 7 : -7, -1, -4 - Math.floor(i / 2) * 9)));
 
-export const buildRealm = (se: Season) => {
+const buildAncientCity = () => {
+  const g = new THREE.Group(); let sd = 5; const r = () => ((sd = (sd * 16807) % 2147483647) / 2147483647);
+  const wall = ["#d9c39a", "#cdb487", "#e3d0a8", "#c8a97a"];
+  for (let i = 0; i < 46; i++) { const a = r() * 6.283, d = 12 + r() * 70, x = Math.cos(a) * d, z = Math.sin(a) * d, w = 5 + r() * 5, h = 3.5 + r() * 4.5, col = wall[i % 4];
+    g.add(mk(B(w, h, w * (0.8 + r() * 0.5)), col, x, h / 2, z, 1, 1, 1, 0, r() * 1.5));
+    if (i % 4 === 0) g.add(mk(S(w * 0.5, 12, 8), "#b9663f", x, h, z, 1, 0.7, 1)); else g.add(mk(B(w + 0.6, 0.5, w + 0.6), "#a88a5c", x, h + 0.25, z, 1, 1, 1, 0, 0)); }
+  for (let k = 0; k < 4; k++) g.add(mk(B(26 - k * 5, 3, 26 - k * 5), k % 2 ? "#c9a86a" : "#d8b97c", 0, 1.5 + k * 3, 0));
+  g.add(mk(B(5, 3.4, 5), "#e6d3a3", 0, 13.7, 0));
+  for (let i = 0; i < 4; i++) { const a = i * 1.5708 + 0.785; g.add(mk(C(2.6, 2.9, 15, 10), "#cdb487", Math.cos(a) * 92, 7.5, Math.sin(a) * 92), mk(cone(3.4, 3, 10), "#a8643c", Math.cos(a) * 92, 16.5, Math.sin(a) * 92)); }
+  for (let i = 0; i < 18; i++) { const a = i / 18 * 6.283; g.add(mk(B(12, 7, 3), "#cbb184", Math.cos(a) * 92, 3.5, Math.sin(a) * 92, 1, 1, 1, 0, -a + 1.5708)); }
+  for (let i = 0; i < 14; i++) { const a = r() * 6.283, d = 6 + r() * 60, x = Math.cos(a) * d, z = Math.sin(a) * d; g.add(mk(C(0.25, 0.3, 4.2, 6), "#7a5a33", x, 2.1, z), mk(S(1.8, 8, 6), "#3f8f45", x, 4.6, z, 1, 0.35, 1)); }
+  return g;
+};
+export const buildRealm = (se: Season, era: string = "ancient") => {
   const R = new THREE.Group(); R.add(terrain(se));
   const waterGeo=new THREE.PlaneGeometry(1800,1500,48,40);waterGeo.rotateX(-Math.PI/2);
   const waterPos=waterGeo.attributes.position,waterCol=new Float32Array(waterPos.count*3);
@@ -220,7 +233,7 @@ export const buildRealm = (se: Season) => {
   const sphinx=grp(mk(B(13,3.8,28),"#c8ad7d",0,1.9,0),mk(S(3.2,14,10),"#d2b889",0,4.7,9,1,1.15,1),mk(B(5.4,2.8,4.2),"#315477",0,4.3,7));sphinx.position.set(LOCS.desert[0]+12,0,LOCS.desert[1]+12);R.add(sphinx);
   const oc = buildBiome("ocean", se, false); oc.position.set(LOCS.ocean[0], 0, LOCS.ocean[1]); R.add(oc);
   const tw = buildTown(se); tw.name = "townPlaza"; tw.position.set(LOCS.town[0], 0, LOCS.town[1]); R.add(tw);
-  const ct = buildCity(); ct.name = "modernCity"; ct.position.set(LOCS.city[0], 0, LOCS.city[1]); R.add(ct);
+  const modern = /modern|future|industrial|contemporary|20|21|sci/i.test(era); const ct = modern ? buildCity() : buildAncientCity(); ct.name = modern ? "modernCity" : "ancientCity"; ct.position.set(LOCS.city[0], 0, LOCS.city[1]); R.add(ct);
   const pc = castle(); pc.position.set(LOCS.palace[0], 0, LOCS.palace[1] - 28); R.add(pc);
   const mm = mineMouth(); mm.position.set(LOCS.mine[0], 0, LOCS.mine[1] - 14); R.add(mm);
   const cm = caveMouth(); cm.position.set(LOCS.cave[0], 0, LOCS.cave[1] - 14); R.add(cm);

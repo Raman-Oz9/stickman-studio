@@ -432,8 +432,19 @@ export const buildRealm = (se: Season, era: string = "ancient") => {
   const mt = buildBiome("mountain", se, false); mt.position.set(LOCS.mountain[0], 0, LOCS.mountain[1] + 40); mt.scale.set(1.5, 1.5, 1.5); R.add(mt);
   for(let i=0;i<7;i++){const x=-210+i*70,h=62+Math.sin(i*1.7)*12,r=34+(i%3)*5;R.add(mk(cone(r,h,7),i%2?"#737e84":"#626d73",LOCS.mountain[0]+x,h/2,LOCS.mountain[1]-145),mk(cone(r*.34,h*.28,7),"#edf4f7",LOCS.mountain[0]+x,h*.84,LOCS.mountain[1]-145));}
   const pyramidSpecs:[number,number,number,number][]=[[-82,40,34,-48],[0,62,50,-82],[88,88,68,-54]];
-  for(const [px,ph,pw,pz] of pyramidSpecs){const py=new THREE.Group(),levels=6;for(let k=0;k<levels;k++){const f=1-k/levels,w=pw*f+.8,h=ph/levels;py.add(mk(B(w,h,w),k%2?"#d5b47c":"#e0c18a",0,k*h+h/2,0));}py.position.set(LOCS.desert[0]+px,0,LOCS.desert[1]+pz);py.rotation.y=Math.PI/4;R.add(py);}
+  for(const [px,ph,pw,pz] of pyramidSpecs){const py=new THREE.Group();py.add(mk(B(pw*1.12,1.2,pw*1.12),"#bfa070",0,.6,0),mk(cone(pw*.7071,ph,4),"#e3c78f",0,ph/2+1.2,0,1,1,1,0,Math.PI/4),mk(cone(pw*.7071*1.003,ph*.16,4),"#6f5a3a",0,ph*.08+1.2,0,1,1,1,0,Math.PI/4),mk(cone(pw*.7071*.1,ph*.1,4),"#e8c14a",0,ph+1.2-ph*.05,0,1,1,1,0,Math.PI/4));for(let k=1;k<=5;k++){const f=1-k/6.4;py.add(mk(cone(pw*.7071*f*1.004,ph*.012,4),"#cdb27a",0,1.2+ph*(1-f)*.99,0,1,1,1,0,Math.PI/4));}py.position.set(LOCS.desert[0]+px,0,LOCS.desert[1]+pz);R.add(py);}
   const sphinx=grp(mk(B(13,3.8,28),"#c8ad7d",0,1.9,0),mk(S(3.2,14,10),"#d2b889",0,4.7,9,1,1.15,1),mk(B(5.4,2.8,4.2),"#315477",0,4.3,7));sphinx.position.set(LOCS.desert[0]+12,0,LOCS.desert[1]+12);R.add(sphinx);
+
+  const egyptTemple=()=>{const g=new THREE.Group(),st="#dcc392",st2="#c9ab72",blue="#2a6fb0",red="#b8452c",gold="#e0b441";
+    for(const sx of [-1,1]){g.add(mk(B(11,24,9),st,sx*11,12,0),mk(B(12.4,1.6,10.4),st2,sx*11,24.6,0),mk(B(11.2,1.2,9.2),blue,sx*11,20.5,0.06),mk(B(11.2,.9,9.2),red,sx*11,18.9,0.06),mk(B(11.2,.9,9.2),gold,sx*11,17.7,0.06));
+      g.add(mk(B(3.2,1.4,.3),"#2b1d12",sx*11,9,4.6),mk(B(.3,7,3),"#7b5a2c",sx*11-5.7,10,4.2));
+      g.add(mk(cone(1.4,22,4),"#d9bf86",sx*24,11,10,1,1,1,0,Math.PI/4),mk(cone(.5,1.8,4),gold,sx*24,22.9,10,1,1,1,0,Math.PI/4));}
+    g.add(mk(B(10,5,9),st,0,21.5,0),mk(B(8,0.8,9.4),gold,0,19,0),mk(B(8,13,.4),"#2b1d12",0,6.5,4.4));
+    g.add(mk(B(46,1.6,24),st2,0,.8,12));
+    for(let i=0;i<8;i++){const x=-14+i*4;g.add(mk(C(1.05,1.25,10.5,12),i%2?"#e6cf9c":"#dcc392",x,6.8,14),mk(S(1.55,10,8),"#4c9a58",x,12.5,14,1,.7,1),mk(B(3.2,.7,3.2),st2,x,13.6,14),mk(B(2.8,.5,2.8),blue,x,3.0,14));}
+    g.add(mk(B(46,1.2,5),st2,0,14.4,14));
+    return g;};
+  {const et=egyptTemple();et.position.set(LOCS.desert[0]-70,0,LOCS.desert[1]-14);R.add(et);}
   const oc = buildBiome("ocean", se, false); oc.position.set(LOCS.ocean[0], 0, LOCS.ocean[1]); R.add(oc);
   const tw = buildTown(se); tw.name = "townPlaza"; tw.position.set(LOCS.town[0], 0, LOCS.town[1]); R.add(tw);
   const arch = buildEraArchitecture(era, se); arch.name = "eraArchitecture"; arch.position.set(LOCS.city[0], 0, LOCS.city[1]); R.add(arch);

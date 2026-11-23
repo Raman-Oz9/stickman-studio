@@ -244,3 +244,4 @@
 - Updated `remotion/src/videos/story/pose2d.ts` to add 20 verbs with natural poses (ride, row, sail, climb, swim, dig, hammer, cook, plant, harvest, pray, kneel, bow, salute, dance, cheer, cry, sleep, heal, build) and their VERB_ALIASES.
 - Updated `remotion/src/videos/story/castPerf.ts` to map all `VERBS`.
 - Ran `cd remotion && npx tsc --noEmit` successfully with zero errors.
+- film: Egyptian temple + smooth pyramids, wider orbiting shots, expressions+teeth, wide scene moved off town

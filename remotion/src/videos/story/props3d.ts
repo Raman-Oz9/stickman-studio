@@ -313,7 +313,7 @@ export const canon = (name: string, pile = false): string => {
   return nn || "unknownprop";
 };
 
-const keywordProp=(key:string):THREE.Object3D=>{
+export const keywordProp=(key:string):THREE.Object3D=>{
   const k=key.toLowerCase();
   if(/ship|boat|galleon|vessel/.test(k))return grp(mk(B(1.3,.55,3.8),"#6b4630",0,.35,0),mk(C(.04,.04,3.2,7),"#4a2f1a",0,2,0),mk(B(.05,2.2,1.6),"#f4ecd2",0,2.1,0));
   if(/horse|camel|elephant|cow|dog|bird|fish|animal|beast/.test(k))return grp(mk(S(.5,12,9),k.includes("elephant")?"#9299a2":"#9a7049",0,.75,0,1.35,.85,1.8),mk(S(.28,10,8),"#b58a61",0,1.15,.85),...[-1,1].flatMap(x=>[-1,1].map(z=>mk(C(.09,.12,.7,6),"#5b493a",x*.42,.35,z*.55))),mk(S(.1,8,6),"#24252a",.16,1.2,1.1));

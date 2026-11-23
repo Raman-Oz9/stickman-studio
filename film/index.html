@@ -31,7 +31,7 @@
   #chap b { width: 26px; height: 26px; border-radius: 50%; font: 700 12px/26px Inter, system-ui, sans-serif; text-align: center; background: var(--glass); border: 1px solid var(--line); cursor: pointer; }
   #chap b.on { background: var(--accent); color: var(--ink); border-color: var(--accent); }
   button[aria-pressed="true"] { background: var(--accent); color: var(--ink); border-color: var(--accent); }
-</style>
+#cap .nn{color:#ffe28a;font-weight:700;border-bottom:2px solid rgba(255,226,138,.0)}#cap .nn.hi{border-bottom-color:#ffe28a;text-shadow:0 0 10px rgba(255,210,90,.8)}</style>
 <canvas id="c"></canvas>
 <div class="hud"><h1>Alexander Crosses the Sea</h1><p id="hudp">An interactive 3D film. Pause anytime and look around.</p></div>
 <div id="cap" role="status" aria-live="polite"></div>
@@ -369,7 +369,7 @@ Eng.loadTextures().catch(function () {}).then(function () {
     { text: "She smiled at him, and said:", quote: "Welcome to Egypt. Gold is only sand that someone loved.", dur: 9.5, chapter: "Quote",
       setup: function () { var q = QUEEN(); chars.forEach(function (c) { c.hide = c !== q; }); place(q, D[0] - 14, D[1] + 4); q.pose = "talk"; q.until = nowMs() + 7500; },
       cam: function (u) { var q = QUEEN(), cx = q.x - 1.4 + u * 0.7, cz = q.z + 4.4 - u * 1.3; return { p: V3(cx, Math.max(H(q.x, q.z) + 2.6, H(cx, cz) + 3.2), cz), l: V3(q.x, H(q.x, q.z) + 1.75, q.z) }; } },
-    { text: "But the Persians marched against him, and the two armies clashed on the plain.", dur: 9, chapter: "Battle",
+    { text: "But the Persians marched against him, and the two armies clashed on the plain, spear against shield.", dur: 9, chapter: "Battle",
       setup: function () { chars.forEach(function (c) { c.hide = c === QUEEN(); }); showTeals(true); battle = true; place(player, BC[0] - 5, BC[1]); player.tx = BC[0] - 2.6; player.tz = BC[1]; reds.forEach(function (c, i) { place(c, BC[0] - 6 - i * 0.5, BC[1] + (i - 1.5) * 1.3); }); teals.forEach(function (c, i) { place(c, BC[0] + 6 + i * 0.5, BC[1] + (i - 1.5) * 1.3); }); },
       cam: function (u) { var an = -0.7 + u * 1.2, cx = BC[0] + Math.sin(an) * 11, cz = BC[1] + Math.cos(an) * 11, y = H(BC[0], BC[1]); return { p: V3(cx, Math.max(y + 4.2 - u, H(cx, cz) + 3.0), cz), l: V3(BC[0], y + 1.4, BC[1]) }; } },
     { text: "Victorious, Alexander knelt, and the queen placed the crown upon his head.", dur: 9.5, chapter: "Crown",
@@ -396,8 +396,46 @@ Eng.loadTextures().catch(function () {}).then(function () {
   function pickVoice() { var vs = window.speechSynthesis ? speechSynthesis.getVoices() : []; var en = vs.filter(function (v) { return /^en/i.test(v.lang); }); return en.filter(function (v) { return /Google US|Samantha|Daniel|Aaron|Natural|Guy|Online/i.test(v.name); })[0] || en[0] || null; }
   function speak(text, pitch) { if (EXPORT) return; if (!voiceOn || !window.speechSynthesis) return; try { var u = new SpeechSynthesisUtterance(text); var v = pickVoice(); if (v) u.voice = v; u.rate = 0.93; u.pitch = pitch || 1; speechSynthesis.speak(u); } catch (e) {} }
   function showCap(sc) { cap.innerHTML = sc.quote ? sc.text + "<br><b style=\"margin-top:8px\">" + (sc.speaker || "The Queen") + "</b>“" + sc.quote + "”" : sc.text; cap.className = "on"; capT = 99; }
+  // ---------- nouns: spoken things pop up as 3D props + get highlighted in the caption ----------
+  var ERA = new URLSearchParams(location.search).get('era') || 'ancient', MODERN = /modern|future|20|21/i.test(ERA);
+  var NOUN_SKIP = /^(sun|heart|fire|flag|house|castle|egg|seed|key|gem|apple|mango|bread|cake|book|phone|flower|coin|fish|dragon|ufo|rocket|balloon|bomb|grenade|arrow|cannonball|owl|frog|snake|shark|whale|penguin|parrot|duck|egg)$/;
+  var NOUN_OLDONLY = /^(car|oldcar|policecar|taxi|truck|bus|tractor|motorbike|bicycle|train|plane|jet|helicopter|scooter|firetruck|ambulance|tank|pistol|rifle|shotgun|submarine|steamship)$/;
+  var NOUN_EXTRA = /^(table|desk|altar|chair|throne|bed|scroll|tent|campfire)$/;
+  var NOUN_WORLD = /^(ship|ships|fleet|boat|galleon|pyramid|pyramids|sphinx|palace|castle|sea|ocean|sand|shore|army|armies|soldiers|queen|king|alexander|persians|crown)$/i;
+  var nounItems = [], nounObjs = [], capHtmlBase = "", capWordIdx = -2;
+  function nounProp(w) {
+    var lw = w.toLowerCase().replace(/[^a-z]/g, ""); if (!lw || lw.length < 3 || NOUN_WORLD.test(lw) && lw !== "crown") return null;
+    var k = Eng.canon(lw); if (NOUN_EXTRA.test(k) || NOUN_EXTRA.test(lw)) { try { return { key: lw, make: function () { return Eng.keywordProp(lw); } }; } catch (e) { return null; } }
+    if (k in Eng.PROC && !NOUN_SKIP.test(k) && !(NOUN_OLDONLY.test(k) && !MODERN)) return { key: k, make: Eng.PROC[k] };
+    if (lw === "crown" && "crown" in Eng.PROC) return { key: "crown", make: Eng.PROC.crown };
+    return null;
+  }
+  function prepNouns(sc) {
+    nounObjs.forEach(function (o) { scene.remove(o.obj); }); nounObjs = []; nounItems = []; capWordIdx = -2;
+    var txt = sc.text, words = txt.split(/\s+/), pos = 0, seen = {};
+    words.forEach(function (w, i) { var p = nounProp(w), fr = (txt.indexOf(w, pos) + w.length * 0.5) / txt.length; pos = txt.indexOf(w, pos) + w.length; if (p && !seen[p.key] && nounItems.length < 3) { seen[p.key] = 1; nounItems.push({ i: i, w: w, p: p, fr: fr, obj: null }); } });
+    capHtmlBase = words;
+  }
+  function renderCapWords(sc, hi) {
+    if (!capHtmlBase || !capHtmlBase.map) return; var h = capHtmlBase.map(function (w, i) { var on = nounItems.some(function (n) { return n.i === i; }); return on ? '<span class="nn' + (hi >= i ? ' hi' : '') + '">' + w + '</span>' : w; }).join(" ");
+    cap.innerHTML = sc.quote ? h + "<br><b style=\"margin-top:8px\">" + (sc.speaker || "The Queen") + "</b>“" + sc.quote + "”" : h;
+  }
+  function tickNouns(sc, u) {
+    var hi = -1; nounItems.forEach(function (n) { if (u >= n.fr * 0.85) hi = Math.max(hi, n.i); });
+    if (hi !== capWordIdx) { capWordIdx = hi; renderCapWords(sc, hi); }
+    nounItems.forEach(function (n, k) {
+      if (u < n.fr * 0.85) return;
+      if (!n.obj) {
+        var o = n.p.make(); o.updateMatrixWorld(true); var bb = new THREE.Box3().setFromObject(o), h = Math.max(0.05, bb.max.y - bb.min.y), wd = Math.max(bb.max.x - bb.min.x, bb.max.z - bb.min.z), tgt = Math.min(1.6, Math.max(0.5, h)), big = /horse|camel|elephant|cow|chariot|wagon|cannon|canoe|sailboat|lion|tiger/.test(n.p.key); o.userData.sc = (big ? 2.0 : tgt) / (big ? Math.max(h, wd * 0.8) : h);
+        var kf = sc.cam(0.5), fx = kf.l[0] - kf.p[0], fz = kf.l[2] - kf.p[2], fl = Math.hypot(fx, fz) || 1, rx = -fz / fl, rz = fx / fl, side = (k % 2 ? 1 : -1) * (1.0 + k * 0.5), ox = kf.l[0] + rx * side * 1.4 + fx / fl * -0.8, oz = kf.l[2] + rz * side * 1.4 + fz / fl * -0.8;
+        n.ox = ox; n.oz = oz; n.t0 = u; o.position.set(ox, Math.max(0, H(ox, oz)), oz); o.scale.setScalar(0.01); scene.add(o); n.obj = o; nounObjs.push(n);
+      }
+      var pt = Math.min(1, (u - n.t0) / 0.06), sc2 = n.obj.userData.sc * (pt < 1 ? (1 - Math.pow(1 - pt, 3)) * 1.12 : 1);
+      n.obj.scale.setScalar(Math.max(0.01, sc2)); n.obj.rotation.y = u * 4 + k;
+    });
+  }
   function enterScene() {
-    var sc = SCENES[si]; st = 0; sc.setup(); showCap(sc);
+    var sc = SCENES[si]; st = 0; sc.setup(); showCap(sc); prepNouns(sc); renderCapWords(sc, -1);
     Array.prototype.forEach.call(chapEl.children, function (b, i) { b.className = i === si ? "on" : ""; });
     if (window.speechSynthesis) speechSynthesis.cancel(); speak(sc.text, 1); if (sc.quote) speak(sc.quote, 1.35);
   }
@@ -466,6 +504,7 @@ Eng.loadTextures().catch(function () {}).then(function () {
     ship.rotation.z = Math.sin(time * 1.3) * 0.04; ship.rotation.x = Math.sin(time * 1.1) * 0.025;
     ship.userData.flaps.forEach(function (m) { m.rotation.y = Math.sin(time * 3 + m.userData.ph) * 0.07; });
     if (sc && sc.tick) sc.tick(u);
+    if (sc && directed) tickNouns(sc, u);
     // characters
     var now = nowMs(), run = !directed || playing;
     chars.forEach(function (c) {

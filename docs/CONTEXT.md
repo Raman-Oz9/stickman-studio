@@ -1,3 +1,11 @@
+### 2026-11-23 — Verify and update docs/PROGRESS.md and run strict TypeScript checks
+- Verified `docs/PROGRESS.md` listing all landed features with dates and 3-line "how to test" instructions.
+- Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` with zero errors.
+
+### 2026-11-23 — Add docs/PROGRESS.md listing landed features with test steps
+- Created `docs/PROGRESS.md` listing landed repository features with dates and 3-line "how to test" instructions for each feature.
+- Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` successfully with zero errors.
+
 ### 2026-11-23 — Add era-specific architecture sets to realm.ts
 - Updated `remotion/src/videos/story/realm.ts` to add era-specific architecture sets (stone-age caves/huts, ancient Egypt temples/obelisks, Greek columns/temples, Roman arches/colosseum, medieval castles/walls, Islamic domes/minarets, Asian pagodas, colonial, industrial factories/chimneys, modern skyscrapers, and futuristic towers) selectable by scene era.
 - Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` successfully with zero errors.

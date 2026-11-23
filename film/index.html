@@ -389,6 +389,27 @@ Eng.loadTextures().catch(function () {}).then(function () {
       setup: function () { chars.forEach(function (c) { c.hide = !(c === player || reds.indexOf(c) >= 0); }); nightT = 1; place(player, BEACH[0] - 2, BEACH[1]); reds.forEach(function (c, i) { place(c, BEACH[0] - 1.5 - i * 0.9, BEACH[1] - 2.2 - (i % 2) * 1.2); }); },
       cam: function (u) { var cx = BEACH[0] - 13 + u * 3; return { p: V3(cx, H(cx, BEACH[1] + 6) + 2.2, BEACH[1] + 6), l: V3(SHX + 30 + u * 12, 4 + u * 2, SHZ - 4) }; } }
   ];
+
+  // ---------- cinematography: hard cuts between close, eye-level shots that FOLLOW the characters (no zoom from afar) ----------
+  function gy(x, z) { return H(x, z); }
+  function onC(c, dx, h, dz, ly, dr) { return function (v) { var k = (dr || 0) * (v - 0.5), x = c.x + dx + k, z = c.z + dz; return { p: V3(x, gy(x, z) + h, z), l: V3(c.x, gy(c.x, c.z) + ly, c.z) }; }; }
+  function onXZ(fn, dx, h, dz, ly, dr) { return function (v) { var m = fn(), k = (dr || 0) * (v - 0.5), x = m[0] + dx + k, z = m[1] + dz; return { p: V3(x, gy(x, z) + h, z), l: V3(m[0], gy(m[0], m[1]) + ly, m[1]) }; }; }
+  function avg(list) { return function () { var x = 0, z = 0; list.forEach(function (c) { x += c.x; z += c.z; }); return [x / list.length, z / list.length]; }; }
+  function shotCam(sc) { return function (u) { var sh = sc.shots, i = 0; for (i = 0; i < sh.length; i++) if (u < sh[i][0]) break; i = Math.max(0, i - 1); var a = sh[i], b = i + 1 < sh.length ? sh[i + 1][0] : 1; return a[1]((u - a[0]) / Math.max(0.001, b - a[0])); }; }
+  function shipRel(fw, rt, h, ly, lfw) { return function (v) { var p = shipPos(), hd = shipHead, fx = Math.sin(hd), fz = Math.cos(hd), rx = Math.cos(hd), rz = -Math.sin(hd); return { p: V3(p.x + fx * fw + rx * rt, h, p.z + fz * fw + rz * rt), l: V3(p.x + fx * (lfw || 0), ly, p.z + fz * (lfw || 0)) }; }; }
+  var SH = {};
+  SH.Sea = [[0, shipRel(9, 17, 3.2, 4.5)], [0.36, shipRel(26, 3, 3.0, 5.5)], [0.68, shipRel(-13, 4, 8.5, 5, 22)]];
+  SH.Shore = [[0, onC(player, -3.6, 1.55, 1.0, 1.35, 0.8)], [0.3, onXZ(avg(reds), -3.2, 1.5, 4.6, 1.3, 1)], [0.62, onC(player, -2.1, 1.75, 0.8, 1.9)]];
+  SH.Egypt = [[0, onC(player, -5.2, 1.6, 1.4, 1.3, 1)], [0.4, onC(QUEEN(), 0.8, 1.7, 4.2, 1.35, 0.5)], [0.7, onXZ(avg([player, QUEEN()]), 4.2, 2.0, 7.6, 1.5)]];
+  SH.Quote = [[0, onC(QUEEN(), 0.2, 1.9, 2.5, 1.9, 0.3)], [0.42, onC(QUEEN(), -2.6, 1.1, 3.2, 1.4, 0.5)], [0.74, onC(QUEEN(), 0.6, 1.95, 1.9, 1.95, 0.2)]];
+  SH.Battle = [[0, onXZ(function () { return [BC[0] - 2, BC[1]]; }, -8, 1.8, 0.8, 1.3)], [0.22, onXZ(function () { return [BC[0], BC[1]]; }, 0.5, 1.1, 5.2, 1.3, 1)], [0.5, onC(player, 3.0, 1.75, 1.7, 1.8)], [0.72, onXZ(function () { return [BC[0], BC[1]]; }, -3, 1.3, 4.6, 0.8, 1.5)]];
+  SH.Crown = [[0, onC(player, 0.5, 1.55, 3.8, 1.4)], [0.3, onXZ(avg([player, QUEEN()]), 0, 2.0, 7.4, 1.5)], [0.62, onC(player, 0.3, 2.0, 2.4, 2.1)], [0.8, onC(QUEEN(), 1.5, 1.8, 2.6, 1.8)]];
+  SH.Council = [[0, onC(player, 0.6, 1.6, 4.0, 1.5, 0.6)], [0.35, onC(QUEEN(), 1.6, 1.8, 2.5, 1.8)], [0.65, onXZ(function () { return [PL[0], PL[1] + 6]; }, 3, 1.8, 9, 1.5, 1)]];
+  SH.March = [[0, onC(player, 4.6, 1.5, 0.8, 1.4)], [0.35, onXZ(avg([player, reds[0], teals[0]]), 0, 0.9, 5.5, 1.3)], [0.7, onC(player, 3, 1.8, 2.0, 1.9)]];
+  SH.Wide = [[0, function (v) { var an = v * 1.6; return { p: V3(player.x + Math.sin(an) * 6, gy(player.x, player.z) + 1.9, player.z + Math.cos(an) * 6), l: V3(player.x, gy(player.x, player.z) + 1.5, player.z) }; }],
+    [0.45, function (v) { var an = 0.5 + v * 0.5, r = 18 + v * 80, cx = Math.sin(an) * r, cz = Math.cos(an) * r; return { p: V3(cx, 4 + v * 26, cz), l: V3(0, 3, 0) }; }]];
+  SH.Night = [[0, function (v) { var x = player.x - 3.6, z = player.z + 1.2; return { p: V3(x, gy(x, z) + 1.7, z), l: V3(player.x + 9, 2.4, player.z - 1.8) }; }], [0.45, onC(player, 2.3, 1.7, 0.7, 1.9, 0.3)], [0.75, onXZ(avg(reds), 3.4, 1.5, 3.2, 1.2, 1)]];
+  SCENES.forEach(function (sc) { if (SH[sc.chapter]) { sc.shots = SH[sc.chapter]; sc.cam = shotCam(sc); } });
   if (window.__DUR) SCENES.forEach(function (sc, i) { if (window.__DUR[i]) sc.dur = window.__DUR[i]; });
   var chapEl = $("chap"); SCENES.forEach(function (sc, i) { var b = document.createElement("b"); b.textContent = i + 1; b.title = sc.chapter; b.onclick = function () { goScene(i); }; chapEl.appendChild(b); });
   var si = -1, st = 0, spoken = -1, total = SCENES.reduce(function (a, s) { return a + s.dur; }, 0), elapsedBefore = [];
@@ -404,10 +425,9 @@ Eng.loadTextures().catch(function () {}).then(function () {
   var NOUN_WORLD = /^(ship|ships|fleet|boat|galleon|pyramid|pyramids|sphinx|palace|castle|sea|ocean|sand|shore|army|armies|soldiers|queen|king|alexander|persians|crown)$/i;
   var nounItems = [], nounObjs = [], capHtmlBase = "", capWordIdx = -2;
   function nounProp(w) {
-    var lw = w.toLowerCase().replace(/[^a-z]/g, ""); if (!lw || lw.length < 3 || NOUN_WORLD.test(lw) && lw !== "crown") return null;
+    var lw = w.toLowerCase().replace(/[^a-z]/g, ""); if (!lw || lw.length < 3 || NOUN_WORLD.test(lw)) return null;
     var k = Eng.canon(lw); if (NOUN_EXTRA.test(k) || NOUN_EXTRA.test(lw)) { try { return { key: lw, make: function () { return Eng.keywordProp(lw); } }; } catch (e) { return null; } }
     if (k in Eng.PROC && !NOUN_SKIP.test(k) && !(NOUN_OLDONLY.test(k) && !MODERN)) return { key: k, make: Eng.PROC[k] };
-    if (lw === "crown" && "crown" in Eng.PROC) return { key: "crown", make: Eng.PROC.crown };
     return null;
   }
   function prepNouns(sc) {
@@ -427,7 +447,7 @@ Eng.loadTextures().catch(function () {}).then(function () {
       if (u < n.fr * 0.85) return;
       if (!n.obj) {
         var o = n.p.make(); o.updateMatrixWorld(true); var bb = new THREE.Box3().setFromObject(o), h = Math.max(0.05, bb.max.y - bb.min.y), wd = Math.max(bb.max.x - bb.min.x, bb.max.z - bb.min.z), tgt = Math.min(1.6, Math.max(0.5, h)), big = /horse|camel|elephant|cow|chariot|wagon|cannon|canoe|sailboat|lion|tiger/.test(n.p.key); o.userData.sc = (big ? 2.0 : tgt) / (big ? Math.max(h, wd * 0.8) : h);
-        var kf = sc.cam(0.5), fx = kf.l[0] - kf.p[0], fz = kf.l[2] - kf.p[2], fl = Math.hypot(fx, fz) || 1, rx = -fz / fl, rz = fx / fl, side = (k % 2 ? 1 : -1) * (1.0 + k * 0.5), ox = kf.l[0] + rx * side * 1.4 + fx / fl * -0.8, oz = kf.l[2] + rz * side * 1.4 + fz / fl * -0.8;
+        var kf = sc.cam(u), fx = kf.l[0] - kf.p[0], fz = kf.l[2] - kf.p[2], fl = Math.hypot(fx, fz) || 1, rx = -fz / fl, rz = fx / fl, side = (k % 2 ? 1 : -1) * (1.0 + k * 0.5), ox = kf.l[0] + rx * side * 0.9 + fx / fl * -0.5, oz = kf.l[2] + rz * side * 0.9 + fz / fl * -0.5;
         n.ox = ox; n.oz = oz; n.t0 = u; o.position.set(ox, Math.max(0, H(ox, oz)), oz); o.scale.setScalar(0.01); scene.add(o); n.obj = o; nounObjs.push(n);
       }
       var pt = Math.min(1, (u - n.t0) / 0.06), sc2 = n.obj.userData.sc * (pt < 1 ? (1 - Math.pow(1 - pt, 3)) * 1.12 : 1);
@@ -538,7 +558,7 @@ Eng.loadTextures().catch(function () {}).then(function () {
     if (!directed && capT > 0) { capT -= dt; if (capT <= 0) cap.className = ""; }
     $("progi").style.width = (sc ? (elapsedBefore[si] + st) / total * 100 : 0) + "%";
     // camera
-    if (directed && !freeLook && sc) { var kf = sc.cam(ease(u)); (function () { var need = kf.p[1], dx = kf.p[0] - kf.l[0], dz = kf.p[2] - kf.l[2]; for (var k = 5; k <= 16; k++) { var t = k / 16, qx = kf.l[0] + dx * t, qz = kf.l[2] + dz * t, hh = H(qx, qz) + 1.2; need = Math.max(need, kf.l[1] + (hh - kf.l[1]) / t); } kf.p = V3(kf.p[0], Math.min(need, kf.p[1] + 6), kf.p[2]); })(); tmpV.set(kf.p[0], kf.p[1], kf.p[2]); tmpL.set(kf.l[0], kf.l[1], kf.l[2]); camera.position.copy(tmpV); camera.lookAt(tmpL); }
+    if (directed && !freeLook && sc) { var kf = sc.cam(sc.shots ? u : ease(u)); (function () { var need = kf.p[1], dx = kf.p[0] - kf.l[0], dz = kf.p[2] - kf.l[2]; for (var k = 5; k <= 16; k++) { var t = k / 16, qx = kf.l[0] + dx * t, qz = kf.l[2] + dz * t, hh = H(qx, qz) + 1.2; need = Math.max(need, kf.l[1] + (hh - kf.l[1]) / t); } kf.p = V3(kf.p[0], Math.min(need, kf.p[1] + 6), kf.p[2]); })(); tmpV.set(kf.p[0], kf.p[1], kf.p[2]); tmpL.set(kf.l[0], kf.l[1], kf.l[2]); camera.position.copy(tmpV); camera.lookAt(tmpL); }
     else if (directed && !freeLook) { camera.position.set(-40, 14, 22); camera.lookAt(-10, 2, 0); }
     else controls.update();
     if ((window.__dbg || /dbg=1/.test(location.search))) { var dd = document.getElementById('dbg'); if (!dd) { dd = document.createElement('div'); dd.id = 'dbg'; dd.style.cssText = 'position:fixed;top:0;left:0;z-index:99;color:#f00;background:#fff;font:14px monospace;white-space:pre'; document.body.appendChild(dd); } var qq = QUEEN(); dd.textContent = 'si=' + si + ' cam=' + camera.position.toArray().map(function (v) { return v.toFixed(1); }) + '\nq=' + qq.x.toFixed(1) + ',' + qq.z.toFixed(1) + ' hide=' + qq.hide + ' qy=' + qq.spr.position.y.toFixed(1) + '\nD=' + D + ' Hq=' + H(qq.x, qq.z).toFixed(1) + ' Hcam=' + H(camera.position.x, camera.position.z).toFixed(1); }

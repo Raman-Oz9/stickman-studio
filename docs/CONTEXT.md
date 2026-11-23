@@ -220,3 +220,4 @@
 ### 2026-11-22 OpenCode: Added procedural architectural 3D builders in remotion/src/videos/story/props3d.ts (temple with stepped base, 6 round columns with capitals and limestone texture via TEX.limestone; obelisk; sphinx; columnrow; stonewall) and mapped temple/pillar/obelisk/sphinx/colonnade/gate in canon() and plan_story.py so Egypt/desert scenes render temples instead of castle gates. Strict TypeScript check passed.
 - film: camera terrain-clearance raise, crown/night staging fixes
 - film: era-aware city (ancient default vs modern skyline via era input), scripted battle clash with falls
+- film: shot-based cinematography (close eye-level cuts following characters), removed floating crown noun

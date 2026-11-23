@@ -65,6 +65,8 @@ export const createAction = (type: ActionType, p: Params): Action => {
     case "climb": return { ...base, hands: "both", contactCurve: climbCurve(to, 2.2) };
     case "throw": return { ...base, propSize: p.propSize ?? 0.3, contactCurve: throwCurve(from, dir), released: (k) => k > 0.55, easing: [{ phase: "windup", curve: "easeOut", until: 0.45 }, { phase: "release", curve: "easeIn", until: 1 }], secondary: { ...base.secondary, torsoLean: 0.3 } };
     case "handOver": return { ...base, hands: "both", contactCurve: handOverCurve(from.clone().add(V(0, 0.9, 0)), to.clone().add(V(0, 0.9, 0))) };
+    // coronation: the crown rises from the placer's hand and comes to rest on the target's head (never the floor)
+    case "crown": return { ...base, prop: p.prop ?? "crown", propActive: 1, propSize: 0.4, hands: "both", contactCurve: handOverCurve(from.clone().add(V(0, 0.95, 0)), to.clone().add(V(0, 1.35, 0))), easing: [{ phase: "lift", curve: "easeOut", until: 0.55 }, { phase: "place", curve: "easeIn", until: 1 }], secondary: { ...base.secondary, torsoLean: 0.12, shoulderLift: 0.1 } };
     default: return { ...base, contactCurve: [from.clone().add(V(0, 1, 0)), to.clone().add(V(0, 1, 0))] };
   }
 };

@@ -27,7 +27,7 @@ export const VERBS = [
   "idle", "talk", "walk", "run", "point", "wave", "cheer", "nod", "clap", "shrug", "think", "cry", "shout", "salute", "bow", "pray", "hug",
   "pickUp", "carry", "place", "handOver", "receive", "drink", "eat", "read", "write", "type", "look", "dig", "hammer", "chop", "push", "pull", "open", "lean", "climb",
   "throw", "swing", "stab", "shoot", "aim", "block", "sit", "kneel", "lie", "sleep", "fall", "jump", "dance", "sneak", "stir", "pour", "show", "lift", "knock", "paint",
-  "row", "swim", "fish", "ride", "stretch", "sneeze", "scratchHead", "count", "measure", "spy",
+  "row", "swim", "fish", "ride", "stretch", "sneeze", "scratchHead", "count", "measure", "spy", "crown",
 ] as const;
 
 // Spoken verbs -> library verb (used by the planner and by Story2D for boards that only carry loose words).
@@ -86,6 +86,7 @@ export const VERB_ALIASES: [RegExp, Verb][] = [
   [/\b(stir|stirred|cook|cooked|bake|baked|brew|brewed|mix|mixed)/, "stir"],
   [/\b(pour|poured|water|watered|spill)/, "pour"],
   [/\b(shrug|confus|unsure|maybe|perhaps|whatever)/, "shrug"],
+  [/\b(crown|crowned|coronet|coronation|bestow|bestowed|invest|invested|acclaim|acclaimed|enthroned|enthroned|prophesied|prophesied|deified|deified|divinized|divinized)\b/, "crown"],
 ];
 export const verbFromText = (s: string): Verb | null => { const l = s.toLowerCase(); for (const [re, v] of VERB_ALIASES) if (re.test(l)) return v; return null; };
 
@@ -319,6 +320,16 @@ export const perform = ({ verb, p, t, phase, prop, target }: PerformIn): Pose =>
       o.handF = mv(HANG_F, [60, -420], a);
       o.handB = mv(HANG_B, [30, -250], a);
       o.hold = { prop: prop ?? "spyglass", ang: -10 }; o.grip = true; o.expr = "focused"; o.headTilt = -5; o.gaze = tg; break;
+    }
+    case "crown": {
+      const a = win(p, 0, 0.25);
+      o.hipDrop = 130 * a;
+      o.lean = 18 * a;
+      o.handF = mv(HANG_F, [128, -458], a);
+      o.handB = mv(HANG_B, [-6, -360], a);
+      o.headTilt = 12 * a;
+      o.expr = "focused";
+      break;
     }
     default: { o.handF = HANG_F; o.handB = HANG_B; break; }
   }

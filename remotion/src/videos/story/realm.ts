@@ -215,6 +215,209 @@ const buildAncientCity = () => {
   for (let i = 0; i < 14; i++) { const a = r() * 6.283, d = 6 + r() * 60, x = Math.cos(a) * d, z = Math.sin(a) * d; g.add(mk(C(0.25, 0.3, 4.2, 6), "#7a5a33", x, 2.1, z), mk(S(1.8, 8, 6), "#3f8f45", x, 4.6, z, 1, 0.35, 1)); }
   return g;
 };
+const buildStoneAge = () => {
+  const g = new THREE.Group();
+  g.add(
+    mk(new THREE.DodecahedronGeometry(6, 1), "#7a706b", -14, 3, -10, 1.4, 0.9, 1.2),
+    mk(C(3.5, 4.2, 0.2, 12), "#1c1512", -14, 2.5, -4, 1, 1, 1, Math.PI / 2, 0, 0)
+  );
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2, r = 18 + (i % 2) * 8;
+    const x = Math.sin(a) * r, z = Math.cos(a) * r;
+    if (i % 2 === 0) {
+      g.add(
+        mk(C(2.2, 2.5, 2.2, 10), "#9a7852", x, 1.1, z),
+        mk(cone(2.8, 2.0, 10), "#7a522c", x, 3.2, z)
+      );
+    } else {
+      g.add(
+        mk(cone(2.4, 3.2, 6), "#c9b084", x, 1.6, z, 1, 1, 1, 0, i),
+        mk(C(0.08, 0.08, 3.2, 6), "#5a3b1e", x, 1.6, z)
+      );
+    }
+  }
+  g.add(
+    mk(B(1.2, 0.2, 0.3), "#5a3b1e", 0, 0.1, 0, 1, 1, 1, 0, 0, 0),
+    mk(B(1.2, 0.2, 0.3), "#5a3b1e", 0, 0.1, 0, 1, 1, 1, 0, Math.PI / 3, 0),
+    mk(cone(0.5, 1.2, 8), "#f06a1e", 0, 0.6, 0),
+    mk(cone(0.3, 0.8, 8), "#ffd23a", 0, 0.5, 0)
+  );
+  return g;
+};
+
+const buildEgyptArchitecture = () => {
+  const g = new THREE.Group();
+  g.add(
+    mk(B(22, 0.4, 18), "#e3d0a8", 0, 0.2, 0),
+    mk(B(16, 6, 12), "#d9c39a", 0, 3.2, 0),
+    mk(B(18, 7, 2), "#cdb487", 0, 3.5, 7)
+  );
+  for (let i = -1; i <= 1; i += 2) {
+    for (let j = -1; j <= 1; j += 2) {
+      g.add(
+        mk(C(0.7, 0.85, 6, 14), "#e8d8b0", i * 5, 3, j * 4),
+        mk(B(1.8, 0.4, 1.8), "#d9c39a", i * 5, 6.2, j * 4)
+      );
+    }
+  }
+  for (const x of [-12, 12]) {
+    g.add(
+      mk(C(0.35, 0.5, 12, 4), "#d8c292", x, 6, -6, 1, 1, 1, 0, Math.PI / 4),
+      mk(cone(0.38, 2.0, 4), "#f5c32c", x, 13, -6, 1, 1, 1, 0, Math.PI / 4)
+    );
+  }
+  return g;
+};
+
+const buildGreekArchitecture = () => {
+  const g = new THREE.Group();
+  g.add(
+    mk(B(20, 0.5, 12), "#f4f0e6", 0, 0.25, 0),
+    mk(B(18, 0.4, 10), "#eee8dc", 0, 0.7, 0),
+    mk(B(16, 0.4, 8), "#e8e2d0", 0, 1.1, 0),
+    mk(B(14, 4.5, 6), "#dfd6be", 0, 3.5, 0)
+  );
+  for (let i = -6; i <= 6; i += 2) {
+    g.add(mk(C(0.35, 0.38, 4.5, 14), "#f4f0e6", i, 3.2, 3.2));
+    g.add(mk(C(0.35, 0.38, 4.5, 14), "#f4f0e6", i, 3.2, -3.2));
+  }
+  for (let j = -2; j <= 2; j += 2) {
+    if (j !== 0) g.add(mk(C(0.35, 0.38, 4.5, 14), "#f4f0e6", 7, 3.2, j));
+    if (j !== 0) g.add(mk(C(0.35, 0.38, 4.5, 14), "#f4f0e6", -7, 3.2, j));
+  }
+  g.add(
+    mk(B(15, 0.6, 7), "#c8b99b", 0, 5.7, 0),
+    mk(new THREE.ConeGeometry(9, 2.2, 3), "#b8a688", 0, 7.1, 0, 1, 0.35, 1.6, 0, Math.PI / 2, 0)
+  );
+  return g;
+};
+
+const buildRomanArchitecture = () => {
+  const g = new THREE.Group();
+  g.add(mk(C(12, 13, 6, 24), "#d8c39a", 0, 3, 0));
+  for (let i = 0; i < 16; i++) {
+    const a = (i / 16) * Math.PI * 2;
+    g.add(
+      mk(B(1.8, 5.5, 1.2), "#cdb78a", Math.sin(a) * 11.5, 2.8, Math.cos(a) * 11.5, 1, 1, 1, 0, -a),
+      mk(B(1.8, 5.5, 1.2), "#b9a275", Math.sin(a) * 8.5, 2.8, Math.cos(a) * 8.5, 1, 1, 1, 0, -a)
+    );
+  }
+  g.add(mk(C(7.5, 7.5, 0.2, 20), "#c8b385", 0, 0.2, 0));
+  return g;
+};
+
+const buildIslamicArchitecture = () => {
+  const g = new THREE.Group();
+  g.add(
+    mk(B(18, 5, 14), "#f4f0e6", 0, 2.5, 0),
+    mk(S(6, 16, 12), "#3a7bc8", 0, 5.5, 0, 1, 1.2, 1),
+    mk(C(0.15, 0.15, 3, 8), "#f5c32c", 0, 7.4, 0)
+  );
+  for (const [mx, mz] of [[-10, -8], [10, -8]]) {
+    g.add(
+      mk(C(1.2, 1.4, 12, 12), "#f4f0e6", mx, 6, mz),
+      mk(C(0.8, 1.0, 3, 12), "#3a7bc8", mx, 13.5, mz),
+      mk(cone(1.1, 2.2, 10), "#2e8b57", mx, 15.6, mz),
+      mk(C(0.1, 0.1, 1.8, 6), "#f5c32c", mx, 17.2, mz)
+    );
+  }
+  g.add(mk(C(2.2, 2.2, 0.4, 12), "#2a4a7c", 0, 2.2, 7.1, 1, 1, 1, Math.PI / 2, 0, 0));
+  return g;
+};
+
+const buildAsianArchitecture = () => {
+  const g = new THREE.Group();
+  const levels = 5;
+  for (let k = 0; k < levels; k++) {
+    const f = 1 - k * 0.12, w = 10 * f, h = 2.4;
+    const y = k * 3.2 + 1.2;
+    g.add(
+      mk(B(w, h, w), "#b83a2b", 0, y, 0),
+      mk(B(w + 1.6, 0.4, w + 1.6), "#2a2a34", 0, y + h / 2, 0),
+      mk(B(w + 2.2, 0.2, 0.6), "#2a2a34", 0, y + h / 2 + 0.15, (w + 1.6) / 2),
+      mk(B(w + 2.2, 0.2, 0.6), "#2a2a34", 0, y + h / 2 + 0.15, -(w + 1.6) / 2),
+      mk(B(0.6, 0.2, w + 2.2), "#2a2a34", (w + 1.6) / 2, y + h / 2 + 0.15, 0),
+      mk(B(0.6, 0.2, w + 2.2), "#2a2a34", -(w + 1.6) / 2, y + h / 2 + 0.15, 0)
+    );
+  }
+  g.add(
+    mk(C(0.3, 0.3, 3, 8), "#f5c32c", 0, levels * 3.2 + 1.2, 0),
+    mk(cone(0.8, 1.5, 8), "#f5c32c", 0, levels * 3.2 + 2.8, 0)
+  );
+  return g;
+};
+
+const buildColonialArchitecture = () => {
+  const g = new THREE.Group();
+  for (let i = -1; i <= 1; i += 2) {
+    const x = i * 9;
+    g.add(
+      mk(B(8, 5, 12), "#c8b088", x, 2.5, 0),
+      mk(cone(7, 3, 4), "#5a3b2a", x, 6.5, 0, 1, 1, 1, 0, Math.PI / 4),
+      mk(B(8, 0.3, 3), "#8a5a2b", x, 0.15, 7.5),
+      mk(C(0.15, 0.15, 3, 8), "#f4f2ec", x - 3.2, 1.5, 8.5),
+      mk(C(0.15, 0.15, 3, 8), "#f4f2ec", x + 3.2, 1.5, 8.5),
+      mk(B(7.6, 0.3, 2.8), "#5a3b2a", x, 3.1, 7.5)
+    );
+  }
+  for (let z = -14; z <= 14; z += 3) {
+    g.add(mk(B(0.2, 3.2, 0.2), "#7a522c", -16, 1.6, z), mk(B(0.2, 3.2, 0.2), "#7a522c", 16, 1.6, z));
+  }
+  return g;
+};
+
+const buildIndustrialArchitecture = () => {
+  const g = new THREE.Group();
+  g.add(
+    mk(B(16, 7, 20), "#b94a3f", 0, 3.5, 0),
+    mk(B(17, 0.8, 21), "#3a3d45", 0, 7.4, 0)
+  );
+  for (const [cx, cz] of [[-6, -6], [6, -6]]) {
+    g.add(
+      mk(C(1.2, 1.5, 18, 12), "#8b3a2b", cx, 9, cz),
+      mk(S(0.8, 10, 8), "#d8dce4", cx, 19, cz, 1, 1.6, 1),
+      mk(S(0.6, 10, 8), "#e8eaf0", cx + 0.4, 21, cz + 0.2, 0.8, 1.4, 0.8)
+    );
+  }
+  return g;
+};
+
+const buildFuturisticArchitecture = () => {
+  const g = new THREE.Group();
+  for (let i = 0; i < 5; i++) {
+    const angle = (i / 5) * Math.PI * 2, r = 12 + (i % 2) * 6;
+    const x = Math.sin(angle) * r, z = Math.cos(angle) * r;
+    const h = 25 + (i * 8);
+    g.add(
+      mk(C(1.2, 2.4, h, 18), "#8ea4c8", x, h / 2, z),
+      mk(new THREE.TorusGeometry(2.2, 0.15, 8, 24), "#35c3e8", x, h * 0.7, z, 1, 1, 1, Math.PI / 2, 0, 0),
+      mk(new THREE.TorusGeometry(1.8, 0.12, 8, 24), "#00f0ff", x, h * 0.4, z, 1, 1, 1, Math.PI / 2, 0, 0)
+    );
+  }
+  g.add(
+    mk(C(0.8, 3.5, 45, 20), "#c9ced8", 0, 22.5, 0),
+    mk(C(8, 8, 0.6, 24), "#3a3d45", 0, 18, 0),
+    mk(S(1.5, 12, 10), "#00f0ff", 0, 46, 0)
+  );
+  return g;
+};
+
+export const buildEraArchitecture = (era: string, se: Season) => {
+  const e = era.toLowerCase();
+  if (/stone|prehistoric|cave|primitive/i.test(e)) return buildStoneAge();
+  if (/egypt|nile/i.test(e)) return buildEgyptArchitecture();
+  if (/greek|athens|classical/i.test(e)) return buildGreekArchitecture();
+  if (/roman|rome|colosseum/i.test(e)) return buildRomanArchitecture();
+  if (/islamic|arabic|persia|babylon|arabia|ottoman|moorish/i.test(e)) return buildIslamicArchitecture();
+  if (/china|chinese|asian|japan|japanese|dynasty|pagoda/i.test(e)) return buildAsianArchitecture();
+  if (/colonial|pioneer|frontier|spanish|american/i.test(e)) return buildColonialArchitecture();
+  if (/industrial|factory|victorian|steam|coal|1920s/i.test(e)) return buildIndustrialArchitecture();
+  if (/future|futuristic|sci|space|cyber/i.test(e)) return buildFuturisticArchitecture();
+  if (/modern|city|urban|skyscraper/i.test(e)) return buildCity();
+  if (/medieval|castle|kingdom|knight/i.test(e)) return castle();
+  return buildAncientCity();
+};
+
 export const buildRealm = (se: Season, era: string = "ancient") => {
   const R = new THREE.Group(); R.add(terrain(se));
   const waterGeo=new THREE.PlaneGeometry(1800,1500,48,40);waterGeo.rotateX(-Math.PI/2);
@@ -233,7 +436,7 @@ export const buildRealm = (se: Season, era: string = "ancient") => {
   const sphinx=grp(mk(B(13,3.8,28),"#c8ad7d",0,1.9,0),mk(S(3.2,14,10),"#d2b889",0,4.7,9,1,1.15,1),mk(B(5.4,2.8,4.2),"#315477",0,4.3,7));sphinx.position.set(LOCS.desert[0]+12,0,LOCS.desert[1]+12);R.add(sphinx);
   const oc = buildBiome("ocean", se, false); oc.position.set(LOCS.ocean[0], 0, LOCS.ocean[1]); R.add(oc);
   const tw = buildTown(se); tw.name = "townPlaza"; tw.position.set(LOCS.town[0], 0, LOCS.town[1]); R.add(tw);
-  const modern = /modern|future|industrial|contemporary|20|21|sci/i.test(era); const ct = modern ? buildCity() : buildAncientCity(); ct.name = modern ? "modernCity" : "ancientCity"; ct.position.set(LOCS.city[0], 0, LOCS.city[1]); R.add(ct);
+  const arch = buildEraArchitecture(era, se); arch.name = "eraArchitecture"; arch.position.set(LOCS.city[0], 0, LOCS.city[1]); R.add(arch);
   const pc = castle(); pc.position.set(LOCS.palace[0], 0, LOCS.palace[1] - 28); R.add(pc);
   const mm = mineMouth(); mm.position.set(LOCS.mine[0], 0, LOCS.mine[1] - 14); R.add(mm);
   const cm = caveMouth(); cm.position.set(LOCS.cave[0], 0, LOCS.cave[1] - 14); R.add(cm);

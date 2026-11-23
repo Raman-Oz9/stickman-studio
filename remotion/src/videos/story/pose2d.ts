@@ -27,8 +27,11 @@ export const VERBS = [
   "idle", "talk", "walk", "run", "point", "wave", "cheer", "nod", "clap", "shrug", "think", "cry", "shout", "salute", "bow", "pray", "hug",
   "pickUp", "carry", "place", "handOver", "receive", "drink", "eat", "read", "write", "type", "look", "dig", "hammer", "chop", "push", "pull", "open", "lean", "climb",
   "throw", "swing", "stab", "shoot", "aim", "block", "sit", "kneel", "lie", "sleep", "fall", "jump", "dance", "sneak", "stir", "pour", "show", "lift", "knock", "paint",
-  "row", "swim", "fish", "ride", "stretch", "sneeze", "scratchHead", "count", "measure", "spy",
-] as const;
+    "row", "swim", "fish", "ride", "stretch", "sneeze", "scratchHead", "count", "measure", "spy", "crown", "bestow",
+  ] as const;
+
+  [/\b(crown|crowned|crowning|place crown|put on crown)/, "crown"],
+  [/\b(bestow|bestowed|bestowing)/, "bestow"],
 
 // Spoken verbs -> library verb (used by the planner and by Story2D for boards that only carry loose words).
 export const VERB_ALIASES: [RegExp, Verb][] = [
@@ -253,6 +256,16 @@ export const perform = ({ verb, p, t, phase, prop, target }: PerformIn): Pose =>
       o.handF = mv(HANG_F, [92, -130], a); o.handB = mv(HANG_B, [60, -120], a); o.chair = a > 0.02; o.expr = "smile"; o.headTilt = Math.sin(t * 1.5) * 1.5; if (prop) { o.hold = { prop, ang: 0 }; o.handF = [88, -250]; } break;
     }
     case "kneel": { const a = win(p, 0, 0.2); o.hipDrop = 100 * a; o.footF = [100 * a + 22 * (1 - a), 0]; o.footB = [-60 * a - 20 * (1 - a), -2]; o.lean = 12 * a; o.handF = mv(HANG_F, [78, -120], a); o.expr = "sad"; o.headTilt = 8 * a; break; }
+    case "crown": case "bestow": {
+      const lift = win(p, 0, 0.4), place = win(p, 0.4, 0.85);
+      o.hipDrop = 15 * lift * (1 - place);
+      o.handF = mv(HANG_F, mv([90, -420], [45, -440], place), lift);
+      o.handB = mv(HANG_B, [50, -250], lift);
+      o.hold = p < 0.5 ? { prop: prop ?? "crown", ang: -10 } : null;
+      o.grip = p < 0.5;
+      o.expr = "smile"; o.headTilt = 4;
+      break;
+    }
     case "lie": case "sleep": {
       const a = win(p, 0, 0.3); o.rot = -88 * a; o.dy = -6 * a; o.dx = 70 * a; o.handF = HANG_F; o.handB = HANG_B; o.expr = verb === "sleep" ? "smile" : "sad"; o.headTilt = 0; break;
     }

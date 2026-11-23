@@ -6,7 +6,7 @@ export const castPerf = (d: CastDef, s: SceneDef, u: number, t: number) => {
   let verb = "talk";
   const a = d.act as string | undefined;
   if (d.do && d.do.type !== "custom") verb = d.do.type;
-  else if (a && ["swing", "stab", "shoot", "aim", "run", "wave", "point", "nod", "cheer", "lie", "sleep"].includes(a)) verb = a;
+  else if (a && ["swing", "stab", "shoot", "aim", "run", "wave", "point", "nod", "cheer", "lie", "sleep", "crown", "bestow", "kneel", "bow"].includes(a)) verb = a;
   else if (d.mode === "sit") verb = "sit";
   else if (d.to && u < 0.98) verb = "walk";
   else verb = verbFromText(s.narration ?? "") ?? "talk";

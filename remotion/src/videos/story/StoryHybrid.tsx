@@ -171,6 +171,16 @@ export const StoryHybrid: React.FC = () => {
   const historicCaption = /ancient|egypt|greek|roman|renaissance|medieval|viking/.test(era);
   const captionFont = historicCaption ? "Georgia, 'Times New Roman', serif" : "Arial Black, Impact, Liberation Sans, DejaVu Sans, sans-serif";
   const captionGlow = nightGrade ? "0 0 18px rgba(116,184,255,.28), 0 7px 0 rgba(0,0,0,.38)" : "0 7px 0 rgba(0,0,0,.35)";
+
+  // Selective background blur based on camera focus framing (close-ups vs wides/mediums)
+  const u = n > 1 ? local / (n - 1) : 0, dur = n / FPS, t = f / FPS;
+  const curScene: SceneDef = { ...scene, cast: scene.cast.map((d) => { const p = posOf(d, u); return { ...d, x: p.x, z: p.z }; }) };
+  const camSpec = camAt(curScene, i, u, t, dur);
+  const targetFocus = focusOf(curScene, scene.target ?? scene.cast[0]?.id);
+  const distToFocus = camSpec.pos.distanceTo(new THREE.Vector3(targetFocus.x, targetFocus.y ?? 1.2, targetFocus.z));
+  const isCloseUp = scene.shot === "close" || scene.shot === "over" || distToFocus < 3.8;
+  const bgBlurPx = isCloseUp ? Math.min(6, Math.max(2, (3.8 - distToFocus) * 2.2)) : 0;
+
   let cap = capFull, popK = 1;
   if (capFull) {
     const ws = capFull.split(/\s+/).filter(Boolean), ch: string[] = [];
@@ -183,12 +193,14 @@ export const StoryHybrid: React.FC = () => {
 
   return (
     <AbsoluteFill style={{ background: "#cfe3f2" }}>
-      <ThreeCanvas width={1080} height={1920} gl={{ antialias: false, stencil: false, powerPreference: "high-performance" }} camera={{ fov: 40, near: 0.15, far: 1500 }}>
-        <Inner kit={kit} board={board} />
-      </ThreeCanvas>
+      <div style={{ position: "absolute", inset: 0, filter: bgBlurPx > 0 ? `blur(${bgBlurPx.toFixed(1)}px)` : undefined, transition: "filter 0.3s ease-out" }}>
+        <ThreeCanvas width={1080} height={1920} gl={{ antialias: false, stencil: false, powerPreference: "high-performance" }} camera={{ fov: 40, near: 0.15, far: 1500 }}>
+          <Inner kit={kit} board={board} />
+        </ThreeCanvas>
+      </div>
       <Cast2D board={board} f={f} />
 
-      {/* Cinematic Post-Processing finishing pass: soft bloom, subtle vignette, film grain & light rays */}
+      {/* Cinematic Post-Processing finishing pass: soft bloom, camera film grain & light rays */}
       <svg viewBox="0 0 1080 1920" width="1080" height="1920" style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
         <defs>
           <radialGradient id="cinematicVignette" cx="50%" cy="50%" r="70%">
@@ -200,17 +212,27 @@ export const StoryHybrid: React.FC = () => {
             <stop offset="50%" stopColor="#ffcc00" stopOpacity="0.06" />
             <stop offset="100%" stopColor="#ff5500" stopOpacity="0" />
           </linearGradient>
-          <filter id="filmGrainNoise">
-            <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="2" result="noise" />
-            <feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.035 0" />
+          <filter id="cameraFilmGrain">
+            <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" seed={f % 100} result="noise" />
+            <feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.045 0" />
+          </filter>
+          <filter id="brightPropsBloom">
+            <feGaussianBlur stdDeviation="6" result="blur" />
+            <feComponentTransfer in="blur" result="bright">
+              <feFuncA type="linear" slope="0.5" />
+            </feComponentTransfer>
+            <feMerge>
+              <feMergeNode in="bright" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
           </filter>
         </defs>
         {/* Soft Vignette */}
         <rect width="1080" height="1920" fill="url(#cinematicVignette)" />
         {/* Light rays overlay for Golden Hour / Dawn / Dusk */}
-        {golden && <rect width="1080" height="1920" fill="url(#sunsetRays)" style={{ mixBlendMode: "screen" }} />}
-        {/* Film Grain Texture */}
-        <rect width="1080" height="1920" filter="url(#filmGrainNoise)" />
+        {golden && <rect width="1080" height="1920" fill="url(#sunsetRays)" style={{ mixBlendMode: "screen", filter: "url(#brightPropsBloom)" }} />}
+        {/* Camera-matched Film Grain Texture */}
+        <rect width="1080" height="1920" filter="url(#cameraFilmGrain)" />
       </svg>
 
       {cap ? <div style={{ position: "absolute", left: 0, right: 0, bottom: 228, display: "flex", justifyContent: "center", padding: "0 52px", pointerEvents: "none" }}><span style={{ display: "inline-block", maxWidth: "100%", textAlign: "center", fontFamily: captionFont, fontWeight: 900, fontSize: cap.length > 12 ? 66 : 76, lineHeight: 1.06, letterSpacing: historicCaption ? "0.5px" : "-0.8px", color: "#fff", WebkitTextStroke: "9px #17131b", paintOrder: "stroke fill", textShadow: captionGlow, padding: "7px 18px 10px", borderRadius: 12, background: "rgba(15,19,24,.24)", boxShadow: "0 5px 18px rgba(0,0,0,.12)", transform: `scale(${popK.toFixed(3)})` }}>{cap}</span></div> : null}

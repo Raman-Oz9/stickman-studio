@@ -221,3 +221,5 @@
 - film: camera terrain-clearance raise, crown/night staging fixes
 - film: era-aware city (ancient default vs modern skyline via era input), scripted battle clash with falls
 - film: shot-based cinematography (close eye-level cuts following characters), removed floating crown noun
+### 2026-11-22 — Add camera-matched film grain, light bloom on bright props, and close-up focus blur in StoryHybrid.tsx
+- Updated `StoryHybrid.tsx` to apply subtle seed-driven SVG camera film grain overlay, SVG bloom on bright scenes/rays, and selective background blur (`filter: blur(...)`) on the 3D canvas container strictly when camera framing is a close-up (focus distance < 3.8m or shot === "close" / "over"), preserving clear wides and sharp 2D characters.

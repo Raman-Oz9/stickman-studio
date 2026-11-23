@@ -420,6 +420,7 @@ Eng.loadTextures().catch(function () {}).then(function () {
   // ---------- nouns: spoken things pop up as 3D props + get highlighted in the caption ----------
   var ERA = new URLSearchParams(location.search).get('era') || 'ancient', MODERN = /modern|future|20|21/i.test(ERA);
   var NOUN_SKIP = /^(sun|heart|fire|flag|house|castle|egg|seed|key|gem|apple|mango|bread|cake|book|phone|flower|coin|fish|dragon|ufo|rocket|balloon|bomb|grenade|arrow|cannonball|owl|frog|snake|shark|whale|penguin|parrot|duck|egg)$/;
+  var NOUN_OK = /^(sword|spear|shield|bow|axe|mace|club|hammer|torch|dagger|knife|katana|trident|horse|horsewhite|donkey|camel|elephant|lion|wolf|sheep|deer|goat|cow|dog|cat|pig|chicken|tiger|bear3|eagle|chariot|wagon|cannon3|canoe|sailboat|coinPile|moneybag|purse|oldcar|car|bicycle|plane|train|tank)$/;
   var NOUN_OLDONLY = /^(car|oldcar|policecar|taxi|truck|bus|tractor|motorbike|bicycle|train|plane|jet|helicopter|scooter|firetruck|ambulance|tank|pistol|rifle|shotgun|submarine|steamship)$/;
   var NOUN_EXTRA = /^(table|desk|altar|chair|throne|bed|scroll|tent|campfire)$/;
   var NOUN_WORLD = /^(ship|ships|fleet|boat|galleon|pyramid|pyramids|sphinx|palace|castle|sea|ocean|sand|shore|army|armies|soldiers|queen|king|alexander|persians|crown)$/i;
@@ -427,7 +428,7 @@ Eng.loadTextures().catch(function () {}).then(function () {
   function nounProp(w) {
     var lw = w.toLowerCase().replace(/[^a-z]/g, ""); if (!lw || lw.length < 3 || NOUN_WORLD.test(lw)) return null;
     var k = Eng.canon(lw); if (NOUN_EXTRA.test(k) || NOUN_EXTRA.test(lw)) { try { return { key: lw, make: function () { return Eng.keywordProp(lw); } }; } catch (e) { return null; } }
-    if (k in Eng.PROC && !NOUN_SKIP.test(k) && !(NOUN_OLDONLY.test(k) && !MODERN)) return { key: k, make: Eng.PROC[k] };
+    if (k in Eng.PROC && NOUN_OK.test(k) && !(NOUN_OLDONLY.test(k) && !MODERN)) return { key: k, make: Eng.PROC[k] };
     return null;
   }
   function prepNouns(sc) {

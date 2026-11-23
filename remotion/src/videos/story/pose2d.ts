@@ -27,7 +27,7 @@ export const VERBS = [
   "idle", "talk", "walk", "run", "point", "wave", "cheer", "nod", "clap", "shrug", "think", "cry", "shout", "salute", "bow", "pray", "hug",
   "pickUp", "carry", "place", "handOver", "receive", "drink", "eat", "read", "write", "type", "look", "dig", "hammer", "chop", "push", "pull", "open", "lean", "climb",
   "throw", "swing", "stab", "shoot", "aim", "block", "sit", "kneel", "lie", "sleep", "fall", "jump", "dance", "sneak", "stir", "pour", "show", "lift", "knock", "paint",
-  "row", "swim", "fish", "ride", "stretch", "sneeze", "scratchHead", "count", "measure", "spy",
+  "row", "swim", "fish", "ride", "stretch", "sneeze", "scratchHead", "count", "measure", "spy", "sail", "cook", "plant", "harvest", "heal", "build",
 ] as const;
 
 // Spoken verbs -> library verb (used by the planner and by Story2D for boards that only carry loose words).
@@ -86,6 +86,12 @@ export const VERB_ALIASES: [RegExp, Verb][] = [
   [/\b(stir|stirred|cook|cooked|bake|baked|brew|brewed|mix|mixed)/, "stir"],
   [/\b(pour|poured|water|watered|spill)/, "pour"],
   [/\b(shrug|confus|unsure|maybe|perhaps|whatever)/, "shrug"],
+  [/\b(sail|sailed|sailing|navigate|navigated)/, "sail"],
+  [/\b(cook|cooked|cooking|bake|baked|baking|fry|fried)/, "cook"],
+  [/\b(plant|planted|planting|sow|sowed)/, "plant"],
+  [/\b(harvest|harvested|reap|reaped|gather|gathered)/, "harvest"],
+  [/\b(heal|healed|healing|cure|cured|curing)/, "heal"],
+  [/\b(build|built|building|construct|constructed|assemble|assembled)/, "build"],
 ];
 export const verbFromText = (s: string): Verb | null => { const l = s.toLowerCase(); for (const [re, v] of VERB_ALIASES) if (re.test(l)) return v; return null; };
 
@@ -319,6 +325,45 @@ export const perform = ({ verb, p, t, phase, prop, target }: PerformIn): Pose =>
       o.handF = mv(HANG_F, [60, -420], a);
       o.handB = mv(HANG_B, [30, -250], a);
       o.hold = { prop: prop ?? "spyglass", ang: -10 }; o.grip = true; o.expr = "focused"; o.headTilt = -5; o.gaze = tg; break;
+    }
+    case "sail": {
+      const k = Math.sin(t * 5) * 0.5 + 0.5;
+      o.handF = [110 + k * 15, -280]; o.handB = [70, -260];
+      o.hold = { prop: prop ?? "sailboat", ang: -10 }; o.grip = true; o.expr = "focused"; o.lean = 8;
+      break;
+    }
+    case "cook": {
+      const k = Math.sin(t * 8);
+      o.handF = [90 + k * 10, -250]; o.handB = [50, -230];
+      o.hold = { prop: prop ?? "pan", ang: -20 + k * 15 }; o.grip = true; o.expr = "smile"; o.lean = 6;
+      break;
+    }
+    case "plant": {
+      const dn = win(p, 0, 0.3);
+      o.hipDrop = 70 * dn; o.lean = 22 * dn;
+      o.footF = [30 + 20 * dn, 0]; o.footB = [-26, 0];
+      o.handF = [90 * dn + 30 * (1 - dn), -70]; o.handB = [50, -180];
+      o.grip = true; o.expr = "focused";
+      break;
+    }
+    case "harvest": {
+      const k = Math.sin(t * 6);
+      o.lean = 14;
+      o.handF = [110, -210 + k * 25]; o.handB = [60, -230];
+      o.hold = { prop: prop ?? "sickle", ang: -30 + k * 20 }; o.grip = true; o.expr = "focused";
+      break;
+    }
+    case "heal": {
+      const a = win(p, 0, 0.2);
+      o.handF = mv(HANG_F, [90, -320], a); o.handB = mv(HANG_B, [50, -300], a);
+      o.hold = { prop: prop ?? "potion", ang: -10 }; o.grip = true; o.expr = "smile"; o.headTilt = 6;
+      break;
+    }
+    case "build": {
+      const k = Math.sin(t * 6.5) * 0.5 + 0.5;
+      o.handF = mv(HANG_F, [110, -280 + k * -40], 1); o.handB = [60, -240];
+      o.hold = { prop: prop ?? "hammer", ang: -30 + k * -30 }; o.grip = true; o.expr = "focused"; o.lean = 12 - k * 8;
+      break;
     }
     default: { o.handF = HANG_F; o.handB = HANG_B; break; }
   }

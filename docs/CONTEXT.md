@@ -231,3 +231,8 @@
 - film: shot-based cinematography (close eye-level cuts following characters), removed floating crown noun
 ### 2026-11-22 — Add camera-matched film grain, light bloom on bright props, and close-up focus blur in StoryHybrid.tsx
 - Updated `StoryHybrid.tsx` to apply subtle seed-driven SVG camera film grain overlay, SVG bloom on bright scenes/rays, and selective background blur (`filter: blur(...)`) on the 3D canvas container strictly when camera framing is a close-up (focus distance < 3.8m or shot === "close" / "over"), preserving clear wides and sharp 2D characters.
+
+### 2026-11-23 — Add 20 verbs and natural poses to pose2d.ts and map in castPerf.ts and VERB_ALIASES
+- Updated `remotion/src/videos/story/pose2d.ts` to add 20 verbs with natural poses (ride, row, sail, climb, swim, dig, hammer, cook, plant, harvest, pray, kneel, bow, salute, dance, cheer, cry, sleep, heal, build) and their VERB_ALIASES.
+- Updated `remotion/src/videos/story/castPerf.ts` to map all `VERBS`.
+- Ran `cd remotion && npx tsc --noEmit` successfully with zero errors.

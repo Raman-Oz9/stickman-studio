@@ -13,8 +13,9 @@ if (mode === "texts") { fs.writeFileSync(a1, JSON.stringify(await pg.evaluate(()
 else {
   const durs = JSON.parse(fs.readFileSync(a1, "utf8")), total = durs.reduce((x, y) => x + y, 0), N = Math.ceil(total * 30) + 20;
   const ff = spawn("ffmpeg", ["-y", "-f", "image2pipe", "-framerate", "30", "-c:v", "mjpeg", "-i", "-", "-i", a2, "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k", "-shortest", a3], { stdio: ["pipe", "inherit", "inherit"] });
-  await pg.evaluate(() => window.__film.start());
+  await pg.evaluate(() => { window.__dbgOn = 1; window.__film.start(); });
   for (let i = 0; i < N; i++) { await pg.evaluate(() => window.__film.step()); const buf = await pg.screenshot({ type: "jpeg", quality: 92 }); if (!ff.stdin.write(buf)) await new Promise((r) => ff.stdin.once("drain", r)); if (i % 90 === 0) console.log("frame", i, "/", N); if (await pg.evaluate(() => window.__finished) && i > total * 30) break; }
+  console.log('DBGLOG ' + JSON.stringify(await pg.evaluate(() => window.__dbgLog || [])));
   ff.stdin.end(); await new Promise((r) => ff.on("close", r));
 }
 await br.close(); srv.close();

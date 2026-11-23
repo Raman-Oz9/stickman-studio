@@ -364,7 +364,7 @@ Eng.loadTextures().catch(function () {}).then(function () {
 
   // ---------- the film: scenes with narration, camera path and staging ----------
   var SHX = findShore(-50), SHZ = -50, SHIP_A = [SHX + 300, SHZ - 130], SHIP_B = [SHX + 42, SHZ - 6], shipHead = Math.atan2(SHIP_B[0] - SHIP_A[0], SHIP_B[1] - SHIP_A[1]);
-  var BEACH = [SHX - 4, SHZ], D = Eng.LOCS.desert, SV = Eng.LOCS.savanna, PL = Eng.LOCS.palace, CE = [Eng.LOCS.desert[0] - 70, Eng.LOCS.desert[1] + 8], BC = [SV[0], SV[1]];
+  var BEACH = [SHX - 4, SHZ], D = Eng.LOCS.desert, SV = Eng.LOCS.savanna, PL = Eng.LOCS.palace, CE = [Eng.LOCS.desert[0] - 70, Eng.LOCS.desert[1] + 14], BC = [SV[0], SV[1]];
   function V3(x, y, z) { return [x, y, z]; }
   function shipPos() { return ship.position; }
   function place(c, x, z, tx, tz, yoff) { c.x = x; c.z = z; c.tx = tx === undefined ? x : tx; c.tz = tz === undefined ? z : tz; c.yoff = yoff || 0; }
@@ -378,7 +378,7 @@ Eng.loadTextures().catch(function () {}).then(function () {
       setup: function () { chars.forEach(function (c) { c.hide = !(c === player || reds.indexOf(c) >= 0); }); place(player, SHX + 10, SHZ - 1, BEACH[0], BEACH[1], 0); reds.forEach(function (c, i) { place(c, SHX + 12 + i * 1.1, SHZ - 3 + (i % 2) * 2, BEACH[0] + 1.5 - i * 1.0, BEACH[1] - 2 + (i % 2) * 2.5, 0); }); },
       cam: function (u) { var cx = SHX - 7 + u * 2; return { p: V3(cx, H(cx, SHZ + 6) + 2.2, SHZ + 6), l: V3(lerp(SHX + 8, SHX - 3, u), H(SHX, SHZ) + 1.6, SHZ) }; } },
     { text: "In Egypt, beneath the great pyramids, a queen was waiting for him.", dur: 7.5, chapter: "Egypt",
-      setup: function () { chars.forEach(function (c) { c.hide = !(c === player || c === QUEEN()); }); place(player, D[0] - 26, D[1] + 34, D[0] - 17, D[1] + 9); place(QUEEN(), D[0] - 14, D[1] + 4); },
+      setup: function () { chars.forEach(function (c) { c.hide = !(c === player || c === QUEEN()); }); place(player, D[0] - 22, D[1] + 22, D[0] - 17, D[1] + 9); place(QUEEN(), D[0] - 14, D[1] + 4); },
       cam: function (u) { var cx = lerp(-60, -30, u) + D[0], cz = lerp(80, 40, u) + D[1]; return { p: V3(cx, H(cx, cz) + lerp(9, 3.4, u), cz), l: V3(D[0] - 14, H(D[0], D[1]) + lerp(10, 4.5, u), D[1] - 20) }; } },
     { text: "She smiled at him, and said:", quote: "Welcome to Egypt. Gold is only sand that someone loved.", dur: 9.5, chapter: "Quote",
       setup: function () { var q = QUEEN(); chars.forEach(function (c) { c.hide = c !== q; }); place(q, D[0] - 14, D[1] + 4); q.pose = "talk"; q.until = nowMs() + 7500; },
@@ -417,7 +417,7 @@ Eng.loadTextures().catch(function () {}).then(function () {
   var ALL = function () { return avg(chars.filter(function (c) { return !c.hide; })); };
   SH.Sea = [[0, shipRel(12, 32, 5, 5)], [0.36, shipRel(44, 4, 4, 5.5)], [0.68, shipRel(-24, 6, 13, 5, 28)]];
   SH.Shore = [[0, arcC(player, -100, -60, 7, 1.7, 1.4)], [0.3, arcM(avg([player].concat(reds)), 15, 55, 12, 2.2, 1.3)], [0.65, arcC(player, -50, -20, 5, 1.7, 1.5)]];
-  SH.Egypt = [[0, arcM(avg([player, QUEEN()]), -75, -35, 13, 2.4, 1.4)], [0.4, arcC(QUEEN(), 20, -10, 5.6, 1.7, 1.5)], [0.7, arcM(avg([player, QUEEN()]), 10, 45, 9.5, 2.1, 1.5)]];
+  SH.Egypt = [[0, arcC(player, -55, -25, 7, 1.8, 1.5)], [0.4, arcC(QUEEN(), 15, -8, 6.2, 1.7, 1.5)], [0.7, arcM(avg([player, QUEEN()]), 40, 70, 10, 2.1, 1.5)]];
   SH.Quote = [[0, arcC(QUEEN(), 12, -14, 4.6, 1.8, 1.7)], [0.42, arcC(QUEEN(), -50, -22, 6, 1.3, 1.5)], [0.74, arcC(QUEEN(), 28, 48, 4.2, 1.9, 1.75)]];
   SH.Battle = [[0, function (v) { var x = BC[0] - 13 + v * 3, z = BC[1] + 3; return { p: V3(x, gy(x, z) + 2.3, z), l: V3(BC[0] + 3, gy(BC[0], BC[1]) + 1.4, BC[1]) }; }], [0.22, arcM(function () { return [BC[0], BC[1]]; }, 5, 32, 9, 1.7, 1.3)], [0.5, arcC(player, 95, 135, 5.6, 1.8, 1.8)], [0.72, arcM(function () { return [BC[0], BC[1]]; }, -30, -60, 9.5, 1.5, 0.9)]];
   SH.Crown = [[0, arcC(player, 15, -12, 6.4, 1.7, 1.4)], [0.3, arcM(avg([player, QUEEN()]), 0, 28, 10, 2.1, 1.5)], [0.62, arcC(player, 22, 2, 4.8, 2.0, 2.0)], [0.78, arcM(avg([player, QUEEN()]), 28, 58, 9.5, 1.9, 1.6)]];
@@ -581,6 +581,7 @@ Eng.loadTextures().catch(function () {}).then(function () {
     else if (directed && !freeLook) { camera.position.set(-40, 14, 22); camera.lookAt(-10, 2, 0); }
     else controls.update();
     if ((window.__dbg || /dbg=1/.test(location.search))) { var dd = document.getElementById('dbg'); if (!dd) { dd = document.createElement('div'); dd.id = 'dbg'; dd.style.cssText = 'position:fixed;top:0;left:0;z-index:99;color:#f00;background:#fff;font:14px monospace;white-space:pre'; document.body.appendChild(dd); } var qq = QUEEN(); dd.textContent = 'si=' + si + ' cam=' + camera.position.toArray().map(function (v) { return v.toFixed(1); }) + '\nq=' + qq.x.toFixed(1) + ',' + qq.z.toFixed(1) + ' hide=' + qq.hide + ' qy=' + qq.spr.position.y.toFixed(1) + '\nD=' + D + ' Hq=' + H(qq.x, qq.z).toFixed(1) + ' Hcam=' + H(camera.position.x, camera.position.z).toFixed(1); }
+    if (window.__dbgOn) { window.__dbgN = (window.__dbgN || 0) + 1; if (window.__dbgN % 20 === 1) { (window.__dbgLog = window.__dbgLog || []).push({ si: si, cam: camera.position.toArray().map(function (v) { return +v.toFixed(1); }), pl: [+player.x.toFixed(1), +player.z.toFixed(1), player.hide], q: [+QUEEN().x.toFixed(1), +QUEEN().z.toFixed(1), QUEEN().hide] }); } }
     renderer.render(scene, camera);
   }
   function frame() { tick(Math.min(0.05, clock.getDelta())); requestAnimationFrame(frame); }

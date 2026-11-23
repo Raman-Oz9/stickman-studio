@@ -1,3 +1,7 @@
+### 2026-11-23 — Add distant background layers (mountain ridges, cloud banks, bird flocks) to outdoor locations in world.ts
+- Updated `remotion/src/videos/story/world.ts` to add distant background layers (far mountain ridge silhouettes with haze, cloud banks, and bird flocks) to every outdoor location so the horizon is never an empty gradient.
+- Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` successfully with zero errors.
+
 ### 2026-11-21 — Replace town plaza ground with textured cobblestone and grass planes using remotion/public/tex/*.jpg and retune camera char framing
 - Updated `remotion/src/videos/story/realm.ts` (`buildTown`) to replace plain ground boxes with textured cobblestone plane (`TEX.cobblestone`) and grass paths (`TEX.grass`) using `remotion/public/tex/*.jpg`.
 - Updated `remotion/src/videos/story/camera.ts` (`char` level and headroom offset) so full heads and torsos remain fully in frame without bottom edge cropping.

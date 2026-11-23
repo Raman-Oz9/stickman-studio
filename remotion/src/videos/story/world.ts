@@ -33,6 +33,9 @@ export class StoryWorld {
   private pool = new Pool();
   private p3: Props3D; private rigs!: Rigs; private hv = new THREE.Vector3();
   private worldLayers = new Map<string, THREE.Group>(); private ints = new Map<string, THREE.Group>(); private acts = new Map<string, Action>(); private realms = new Map<string, THREE.Group>(); private fronts = new Map<string, THREE.Group>(); private holder = new THREE.Group(); private fxe: Effects; private town: THREE.Object3D[] = []; private plat: THREE.Mesh;
+  private backgroundGroup = new THREE.Group();
+  private cloudsGroup = new THREE.Group();
+  private birdsMesh!: THREE.InstancedMesh;
   private actors: Actor[] = [];
   private fxs: Fx[] = [];
   private hemi = new THREE.HemisphereLight("#cfe6ff", "#6c5c8c", 1.1);
@@ -91,6 +94,56 @@ export class StoryWorld {
     }
     prop(b, kit, "windmill", 40, 0, -60, 22, 0.4);
     const n0 = R.children.length; b.build(R); this.town = R.children.slice(n0); R.add(this.holder); this.town.forEach((o) => this.holder.add(o));
+
+    // Distant background layers: mountain ridges with haze, cloud banks, bird flocks
+    const bg = this.backgroundGroup;
+    bg.layers.set(NOINK);
+    for (let k = 0; k < 8; k++) {
+      const a = (k / 8) * Math.PI * 2 + 0.1;
+      const dist = 340 + (k % 3) * 50;
+      const mx = Math.sin(a) * dist, mz = Math.cos(a) * dist;
+      const peakH = 32 + hh(k, 13) * 24;
+      const ridgeGeo = new THREE.ConeGeometry(85 + hh(k, 14) * 30, peakH, 5);
+      const ridgeMat = new THREE.MeshLambertMaterial({ color: k % 2 === 0 ? "#788e9f" : "#687f91", flatShading: true });
+      const ridge = new THREE.Mesh(ridgeGeo, ridgeMat);
+      ridge.position.set(mx, peakH / 2 - 3, mz);
+      ridge.rotation.y = hh(k, 15) * Math.PI;
+      ridge.layers.set(NOINK);
+      bg.add(ridge);
+    }
+    for (let c = 0; c < 8; c++) {
+      const cg = new THREE.Group();
+      const numPuffs = 4 + Math.floor(hh(c, 20) * 3);
+      for (let p = 0; p < numPuffs; p++) {
+        const r = 14 + hh(c * 10 + p, 21) * 12;
+        const puff = new THREE.Mesh(new THREE.SphereGeometry(r, 8, 6), new THREE.MeshBasicMaterial({ color: "#f2f5f8", transparent: true, opacity: 0.82, fog: false }));
+        puff.position.set((p - numPuffs / 2) * 15, hh(c * 10 + p, 22) * 6, (hh(c * 10 + p, 23) - 0.5) * 12);
+        puff.scale.y = 0.52;
+        puff.layers.set(NOINK);
+        cg.add(puff);
+      }
+      const angle = (c / 8) * Math.PI * 2 + hh(c, 24);
+      const radius = 300 + hh(c, 25) * 100;
+      cg.position.set(Math.sin(angle) * radius, 90 + hh(c, 26) * 30, Math.cos(angle) * radius);
+      cg.userData = { baseX: cg.position.x };
+      this.cloudsGroup.add(cg);
+    }
+    bg.add(this.cloudsGroup);
+    const birdGeo = new THREE.ConeGeometry(0.8, 3.2, 4);
+    birdGeo.rotateX(Math.PI / 2); birdGeo.rotateY(Math.PI / 4);
+    const birdMat = new THREE.MeshBasicMaterial({ color: "#1d1a20", fog: false });
+    this.birdsMesh = new THREE.InstancedMesh(birdGeo, birdMat, 18);
+    this.birdsMesh.layers.set(NOINK);
+    const dummy = new THREE.Object3D();
+    for (let i = 0; i < 18; i++) {
+      dummy.position.set((hh(i, 30) - 0.5) * 200, 60 + hh(i, 31) * 20, (hh(i, 32) - 0.5) * 200);
+      dummy.scale.setScalar(0.7);
+      dummy.updateMatrix();
+      this.birdsMesh.setMatrixAt(i, dummy.matrix);
+    }
+    this.birdsMesh.instanceMatrix.needsUpdate = true;
+    bg.add(this.birdsMesh);
+    R.add(bg);
   }
 
   private actor(i: number) { while (this.actors.length <= i) this.actors.push(new Actor(this.root)); return this.actors[i]; }
@@ -101,6 +154,28 @@ export class StoryWorld {
     const light = s.light ?? (s.tod === "dawn" || s.tod === "dusk" ? "golden" : "day"), L = LIGHTS[light], K = LOOK[light];
     const u = n > 1 ? lf / (n - 1) : 0, t = lf / FPS;
     const dur = n / FPS;
+    const ik = INTERIOR_ALIAS[String(s.interior ?? "").toLowerCase().replace(/[^a-z]/g, "")] as InteriorKind | undefined;
+    const isOutdoor = !ik && s.world?.terrain !== "space" && s.world?.kind !== "space";
+    this.backgroundGroup.visible = isOutdoor;
+    if (isOutdoor) {
+      this.cloudsGroup.children.forEach((cg, idx) => {
+        const ud = cg.userData;
+        if (ud && typeof ud.baseX === "number") {
+          cg.position.x = ud.baseX + Math.sin(t * 0.12 + idx) * 30;
+        }
+      });
+      const bDummy = new THREE.Object3D();
+      for (let xk = 0; xk < 18; xk++) {
+        const bx = ((xk * 19 + t * 8) % 320) - 160;
+        const by = 58 + Math.sin(t * 0.7 + xk * 0.6) * 7;
+        const bz = -70 + Math.cos(t * 0.35 + xk * 0.4) * 45;
+        bDummy.position.set(bx, by, bz);
+        bDummy.scale.setScalar(0.7);
+        bDummy.updateMatrix();
+        this.birdsMesh.setMatrixAt(xk, bDummy.matrix);
+      }
+      this.birdsMesh.instanceMatrix.needsUpdate = true;
+    }
     // Optional world preset is an independent environment layer; character/action code below is unchanged.
     const worldKey = s.world ? JSON.stringify(s.world) : "";
     this.worldLayers.forEach((g, key) => { g.visible = !!worldKey && key === worldKey; if (g.visible) { animateWorld(g, t); const wp = g.userData.worldParams as any; if (wp?.kind === "city") updateTraffic(g, t); } });
@@ -144,7 +219,6 @@ export class StoryWorld {
     }
     const E = this.fxe.update(cur, u, dur, c.pos, c.look, absT);
     if (E.shake > 0.01) { const k = E.shake * 0.28; c.pos.x += Math.sin(absT * 61) * k; c.pos.y += Math.sin(absT * 73 + 1) * k; c.look.x += Math.sin(absT * 53 + 2) * k * 0.6; }
-    const ik = INTERIOR_ALIAS[String(s.interior ?? "").toLowerCase().replace(/[^a-z]/g, "")] as InteriorKind | undefined;
     const ikey = ik === "shop" ? "shop:" + (s.shop ?? "shop") : ik;
     if (ik && ikey && !this.ints.has(ikey)) { const g = buildInterior(ik, s.shop ?? "shop"); g.visible = false; this.root.add(g); this.ints.set(ikey, g); }
     this.ints.forEach((g, k) => { g.visible = k === ikey; if (k === ikey) flicker(g, absT); });

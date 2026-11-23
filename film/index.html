@@ -414,14 +414,14 @@ Eng.loadTextures().catch(function () {}).then(function () {
   var SH = {}, DEG = Math.PI / 180;
   function arcC(c, a0, a1, dist, h, ly) { return function (v) { var a = (a0 + (a1 - a0) * v) * DEG, x = c.x + Math.sin(a) * dist, z = c.z + Math.cos(a) * dist; return { p: V3(x, gy(x, z) + h, z), l: V3(c.x, gy(c.x, c.z) + ly, c.z) }; }; }
   function arcM(fn, a0, a1, dist, h, ly) { return function (v) { var m = fn(), a = (a0 + (a1 - a0) * v) * DEG, x = m[0] + Math.sin(a) * dist, z = m[1] + Math.cos(a) * dist; return { p: V3(x, gy(x, z) + h, z), l: V3(m[0], gy(m[0], m[1]) + ly, m[1]) }; }; }
-  var ALL = function () { return avg(chars.filter(function (c) { return !c.hide; })); };
+  var ALL = function () { var x = 0, z = 0, n = 0; chars.forEach(function (c) { if (!c.hide) { x += c.x; z += c.z; n++; } }); return [x / Math.max(1, n), z / Math.max(1, n)]; };
   SH.Sea = [[0, shipRel(12, 32, 5, 5)], [0.36, shipRel(44, 4, 4, 5.5)], [0.68, shipRel(-24, 6, 13, 5, 28)]];
   SH.Shore = [[0, arcC(player, -100, -60, 7, 1.7, 1.4)], [0.3, arcM(avg([player].concat(reds)), 15, 55, 12, 2.2, 1.3)], [0.65, arcC(player, -50, -20, 5, 1.7, 1.5)]];
   SH.Egypt = [[0, arcC(player, -55, -25, 7, 1.8, 1.5)], [0.4, arcC(QUEEN(), 15, -8, 6.2, 1.7, 1.5)], [0.7, arcM(avg([player, QUEEN()]), 40, 70, 10, 2.1, 1.5)]];
   SH.Quote = [[0, arcC(QUEEN(), 12, -14, 4.6, 1.8, 1.7)], [0.42, arcC(QUEEN(), -50, -22, 6, 1.3, 1.5)], [0.74, arcC(QUEEN(), 28, 48, 4.2, 1.9, 1.75)]];
   SH.Battle = [[0, function (v) { var x = BC[0] - 13 + v * 3, z = BC[1] + 3; return { p: V3(x, gy(x, z) + 2.3, z), l: V3(BC[0] + 3, gy(BC[0], BC[1]) + 1.4, BC[1]) }; }], [0.22, arcM(function () { return [BC[0], BC[1]]; }, 5, 32, 9, 1.7, 1.3)], [0.5, arcC(player, 95, 135, 5.6, 1.8, 1.8)], [0.72, arcM(function () { return [BC[0], BC[1]]; }, -30, -60, 9.5, 1.5, 0.9)]];
   SH.Crown = [[0, arcC(player, 15, -12, 6.4, 1.7, 1.4)], [0.3, arcM(avg([player, QUEEN()]), 0, 28, 10, 2.1, 1.5)], [0.62, arcC(player, 22, 2, 4.8, 2.0, 2.0)], [0.78, arcM(avg([player, QUEEN()]), 28, 58, 9.5, 1.9, 1.6)]];
-  SH.Council = [[0, arcM(ALL(), -10, 20, 14, 2.8, 1.5)], [0.3, arcC(player, -28, 2, 5.8, 1.8, 1.6)], [0.52, arcC(QUEEN(), 38, 15, 5.4, 1.8, 1.6)], [0.74, arcM(ALL(), 5, -35, 13.5, 2.0, 1.4)]];
+  SH.Council = [[0, arcM(ALL, -10, 20, 14, 2.8, 1.5)], [0.3, arcC(player, -28, 2, 5.8, 1.8, 1.6)], [0.52, arcC(QUEEN(), 38, 15, 5.4, 1.8, 1.6)], [0.74, arcM(ALL, 5, -35, 13.5, 2.0, 1.4)]];
   SH.March = [[0, arcC(player, 95, 80, 7, 1.6, 1.4)], [0.35, arcM(avg([player, reds[0], teals[0]]), -5, 18, 11, 1.1, 1.3)], [0.7, arcC(player, 42, 68, 5.2, 1.8, 1.8)]];
   SH.Wide = [[0, arcC(player, 0, 70, 9, 2.4, 1.6)], [0.4, function (v) { var r = 12 + v * 70, an = 0.2 + v * 0.7; var x = PL[0] + Math.sin(an) * r, z = PL[1] + 22 + Math.cos(an) * r * 0.7; return { p: V3(x, 6 + v * 34, z), l: V3(PL[0], 4, PL[1] - 10) }; }]];
   SH.Night = [[0, function (v) { var x = player.x - 5.6, z = player.z + 1.5; return { p: V3(x, gy(x, z) + 1.8, z), l: V3(player.x + 9, 2.4, player.z - 1.8) }; }], [0.45, arcC(player, 80, 112, 5, 1.7, 1.7)], [0.75, arcM(avg([player].concat(reds)), 70, 48, 8.5, 1.6, 1.3)]];

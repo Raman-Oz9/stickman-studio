@@ -2,7 +2,8 @@
 """Rule-based script -> scene plan.  python3 film/plan_scenes.py script.txt out.json"""
 import json, re, sys
 
-LOC = [("space", r"\b(space|rocket|planet|mars|moon|star|stars|galaxy|orbit|astronaut)\b"),
+LOC = [("snow", r"\b(snow|snowy|blizzard|glacier|arctic)\b"), ("volcano", r"\b(volcano|lava|eruption)\b"), ("jungle", r"\b(jungle|rainforest|amazon)\b"), ("forest", r"\b(forest|woods|trees)\b"), ("castle", r"\b(castle|knight|knights|kingdom|fortress|dragon)\b"), ("city", r"\b(city|skyscraper|skyscrapers|street|streets|downtown|office)\b"),
+       ("space", r"\b(space|rocket|planet|mars|moon|star|stars|galaxy|orbit|astronaut)\b"),
        ("ocean", r"\b(diver|submarine|seabed|trench|whale|deep sea|beneath the waves|underwater|reef)\b"),
        ("egypt", r"\b(egypt|pyramid|pyramids|pharaoh|sphinx|nile)\b"),
        ("hall", r"\b(hall|halls|council|palace|throne)\b"),

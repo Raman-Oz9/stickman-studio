@@ -70,48 +70,80 @@ Eng.loadTextures().catch(function () {}).then(function () {
   // ---------- the ORIGINAL pipeline world: realm (town, palace, farm, forest, desert+pyramids+sphinx, savanna, swamp, jungle, ice, ocean, city, mountain...) ----------
   var Q = new URLSearchParams(location.search), SEASON = Q.get("season") || "summer";
   var realm = Eng.buildRealm(SEASON, new URLSearchParams(location.search).get('era') || 'ancient'); scene.add(realm);
-  var birdsMesh, foamMesh;
+  var birdsMesh, foamMesh, grassMeshes = [], flowerMeshes = [];
   function scatterDetail() {
     var dummy = new THREE.Object3D();
-    var grassGeo = new THREE.ConeGeometry(0.08, 0.45, 4);
-    var grassMat = new THREE.MeshLambertMaterial({ color: 0x5a9e42 });
-    var grassMesh = new THREE.InstancedMesh(grassGeo, grassMat, 1200);
-    for (var i = 0; i < 1200; i++) {
-      var x = (hash(i * 1.1) - 0.5) * 350, z = (hash(i * 2.3) - 0.5) * 350;
+    var grassColors = [0x4a9e42, 0x3a7e32, 0x8ea442, 0x5a8a3a, 0x729845];
+    grassMeshes = grassColors.map(function(col) {
+      return {
+        mesh: new THREE.InstancedMesh(new THREE.ConeGeometry(0.08, 0.48, 4), new THREE.MeshLambertMaterial({ color: col }), 500),
+        data: []
+      };
+    });
+    for (var i = 0; i < 1800; i++) {
+      var x = (hash(i * 1.1) - 0.5) * 380, z = (hash(i * 2.3) - 0.5) * 380;
+      var dist = Math.hypot(x, z);
+      if (dist > 220) continue;
+      var densityFactor = Math.max(0, 1 - dist / 220);
+      if (hash(i * 3.1) > densityFactor * 0.85 + 0.15) continue;
       var h = Eng.heightAt(x, z);
-      if (h > 0.1 && h < 18) {
+      if (h > 0.08 && h < 16) {
+        var meshIdx = Math.floor(hash(i * 4.7) * grassColors.length);
+        var item = grassMeshes[meshIdx];
+        var rotZ = (hash(i * 5.3) - 0.5) * 0.5;
+        var rotX = (hash(i * 5.9) - 0.5) * 0.5;
+        var scale = (0.5 + hash(i * 6.7) * 0.7) * (0.4 + 0.6 * densityFactor);
         dummy.position.set(x, h + 0.2, z);
-        dummy.scale.setScalar(0.6 + hash(i * 3.7) * 0.8);
+        dummy.rotation.set(rotX, hash(i * 7.1) * Math.PI, rotZ);
+        dummy.scale.setScalar(scale);
         dummy.updateMatrix();
-        grassMesh.setMatrixAt(i, dummy.matrix);
-      } else {
-        dummy.position.set(0, -999, 0);
-        dummy.updateMatrix();
-        grassMesh.setMatrixAt(i, dummy.matrix);
+        var idx = item.data.length;
+        if (idx < 500) {
+          item.mesh.setMatrixAt(idx, dummy.matrix);
+          item.data.push({ x: x, z: z, h: h, rotX: rotX, rotZ: rotZ, scale: scale, phase: hash(i * 8.3) * 6.28 });
+        }
       }
     }
-    grassMesh.instanceMatrix.needsUpdate = true;
-    scene.add(grassMesh);
+    grassMeshes.forEach(function(item) {
+      item.mesh.count = item.data.length;
+      item.mesh.instanceMatrix.needsUpdate = true;
+      scene.add(item.mesh);
+    });
 
-    var flowerGeo = new THREE.IcosahedronGeometry(0.12, 0);
-    var flowerMat = new THREE.MeshLambertMaterial({ color: 0xe7c66b });
-    var flowerMesh = new THREE.InstancedMesh(flowerGeo, flowerMat, 250);
-    for (var i = 0; i < 250; i++) {
-      var x = (hash(i * 4.1) - 0.5) * 300, z = (hash(i * 5.3) - 0.5) * 300;
+    var flowerColors = [0xe7c66b, 0xe0523c, 0xc96be7, 0xf9f9f9, 0xf2b84b];
+    flowerMeshes = flowerColors.map(function(col) {
+      return {
+        mesh: new THREE.InstancedMesh(new THREE.IcosahedronGeometry(0.12, 0), new THREE.MeshLambertMaterial({ color: col }), 120),
+        data: []
+      };
+    });
+    for (var i = 0; i < 450; i++) {
+      var x = (hash(i * 9.1) - 0.5) * 320, z = (hash(i * 10.3) - 0.5) * 320;
+      var dist = Math.hypot(x, z);
+      if (dist > 180) continue;
+      var densityFactor = Math.max(0, 1 - dist / 180);
+      if (hash(i * 11.1) > densityFactor * 0.8 + 0.2) continue;
       var h = Eng.heightAt(x, z);
-      if (h > 0.2 && h < 15) {
+      if (h > 0.15 && h < 14) {
+        var meshIdx = Math.floor(hash(i * 12.3) * flowerColors.length);
+        var item = flowerMeshes[meshIdx];
+        var scale = 0.6 + hash(i * 13.1) * 0.7;
         dummy.position.set(x, h + 0.15, z);
-        dummy.scale.setScalar(0.7 + hash(i * 6.7) * 0.6);
+        dummy.rotation.set(0, hash(i * 14.3) * Math.PI, 0);
+        dummy.scale.setScalar(scale);
         dummy.updateMatrix();
-        flowerMesh.setMatrixAt(i, dummy.matrix);
-      } else {
-        dummy.position.set(0, -999, 0);
-        dummy.updateMatrix();
-        flowerMesh.setMatrixAt(i, dummy.matrix);
+        var idx = item.data.length;
+        if (idx < 120) {
+          item.mesh.setMatrixAt(idx, dummy.matrix);
+          item.data.push({ x: x, z: z, h: h, scale: scale, phase: hash(i * 15.7) * 6.28 });
+        }
       }
     }
-    flowerMesh.instanceMatrix.needsUpdate = true;
-    scene.add(flowerMesh);
+    flowerMeshes.forEach(function(item) {
+      item.mesh.count = item.data.length;
+      item.mesh.instanceMatrix.needsUpdate = true;
+      scene.add(item.mesh);
+    });
 
     var foamGeo = new THREE.PlaneGeometry(3.5, 0.35);
     foamGeo.rotateX(-Math.PI / 2);
@@ -572,6 +604,31 @@ Eng.loadTextures().catch(function () {}).then(function () {
       }
       foamMesh.instanceMatrix.needsUpdate = true;
     }
+    var dummyWind = new THREE.Object3D();
+    grassMeshes.forEach(function(item) {
+      for (var i = 0; i < item.data.length; i++) {
+        var d = item.data[i];
+        var sway = Math.sin(time * 3.5 + d.phase + d.x * 0.05) * 0.18;
+        dummyWind.position.set(d.x, d.h + 0.2, d.z);
+        dummyWind.rotation.set(d.rotX + sway * 0.5, 0, d.rotZ + sway);
+        dummyWind.scale.setScalar(d.scale);
+        dummyWind.updateMatrix();
+        item.mesh.setMatrixAt(i, dummyWind.matrix);
+      }
+      item.mesh.instanceMatrix.needsUpdate = true;
+    });
+    flowerMeshes.forEach(function(item) {
+      for (var i = 0; i < item.data.length; i++) {
+        var d = item.data[i];
+        var bob = Math.sin(time * 2.5 + d.phase) * 0.04;
+        dummyWind.position.set(d.x, d.h + 0.15 + bob, d.z);
+        dummyWind.rotation.set(0, 0, 0);
+        dummyWind.scale.setScalar(d.scale);
+        dummyWind.updateMatrix();
+        item.mesh.setMatrixAt(i, dummyWind.matrix);
+      }
+      item.mesh.instanceMatrix.needsUpdate = true;
+    });
     // director clock
     if (directed && playing && si >= 0) { st += dt; if (st >= SCENES[si].dur) { if (si >= SCENES.length - 1) finish(); else { si++; enterScene(); } } }
     var sc = directed && si >= 0 ? SCENES[si] : null, u = sc ? Math.min(1, st / sc.dur) : 0;

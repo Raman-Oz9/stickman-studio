@@ -254,3 +254,7 @@
 ### 2026-11-24 — Improve sun and sky engine in film/index.html
 - Updated `film/index.html` to add enhanced atmospheric sun/sky rendering: soft sun disc with corona/lens bloom, gradient sky dome with sunset/horizon color blending, volumetric-looking cloud sprite puff clusters, procedural low-sun god rays, and ACES filmic tone mapping (optimized for swiftshader).
 - Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` successfully with zero errors.
+
+### 2026-11-24 — Upgrade grass and flora in film/index.html with wind sway, per-patch color variation, and distance density falloff
+- Updated `film/index.html` (`scatterDetail` and `tick`) to render high-quality grass blades and flowers featuring instanced meshes with wind sway, per-patch color variation across multiple color palettes, distance-based density falloff, and height filtering on savanna, plains, and forest floors.
+- Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` successfully with zero errors.

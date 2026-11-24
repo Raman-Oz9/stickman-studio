@@ -263,3 +263,8 @@
 - Updated `remotion/src/videos/story/realm.ts` to add hieroglyph-banded textures on temple and obelisk (`TEX.hieroglyph_wall`), painted columns, seated pharaoh statues at the gate, mud-brick houses with flat roofs, date palms along a Nile water strip, and Egyptian boats on the water.
 - Ensured medieval castle is kept only for the medieval era (`/medieval|castle|kingdom|knight/i.test(era)`), using era-appropriate architecture for other realms.
 - Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` successfully with zero errors.
+
+### 2026-11-24 — Add era packs to film engine for ?era= (ancient, medieval, modern, future)
+- Updated `film/index.html` to add era-specific character outfit packs (`ancient`, `medieval`, `modern`, `future`) providing appropriate wardrobe styles (toga, armor, suit, spacesuit, laurel, astro helmet) via `ERA_PACKS` and dynamic `KINDS` selection based on `?era=`.
+- Buildings utilize `buildRealm(era)`.
+- Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` successfully with zero errors.

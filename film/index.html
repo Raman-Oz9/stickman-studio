@@ -334,10 +334,28 @@ Eng.loadTextures().catch(function () {}).then(function () {
     limb(cx - 10, hip + bob, lx, 232, 13, skin); limb(cx + 10, hip + bob, rx, 232, 13, skin);
     x.fillStyle = "#5a3a1c"; x.strokeStyle = INK; x.lineWidth = 3; [[lx, -1], [rx, 1]].forEach(function (q) { x.beginPath(); x.ellipse(q[0] + q[1] * 5, 236, 13, 6, 0, 0, 6.283); x.fill(); x.stroke(); });
     // tunic body (flared skirt) with cel shading
-    x.save(); x.beginPath(); x.moveTo(cx - 24, ny + bob); x.quadraticCurveTo(cx - 30, 120, cx - 34, 180); x.lineTo(cx + 34, 180); x.quadraticCurveTo(cx + 30, 120, cx + 24, ny + bob); x.closePath();
-    x.fillStyle = grad(ny, 180, shade(tun, 1.08), shade(tun, 0.78)); x.fill(); x.clip(); x.fillStyle = "rgba(20,10,0,.2)"; x.fillRect(cx + 6, 80, 40, 110); x.fillStyle = "rgba(255,255,255,.14)"; x.fillRect(cx - 40, 80, 12, 110); x.restore();
-    x.strokeStyle = INK; x.lineWidth = 4; x.beginPath(); x.moveTo(cx - 24, ny + bob); x.quadraticCurveTo(cx - 30, 120, cx - 34, 180); x.lineTo(cx + 34, 180); x.quadraticCurveTo(cx + 30, 120, cx + 24, ny + bob); x.closePath(); x.stroke();
-    x.fillStyle = "#e0b04a"; x.fillRect(cx - 27, 128 + bob, 54, 8); x.strokeStyle = INK; x.lineWidth = 2.5; x.strokeRect(cx - 27, 128 + bob, 54, 8);
+    if (kind.suit) {
+      x.fillStyle = grad(ny, 180, shade(tun, 1.1), shade(tun, 0.8));
+      x.fillRect(cx - 22, ny + bob, 44, 90);
+      x.strokeStyle = INK; x.lineWidth = 4; x.strokeRect(cx - 22, ny + bob, 44, 90);
+      x.fillStyle = "#ffffff";
+      x.beginPath(); x.moveTo(cx - 14, ny + bob); x.lineTo(cx, ny + 32 + bob); x.lineTo(cx + 14, ny + bob); x.closePath(); x.fill(); x.stroke();
+      x.fillStyle = "#b82f2a";
+      x.beginPath(); x.moveTo(cx - 3, ny + 10 + bob); x.lineTo(cx + 3, ny + 10 + bob); x.lineTo(cx + 2, ny + 55 + bob); x.lineTo(cx - 2, ny + 55 + bob); x.closePath(); x.fill(); x.stroke();
+    } else if (kind.spacesuit) {
+      x.fillStyle = grad(ny, 180, "#f4f6f9", "#cbd5e1");
+      x.beginPath(); x.arc(cx, ny + 45 + bob, 28, 0, 6.283); x.fill(); x.stroke();
+      x.fillStyle = "#00d2ff";
+      x.fillRect(cx - 10, ny + 35 + bob, 20, 16); x.strokeRect(cx - 10, ny + 35 + bob, 20, 16);
+    } else if (kind.toga) {
+      x.fillStyle = grad(ny, 180, "#fdfbf7", "#e2dec9");
+      x.beginPath(); x.moveTo(cx - 24, ny + bob); x.lineTo(cx + 26, 170); x.lineTo(cx + 14, 180); x.lineTo(cx - 20, 110 + bob); x.closePath(); x.fill(); x.stroke();
+    } else {
+      x.save(); x.beginPath(); x.moveTo(cx - 24, ny + bob); x.quadraticCurveTo(cx - 30, 120, cx - 34, 180); x.lineTo(cx + 34, 180); x.quadraticCurveTo(cx + 30, 120, cx + 24, ny + bob); x.closePath();
+      x.fillStyle = grad(ny, 180, shade(tun, 1.08), shade(tun, 0.78)); x.fill(); x.clip(); x.fillStyle = "rgba(20,10,0,.2)"; x.fillRect(cx + 6, 80, 40, 110); x.fillStyle = "rgba(255,255,255,.14)"; x.fillRect(cx - 40, 80, 12, 110); x.restore();
+      x.strokeStyle = INK; x.lineWidth = 4; x.beginPath(); x.moveTo(cx - 24, ny + bob); x.quadraticCurveTo(cx - 30, 120, cx - 34, 180); x.lineTo(cx + 34, 180); x.quadraticCurveTo(cx + 30, 120, cx + 24, ny + bob); x.closePath(); x.stroke();
+      x.fillStyle = "#e0b04a"; x.fillRect(cx - 27, 128 + bob, 54, 8); x.strokeStyle = INK; x.lineWidth = 2.5; x.strokeRect(cx - 27, 128 + bob, 54, 8);
+    }
     if (kind.armor) { x.fillStyle = grad(ny, 128, "#d4d9e2", "#8e96a4"); x.beginPath(); x.moveTo(cx - 22, ny + 2 + bob); x.lineTo(cx + 22, ny + 2 + bob); x.lineTo(cx + 26, 128 + bob); x.lineTo(cx - 26, 128 + bob); x.closePath(); x.fill(); x.strokeStyle = INK; x.lineWidth = 3.5; x.stroke(); x.lineWidth = 2; x.beginPath(); x.moveTo(cx, ny + 8 + bob); x.lineTo(cx, 124 + bob); x.moveTo(cx - 18, 106 + bob); x.quadraticCurveTo(cx - 8, 112 + bob, cx, 106 + bob); x.moveTo(cx + 18, 106 + bob); x.quadraticCurveTo(cx + 8, 112 + bob, cx, 106 + bob); x.stroke();
       x.fillStyle = shade(kind.cloak, 0.9); for (var q = -3; q <= 3; q++) { x.fillRect(cx + q * 7.5 - 3.4, 136 + bob, 6.8, 18); x.strokeRect(cx + q * 7.5 - 3.4, 136 + bob, 6.8, 18); } }
     // arms (back arm first), sleeve then hand
@@ -381,15 +399,50 @@ Eng.loadTextures().catch(function () {}).then(function () {
     if (kind.king) { x.fillStyle = "#f2c14e"; x.strokeStyle = INK; x.lineWidth = 4; x.beginPath(); x.moveTo(cx - 26, hy - 20 + bob); x.lineTo(cx - 28, hy - 50 + bob); x.lineTo(cx - 13, hy - 34 + bob); x.lineTo(cx, hy - 56 + bob); x.lineTo(cx + 13, hy - 34 + bob); x.lineTo(cx + 28, hy - 50 + bob); x.lineTo(cx + 26, hy - 20 + bob); x.closePath(); x.fill(); x.stroke(); ball(cx, hy - 52 + bob, 4, "#d8433a"); }
     if (kind.helm) { x.fillStyle = grad(hy - R, hy, shade(kind.helm, 1.2), shade(kind.helm, 0.7)); x.strokeStyle = INK; x.lineWidth = 4.5; x.beginPath(); x.moveTo(cx - 33, hy + 12 + bob); x.quadraticCurveTo(cx - 38, hy - 40 + bob, cx, hy - 42 + bob); x.quadraticCurveTo(cx + 38, hy - 40 + bob, cx + 33, hy + 12 + bob); x.lineTo(cx + 26, hy + 14 + bob); x.lineTo(cx + 26, hy - 14 + bob); x.lineTo(cx - 26, hy - 14 + bob); x.lineTo(cx - 26, hy + 14 + bob); x.closePath(); x.fill(); x.stroke();
       if (kind.crest) { x.fillStyle = kind.crest; x.beginPath(); x.moveTo(cx - 24, hy - 38 + bob); x.quadraticCurveTo(cx, hy - 68 + bob, cx + 24, hy - 38 + bob); x.quadraticCurveTo(cx, hy - 46 + bob, cx - 24, hy - 38 + bob); x.fill(); x.stroke(); } }
+    if (kind.astro) {
+      x.fillStyle = "rgba(200,230,250,0.35)"; x.strokeStyle = INK; x.lineWidth = 4.5;
+      x.beginPath(); x.arc(cx, hy + bob, R * 1.3, 0, 6.283); x.fill(); x.stroke();
+      x.fillStyle = "rgba(255,255,255,0.6)";
+      x.beginPath(); x.arc(cx - R * 0.4, hy - R * 0.4 + bob, R * 0.3, 0, 6.283); x.fill();
+    }
+    if (kind.laurel) {
+      x.strokeStyle = "#d4af37"; x.lineWidth = 4;
+      x.beginPath(); x.arc(cx, hy - 4 + bob, R * 1.05, Math.PI * 1.1, Math.PI * 1.9); x.stroke();
+    }
     var t = new THREE.CanvasTexture(c); t.minFilter = THREE.LinearFilter; t.anisotropy = 4; t.colorSpace = THREE.SRGBColorSpace; return t;
   }
-  var KINDS = {
-    alex: { cloak: "#f2ead8", cape: "#b82f2a", curls: "#6b4a26", crown: true, name: "Alexander" },
-    alexc: { cloak: "#f2ead8", cape: "#b82f2a", curls: "#6b4a26", king: true, name: "King Alexander" },
-    red: { cloak: "#b82f2a", armor: true, helm: "#b8a05a", crest: "#c9372c", spear: true, shield: "#b82f2a", name: "Macedonian soldier" },
-    teal: { cloak: "#25807a", armor: true, helm: "#5f5a8f", crest: "#25807a", spear: true, shield: "#25807a", skin: "#d9a779", name: "Persian soldier" },
-    queen: { cloak: "#f4edd9", hair: "#1b1410", band: true, skin: "#d9a273", cape: "#2b6fb5", name: "The Queen" }
+  var ERA_PACKS = {
+    ancient: {
+      alex: { cloak: "#f2ead8", cape: "#b82f2a", curls: "#6b4a26", crown: true, toga: true, laurel: true, name: "Alexander" },
+      alexc: { cloak: "#f2ead8", cape: "#b82f2a", curls: "#6b4a26", king: true, toga: true, laurel: true, name: "King Alexander" },
+      red: { cloak: "#b82f2a", armor: true, helm: "#b8a05a", crest: "#c9372c", spear: true, shield: "#b82f2a", name: "Macedonian Soldier" },
+      teal: { cloak: "#25807a", armor: true, helm: "#5f5a8f", crest: "#25807a", spear: true, shield: "#25807a", skin: "#d9a779", name: "Persian Soldier" },
+      queen: { cloak: "#f4edd9", hair: "#1b1410", band: true, skin: "#d9a273", cape: "#2b6fb5", toga: true, name: "The Queen" }
+    },
+    medieval: {
+      alex: { cloak: "#3a506b", cape: "#7a2438", helm: "#7d8597", crest: "#7a2438", sword: true, name: "Knight Alexander" },
+      alexc: { cloak: "#5a2a3a", cape: "#e8c45a", crown: true, king: true, name: "King Alexander" },
+      red: { cloak: "#7a2a2a", armor: true, helm: "#8d97a6", crest: "#c0353a", spear: true, shield: "#7a2a2a", name: "Royal Guard" },
+      teal: { cloak: "#2d4a3e", armor: true, helm: "#5a6a5a", crest: "#2d4a3e", spear: true, shield: "#2d4a3e", name: "Rebel Knight" },
+      queen: { cloak: "#8a5a8c", hair: "#c9a15a", crown: true, name: "The Queen" }
+    },
+    modern: {
+      alex: { cloak: "#2a3140", suit: true, hair: "#2a1f1a", name: "Alexander" },
+      alexc: { cloak: "#1a1f2b", suit: true, hair: "#2a1f1a", king: true, name: "Director Alexander" },
+      red: { cloak: "#2a3f5f", suit: true, hair: "#2a1f1a", name: "Security Officer" },
+      teal: { cloak: "#3f3a2a", suit: true, hair: "#2a1f1a", name: "Agent" },
+      queen: { cloak: "#5a2f55", suit: true, hair: "#1a1a1e", name: "The Director" }
+    },
+    future: {
+      alex: { cloak: "#e0e6ed", spacesuit: true, astro: true, name: "Commander Alexander" },
+      alexc: { cloak: "#e0e6ed", spacesuit: true, astro: true, king: true, name: "Fleet Emperor" },
+      red: { cloak: "#2b6fb5", spacesuit: true, astro: true, name: "Space Marine" },
+      teal: { cloak: "#38b000", spacesuit: true, astro: true, name: "Alien Envoy" },
+      queen: { cloak: "#7209b7", spacesuit: true, astro: true, name: "Stellar Queen" }
+    }
   };
+  var ERA = new URLSearchParams(location.search).get('era') || 'ancient';
+  var KINDS = ERA_PACKS[ERA] || ERA_PACKS.ancient;
   function tex(key, pose, f, ex) { var k = key + pose + f + (ex || ""); return TEX[k] || (TEX[k] = inkTex(KINDS[key], pose, f, ex)); }
   var LINES = {
     alex: ["We cross the sea at dawn. Not one ship turns back.", "A king who hides is only a man with a crown.", "Stand with me, and Persia will remember this day."],

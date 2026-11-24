@@ -1,11 +1,16 @@
 // The REALM: one big connected world (town in the middle, roads out to the palace, farm, forest, desert, harbor + sea, swamp, jungle,
 // savanna, ice, mountains with a gold mine and a cave). A scene sets `loc`; the whole realm slides so that location sits at the origin
 // (all scene coordinates stay local), neighbours are visible in the distance, and `fly` scenes glide the camera between locations.
-import { TEX } from "./texcache";
+import { TEX, texMat } from "./texcache";
 import * as THREE from "three";
 import { twoTone } from "../bridge/shade";
-import { mk, B, C, S, cone, grp } from "./props3d";
+import { mk, mkTex, B, C, S, cone, grp } from "./props3d";
 import { buildBiome, GROUNDC, Biome, Season } from "./terrain";
+
+// Textured box helper: applies a real tiled PBR texture (wall plaster / roof tiles / wood / cobble) tinted by `col`,
+// with its own repeat counts so large surfaces carry detail instead of reading as flat colour.
+const tbox = (g: THREE.BufferGeometry, texName: string, col: string, x: number, y: number, z: number, sx = 1, sy = 1, sz = 1, rx = 0, ry = 0, rz = 0, ru = 1, rv = 1) =>
+  mkTex(g, texName, col, x, y, z, sx, sy, sz, rx, ry, rz, ru, rv);
 
 export const LOCS: Record<string, [number, number]> = {
   town: [0, 0], palace: [0, -430], farm: [-300, 90], forest: [-380, -250], desert: [0, 620], savanna: [420, 470], swamp: [-430, 390], jungle: [-660, 140],
@@ -60,14 +65,14 @@ const terrain = (se: Season) => {
 };
 const castle = () => {
   const g = new THREE.Group(), W = "#cfc7b8", Rr = "#b3262e";
-  g.add(mk(B(150, 0.25, 40), "#b8ad98", 0, 0.05, 14));                                   // paved forecourt
-  g.add(mk(B(110, 14, 3), W, 0, 7, 0), mk(B(40, 14, 3), W, -45, 7, 0), mk(B(40, 14, 3), W, 45, 7, 0));
+  g.add(tbox(B(150, 0.25, 40), "cobblestone", "#b8ad98", 0, 0.05, 14, 1, 1, 1, 0, 0, 0, 10, 4));   // paved forecourt w/ cobbles
+  g.add(tbox(B(110, 14, 3), "limestone", W, 0, 7, 0, 1, 1, 1, 0, 0, 0, 10, 2), tbox(B(40, 14, 3), "limestone", W, -45, 7, 0, 1, 1, 1, 0, 0, 0, 4, 2), tbox(B(40, 14, 3), "limestone", W, 45, 7, 0, 1, 1, 1, 0, 0, 0, 4, 2));
   for (let i = -26; i <= 26; i++) g.add(mk(B(1.4, 1.6, 1.4), W, i * 2.1, 14.8, 0));       // battlements
   g.add(mk(B(14, 12, 3.6), "#2b1d14", 0, 6, 0.3), mk(C(7, 7, 3.6, 16), "#2b1d14", 0, 12, 0.3, 1, 1, 1, Math.PI / 2), mk(B(12, 10, 0.3), "#6b4a2a", 0, 5, 2.2));   // gate and doors
-  for (const x of [-56, 56]) g.add(mk(C(6, 6.6, 28, 16), "#c3baa6", x, 14, 0), mk(cone(8, 11, 16), Rr, x, 33.5, 0));
-  for (const x of [-22, 22]) g.add(mk(C(4.4, 4.8, 24, 14), "#c3baa6", x, 12, -2), mk(cone(6, 9, 14), Rr, x, 28.5, -2));
-  g.add(mk(B(46, 36, 28), "#d4ccbb", 0, 18, -28), mk(cone(24, 14, 4), Rr, 0, 43, -28, 1, 1, 0.6, 0, Math.PI / 4));
-  for (const x of [-16, 0, 16]) g.add(mk(C(3.2, 3.4, 40, 12), "#c9c0ad", x, 20, -44), mk(cone(4.6, 9, 12), Rr, x, 44.5, -44));
+  for (const x of [-56, 56]) g.add(tbox(C(6, 6.6, 28, 16), "limestone", "#c3baa6", x, 14, 0, 1, 1, 1, 0, 0, 0, 3, 4), mk(cone(8, 11, 16), Rr, x, 33.5, 0));
+  for (const x of [-22, 22]) g.add(tbox(C(4.4, 4.8, 24, 14), "limestone", "#c3baa6", x, 12, -2, 1, 1, 1, 0, 0, 0, 3, 4), mk(cone(6, 9, 14), Rr, x, 28.5, -2));
+  g.add(tbox(B(46, 36, 28), "limestone", "#d4ccbb", 0, 18, -28, 1, 1, 1, 0, 0, 0, 8, 5), mk(cone(24, 14, 4), Rr, 0, 43, -28, 1, 1, 0.6, 0, Math.PI / 4));
+  for (const x of [-16, 0, 16]) g.add(tbox(C(3.2, 3.4, 40, 12), "limestone", "#c9c0ad", x, 20, -44, 1, 1, 1, 0, 0, 0, 2, 5), mk(cone(4.6, 9, 12), Rr, x, 44.5, -44));
   for (const [x, h] of [[-22, 36], [22, 36], [0, 52]] as number[][]) g.add(mk(C(0.14, 0.14, 8, 6), "#3a2a1a", x, h + 4, -2), mk(B(0.1, 2.4, 4), "#e6c35a", x, h + 6, -0.2));
   for (let r = 0; r < 4; r++) for (let c = 0; c < 8; c++) g.add(mk(B(2, 3, 0.2), "#7aa7d6", -17 + c * 5, 10 + r * 6, -13.8));   // keep windows
   g.add(mk(B(150, 0.2, 9), "#2f86d6", 0, -0.3, 10), mk(B(14, 0.4, 10), "#6b4a2a", 0, 0.05, 10));                              // moat and drawbridge
@@ -143,11 +148,11 @@ export const buildTown = (se: Season) => {
     const rc = roofColors[k % roofColors.length];
     const roofType = k % 3;
 
-    g.add(mk(B(width, height, depth), wc, hx, height / 2, hz, 1, 1, 1, 0, angle));
+    g.add(tbox(B(width, height, depth), "limestone", wc, hx, height / 2, hz, 1, 1, 1, 0, angle, 0, 3, 3));   // wall plaster w/ texture
     if (roofType === 0) {
-      g.add(mk(cone(Math.max(width, depth) * 0.7, 2.4, 4), rc, hx, height + 1.2, hz, 1, 1, 1, 0, angle + Math.PI / 4));
+      g.add(tbox(cone(Math.max(width, depth) * 0.7, 2.4, 4), "roof_tiles", rc, hx, height + 1.2, hz, 1, 1, 1, 0, angle + Math.PI / 4, 0, 3, 3));
     } else if (roofType === 1) {
-      g.add(mk(cone(Math.max(width, depth) * 0.65, 3.4, 8), rc, hx, height + 1.7, hz, 1, 1, 1, 0, angle));
+      g.add(tbox(cone(Math.max(width, depth) * 0.65, 3.4, 8), "roof_tiles", rc, hx, height + 1.7, hz, 1, 1, 1, 0, angle, 0, 3, 3));
     } else {
       g.add(
         mk(B(width + 0.2, 0.4, depth + 0.2), "#7a7a84", hx, height + 0.2, hz, 1, 1, 1, 0, angle),

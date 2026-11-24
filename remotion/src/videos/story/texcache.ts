@@ -1,4 +1,6 @@
 // Generated-texture cache (remotion/public/tex/*.jpg). Preloaded once before render so world code can read it synchronously.
+// Textures are real CC0 PBR-style albedo maps (ambientCG / Kenney / GitHub kits). Tiling is set per-material so floors
+// never look flat: each surface carries its own repeat count and UV offset (macro-variation) to break visible repetition.
 import * as THREE from "three";
 import { staticFile } from "remotion";
 export const TEX: Record<string, THREE.Texture> = {};
@@ -24,4 +26,19 @@ export const groundTexName = (kind: string, season?: string): string => {
   if (kind === "forest" || kind === "jungle" || kind === "swamp") return "forest_floor";
   if (kind === "ocean-floor") return "gravel";
   return "grass";
+};
+
+/** Apply a tiled texture with macro-variation: distinct repeat counts and UV offsets per surface so large planes
+ * (grass, sand, rock, cobble, plaster, roof tiles, wood) never read as flat single-colour blocks. */
+export const texMat = (texName: string, baseColor: string, u = 24, v = 24, ox = 0, oy = 0): THREE.MeshLambertMaterial => {
+  const m = new THREE.MeshLambertMaterial({ color: baseColor });
+  const t = TEX[texName];
+  if (t) {
+    const tc = t.clone();
+    tc.needsUpdate = true;
+    tc.repeat.set(u, v);
+    tc.offset.set(ox, oy);
+    m.map = tc;
+  }
+  return m;
 };

@@ -1,7 +1,8 @@
 // Biomes + seasons: one parametric generator (kind, season) -> an enormous themed ground with its landscape dressing.
 // Replaces the town plaza when a scene sets biome; composes with weather (env), time of day (tod) and season.
 import * as THREE from "three";
-import { mk, S, B, C, cone, grp } from "./props3d";
+import { mk, S, B, C, cone, grp, mkTex } from "./props3d";
+import { TEX } from "./texcache";
 
 export type Biome = "desert" | "ice" | "forest" | "ocean" | "swamp" | "savanna" | "mountain" | "jungle" | "farm";
 export type Season = "spring" | "summer" | "autumn" | "winter";
@@ -12,6 +13,31 @@ export const GROUNDC = GROUND0;
 let seed = 3; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
 const leaf = (se: Season) => ({ spring: "#f4a6c8", summer: "#3f9f3f", autumn: "#e0832a", winter: "#e8f1f7" }[se]);
 const grass = (se: Season, b: Biome) => (se === "winter" && b !== "desert" ? "#f2f7fb" : se === "autumn" && (b === "forest" || b === "farm" || b === "mountain") ? "#b59a45" : se === "spring" && b === "farm" ? "#9fd36a" : GROUND0[b]);
+
+// Macro-variation for tiled textures: different UV scales and offsets per biome
+// to break up visible repetition on large ground planes
+const macroUV = (b: Biome, se: Season) => {
+  const base = { u: 24, v: 24 };
+  if (b === "desert") return { ...base, u: 32, v: 32, offsetX: 0.1, offsetY: 0.2 };
+  if (b === "ice") return { ...base, u: 40, v: 40, offsetX: 0.3, offsetY: 0.1 };
+  if (b === "forest" || b === "jungle") return { ...base, u: 28, v: 28, offsetX: 0.15, offsetY: 0.05 };
+  if (b === "swamp") return { ...base, u: 20, v: 20, offsetX: 0.2, offsetY: 0.3 };
+  if (b === "savanna") return { ...base, u: 30, v: 30, offsetX: 0.05, offsetY: 0.1 };
+  if (b === "mountain") return { ...base, u: 22, v: 22, offsetX: 0.25, offsetY: 0.15 };
+  if (b === "farm") return { ...base, u: 24, v: 12, offsetX: 0.1, offsetY: 0.0 };
+  return { ...base, u: 24, v: 24, offsetX: 0.0, offsetY: 0.0 };
+};
+
+export const groundTexName = (b: Biome, se?: Season): string => {
+  if (se === "winter" && b !== "desert") return "snow";
+  if (b === "desert") return "sand_dune";
+  if (b === "mountain") return "rock";
+  if (b === "forest" || b === "jungle" || b === "swamp") return "forest_floor";
+  if (b === "farm") return "dry_dirt";
+  if (b === "savanna") return "dry_dirt";
+  if (b === "ice") return "snow";
+  return "grass";
+};
 const treeAt = (g: THREE.Group, x: number, z: number, s: number, se: Season, pine = false) => {
   if (pine) { for (let i = 0; i < 3; i++) g.add(mk(cone(1.3 - i * 0.3, 1.8, 9), se === "winter" ? "#e8f1f7" : "#2f7a46", x, 1.6 + i * 1.1, z, s, s, s)); g.add(mk(C(0.14, 0.18, 1.3, 8), "#6b3f1c", x, 0.65, z, s, s, s)); return; }
   g.add(mk(C(0.16, 0.22, 2.2, 8), "#7a4b24", x, 1.1 * s, z, s, s, s));
@@ -21,7 +47,17 @@ const treeAt = (g: THREE.Group, x: number, z: number, s: number, se: Season, pin
 export const buildBiome = (b: Biome, se: Season, ground = true): THREE.Group => {
   const g = new THREE.Group(); seed = 3 + b.length;
   const water = b === "ocean";
-  if (!water) { if (ground) g.add(mk(B(700, 0.3, 700), grass(se, b), 0, -0.16, 0)); } else {
+  if (!water) {
+    if (ground) {
+      const texName = groundTexName(b, se);
+      const plane = mkTex(
+        B(700, 0.3, 700), texName, grass(se, b),
+        0, -0.16, 0, 1, 1, 1, 0, 0, 0,
+        macroUV(b, se).u, macroUV(b, se).v
+      );
+      g.add(plane);
+    }
+  } else {
     if (ground) {
       const waterGeo=new THREE.PlaneGeometry(700,700,36,36);waterGeo.rotateX(-Math.PI/2);
       const waterPos=waterGeo.attributes.position,waterCol=new Float32Array(waterPos.count*3);

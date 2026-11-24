@@ -66,6 +66,7 @@ Eng.loadTextures().catch(function () {}).then(function () {
   scene.background = null; scene.fog = new THREE.Fog(0x8fd0f5, 160, 1100);
   var hemi = new THREE.HemisphereLight(0xffffff, 0x8a7a55, 0.95 * LI); scene.add(hemi);
   var sun = new THREE.DirectionalLight(0xfff2d6, 0.95 * LI); sun.position.set(40, 60, 25); scene.add(sun);
+  var fxe = new Eng.Effects(scene);
 
   // ---------- the ORIGINAL pipeline world: realm (town, palace, farm, forest, desert+pyramids+sphinx, savanna, swamp, jungle, ice, ocean, city, mountain...) ----------
   var Q = new URLSearchParams(location.search), SEASON = Q.get("season") || "summer";
@@ -627,7 +628,21 @@ Eng.loadTextures().catch(function () {}).then(function () {
     skyMat.uniforms.uSunDir.value.copy(sun.position).normalize();
     var curSky = DAY.sky.clone().lerp(NIGHT.sky, night);
     scene.fog.color.copy(curSky); wmat.color.copy(DAY.water).lerp(NIGHT.water, night);
-    hemi.intensity = (0.95 - 0.7 * night) * LI; sun.intensity = (0.95 - 0.8 * night) * LI; sun.color.setHex(night > 0.5 ? 0x8fa6ff : 0xfff2d6); starsM.opacity = Math.max(0, night * 1.2 - 0.2); shipLight.intensity = night * 1.6; ship.userData.lant.scale.setScalar(1 + night * 1.4);
+    var globalWeather = Q.get("weather");
+    var sceneWeather = sc && sc.weather ? sc.weather : globalWeather;
+    var sceneEnv = sceneWeather ? [sceneWeather] : [];
+    if (sceneWeather === "storm") sceneEnv = ["storm", "rain"];
+    var sceneDef = { env: sceneEnv, fx: sc && sc.fx ? sc.fx : [] };
+    var dur = sc ? sc.dur : 8.5;
+    var lookDir = new THREE.Vector3(); camera.getWorldDirection(lookDir);
+    var lookAt = camera.position.clone().add(lookDir.multiplyScalar(10));
+    var E = fxe.update(sceneDef, u, dur, camera.position, lookAt, time);
+    if (E.shake > 0.01) {
+      var k = E.shake * 0.28;
+      camera.position.x += Math.sin(time * 61) * k;
+      camera.position.y += Math.sin(time * 73 + 1) * k;
+    }
+    hemi.intensity = (0.95 - 0.7 * night) * LI * E.dim + E.flash * 3.2; sun.intensity = (0.95 - 0.8 * night) * LI * E.dim + E.flash * 9; sun.color.setHex(night > 0.5 ? 0x8fa6ff : 0xfff2d6); starsM.opacity = Math.max(0, night * 1.2 - 0.2); shipLight.intensity = night * 1.6; ship.userData.lant.scale.setScalar(1 + night * 1.4);
     clouds.forEach(function (c, i) { c.position.x += dt * (1.5 + i * 0.1); if (c.position.x > 320) c.position.x = -320; });
     if (birdsMesh && night < 0.5) {
       var bDummy = new THREE.Object3D();

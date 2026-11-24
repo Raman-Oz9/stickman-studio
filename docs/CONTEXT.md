@@ -281,3 +281,8 @@
 ### 2026-11-24 — Fill film/studio_places.js with 8 polished 2D studio environment background builders
 - Updated `film/studio_places.js` to provide a global `PL = {...}` of 8 background builders (`space`, `ocean`, `castle`, `city`, `forest`, `snow`, `volcano`, `jungle`), each drawing with `ST.layer(p, fn)` parallax with gradients, layered depth, and atmospheric detailing.
 - Verified with `node --check film/studio_places.js` and `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` with zero errors.
+
+### 2026-11-24 — Add mood-based procedural music beds and synchronized procedural SFX to film/make_audio.py
+- Updated `film/make_audio.py` to add procedurally generated numpy-based music beds chosen by scene mood (epic, calm, tense, mystery, wonder, sad) with layered pads, soft arpeggios, light percussion, crossfaded between scenes, and ducked to -16 dB under voice.
+- Added procedural SFX synced to scene chapters: whoosh on cuts, clash/metal for battle, rain/wind for weather, waves for sea, and fire crackle for night.
+- Verified python syntax and TypeScript compilation.

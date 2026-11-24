@@ -269,3 +269,7 @@
 - Buildings utilize `buildRealm(era)`.
 - Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` successfully with zero errors.
 - film: NEW studio engine (film/studio*.js): 2D illustrated flat-vector world + rigged characters + cinematic shots; run film.yml page=studio.html
+
+### 2026-11-24 — Fill film/studio_props.js with 30 illustrated flat-vector props
+- Filled `film/studio_props.js` providing global `PR = (function(){ ... return { draw(name, x, y, s, t), has(name) } })()` drawing all 30 requested nouns (crown, spear, shield, sword, scroll, gold coins, ship, torch, bow, arrow, helmet, flag, throne, chest, sun, moon, star, rocket, planet, satellite, fish, whale, anchor, key, book, map, wheel, castle, tent, horse) using `ST` canvas helpers.
+- Verified with `node --check film/studio_props.js` and `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` with zero errors.

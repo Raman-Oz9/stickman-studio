@@ -234,6 +234,45 @@
     shots: [{ a: 0, blur: 5, cam: head(A, 2.5, 2.7, 80, 262) }, { a: 0.35, views: { A: "back" }, fg: [{ id: "A", dx: -120, view: "back", layer: 1.3, s: 1.1 }], cam: function (v) { return { x: lerp(60, 120, ease(v)), y: -190, z: lerp(1.2, 1.35, ease(v)) }; } }, { a: 0.66, blur: 6, cam: head(A, 3.0, 3.3, 90, 266) }] });
 
   // ---------- director ----------
+  // ---------- script-driven director: builds SCENES from a plan JSON (window.__PLAN) ----------
+  function buildFromPlan(plan) {
+    var BG = { sea: function (m, u) { bgSea({ farShips: true }); W.ship(0.5, lerp(-260, 220, u) * 0.5, -100, 0.62, S.time); }, beach: bgBeach, egypt: bgEgypt, plain: bgPlain, temple: bgTempleFront, hall: bgHall, night: function (m, u) { bgNight(lerp(900, 4200, u)); campfire(330); }, cliff: bgCliff };
+    var POSE = { walk: "walk", march: "march", fight: "fight", kneel: "kneel", point: "point", sit: "sit", cheer: "cheer", talk: "talk", look: "look", idle: "idle", hold: "hold", run: "march" };
+    var ERAKEY = window.ERAS || {};
+    plan.forEach(function (p, idx) {
+      var loc = p.location || "plain", era = p.era || "ancient", act = ((p.characters && p.characters[0] && p.characters[0].action) || "talk"), pose = POSE[act] || "talk";
+      var moving = pose === "walk" || pose === "march";
+      var fighting = pose === "fight" || /fight|battle|clash|war/i.test(p.text);
+      var heroKey = (ERAKEY[era] && ERAKEY[era][0] && CH.KIND[ERAKEY[era][0]]) ? ERAKEY[era][0] : "alex";
+      var others = (p.characters || []).slice(1);
+      var bgf = BG[loc] || (window.PL && window.PL[loc] ? function () { window.PL[loc]({ t: S.time }); } : bgPlain);
+      var shotSet = (p.shots && p.shots.length ? p.shots : ["wide", "follow", "closeup"]);
+      function mkShot(name, i, n) {
+        var a = i / n, o = { a: a };
+        if (name === "wide") o.cam = function (v) { return { x: A.x * 0.5, y: -190, z: lerp(0.85, 0.95, ease(v)) }; };
+        else if (name === "follow") o.cam = follow(A, 1.25, 1.5, 150, -170);
+        else if (name === "closeup") { o.blur = 6; o.cam = head(A, 2.4, 2.7, 70, 258); }
+        else if (name === "side") { o.views = { A: "side" }; o.cam = follow(A, 1.3, 1.5, 150, -170); }
+        else if (name === "back") { o.views = { A: "back" }; o.cam = function (v) { return { x: A.x + lerp(-90, 40, ease(v)), y: -210, z: lerp(1.5, 1.1, ease(v)) }; }; }
+        else if (name === "ots") { o.views = { A: "back" }; o.fg = [{ id: "A", dx: -150, view: "back", layer: 1.35, s: 1.12 }]; o.cam = function (v) { return { x: A.x + 40, y: -210, z: lerp(1.5, 1.75, ease(v)) }; }; }
+        else if (name === "crane") o.cam = function (v) { return { x: A.x + 40, y: lerp(-220, -460, ease(v)), z: lerp(1.2, 0.65, ease(v)) }; };
+        else o.cam = fixed(A.x, -190, 1.1);
+        return o;
+      }
+      scene({ text: p.text, quote: p.quote || null, dur: 7 + (p.text.length / 20), chapter: p.location || "x", tod: p.tod || "day", weather: p.weather && p.weather !== "none" ? p.weather : null,
+        setup: function () {
+          put(A, moving ? -420 : 0, 1, { key: heroKey, pose: pose, ex: p.mood === "sad" ? "sad" : p.mood === "tense" ? "angry" : "happy" });
+          var pals = [R[0], R[1], R[2]]; (fighting ? [T[0], T[1], T[2]] : []).forEach(function (c, i) { put(c, 380 + i * 120, -1, { pose: "fight", ex: "angry" }); });
+          pals.slice(0, Math.min(3, others.length + (fighting ? 2 : 0))).forEach(function (c, i) { put(c, (moving ? -420 : 0) - 130 - i * 110, 1, { pose: pose, ex: "happy", key: window.ERAS && ERAKEY[era] && CH.KIND[ERAKEY[era][1]] ? ERAKEY[era][1] : "red" }); });
+          if (fighting) { A.item = "sword"; }
+        },
+        update: function (u, dt) { if (moving) ALLC.forEach(function (c) { if (c.show && c.pose === pose) c.x += 74 * dt * (c.face || 1); }); if (A.pose === "talk" || pose === "talk") { A.talk = true; } },
+        world: function (m, u) { bgf(m, u); },
+        shots: shotSet.map(function (n, i) { return mkShot(n, i, shotSet.length); }) });
+    });
+  }
+  if (window.__PLAN && window.__PLAN.length) { SCENES.length = 0; buildFromPlan(window.__PLAN); }
+
   var si = -1, st = 0, spoken = 0, playing = false, shotIdx = -1, ended = false;
   var tmp = document.createElement("canvas"), tctx = tmp.getContext("2d");
   var NOUNS = /^(sea|army|fleet|shore|soldiers?|sand|pyramids?|queen|crown|spear|shield|armies|plain|temple|council|realm|mountain|empire|sky|king|gold|head|night)$/i;

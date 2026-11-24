@@ -11,6 +11,9 @@ on:
       era:
         description: "ancient | medieval | modern | future"
         default: "ancient"
+      script:
+        description: "repo path of a plain-text script (e.g. docs/scripts/ancient.txt); empty = built-in Alexander film"
+        default: ""
       page:
         description: "studio.html (2D illustrated) | index.html (3D)"
         default: "studio.html"
@@ -42,6 +45,7 @@ jobs:
         run: cp -r remotion/public/tex film/tex
       - name: Texts, narration, timing
         run: |
+          if [ -n "${{ inputs.script }}" ]; then python3 film/plan_scenes.py "${{ inputs.script }}" plan.json; echo "FILM_PLAN=$PWD/plan.json" >> $GITHUB_ENV; export FILM_PLAN=$PWD/plan.json; fi
           cd film && FILM_PAGE="${{ inputs.page }}" node export.mjs texts ../texts.json
           cd .. && PYTHONPATH=. python3 film/make_audio.py texts.json out
       - name: Render film

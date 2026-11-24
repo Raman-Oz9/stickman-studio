@@ -7,6 +7,7 @@ const [mode, a1, a2, a3, w = "720", h = "1280"] = process.argv.slice(2);
 const br = await chromium.launch({ args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist", "--no-sandbox"] });
 const pg = await br.newPage({ viewport: { width: +w, height: +h } });
 pg.on("pageerror", (e) => console.error("PAGEERROR", e.message)); pg.on("console", (m) => { if (m.type() === "error") console.error("CONSOLE", m.text()); });
+if (process.env.FILM_PLAN) { const pl = JSON.parse(fs.readFileSync(process.env.FILM_PLAN, "utf8")); await pg.addInitScript((d) => { window.__PLAN = d; }, pl); }
 if (mode === "render") { const durs = JSON.parse(fs.readFileSync(a1, "utf8")); await pg.addInitScript((d) => { window.__DUR = d; }, durs); }
 await pg.goto(`http://localhost:${port}/${process.env.FILM_PAGE || "index.html"}?export=1&season=${process.env.FILM_SEASON || "summer"}&era=${process.env.FILM_ERA || "ancient"}`); await pg.waitForFunction(() => window.__film, null, { timeout: 60000 });
 if (mode === "texts") { fs.writeFileSync(a1, JSON.stringify(await pg.evaluate(() => window.__film.texts))); }

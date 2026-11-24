@@ -251,7 +251,7 @@
     // depth of field: soften the background behind close-ups
     if (shot.blur) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); if (tmp.width !== S.cv.width) { tmp.width = S.cv.width; tmp.height = S.cv.height; } tctx.clearRect(0, 0, tmp.width, tmp.height); tctx.drawImage(S.cv, 0, 0); ctx.filter = "blur(" + Math.round(shot.blur * S.SC) + "px)"; ctx.drawImage(tmp, 0, 0); ctx.filter = "none"; ctx.restore(); }
     // characters, back to front by layer then x
-    var list = shot.nochars ? [] : ALLC.filter(function (c) { return c.show; }).sort(function (a, b) { return a.layer - b.layer; });
+    var list = shot.nochars ? [] : ALLC.filter(function (c) { return c.show && !(shot.fg && shot.fg.some(function (f) { return f.id === c.id; })); }).sort(function (a, b) { return a.layer - b.layer; });
     var byLayer = {}; list.forEach(function (c) { (byLayer[c.layer] = byLayer[c.layer] || []).push(c); });
     Object.keys(byLayer).sort().forEach(function (p) { S.layer(+p, function () { byLayer[p].forEach(function (c) { c.t += dt; CH.draw(c); }); }); });
     // crown flight in the coronation

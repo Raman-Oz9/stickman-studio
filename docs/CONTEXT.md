@@ -1,3 +1,7 @@
+### 2026-11-24 — Fill studio_eras.js with new character kinds and era definitions
+- Updated `film/studio_eras.js` to add new character kinds (`roman`, `hoplite`, `samurai`, `pharaoh`, `peasant`, `merchant`, `pirate`, etc.) to `CH.KIND`, export `window.ERAS` with categorized era arrays (`ancient`, `medieval`, `modern`, `space`, `ocean`), and extend head/hat styles (glass helmet, brass helmet, kabuto, roman helm, hoplite helm, pirate hat, peasant cap) through functions wrapping `CH.headFrontLayer`.
+- Verified with `node --check film/studio_eras.js` and `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` with zero errors.
+
 ### 2026-11-23 — Verify and update docs/PROGRESS.md and run strict TypeScript checks
 - Verified `docs/PROGRESS.md` listing all landed features with dates and 3-line "how to test" instructions.
 - Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` with zero errors.

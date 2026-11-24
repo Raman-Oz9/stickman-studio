@@ -250,3 +250,7 @@
 - Updated `remotion/src/videos/story/realm.ts` (`buildTown` and `heightAt`) to apply `polygonOffset` and slight depth adjustment to town floor/roads and sink terrain under locations, eliminating green z-fighting flicker.
 - Updated `film/index.html` to add a town market scene at `LOCS.town`.
 - Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` successfully with zero errors.
+
+### 2026-11-24 — Improve sun and sky engine in film/index.html
+- Updated `film/index.html` to add enhanced atmospheric sun/sky rendering: soft sun disc with corona/lens bloom, gradient sky dome with sunset/horizon color blending, volumetric-looking cloud sprite puff clusters, procedural low-sun god rays, and ACES filmic tone mapping (optimized for swiftshader).
+- Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` successfully with zero errors.

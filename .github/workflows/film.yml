@@ -11,6 +11,9 @@ on:
       era:
         description: "ancient | medieval | modern | future"
         default: "ancient"
+      page:
+        description: "studio.html (2D illustrated) | index.html (3D)"
+        default: "studio.html"
 permissions:
   contents: write
 jobs:
@@ -39,12 +42,12 @@ jobs:
         run: cp -r remotion/public/tex film/tex
       - name: Texts, narration, timing
         run: |
-          cd film && node export.mjs texts ../texts.json
+          cd film && FILM_PAGE="${{ inputs.page }}" node export.mjs texts ../texts.json
           cd .. && PYTHONPATH=. python3 film/make_audio.py texts.json out
       - name: Render film
         run: |
           S="${{ inputs.size }}"; W=${S%x*}; H=${S#*x}
-          cd film && FILM_SEASON="${{ inputs.season }}" FILM_ERA="${{ inputs.era }}" node export.mjs render ../out/durs.json ../out/mix.wav ../out/film.mp4 $W $H
+          cd film && FILM_PAGE="${{ inputs.page }}" FILM_SEASON="${{ inputs.season }}" FILM_ERA="${{ inputs.era }}" node export.mjs render ../out/durs.json ../out/mix.wav ../out/film.mp4 $W $H
       - name: Publish
         run: |
           cd out && git init -q && git checkout -q -b film-out && git config user.name film && git config user.email film@users.noreply.github.com

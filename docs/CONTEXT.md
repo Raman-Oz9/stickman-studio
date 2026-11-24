@@ -268,3 +268,4 @@
 - Updated `film/index.html` to add era-specific character outfit packs (`ancient`, `medieval`, `modern`, `future`) providing appropriate wardrobe styles (toga, armor, suit, spacesuit, laurel, astro helmet) via `ERA_PACKS` and dynamic `KINDS` selection based on `?era=`.
 - Buildings utilize `buildRealm(era)`.
 - Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` successfully with zero errors.
+- film: NEW studio engine (film/studio*.js): 2D illustrated flat-vector world + rigged characters + cinematic shots; run film.yml page=studio.html

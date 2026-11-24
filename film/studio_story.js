@@ -242,7 +242,7 @@
     plan.forEach(function (p, idx) {
       var loc = p.location || "plain", era = p.era || "ancient", act = ((p.characters && p.characters[0] && p.characters[0].action) || "talk"), pose = POSE[act] || "talk";
       var moving = pose === "walk" || pose === "march";
-      var fighting = pose === "fight" || /fight|battle|clash|war/i.test(p.text);
+      var fighting = pose === "fight" || /\b(fight|fought|battle|clash|clashed|war)\b/i.test(p.text);
       var heroKey = (ERAKEY[era] && ERAKEY[era][0] && CH.KIND[ERAKEY[era][0]]) ? ERAKEY[era][0] : "alex";
       var others = (p.characters || []).slice(1);
       var bgf = BG[loc] || (window.PL && window.PL[loc] ? function () { window.PL[loc]({ t: S.time }); } : bgPlain);
@@ -259,12 +259,12 @@
         else o.cam = fixed(A.x, -190, 1.1);
         return o;
       }
-      scene({ text: p.text, quote: p.quote || null, dur: 7 + (p.text.length / 20), chapter: p.location || "x", tod: p.tod || "day", weather: p.weather && p.weather !== "none" ? p.weather : null,
+      scene({ text: p.quote ? p.text.replace(/\s*"[^"]*"\s*/g, " ").replace(/\s+$/, "").replace(/,$/, ",") : p.text, quote: p.quote || null, speaker: p.speaker || null, dur: 7 + (p.text.length / 20), chapter: p.location || "x", tod: loc === "space" ? "dusk" : (p.tod || "day"), weather: p.weather && p.weather !== "none" ? p.weather : null,
         setup: function () {
           put(A, moving ? -420 : 0, 1, { key: heroKey, pose: pose, ex: p.mood === "sad" ? "sad" : p.mood === "tense" ? "angry" : "happy" });
           var pals = [R[0], R[1], R[2]]; (fighting ? [T[0], T[1], T[2]] : []).forEach(function (c, i) { put(c, 380 + i * 120, -1, { pose: "fight", ex: "angry" }); });
           pals.slice(0, Math.min(3, others.length + (fighting ? 2 : 0))).forEach(function (c, i) { put(c, (moving ? -420 : 0) - 130 - i * 110, 1, { pose: pose, ex: "happy", key: window.ERAS && ERAKEY[era] && CH.KIND[ERAKEY[era][1]] ? ERAKEY[era][1] : "red" }); });
-          if (fighting) { A.item = "sword"; }
+          ALLC.forEach(function (c) { if (c.show && !fighting) { c.item = null; c.shield = false; } }); if (fighting) { A.item = "sword"; }
         },
         update: function (u, dt) { if (moving) ALLC.forEach(function (c) { if (c.show && c.pose === pose) c.x += 74 * dt * (c.face || 1); }); if (A.pose === "talk" || pose === "talk") { A.talk = true; } },
         world: function (m, u) { bgf(m, u); },
@@ -278,7 +278,7 @@
   var NOUNS = /^(sea|army|fleet|shore|soldiers?|sand|pyramids?|queen|crown|spear|shield|armies|plain|temple|council|realm|mountain|empire|sky|king|gold|head|night)$/i;
   var capWords = [], capHi = -2;
   function setCap(sc) { var words = sc.text.split(/\s+/); capWords = words.map(function (w, i) { return { w: w, noun: NOUNS.test(w.replace(/[^A-Za-z]/g, "")) || !!(window.PR && PR.has(w.replace(/[^A-Za-z]/g, "").toLowerCase().replace(/s$/, ""))), i: i }; }); capHi = -2; renderCap(sc, -1); }
-  function renderCap(sc, hi) { var h = capWords.map(function (o) { return o.noun ? '<span class="nn' + (hi >= o.i ? " hi" : "") + '">' + o.w + "</span>" : o.w; }).join(" "); cap.innerHTML = sc.quote ? h + '<br><b style="margin-top:8px">The Queen</b>“' + sc.quote + "”" : h; cap.className = "on"; }
+  function renderCap(sc, hi) { var h = capWords.map(function (o) { return o.noun ? '<span class="nn' + (hi >= o.i ? " hi" : "") + '">' + o.w + "</span>" : o.w; }).join(" "); cap.innerHTML = sc.quote ? h + '<br><b style="margin-top:8px">' + (sc.speaker || "The Queen") + '</b>“' + sc.quote + "”" : h; cap.className = "on"; }
   function enter(i) {
     si = i; st = 0; shotIdx = -1; var sc = SCENES[i]; resetChars(); W.setTod(sc.tod || "day"); sparks = []; flash = 0; if (sc.setup) sc.setup(); setCap(sc);
   }

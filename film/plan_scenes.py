@@ -1,0 +1,82 @@
+#!/usr/bin/env python3
+"""Rule-based script -> scene plan.  python3 film/plan_scenes.py script.txt out.json"""
+import json, re, sys
+
+LOC = [("space", r"\b(space|rocket|planet|mars|moon|star|stars|galaxy|orbit|astronaut)\b"),
+       ("ocean", r"\b(diver|submarine|seabed|trench|whale|deep sea|beneath the waves|underwater|reef)\b"),
+       ("egypt", r"\b(egypt|pyramid|pyramids|pharaoh|sphinx|nile)\b"),
+       ("hall", r"\b(hall|halls|council|palace|throne)\b"),
+       ("temple", r"\b(temple)\b"),
+       ("cliff", r"\b(cliff|mountain|peak|summit)\b"),
+       ("beach", r"\b(shore|beach|sand|landed|landing)\b"),
+       ("sea", r"\b(sea|ship|fleet|ocean|voyage|sail|waves|boat)\b"),
+       ("plain", r"\b(plain|desert|field|battle|army|armies|road|march|marched|dust)\b")]
+TOD = [("storm", r"\b(storm|thunder|lightning)\b"), ("night", r"\b(night|dark|darkness|midnight|stars)\b"),
+       ("dusk", r"\b(dusk|sunset|evening|twilight)\b"), ("gold", r"\b(dawn|sunrise|morning|golden hour)\b")]
+WEA = [("storm", r"\b(storm|thunder|lightning)\b"), ("rain", r"\b(rain)\b"), ("sand", r"\b(sand storm|blowing sand|blew red sand|dust storm|burning desert)\b"),
+       ("fog", r"\b(fog|mist|night fell|dark as night)\b"), ("birds", r"\b(eagle|eagles|birds|bird|gull|gulls|cliff)\b"), ("snow", r"\b(snow|blizzard)\b")]
+ACT = [("fight", r"\b(clash|clashed|fought|fight|battle|attack|war|struck)\b"), ("kneel", r"\b(knelt|kneel|bow|bowed)\b"),
+       ("march", r"\b(march|marched|marching|walked|walk|stepped|crossed)\b"), ("cheer", r"\b(victorious|cheer|celebrate|triumph)\b"),
+       ("point", r"\b(pointed|showed)\b"), ("sit", r"\b(gathered|sat|plan)\b"), ("look", r"\b(looked|watched|gazed|appeared)\b"),
+       ("talk", r"\b(said|whispered|asked|replied|smiled)\b")]
+ERA = [("space", r"\b(rocket|astronaut|mars|space|planet)\b"), ("ocean", r"\b(diver|submarine|whale|trench)\b"),
+       ("modern", r"\b(city|skyscraper|car|phone)\b"), ("medieval", r"\b(knight|castle|king arthur|viking)\b")]
+MOOD = [("tense", r"\b(clash|storm|fight|battle|war|marched against)\b"), ("sad", r"\b(died|lost|alone|lonely)\b"),
+        ("wonder", r"\b(stars|glowing|appeared|giant|great|marble)\b")]
+NOUNS = "crown spear shield sword scroll gold ship fleet torch bow arrow helmet flag throne chest sun moon star rocket planet satellite fish whale anchor key book map wheel castle tent horse pyramid army eagle sand storm temple empire stars".split()
+
+def pick(tbl, t, default):
+    for k, rx in tbl:
+        if re.search(rx, t, re.I): return k
+    return default
+
+def shots_for(loc, act, i, quote):
+    if quote: return ["ots", "closeup", "side"]
+    if act == "fight": return ["wide", "ots", "closeup"]
+    if act in ("march",): return ["side", "follow", "back"]
+    if act == "kneel": return ["back", "closeup", "crane"]
+    if loc in ("cliff",): return ["back", "side", "crane"]
+    cyc = [["wide", "follow", "closeup"], ["crane", "side", "closeup"], ["back", "ots", "wide"], ["follow", "side", "closeup"]]
+    return cyc[i % 4]
+
+def speaker_of(s, era):
+    m = re.search(r"\b(she|he|the [a-z]+|[A-Z][a-z]+)\s+(said|whispered|asked|replied)", s, re.I) or re.search(r"\"\s*,?\s*(she|he|the [a-z]+|[A-Z][a-z]+)\s+(said|whispered|asked|replied)", s, re.I)
+    w = m.group(1) if m else None
+    if w is None or w.lower() in ("she", "he"):
+        return {"space": "The Astronaut", "ocean": "The Diver"}.get(era, "The Queen" if (w or "").lower() == "she" else "The King")
+    return w[0].upper() + w[1:]
+
+def plan(text):
+    text = re.sub(r"\s+", " ", text.strip())
+    text = re.sub(r'"[^"]*"', lambda m: re.sub(r"([.!?])(?=\s)", lambda k: {".": "\u0001", "!": "\u0002", "?": "\u0003"}[k.group(1)], m.group(0)), text)
+    sents = [x.strip() for x in re.split(r"(?<=[.!?\"])\s+(?=[A-Z\"])", text) if x.strip()]
+    sents = [x.replace("\u0001", ".").replace("\u0002", "!").replace("\u0003", "?") for x in sents]
+    out = []
+    for x in sents:
+        if out and x.startswith('"') and out[-1].rstrip().endswith(","): out[-1] += " " + x
+        else: out.append(x)
+    scenes = []; prev_loc = "plain"; prev_era = "ancient"
+    for i, s in enumerate(out):
+        qs = re.findall(r'"([^"]+)"', s); quote = " ".join(qs) if qs else None
+        low = s.lower()
+        loc = pick(LOC, low, prev_loc)
+        era0 = pick(ERA, low, prev_era)
+        if era0 in ("space", "ocean") and loc not in ("space", "ocean", "cliff"): loc = era0
+        prev_loc = loc
+        act = pick(ACT, low, "talk" if quote else "idle")
+        tod = pick(TOD, low, "day"); wea = pick(WEA, low, "none")
+        era = pick(ERA, low, prev_era); prev_era = era; mood = pick(MOOD, low, "calm")
+        names = [n for n in re.findall(r"\b[A-Z][a-z]{2,}\b", s) if n not in ("The", "She", "But", "Then", "They", "That", "For", "Far", "Strange", "Sunlight", "Victorious", "From", "Alexander", "Persians", "Egypt", "Mars", "Earth")]
+        chars = [{"role": "hero", "kind": "hero", "action": act}]
+        if re.search(r"\b(queen|she|her)\b", low): chars.append({"role": "queen", "kind": "queen", "action": "talk"})
+        if re.search(r"\b(army|armies|soldiers|crew|council|fleet|persians)\b", low): chars.append({"role": "crowd", "kind": "soldier", "action": act})
+        nouns = [w for w in NOUNS if re.search(r"\b" + w + r"\b", low)]
+        scenes.append({"text": re.sub(r"\s+", " ", s), "quote": quote, "location": loc, "tod": tod, "weather": wea, "era": era,
+                       "speaker": speaker_of(s, era), "characters": chars, "nouns": nouns, "mood": mood, "shots": shots_for(loc, act, i, quote)})
+    return scenes
+
+if __name__ == "__main__":
+    src = open(sys.argv[1], encoding="utf8").read()
+    p = plan(src)
+    json.dump(p, open(sys.argv[2], "w"), indent=1)
+    print(len(p), "scenes ->", sys.argv[2])

@@ -54,5 +54,5 @@ jobs:
           cd film && FILM_PAGE="${{ inputs.page }}" FILM_SEASON="${{ inputs.season }}" FILM_ERA="${{ inputs.era }}" node export.mjs render ../out/durs.json ../out/mix.wav ../out/film.mp4 $W $H
       - name: Publish
         run: |
-          cd out && git init -q && git checkout -q -b film-out && git config user.name film && git config user.email film@users.noreply.github.com
-          git add film.mp4 && git commit -qm "film render" && git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" film-out
+          cd out && git init -q && N=$(basename "${{ inputs.script }}" .txt); [ -z "$N" ] && N=alexander; git checkout -q -b film-out-$N && git config user.name film && git config user.email film@users.noreply.github.com
+          git add film.mp4 && git commit -qm "film render" && git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" film-out-$N

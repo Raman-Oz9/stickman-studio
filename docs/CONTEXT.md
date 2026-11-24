@@ -286,3 +286,7 @@
 - Updated `film/make_audio.py` to add procedurally generated numpy-based music beds chosen by scene mood (epic, calm, tense, mystery, wonder, sad) with layered pads, soft arpeggios, light percussion, crossfaded between scenes, and ducked to -16 dB under voice.
 - Added procedural SFX synced to scene chapters: whoosh on cuts, clash/metal for battle, rain/wind for weather, waves for sea, and fire crackle for night.
 - Verified python syntax and TypeScript compilation.
+
+### 2026-11-24 — Add film/qa.mjs video QA script
+- Created `film/qa.mjs`: node script (`node film/qa.mjs video.mp4 out_dir`) that extracts a frame every 2s, builds a contact-sheet PNG via ffmpeg tile filter, and writes `report.json` flagging near-uniform frames (stddev), missing caption band, black frames, duplicate consecutive frames (frozen video), audio silence longer than 1.2s via ffmpeg silencedetect, and total duration, exiting with code 1 if any flag.
+- Verified with `node --check film/qa.mjs` and `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` with zero errors.

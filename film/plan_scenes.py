@@ -40,10 +40,10 @@ def shots_for(loc, act, i, quote):
     return cyc[i % 4]
 
 def speaker_of(s, era):
-    m = re.search(r"\b(she|he|the [a-z]+|[A-Z][a-z]+)\s+(said|whispered|asked|replied)", s, re.I) or re.search(r"\"\s*,?\s*(she|he|the [a-z]+|[A-Z][a-z]+)\s+(said|whispered|asked|replied)", s, re.I)
+    m = re.search(r"\b([Ss]he|[Hh]e|[Tt]he [a-z]+|[A-Z][a-z]+)\s+(said|whispered|asked|replied)", s)
     w = m.group(1) if m else None
     if w is None or w.lower() in ("she", "he"):
-        return {"space": "The Astronaut", "ocean": "The Diver"}.get(era, "The Queen" if (w or "").lower() == "she" else "The King")
+        return {"space": "The Astronaut", "ocean": "The Diver"}.get(era, "The Queen" if ((w or "").lower() == "she" or re.search(r"\b[Ss]he\b", s)) else "The King")
     return w[0].upper() + w[1:]
 
 def plan(text):

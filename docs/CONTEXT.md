@@ -258,3 +258,8 @@
 ### 2026-11-24 — Upgrade grass and flora in film/index.html with wind sway, per-patch color variation, and distance density falloff
 - Updated `film/index.html` (`scatterDetail` and `tick`) to render high-quality grass blades and flowers featuring instanced meshes with wind sway, per-patch color variation across multiple color palettes, distance-based density falloff, and height filtering on savanna, plains, and forest floors.
 - Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` successfully with zero errors.
+
+### 2026-11-24 — Ancient Egypt polish in realm.ts and era architecture isolation
+- Updated `remotion/src/videos/story/realm.ts` to add hieroglyph-banded textures on temple and obelisk (`TEX.hieroglyph_wall`), painted columns, seated pharaoh statues at the gate, mud-brick houses with flat roofs, date palms along a Nile water strip, and Egyptian boats on the water.
+- Ensured medieval castle is kept only for the medieval era (`/medieval|castle|kingdom|knight/i.test(era)`), using era-appropriate architecture for other realms.
+- Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` successfully with zero errors.

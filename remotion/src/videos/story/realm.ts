@@ -256,27 +256,141 @@ const buildStoneAge = () => {
   return g;
 };
 
-const buildEgyptArchitecture = () => {
+const buildObelisk = () => {
+  const g = new THREE.Group();
+  g.add(tbox(B(5, 1.2, 5), "limestone", "#d8c292", 0, 0.6, 0, 1, 1, 1));
+  g.add(tbox(C(1.2, 1.8, 16, 4), "hieroglyph_wall", "#e3d0a8", 0, 9.2, 0, 1, 1, 1, 0, Math.PI / 4, 0, 1, 6));
+  g.add(mk(cone(1.3, 2.2, 4), "#f5c32c", 0, 18.3, 0, 1, 1, 1, 0, Math.PI / 4));
+  return g;
+};
+
+const buildSeatedPharaoh = () => {
   const g = new THREE.Group();
   g.add(
-    mk(B(22, 0.4, 18), "#e3d0a8", 0, 0.2, 0),
-    mk(B(16, 6, 12), "#d9c39a", 0, 3.2, 0),
-    mk(B(18, 7, 2), "#cdb487", 0, 3.5, 7)
+    tbox(B(3.2, 3.6, 3.2), "limestone", "#c9ab72", 0, 1.8, 0),
+    tbox(B(3.4, 4.2, 0.8), "limestone", "#b89a5f", 0, 3.2, -1.2)
   );
-  for (let i = -1; i <= 1; i += 2) {
-    for (let j = -1; j <= 1; j += 2) {
-      g.add(
-        mk(C(0.7, 0.85, 6, 14), "#e8d8b0", i * 5, 3, j * 4),
-        mk(B(1.8, 0.4, 1.8), "#d9c39a", i * 5, 6.2, j * 4)
-      );
-    }
+  g.add(
+    mk(B(2.2, 2.8, 1.8), "#e3c78f", 0, 2.4, 0),
+    mk(B(2.4, 1.2, 2.2), "#d9bf86", 0, 1.1, 0.2),
+    mk(B(0.8, 1.4, 1.4), "#e3c78f", -0.7, 1.9, 1.1),
+    mk(B(0.8, 1.4, 1.4), "#e3c78f", 0.7, 1.9, 1.1),
+    mk(B(1.6, 1.8, 1.6), "#e8d8b0", 0, 4.4, 0),
+    mk(B(2.0, 1.2, 2.0), "#2a6fb0", 0, 4.8, -0.2),
+    mk(B(0.3, 0.8, 0.2), "#f5c32c", 0, 4.0, 0.9)
+  );
+  return g;
+};
+
+const buildPaintedColumn = (x: number, z: number, height = 13) => {
+  const g = new THREE.Group();
+  g.add(mk(C(1.4, 1.6, 0.8, 12), "#c9ab72", x, 0.4, z));
+  const segH = height / 5;
+  for (let s = 0; s < 5; s++) {
+    const colColor = s === 0 ? "#2a6fb0" : s === 1 ? "#e0b441" : s === 2 ? "#b8452c" : s === 3 ? "#2a9d8f" : "#e3d0a8";
+    g.add(tbox(C(1.0 + (s * 0.05), 1.05 + (s * 0.05), segH, 12), s % 2 === 0 ? "hieroglyph_wall" : "limestone", colColor, x, 0.8 + s * segH + segH / 2, z, 1, 1, 1, 0, 0, 0, 1, 2));
   }
-  for (const x of [-12, 12]) {
+  g.add(
+    mk(C(1.2, 1.8, 1.6, 12), "#e0b441", x, height - 0.8, z),
+    mk(B(2.2, 0.6, 2.2), "#2a6fb0", x, height, z)
+  );
+  return g;
+};
+
+const buildMudBrickVillage = () => {
+  const g = new THREE.Group();
+  const houseConfigs = [
+    [-24, -18, 5, 4, 3.8],
+    [-16, -26, 6, 5, 4.2],
+    [18, -20, 5.5, 4.5, 4.0],
+    [24, -14, 4.8, 4, 3.6],
+    [-20, 16, 6, 4.2, 4.0],
+    [22, 18, 5.2, 5, 4.2],
+  ];
+  for (const [hx, hz, hw, hd, hh] of houseConfigs) {
+    g.add(tbox(B(hw, hh, hd), "mud_brick", "#b38b5d", hx, hh / 2, hz, 1, 1, 1, 0, 0, 0, 2, 2));
     g.add(
-      mk(C(0.35, 0.5, 12, 4), "#d8c292", x, 6, -6, 1, 1, 1, 0, Math.PI / 4),
-      mk(cone(0.38, 2.0, 4), "#f5c32c", x, 13, -6, 1, 1, 1, 0, Math.PI / 4)
+      tbox(B(hw + 0.4, 0.3, hd + 0.4), "limestone", "#c4a47c", hx, hh + 0.15, hz, 1, 1, 1, 0, 0, 0, 2, 2),
+      mk(B(hw, 0.4, 0.2), "#87603b", hx, hh + 0.4, hz + hd / 2),
+      mk(B(1.0, 1.8, 0.1), "#2b1d12", hx, 0.9, hz + hd / 2 + 0.05)
     );
   }
+  return g;
+};
+
+const buildNileAndPalms = () => {
+  const g = new THREE.Group();
+  const nileGeo = new THREE.PlaneGeometry(380, 50, 24, 6);
+  nileGeo.rotateX(-Math.PI / 2);
+  const nileMat = new THREE.MeshPhongMaterial({ color: "#2a7fb0", specular: "#9bd7e4", shininess: 80 });
+  if (TEX.water_deep) {
+    const wt = TEX.water_deep.clone();
+    wt.needsUpdate = true;
+    wt.repeat.set(22, 4);
+    nileMat.map = wt;
+  }
+  const nileMesh = new THREE.Mesh(nileGeo, nileMat);
+  nileMesh.position.set(0, -0.38, 210);
+  nileMesh.receiveShadow = true;
+  g.add(nileMesh);
+
+  for (let i = -150; i <= 150; i += 32) {
+    for (const side of [-28, 28]) {
+      const px = i + (Math.sin(i) * 5), pz = 210 + side;
+      g.add(mk(C(0.35, 0.45, 7.5, 8), "#70512c", px, 3.75, pz, 1, 1, 1, 0, (i % 3) * 0.2));
+      for (let f = 0; f < 6; f++) {
+        const fa = (f / 6) * Math.PI * 2;
+        g.add(mk(B(3.4, 0.15, 0.9), "#485c23", px + Math.sin(fa) * 1.6, 7.6, pz + Math.cos(fa) * 1.6, 1, 1, 1, 0.3, fa));
+      }
+    }
+  }
+
+  const boatPositions = [[-45, 212, 0.15], [55, 208, -0.2], [15, 215, 0.05]];
+  for (const [bx, bz, bra] of boatPositions) {
+    const boat = grp(
+      mk(B(6.5, 1.2, 2.4), "#c7a35e", 0, 0.6, 0, 1, 1, 1, 0, 0, 0),
+      mk(B(5.5, 0.2, 2.0), "#9e7549", 0, 1.2, 0),
+      mk(C(0.12, 0.12, 5.2, 6), "#5a3b1e", -1.0, 3.2, 0),
+      mk(B(0.15, 3.8, 2.8), "#f4f2ec", 0.4, 3.4, 0, 1, 1, 1, 0, 0, 0.15)
+    );
+    boat.position.set(bx, -0.1, bz);
+    boat.rotation.y = bra;
+    g.add(boat);
+  }
+  return g;
+};
+
+const buildEgyptArchitecture = () => {
+  const g = new THREE.Group();
+  g.add(tbox(B(34, 0.8, 28), "limestone", "#e3d0a8", 0, 0.4, 0, 4, 1, 3));
+  for (const sx of [-1, 1]) {
+    g.add(
+      tbox(B(10, 22, 10), "hieroglyph_wall", "#d9c39a", sx * 11, 11, 0, 1, 1, 1, 0, 0, 0, 2, 6),
+      tbox(B(11.2, 1.8, 11.2), "limestone", "#cdb487", sx * 11, 22.9, 0, 1, 1, 1, 0, 0, 0, 3, 1),
+      mk(B(11.6, 0.8, 11.6), "#e0b441", sx * 11, 24.1, 0)
+    );
+    const pharaoh = buildSeatedPharaoh();
+    pharaoh.position.set(sx * 6, 0.8, 6.0);
+    pharaoh.rotation.y = sx * 0.25;
+    g.add(pharaoh);
+  }
+  g.add(
+    tbox(B(8, 16, 10), "limestone", "#d8c292", 0, 8, 0, 2, 1, 4),
+    mk(B(6.5, 12, 0.4), "#2b1d12", 0, 6, 5.1),
+    tbox(B(8.4, 1.2, 10.4), "hieroglyph_wall", "#c9ab72", 0, 16.6, 0)
+  );
+  for (let i = -1; i <= 1; i += 2) {
+    for (const zpos of [-3, 3]) {
+      g.add(buildPaintedColumn(i * 4.5, zpos, 13));
+    }
+  }
+  for (const sx of [-1, 1]) {
+    const ob = buildObelisk();
+    ob.position.set(sx * 16, 0.4, 14);
+    g.add(ob);
+  }
+  g.add(buildMudBrickVillage());
+  g.add(buildNileAndPalms());
   return g;
 };
 
@@ -459,7 +573,9 @@ export const buildRealm = (se: Season, era: string = "ancient") => {
   const oc = buildBiome("ocean", se, false); oc.position.set(LOCS.ocean[0], 0, LOCS.ocean[1]); R.add(oc);
   const tw = buildTown(se); tw.name = "townPlaza"; tw.position.set(LOCS.town[0], 0, LOCS.town[1]); R.add(tw);
   const arch = buildEraArchitecture(era, se); arch.name = "eraArchitecture"; arch.position.set(LOCS.city[0], 0, LOCS.city[1]); R.add(arch);
-  const pc = castle(); pc.position.set(LOCS.palace[0], 0, LOCS.palace[1] - 28); R.add(pc);
+  const palaceObj = /medieval|castle|kingdom|knight/i.test(era) ? castle() : buildEraArchitecture(era, se);
+  palaceObj.position.set(LOCS.palace[0], 0, LOCS.palace[1] - 28);
+  R.add(palaceObj);
   const mm = mineMouth(); mm.position.set(LOCS.mine[0], 0, LOCS.mine[1] - 14); R.add(mm);
   const cm = caveMouth(); cm.position.set(LOCS.cave[0], 0, LOCS.cave[1] - 14); R.add(cm);
   for (const [lx, lz] of [[-60, -240], [90, -520], [-110, 260], [260, 240], [-250, 20]]) { for (let i = 0; i < 14; i++) { const x = lx + (rnd() - 0.5) * 140, z = lz + (rnd() - 0.5) * 140; if (flatOf(x, z) > 0.98 || seaOf(x, z) > 0.2 || Math.hypot(x-LOCS.mountain[0],z-LOCS.mountain[1])<240) continue; const y = heightAt(x, z); R.add(mk(C(0.4, 0.6, 5, 7), "#6b4a2a", x, y + 2.5, z), mk(S(3, 9, 7), se === "autumn" ? "#e0832a" : se === "winter" ? "#e8f1f7" : "#3f9f3f", x, y + 6.5, z)); } }

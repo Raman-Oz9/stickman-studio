@@ -6,6 +6,7 @@ var WD = (function () {
     gold:   { sky: ["#4d79c9", "#f2a76b", "#ffd9a0"], sun: [0.3, 0.12], sunCol: "#ffe0a0", amb: "#ffc98a", ambK: 0.12, fog: "#f6c79a", haze: "#f3b57e", light: -1 },
     dusk:   { sky: ["#2b2f78", "#a2527f", "#f59d6a"], sun: [0.78, 0.2], sunCol: "#ffb978", amb: "#d98aa0", ambK: 0.16, fog: "#c9759a", haze: "#d9809a", light: 1 },
     night:  { sky: ["#070c24", "#142149", "#27407a"], sun: [0.25, -0.12], sunCol: "#eaf1ff", amb: "#6a84cc", ambK: 0.26, fog: "#26407a", haze: "#2c4a86", light: -1, night: true },
+    storm:  { sky: ["#232a3a", "#4a5568", "#8a93a0"], sun: [0.5, -0.5], sunCol: "#cfd6e0", amb: "#6f7c93", ambK: 0.3, fog: "#59636f", haze: "#6a7480", light: 1 },
     inner:  { sky: ["#2a1d17", "#4a3326", "#6a4a34"], sun: [0.5, -0.5], sunCol: "#ffd9a0", amb: "#ffb86a", ambK: 0.2, fog: "#4a3326", haze: "#5a3e2c", light: 1 }
   };
   var cur = TOD.day, curName = "day";

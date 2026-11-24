@@ -14,10 +14,10 @@ texts = json.load(open(sys.argv[1])); out = sys.argv[2]; os.makedirs(out, exist_
 parts, durs = [], []
 for i, t in enumerate(texts):
     a = synth(t["text"], i, "n")
-    if t["quote"]: a = np.concatenate([a, np.zeros(int(0.3 * SR), "float32"), synth(t["quote"], i, "q", os.environ.get("QUOTE_VOICE", "af_heart"))])
-    d = max(5.0, len(a) / SR + 1.1); parts.append(a); durs.append(round(d, 3))
-total = sum(durs) + 1.5; nar = np.zeros(int(total * SR), "float32"); t0 = 0.0
-for a, d in zip(parts, durs): s = int((t0 + 0.35) * SR); nar[s:s + len(a)] += a; t0 += d
+    if t["quote"]: a = np.concatenate([a, np.zeros(int(0.12 * SR), "float32"), synth(t["quote"], i, "q", os.environ.get("QUOTE_VOICE", "af_heart"))])
+    d = len(a) / SR + 0.14; parts.append(a); durs.append(round(d, 3))
+total = sum(durs) + 1.2; nar = np.zeros(int(total * SR), "float32"); t0 = 0.0
+for a, d in zip(parts, durs): s = int((t0 + 0.12) * SR); nar[s:s + len(a)] += a; t0 += d
 try:
     import story_audio; m = story_audio.music(total, None)[: len(nar)]
     if getattr(story_audio, "SR", SR) != SR: m = np.interp(np.linspace(0, len(m) - 1, len(nar)), np.arange(len(m)), m)

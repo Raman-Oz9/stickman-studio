@@ -127,6 +127,27 @@
   }
 
   // ---------- scene set ----------
+  // ---------- weather & ambient FX (screen space) ----------
+  function weatherFx(kind, dt) {
+    if (!kind) return; var VW = S.VW, VH = S.VH, t = S.time, i, r;
+    ctx.save();
+    if (kind === "storm" || kind === "rain") {
+      ctx.strokeStyle = "rgba(210,228,248,.5)"; ctx.lineWidth = 1.8; ctx.beginPath();
+      for (i = 0; i < 230; i++) { var h1 = Math.abs(Math.sin(i * 12.9898) * 43758.5453) % 1, h2 = Math.abs(Math.sin(i * 78.233 + 1.7) * 24634.6345) % 1, sp = 1300 + h2 * 700, x0 = ((h1 * (VW + 300) - t * 260 * (0.6 + h2)) % (VW + 300) + VW + 300) % (VW + 300) - 100, y0 = (h2 * VH * 1.3 + t * sp) % (VH + 200) - 100; ctx.moveTo(x0, y0); ctx.lineTo(x0 - 26, y0 + 70); }
+      ctx.stroke();
+      ctx.fillStyle = "rgba(190,210,230,.10)"; ctx.fillRect(0, 0, VW, VH);
+      if (kind === "storm") { var ph = (t * 0.43) % 1; var bolt = ph < 0.05 ? 1 - ph / 0.05 : (ph > 0.09 && ph < 0.13 ? 0.6 * (1 - (ph - 0.09) / 0.04) : 0); if (bolt > 0) { ctx.fillStyle = "rgba(235,242,255," + (0.5 * bolt) + ")"; ctx.fillRect(0, 0, VW, VH); if (ph < 0.05) { ctx.strokeStyle = "rgba(255,255,255," + bolt + ")"; ctx.lineWidth = 4; ctx.beginPath(); var bx = VW * (0.25 + 0.5 * ((Math.floor(t * 0.43) * 0.37) % 1)), by = 0; ctx.moveTo(bx, by); for (i = 0; i < 9; i++) { bx += (Math.sin(i * 7.1 + Math.floor(t * 0.43)) * 40); by += VH * 0.055; ctx.lineTo(bx, by); } ctx.stroke(); } } }
+    } else if (kind === "sand") {
+      ctx.fillStyle = "rgba(226,184,120,.16)"; ctx.fillRect(0, 0, VW, VH);
+      for (i = 0; i < 90; i++) { var x1 = ((i * 131.7 + t * (700 + (i % 5) * 160)) % (VW + 400)) - 200, y1 = (i * 53.9) % VH; ctx.fillStyle = "rgba(240,205,140," + (0.12 + (i % 4) * 0.05) + ")"; ctx.fillRect(x1, y1, 50 + (i % 6) * 22, 2 + (i % 3)); }
+    } else if (kind === "fog") {
+      for (i = 0; i < 4; i++) { var fy = VH * (0.45 + i * 0.12), dx = Math.sin(t * 0.15 + i) * 60; var g = ctx.createLinearGradient(0, fy - 160, 0, fy + 160); g.addColorStop(0, "rgba(190,205,235,0)"); g.addColorStop(0.5, "rgba(190,205,235,.2)"); g.addColorStop(1, "rgba(190,205,235,0)"); ctx.fillStyle = g; ctx.fillRect(dx - 100, fy - 160, VW + 200, 320); }
+    } else if (kind === "birds") {
+      ctx.strokeStyle = "rgba(30,30,50,.75)"; ctx.lineWidth = 3; ctx.lineCap = "round";
+      for (i = 0; i < 9; i++) { var bx2 = ((t * (60 + i * 6) + i * 210) % (VW + 300)) - 150, by2 = VH * (0.12 + (i % 4) * 0.06) + Math.sin(t * 0.9 + i) * 14, fl = Math.sin(t * 7 + i * 1.7) * 9; ctx.beginPath(); ctx.moveTo(bx2 - 16, by2 - 4 - fl); ctx.quadraticCurveTo(bx2 - 7, by2 - 9 + fl * 0.3, bx2, by2); ctx.quadraticCurveTo(bx2 + 7, by2 - 9 + fl * 0.3, bx2 + 16, by2 - 4 - fl); ctx.stroke(); }
+    }
+    ctx.restore();
+  }
   var SCENES = [];
   function scene(o) { SCENES.push(o); return o; }
 
@@ -137,30 +158,30 @@
       { a: 0.36, mode: "sea", nochars: true, cam: function (v) { var ux = lerp(-260, 220, 0.5 + v * 0.3) * 0.5; return { x: (ux + 150) / 0.5 * 0.9, y: -220, z: lerp(1.5, 1.8, v) }; } },
       { a: 0.64, mode: "deck", roll: 0.03, cam: function (v) { return { x: 40, y: -200, z: lerp(1.55, 1.8, ease(v)) }; } }] });
 
-  scene({ text: "At last the fleet reached the shore, and his soldiers stepped onto the sand.", dur: 8.5, chapter: "Shore", tod: "day",
+  scene({ text: "At last the fleet reached the shore, and his soldiers stepped onto the sand.", dur: 8.5, chapter: "Shore", tod: "day", weather: "birds",
     setup: function () { put(A, -520, 1, { pose: "walk", ex: "happy", look: [1, 0] }); R.slice(0, 4).forEach(function (c, i) { put(c, -640 - i * 120, 1, { pose: "march", phase: i * 1.3 }); }); },
     update: function (u, dt) { var sp = 78; [A].concat(R.slice(0, 4)).forEach(function (c) { c.x += sp * dt * (c === A ? 1.05 : 1); if (u > 0.78 && c === A) { c.pose = "look"; } }); },
     world: function () { bgBeach(); },
-    shots: [{ a: 0, cam: follow(A, 1.1, 1.3, 120, -190) }, { a: 0.32, blur: 0, cam: function (v) { var cx = (A.x + R[3].x) / 2; return { x: cx, y: -120, z: lerp(0.9, 1.0, v) }; } }, { a: 0.62, blur: 6, cam: head(A, 2.5, 2.8, 70, 258) }] });
+    shots: [{ a: 0, views: { A: "side", R1: "side", R2: "side", R3: "side", R4: "side" }, cam: follow(A, 1.25, 1.5, 150, -170) }, { a: 0.32, blur: 0, cam: function (v) { var cx = (A.x + R[3].x) / 2; return { x: cx, y: -120, z: lerp(0.9, 1.0, v) }; } }, { a: 0.62, blur: 6, cam: head(A, 2.5, 2.8, 70, 258) }] });
 
   scene({ text: "In Egypt, beneath the great pyramids, a queen was waiting for him.", dur: 7.5, chapter: "Egypt", tod: "gold",
     setup: function () { put(A, -560, 1, { pose: "walk", ex: "smug" }); put(Q, 160, -1, { pose: "idle", ex: "happy", look: [-1, 0] }); },
     update: function (u, dt) { if (A.x < -140) A.x += 74 * dt; else A.pose = "talk"; if (u > 0.55) { A.pose = "idle"; } },
     world: function () { bgEgypt(); },
     foreground: function () { fgPalms(); },
-    shots: [{ a: 0, cam: function (v) { return { x: lerp(-480, -200, ease(v)), y: -190, z: 0.9 }; } }, { a: 0.4, cam: follow(Q, 1.6, 1.85, 0, -200) }, { a: 0.7, cam: between(A, Q, 1.45, -190) }] });
+    shots: [{ a: 0, cam: function (v) { return { x: lerp(-480, -200, ease(v)), y: -190, z: 0.9 }; } }, { a: 0.4, cam: follow(Q, 1.6, 1.85, 0, -200) }, { a: 0.7, views: { A: "back" }, blur: 0, fg: [{ id: "A", dx: -60, view: "back", layer: 1.35, s: 1.15 }], cam: function (v) { return { x: Q.x - 120, y: -210, z: lerp(1.5, 1.75, ease(v)) }; } }] });
 
   scene({ text: "She smiled at him, and said:", quote: "Welcome to Egypt. Gold is only sand that someone loved.", dur: 9.5, chapter: "Quote", tod: "gold",
     setup: function () { put(Q, 0, -1, { pose: "talk", ex: "happy", talk: true, look: [-0.4, 0] }); },
     world: function () { bgEgypt({ nofg: true }); },
-    shots: [{ a: 0, blur: 7, cam: head(Q, 2.4, 2.7, 0, 262) }, { a: 0.42, blur: 6, cam: function (v) { return { x: Q.x - 110 * (1 - v * 0.4), y: -230, z: lerp(1.8, 1.95, v) }; } }, { a: 0.74, blur: 8, cam: head(Q, 3.0, 3.25, 0, 268) }] });
+    shots: [{ a: 0, blur: 7, cam: head(Q, 2.4, 2.7, 0, 262) }, { a: 0.42, blur: 6, views: { Q: "side" }, cam: function (v) { return { x: Q.x - 110 * (1 - v * 0.4), y: -230, z: lerp(1.8, 1.95, v) }; } }, { a: 0.74, blur: 8, cam: head(Q, 3.0, 3.25, 0, 268) }] });
 
   var duel = { t: 0 };
-  scene({ text: "But the Persians marched against him, and the two armies clashed on the plain, spear against shield.", dur: 9, chapter: "Battle", tod: "gold",
-    setup: function () { duel.t = 0; sparks = []; put(A, -380, 1, { pose: "march", item: "sword", shield: true, ex: "angry" }); R.slice(0, 5).forEach(function (c, i) { put(c, -560 - i * 70, 1, { pose: "march", ex: "angry", s: 0.96, phase: i }); }); T.slice(0, 5).forEach(function (c, i) { put(c, 560 + i * 70, -1, { pose: "march", ex: "angry", s: 0.96, phase: i + 1 }); }); T[5].layer = 0.85; },
+  scene({ text: "But the Persians marched against him, and the two armies clashed on the plain, spear against shield.", dur: 9, chapter: "Battle", tod: "storm", weather: "storm",
+    setup: function () { duel.t = 0; sparks = []; put(A, -380, 1, { pose: "march", item: "sword", shield: true, ex: "angry" }); R.slice(0, 5).forEach(function (c, i) { put(c, -560 - i * 70, 1, { pose: "march", ex: "angry", s: 0.96, phase: i, layer: i % 2 && i > 0 ? 0.88 : 1 }); }); T.slice(0, 5).forEach(function (c, i) { put(c, 560 + i * 70, -1, { pose: "march", ex: "angry", s: 0.96, phase: i + 1, layer: i % 2 && i > 0 ? 0.88 : 1 }); }); T[5].layer = 0.85; },
     update: function (u, dt) {
       var adv = ease(clamp((u - 0.03) / 0.27, 0, 1)); A.x = lerp(-380, -62, adv); T[0].x = lerp(560, 30, adv);
-      R.slice(0, 5).forEach(function (c, i) { c.x = lerp(-640 - i * 110, -170 - i * 105, adv); }); T.slice(0, 5).forEach(function (c, i) { c.x = i === 0 ? T[0].x : lerp(640 + i * 110, 120 + i * 105, adv); });
+      R.slice(0, 5).forEach(function (c, i) { c.x = lerp(-640 - i * 140, -190 - i * 150, adv); }); T.slice(0, 5).forEach(function (c, i) { c.x = i === 0 ? T[0].x : lerp(640 + i * 140, 140 + i * 150, adv); });
       var fight = adv >= 1; [A].concat(R.slice(0, 5), T.slice(0, 5)).forEach(function (c) { if (c.fall > 0 || c.pose === "down") return; c.pose = fight ? "fight" : "march"; });
       // scheduled casualties: [char, time, dir]
       [[T[1], 0.38], [R[2], 0.46], [T[2], 0.52], [T[3], 0.6], [R[4], 0.68], [T[0], 0.76]].forEach(function (e) { if (u > e[1]) { e[0].pose = "down"; e[0].fall = clamp((u - e[1]) / 0.07, 0, 1); if (e[0].fall < 0.1 && !e[0]._hit) { e[0]._hit = 1; emit(e[0].x, -150, 22, "#ffd77a"); S.cam.shake = 7; } } else { e[0]._hit = 0; } });
@@ -171,7 +192,7 @@
     },
     world: function () { bgPlain(); },
     foreground: function () { var v = 0; },
-    shots: [{ a: 0, cam: fixed(0, -200, 0.8, 0.88) }, { a: 0.2, cam: function (v) { return { x: lerp(-90, -20, ease(v)), y: -200, z: 1.5 }; } }, { a: 0.46, blur: 6, cam: head(A, 2.4, 2.7, 80, 258) }, { a: 0.62, cam: function (v) { return { x: lerp(40, -40, ease(v)), y: -90, z: 1.25 }; } }, { a: 0.82, cam: fixed(0, -200, 0.85, 0.8) }] });
+    shots: [{ a: 0, cam: fixed(0, -200, 0.8, 0.88) }, { a: 0.2, cam: function (v) { return { x: lerp(-90, -20, ease(v)), y: -200, z: 1.5 }; } }, { a: 0.46, blur: 6, cam: head(A, 2.4, 2.7, 80, 258) }, { a: 0.62, views: { A: "back" }, fg: [{ id: "A", dx: -230, view: "back", layer: 1.4, s: 1.1, pose: "fight" }], cam: function (v) { return { x: lerp(-60, 10, ease(v)), y: -190, z: lerp(1.35, 1.55, ease(v)) }; } }, { a: 0.82, cam: fixed(0, -200, 0.85, 0.8) }] });
 
   scene({ text: "Victorious, Alexander knelt, and the queen placed the crown upon his head.", dur: 9.5, chapter: "Crown", tod: "gold",
     setup: function () { put(A, -520, 1, { pose: "walk", ex: "smug" }); put(Q, 90, -1, { pose: "idle", ex: "happy", look: [-1, 0] }); R.slice(0, 3).forEach(function (c, i) { put(c, -380 - i * 130, 1, { pose: "idle", ex: "happy", layer: 0.9, s: 0.9 }); }); T.slice(0, 2).forEach(function (c, i) { put(c, 380 + i * 130, -1, { pose: "idle", ex: "happy", layer: 0.9, s: 0.9, item: null, shield: false }); }); },
@@ -193,22 +214,24 @@
     foreground: function () { layer(1, function () { var g = S.vgrad(-30, 80, [[0, "#6a4a2a"], [1, "#3e2814"]]); ctx.fillStyle = g; S.rrect(-110, -40, 220, 66, 8); ctx.fill(); ctx.fillStyle = "#e9dcb4"; S.rrect(-70, -52, 140, 22, 6); ctx.fill(); ctx.strokeStyle = "#a88d55"; ctx.lineWidth = 2; ctx.stroke(); ctx.fillStyle = "#b5242c"; ctx.beginPath(); ctx.arc(-24, -42, 6, 0, 6.283); ctx.fill(); ctx.fillStyle = "#2c6fb3"; ctx.beginPath(); ctx.arc(30, -40, 6, 0, 6.283); ctx.fill(); }); },
     shots: [{ a: 0, cam: pan(-120, 40, -200, 0.95, 1.0) }, { a: 0.18, cam: follow(A, 1.7, 1.95, 60, -190) }, { a: 0.36, blur: 5, cam: head(Q, 2.4, 2.65, 70, 258) }, { a: 0.58, cam: follow(chars.T1, 1.7, 1.9, -50, -190) }, { a: 0.8, cam: pan(260, -100, -200, 0.95, 1.0) }] });
 
-  scene({ text: "Across the sunlit plains, the eight soldiers marched in steadfast formation.", dur: 9.0, chapter: "March", tod: "dusk",
+  scene({ text: "Across the sunlit plains, the eight soldiers marched in steadfast formation.", dur: 9.0, chapter: "March", tod: "dusk", weather: "sand",
     setup: function () { put(A, 0, 1, { key: "alexc", pose: "march", ex: "smug", cloak: 6 }); R.slice(0, 4).forEach(function (c, i) { put(c, -150 - i * 105, 1, { pose: "march", phase: i * 0.9, ex: "happy", s: 0.96 }); }); T.slice(0, 3).forEach(function (c, i) { put(c, -120 - i * 125 - 60, 1, { pose: "march", phase: i * 1.7 + 1, ex: "neutral", s: 0.94, layer: 0.9, face: 1 }); }); },
     update: function (u, dt) { var sp = 124; ALLC.forEach(function (c) { if (c.show) c.x += sp * dt; }); },
     world: function () { bgPlain(); W.dust(40, "rgba(255,210,150,.5)", 120, 3, 3); },
     shots: [{ a: 0, cam: function (v) { return { x: A.x - 160, y: -190, z: 1.05 }; } }, { a: 0.34, cam: function (v) { return { x: A.x - 40, y: -90, z: lerp(1.35, 1.5, v) }; } }, { a: 0.66, blur: 6, cam: function (v) { return { x: A.x + 40, y: -250, z: lerp(2.2, 2.5, v) }; } }] });
 
-  scene({ text: "From mountain peak to distant sea, the empire stood eternal under the open sky.", dur: 8.5, chapter: "Wide", tod: "gold",
-    setup: function () { put(A, 110, -1, { key: "alexc", pose: "look", ex: "happy", look: [-1, -0.1], y: -96, cloak: 10, wind: 18 }); },
+  scene({ text: "From mountain peak to distant sea, the empire stood eternal under the open sky.", dur: 8.5, chapter: "Wide", tod: "gold", weather: "birds",
+    setup: function () { put(A, 70, -1, { key: "alexc", pose: "look", ex: "happy", look: [-1, -0.1], y: -96, cloak: 10, wind: 18 }); },
     world: function () { bgCliff(); },
-    shots: [{ a: 0, cam: function (v) { return { x: lerp(120, -40, ease(v)), y: lerp(-190, -330, ease(v)), z: lerp(1.5, 0.82, ease(v)) }; } }, { a: 0.56, cam: function (v) { return { x: lerp(-40, 0, ease(v)), y: lerp(-330, -480, ease(v)), z: lerp(0.82, 0.62, ease(v)) }; } }] });
+    shots: [{ a: 0, views: { A: "back" }, cam: function (v) { return { x: lerp(150, 30, ease(v)), y: lerp(-230, -260, ease(v)), z: lerp(1.7, 1.05, ease(v)) }; } },
+      { a: 0.4, views: { A: "side" }, cam: function (v) { return { x: lerp(-40, 30, ease(v)), y: -250, z: lerp(1.5, 1.7, ease(v)) }; } },
+      { a: 0.62, cam: function (v) { return { x: lerp(60, -20, ease(v)), y: lerp(-300, -470, ease(v)), z: lerp(1.0, 0.6, ease(v)) }; } }] });
 
-  scene({ text: "And when night fell, the king looked back at the sea he had crossed.", dur: 9, chapter: "Night", tod: "night",
+  scene({ text: "And when night fell, the king looked back at the sea he had crossed.", dur: 9, chapter: "Night", tod: "night", weather: "fog",
     setup: function () { put(A, -30, 1, { key: "alexc", pose: "look", ex: "sad", look: [1, -0.15] }); R.slice(0, 3).forEach(function (c, i) { put(c, 380 + i * 90, -1, { pose: "sit", ex: "sad", item: null, shield: false }); }); },
     update: function (u, dt) { A.look = [1, -0.15 + Math.sin(S.time * 0.4) * 0.03]; },
     world: function (m, u) { bgNight(lerp(900, 4200, u)); campfire(330); },
-    shots: [{ a: 0, blur: 5, cam: head(A, 2.5, 2.7, 80, 262) }, { a: 0.35, cam: function (v) { return { x: lerp(120, 60, ease(v)), y: -190, z: 1.0 }; } }, { a: 0.66, blur: 6, cam: head(A, 3.0, 3.3, 90, 266) }] });
+    shots: [{ a: 0, blur: 5, cam: head(A, 2.5, 2.7, 80, 262) }, { a: 0.35, views: { A: "back" }, fg: [{ id: "A", dx: -120, view: "back", layer: 1.3, s: 1.1 }], cam: function (v) { return { x: lerp(60, 120, ease(v)), y: -190, z: lerp(1.2, 1.35, ease(v)) }; } }, { a: 0.66, blur: 6, cam: head(A, 3.0, 3.3, 90, 266) }] });
 
   // ---------- director ----------
   var si = -1, st = 0, spoken = 0, playing = false, shotIdx = -1, ended = false;
@@ -234,7 +257,10 @@
     // crown flight in the coronation
     if (sc.chapter === "Crown" && u > 0.46 && u < 0.6) { var f = ease((u - 0.46) / 0.14); S.layer(1, function () { var sx = Q.x - 36, sy = -300, ex = A.x + 4, ey = -300; var x = lerp(sx, ex, f), y = lerp(sy, ey, f) - Math.sin(f * Math.PI) * 60, g = ctx.createLinearGradient(0, y - 30, 0, y + 10); g.addColorStop(0, "#fff1b0"); g.addColorStop(1, "#c8962a"); ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(x - 30, y + 8); ctx.lineTo(x - 32, y - 18); ctx.lineTo(x - 17, y - 4); ctx.lineTo(x - 8, y - 30); ctx.lineTo(x, y - 8); ctx.lineTo(x + 8, y - 30); ctx.lineTo(x + 17, y - 4); ctx.lineTo(x + 32, y - 18); ctx.lineTo(x + 30, y + 8); ctx.closePath(); ctx.fill(); ctx.strokeStyle = "#7a5a1a"; ctx.lineWidth = 2; ctx.stroke(); ctx.save(); ctx.globalCompositeOperation = "lighter"; var gl = S.rgrad(x, y - 10, 4, 90, [[0, "rgba(255,230,140,.7)"], [1, "rgba(255,230,140,0)"]]); ctx.fillStyle = gl; ctx.fillRect(x - 100, y - 110, 200, 200); ctx.restore(); }); }
     S.layer(1, function () { drawSparks(dt); });
+    // over-the-shoulder / foreground characters (nearer layer, soft)
+    if (shot.fg) { shot.fg.forEach(function (f) { var base = chars[f.id]; if (!base.show) return; var cl = Object.create(base); cl.x = (f.abs != null ? f.abs : base.x + (f.dx || 0)); cl.view = f.view || "back"; cl.face = f.face || base.face; cl.pose = f.pose || base.pose; cl.s = f.s || 1; cl.y = f.y || 0; S.layer(f.layer || 1.5, function () { CH.draw(cl); }); }); }
     if (sc.foreground) sc.foreground();
+    weatherFx(shot.weather || sc.weather, dt);
     W.vignetteGrade(shot.blur ? 1.15 : 0.9);
     if (flash > 0) { ctx.fillStyle = "rgba(255,244,200," + (0.55 * flash) + ")"; ctx.fillRect(0, 0, VW, VH); flash = Math.max(0, flash - dt * 2.2); }
     W.grain();
@@ -247,6 +273,7 @@
     // shot selection
     var idx = 0; for (var k = 0; k < sc.shots.length; k++) if (u >= sc.shots[k].a) idx = k;
     var sh = sc.shots[idx], nxt = sc.shots[idx + 1] ? sc.shots[idx + 1].a : 1, v = clamp((u - sh.a) / Math.max(0.001, nxt - sh.a), 0, 1);
+    ALLC.forEach(function (c) { c.view = null; }); if (sh.views) for (var vk in sh.views) chars[vk].view = sh.views[vk];
     var tg = sh.cam(v);
     // subtle handheld breathing
     tg = { x: tg.x + Math.sin(S.time * 0.8) * 3, y: tg.y + Math.cos(S.time * 1.1) * 2, z: tg.z * (1 + Math.sin(S.time * 0.5) * 0.004) };

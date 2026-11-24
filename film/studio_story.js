@@ -277,7 +277,7 @@
   var tmp = document.createElement("canvas"), tctx = tmp.getContext("2d");
   var NOUNS = /^(sea|army|fleet|shore|soldiers?|sand|pyramids?|queen|crown|spear|shield|armies|plain|temple|council|realm|mountain|empire|sky|king|gold|head|night)$/i;
   var capWords = [], capHi = -2;
-  function setCap(sc) { var words = sc.text.split(/\s+/); capWords = words.map(function (w, i) { return { w: w, noun: NOUNS.test(w.replace(/[^A-Za-z]/g, "")), i: i }; }); capHi = -2; renderCap(sc, -1); }
+  function setCap(sc) { var words = sc.text.split(/\s+/); capWords = words.map(function (w, i) { return { w: w, noun: NOUNS.test(w.replace(/[^A-Za-z]/g, "")) || !!(window.PR && PR.has(w.replace(/[^A-Za-z]/g, "").toLowerCase().replace(/s$/, ""))), i: i }; }); capHi = -2; renderCap(sc, -1); }
   function renderCap(sc, hi) { var h = capWords.map(function (o) { return o.noun ? '<span class="nn' + (hi >= o.i ? " hi" : "") + '">' + o.w + "</span>" : o.w; }).join(" "); cap.innerHTML = sc.quote ? h + '<br><b style="margin-top:8px">The Queen</b>“' + sc.quote + "”" : h; cap.className = "on"; }
   function enter(i) {
     si = i; st = 0; shotIdx = -1; var sc = SCENES[i]; resetChars(); W.setTod(sc.tod || "day"); sparks = []; flash = 0; if (sc.setup) sc.setup(); setCap(sc);
@@ -300,12 +300,14 @@
     if (shot.fg) { shot.fg.forEach(function (f) { var base = chars[f.id]; if (!base.show) return; var cl = Object.create(base); cl.x = (f.abs != null ? f.abs : base.x + (f.dx || 0)); cl.view = f.view || "back"; cl.face = f.face || base.face; cl.pose = f.pose || base.pose; cl.s = f.s || 1; cl.y = f.y || 0; S.layer(f.layer || 1.5, function () { CH.draw(cl); }); }); }
     if (sc.foreground) sc.foreground();
     weatherFx(shot.weather || sc.weather, dt);
+    // noun pop-up: icon of the noun just spoken (props library from studio_props.js)
+    if (window.PR && capHi >= 0 && capWords[capHi]) { var nn = capWords[capHi].w.replace(/[^A-Za-z]/g, "").toLowerCase().replace(/s$/, ""), age = S.time - (popT || 0); if (nn !== popN) { popN = nn; popT = S.time; age = 0; } if (PR.has(nn) && age < 2.2) { var pa = Math.min(1, age / 0.25), po = age > 1.7 ? (2.2 - age) / 0.5 : 1, sc2 = (0.6 + 0.4 * S.easeOut(pa)) * 1.25 * (1 + 0.05 * Math.sin(age * 5)); ctx.save(); ctx.globalAlpha = po; ctx.fillStyle = "rgba(255,248,225,.82)"; ctx.beginPath(); ctx.arc(VW * 0.78, VH * 0.17, 95 * sc2, 0, 6.283); ctx.fill(); ctx.lineWidth = 4; ctx.strokeStyle = "rgba(60,40,20,.55)"; ctx.stroke(); PR.draw(nn, VW * 0.78, VH * 0.17, sc2, S.time); ctx.restore(); } }
     W.vignetteGrade(shot.blur ? 1.15 : 0.9);
     if (flash > 0) { ctx.fillStyle = "rgba(255,244,200," + (0.55 * flash) + ")"; ctx.fillRect(0, 0, VW, VH); flash = Math.max(0, flash - dt * 2.2); }
     W.grain();
     ctx.restore();
   }
-  var target = { x: 0, y: -170, z: 1 };
+  var target = { x: 0, y: -170, z: 1 }, popN = "", popT = 0;
   function tick(dt) {
     S.time += dt; var sc = SCENES[si]; st += dt; var u = clamp(st / sc.dur, 0, 0.9999);
     if (sc.update) sc.update.call(sc, u, dt);

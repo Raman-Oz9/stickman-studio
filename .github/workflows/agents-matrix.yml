@@ -82,11 +82,11 @@ jobs:
           git checkout -q -- docs/OPENCODE_QUEUE.md remotion/package-lock.json 2>/dev/null || true
           DONE=" "
           if [ -n "$(git status --porcelain | grep -v node_modules | grep -v package-lock)" ]; then
-            if (cd remotion && npm install --no-audit --no-fund >/dev/null 2>&1 && npx tsc --noEmit > /tmp/tsc.txt 2>&1); then
+            if (cd remotion && npm install --no-audit --no-fund >/dev/null 2>&1 && npx tsc --noEmit > /tmp/tsc.txt 2>&1) && (for f in film/*.js film/*.mjs; do [ -f "$f" ] && { case $f in film/engine.js) ;; *) node --check "$f" || exit 1;; esac; }; exit 0) && (for f in film/*.py; do python3 -m py_compile "$f" || exit 1; done; exit 0); then
               rm -rf remotion/node_modules
               git add -A -- . ':!remotion/package-lock.json' ':!remotion/node_modules'
               git commit -qm "${{ matrix.agent }}: task $N" || true
-              if git diff --quiet origin/main HEAD -- remotion .github stickman_studio 2>/dev/null; then DONE=" "; echo "no real code change: re-open task"; else
+              if git diff --quiet origin/main HEAD -- remotion .github stickman_studio film docs 2>/dev/null; then DONE=" "; echo "no real code change: re-open task"; else
               for t in 1 2 3 4; do
                 git fetch -q origin main; git merge -q --no-edit -X ours origin/main >/dev/null 2>&1 || true
                 git push -q origin HEAD:main && DONE="x" && break

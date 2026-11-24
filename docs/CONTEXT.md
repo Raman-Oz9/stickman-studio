@@ -277,3 +277,7 @@
 ### 2026-11-24 — Fill film/studio_props.js with 30 illustrated flat-vector props
 - Filled `film/studio_props.js` providing global `PR = (function(){ ... return { draw(name, x, y, s, t), has(name) } })()` drawing all 30 requested nouns (crown, spear, shield, sword, scroll, gold coins, ship, torch, bow, arrow, helmet, flag, throne, chest, sun, moon, star, rocket, planet, satellite, fish, whale, anchor, key, book, map, wheel, castle, tent, horse) using `ST` canvas helpers.
 - Verified with `node --check film/studio_props.js` and `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` with zero errors.
+
+### 2026-11-24 — Fill film/studio_places.js with 8 polished 2D studio environment background builders
+- Updated `film/studio_places.js` to provide a global `PL = {...}` of 8 background builders (`space`, `ocean`, `castle`, `city`, `forest`, `snow`, `volcano`, `jungle`), each drawing with `ST.layer(p, fn)` parallax with gradients, layered depth, and atmospheric detailing.
+- Verified with `node --check film/studio_places.js` and `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` with zero errors.

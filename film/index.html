@@ -371,6 +371,9 @@ Eng.loadTextures().catch(function () {}).then(function () {
   function showTeals(v) { teals.forEach(function (c) { c.hide = !v; }); }
   var QUEEN = function () { return chars[chars.length - 1]; };
   var SCENES = [
+    { text: "At the heart of the realm in the old town plaza, the market bustled with life.", dur: 8.5, chapter: "Town",
+      setup: function () { battle = false; nightT = 0; showTeals(false); chars.forEach(function (c) { c.hide = !(c === player || reds.indexOf(c) >= 0); }); place(player, 0, 2, 0, 0); reds.forEach(function (c, i) { place(c, -3 + i * 2, -3, -3 + i * 2, -3); }); },
+      cam: function (u) { var cx = 4 - u * 8, cz = 12 - u * 4; return { p: V3(cx, H(cx, cz) + 2.4, cz), l: V3(0, H(0, 0) + 1.8, 0) }; } },
     { text: "Alexander led his army across the sea.", dur: 7.5, chapter: "Sea",
       setup: function () { nightT = 0; battle = false; showTeals(false); player.key = "alex"; chars.forEach(function (c) { c.hide = true; }); },
       cam: function (u) { var p = shipPos(); return { p: V3(p.x + 78 - u * 34, 17 - u * 7, p.z + 58 - u * 24), l: V3(p.x, 4, p.z) }; } },
@@ -415,6 +418,7 @@ Eng.loadTextures().catch(function () {}).then(function () {
   function arcC(c, a0, a1, dist, h, ly) { return function (v) { var a = (a0 + (a1 - a0) * v) * DEG, x = c.x + Math.sin(a) * dist, z = c.z + Math.cos(a) * dist; return { p: V3(x, gy(x, z) + h, z), l: V3(c.x, gy(c.x, c.z) + ly, c.z) }; }; }
   function arcM(fn, a0, a1, dist, h, ly) { return function (v) { var m = fn(), a = (a0 + (a1 - a0) * v) * DEG, x = m[0] + Math.sin(a) * dist, z = m[1] + Math.cos(a) * dist; return { p: V3(x, gy(x, z) + h, z), l: V3(m[0], gy(m[0], m[1]) + ly, m[1]) }; }; }
   var ALL = function () { var x = 0, z = 0, n = 0; chars.forEach(function (c) { if (!c.hide) { x += c.x; z += c.z; n++; } }); return [x / Math.max(1, n), z / Math.max(1, n)]; };
+  SH.Town = [[0, arcC(player, -30, 30, 6, 1.8, 1.5)], [0.5, arcM(avg([player].concat(reds)), 45, 90, 9, 2.0, 1.4)]];
   SH.Sea = [[0, shipRel(12, 32, 5, 5)], [0.36, shipRel(44, 4, 4, 5.5)], [0.68, shipRel(-24, 6, 13, 5, 28)]];
   SH.Shore = [[0, arcC(player, -100, -60, 7, 1.7, 1.4)], [0.3, arcM(avg([player].concat(reds)), 15, 55, 12, 2.2, 1.3)], [0.65, arcC(player, -50, -20, 5, 1.7, 1.5)]];
   SH.Egypt = [[0, arcC(player, -55, -25, 7, 1.8, 1.5)], [0.4, arcC(QUEEN(), 15, -8, 6.2, 1.7, 1.5)], [0.7, arcM(avg([player, QUEEN()]), 40, 70, 10, 2.1, 1.5)]];
@@ -471,7 +475,7 @@ Eng.loadTextures().catch(function () {}).then(function () {
       n.obj.scale.setScalar(Math.max(0.01, sc2)); n.obj.rotation.y = u * 4 + k;
     });
   }
-  var EXS = { Sea: {}, Shore: { p: "happy", reds: "neutral" }, Egypt: { p: "smug", q: "happy" }, Quote: { q: "happy" }, Battle: { p: "angry", reds: "angry", teals: "angry" }, Crown: { p: "happy", q: "happy" }, Council: { p: "neutral", q: "smug", reds: "neutral" }, March: { p: "smug", reds: "happy", teals: "neutral" }, Wide: { p: "happy", q: "happy", reds: "happy", teals: "happy" }, Night: { p: "sad", reds: "sad" } };
+  var EXS = { Town: { p: "happy", reds: "happy" }, Sea: {}, Shore: { p: "happy", reds: "neutral" }, Egypt: { p: "smug", q: "happy" }, Quote: { q: "happy" }, Battle: { p: "angry", reds: "angry", teals: "angry" }, Crown: { p: "happy", q: "happy" }, Council: { p: "neutral", q: "smug", reds: "neutral" }, March: { p: "smug", reds: "happy", teals: "neutral" }, Wide: { p: "happy", q: "happy", reds: "happy", teals: "happy" }, Night: { p: "sad", reds: "sad" } };
   function applyEx(sc) { var m = EXS[sc.chapter] || {}; chars.forEach(function (c) { c.ex = c === player ? m.p : c === QUEEN() ? m.q : reds.indexOf(c) >= 0 ? m.reds : teals.indexOf(c) >= 0 ? m.teals : undefined; }); }
   function enterScene() {
     var sc = SCENES[si]; st = 0; sc.setup(); applyEx(sc); showCap(sc); prepNouns(sc); renderCapWords(sc, -1);

@@ -245,3 +245,8 @@
 - Updated `remotion/src/videos/story/castPerf.ts` to map all `VERBS`.
 - Ran `cd remotion && npx tsc --noEmit` successfully with zero errors.
 - film: Egyptian temple + smooth pyramids, wider orbiting shots, expressions+teeth, wide scene moved off town
+
+### 2026-11-24 — Resolve town floor z-fighting and add town scene to film engine
+- Updated `remotion/src/videos/story/realm.ts` (`buildTown` and `heightAt`) to apply `polygonOffset` and slight depth adjustment to town floor/roads and sink terrain under locations, eliminating green z-fighting flicker.
+- Updated `film/index.html` to add a town market scene at `LOCS.town`.
+- Ran `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` successfully with zero errors.

@@ -38,7 +38,13 @@ export const heightAt = (x: number, z: number) => {
   h += desertMask*(1-flat)*(Math.sin(x*.075+z*.026)*1.9+Math.sin(x*.16+z*.05)*.45);
   const mountainMask=sm(650,820,-z)*(1-sm(180,340,Math.abs(x)));
   h += mountainMask*(1-flat)*(Math.pow(1-Math.abs(Math.sin(x*.013+z*.009)),2)*28+Math.abs(broad)*10);
-  const sea = seaOf(x, z); return h * (1 - sea) - 9 * sea - 0.08;
+  const sea = seaOf(x, z);
+  let townSink = 0;
+  for (const k in LOCS) {
+    const d = Math.hypot(x - LOCS[k][0], z - LOCS[k][1]);
+    if (d < 80) townSink = Math.max(townSink, (1 - sm(0, 80, d)) * 0.25);
+  }
+  return (h * (1 - sea) - 9 * sea - 0.08) - townSink;
 };
 const NOISE = (x: number, z: number) => 0.92 + 0.08 * Math.sin(x * 0.05) * Math.cos(z * 0.043) + 0.05 * Math.sin(x * 0.19 + z * 0.17);
 const season = (c: THREE.Color, se: Season, h: number, b: boolean) => { if (se === "winter" && !b) c.lerp(new THREE.Color("#f4f8fc"), 0.85); else if (se === "autumn") c.lerp(new THREE.Color("#c99a3a"), 0.28); else if (se === "spring") c.lerp(new THREE.Color("#8fd16a"), 0.2); if (h > 34) c.lerp(new THREE.Color("#f4f8fc"), Math.min(1, (h - 34) / 14)); return c; };
@@ -89,14 +95,14 @@ const winTex = (seed: number) => { const c = document.createElement("canvas"); c
 export const buildTown = (se: Season) => {
   const g = new THREE.Group();
   let sd = 137; const rnd = () => ((sd = (sd * 16807) % 2147483647) / 2147483647);
-  const cobMat = new THREE.MeshLambertMaterial({ color: "#ffffff", flatShading: false });
+  const cobMat = new THREE.MeshLambertMaterial({ color: "#ffffff", flatShading: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 });
   if (TEX.cobblestone) {
     const ct = TEX.cobblestone.clone();
     ct.needsUpdate = true;
     ct.repeat.set(28, 28);
     cobMat.map = ct;
   }
-  const grassMat = new THREE.MeshLambertMaterial({ color: "#ffffff", flatShading: false });
+  const grassMat = new THREE.MeshLambertMaterial({ color: "#ffffff", flatShading: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 });
   if (TEX.grass) {
     const gt = TEX.grass.clone();
     gt.needsUpdate = true;
@@ -104,14 +110,14 @@ export const buildTown = (se: Season) => {
     grassMat.map = gt;
   }
   const floorMesh = new THREE.Mesh(new THREE.BoxGeometry(140, 0.08, 140), cobMat);
-  floorMesh.position.set(0, 0.02, 0);
+  floorMesh.position.set(0, 0.04, 0);
   floorMesh.receiveShadow = true;
   g.add(floorMesh);
   const roadX = new THREE.Mesh(new THREE.BoxGeometry(200, 0.06, 16), grassMat);
-  roadX.position.set(0, 0.03, 0);
+  roadX.position.set(0, 0.06, 0);
   roadX.receiveShadow = true;
   const roadZ = new THREE.Mesh(new THREE.BoxGeometry(16, 0.06, 200), grassMat);
-  roadZ.position.set(0, 0.03, 0);
+  roadZ.position.set(0, 0.06, 0);
   roadZ.receiveShadow = true;
   g.add(roadX, roadZ);
   g.add(

@@ -234,6 +234,111 @@
     shots: [{ a: 0, blur: 5, cam: head(A, 2.5, 2.7, 80, 262) }, { a: 0.35, views: { A: "back" }, fg: [{ id: "A", dx: -120, view: "back", layer: 1.3, s: 1.1 }], cam: function (v) { return { x: lerp(60, 120, ease(v)), y: -190, z: lerp(1.2, 1.35, ease(v)) }; } }, { a: 0.66, blur: 6, cam: head(A, 3.0, 3.3, 90, 266) }] });
 
   // ---------- director ----------
+  // ================= SET PIECES (library used by the script director) =================
+  var BUILT = SCENES.slice(0, 10); SCENES.length = 10;
+  var puffs = [];
+  function puff(x, y, n, col, r0, vy) { for (var i = 0; i < n; i++) puffs.push({ x: x + (Math.random() - 0.5) * 40, y: y, vx: (Math.random() - 0.5) * 120, vy: (vy == null ? -40 : vy) * (0.4 + Math.random()), r: r0 * (0.6 + Math.random() * 0.7), t: 0, life: 1.6 + Math.random(), col: col || "#d8d8d8" }); }
+  function drawPuffs(dt) { puffs = puffs.filter(function (p) { return p.t < p.life; }); puffs.forEach(function (p) { p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; var k = p.t / p.life; ctx.globalAlpha = 0.55 * (1 - k); ctx.fillStyle = p.col; ctx.beginPath(); ctx.arc(p.x, p.y, p.r * (1 + k * 2.2), 0, 6.283); ctx.fill(); }); ctx.globalAlpha = 1; }
+  function ol(fill, w) { ctx.fillStyle = fill; ctx.fill(); ctx.lineWidth = w || 3; ctx.strokeStyle = S.dk(fill, 0.55); ctx.lineJoin = "round"; ctx.stroke(); }
+  function rocketDraw(x, y, flame, door) {
+    ctx.save(); ctx.translate(x, y);
+    if (flame > 0) { var fl = 120 + 260 * flame + Math.random() * 40; var g = S.rgrad(0, 40, 4, fl, [[0, "rgba(255,250,200,1)"], [0.35, "rgba(255,170,40,.9)"], [1, "rgba(255,80,0,0)"]]); ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(-34, 0); ctx.quadraticCurveTo(-50, fl * 0.5, 0, fl); ctx.quadraticCurveTo(50, fl * 0.5, 34, 0); ctx.fill(); ctx.globalCompositeOperation = "lighter"; ctx.fillStyle = S.rgrad(0, 30, 10, 300, [[0, "rgba(255,170,60,.45)"], [1, "rgba(255,120,0,0)"]]); ctx.fillRect(-300, -270, 600, 600); ctx.globalCompositeOperation = "source-over"; }
+    ctx.beginPath(); ctx.moveTo(-70, 0); ctx.lineTo(-92, 0); ctx.lineTo(-52, -140); ctx.lineTo(-52, -40); ctx.closePath(); ol("#d33a2e"); ctx.beginPath(); ctx.moveTo(70, 0); ctx.lineTo(92, 0); ctx.lineTo(52, -140); ctx.lineTo(52, -40); ctx.closePath(); ol("#d33a2e");
+    ctx.beginPath(); ctx.moveTo(-58, 0); ctx.lineTo(-58, -430); ctx.quadraticCurveTo(-52, -640, 0, -720); ctx.quadraticCurveTo(52, -640, 58, -430); ctx.lineTo(58, 0); ctx.closePath();
+    var bg = ctx.createLinearGradient(-58, 0, 58, 0); bg.addColorStop(0, "#c9d2dc"); bg.addColorStop(0.35, "#ffffff"); bg.addColorStop(1, "#aab6c4"); ctx.fillStyle = bg; ctx.fill(); ctx.lineWidth = 3.5; ctx.strokeStyle = "#5c6878"; ctx.stroke();
+    ctx.fillStyle = "#d33a2e"; ctx.fillRect(-58, -250, 116, 26); ctx.fillRect(-58, -300, 116, 10);
+    ctx.beginPath(); ctx.moveTo(-58, -560); ctx.quadraticCurveTo(-30, -700, 0, -720); ctx.quadraticCurveTo(30, -700, 58, -560); ctx.closePath(); ctx.fillStyle = "#d33a2e"; ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, -450, 28, 0, 6.283); ol("#7fc8ee", 4); ctx.fillStyle = "rgba(255,255,255,.5)"; ctx.beginPath(); ctx.ellipse(-8, -460, 8, 14, 0.6, 0, 6.283); ctx.fill();
+    ctx.beginPath(); ctx.rect(-26, -42, 52, 42); ol("#6a7686"); if (door) { ctx.fillStyle = "#1c2430"; ctx.fillRect(-18, -150, 36, 70); ctx.strokeStyle = "#5c6878"; ctx.strokeRect(-18, -150, 36, 70); }
+    ctx.restore();
+  }
+  function towerDraw(x) { ctx.save(); ctx.translate(x, 0); ctx.fillStyle = "#8d98a6"; ctx.strokeStyle = "#4b5663"; ctx.lineWidth = 4; for (var s = 0; s < 9; s++) { var y0 = -s * 90; ctx.strokeRect(-34, y0 - 90, 68, 90); ctx.beginPath(); ctx.moveTo(-34, y0); ctx.lineTo(34, y0 - 90); ctx.moveTo(34, y0); ctx.lineTo(-34, y0 - 90); ctx.stroke(); } ctx.fillRect(34, -560, 90, 14); ctx.restore(); }
+  function whaleDraw(x, y, L, t, dir) {
+    ctx.save(); ctx.translate(x, y); ctx.scale(dir || 1, 1); var sw = Math.sin(t * 1.6) * L * 0.02;
+    ctx.beginPath(); ctx.moveTo(-L * 0.5, 0); ctx.quadraticCurveTo(-L * 0.47, -L * 0.17, -L * 0.1, -L * 0.17); ctx.quadraticCurveTo(L * 0.25, -L * 0.14, L * 0.42, -L * 0.03 + sw); ctx.lineTo(L * 0.5, -L * 0.14 + sw * 2); ctx.quadraticCurveTo(L * 0.56, -L * 0.1 + sw * 2, L * 0.51, -L * 0.01 + sw); ctx.quadraticCurveTo(L * 0.56, L * 0.09 + sw * 2, L * 0.5, L * 0.12 + sw * 2); ctx.lineTo(L * 0.42, L * 0.03 + sw); ctx.quadraticCurveTo(L * 0.1, L * 0.19, -L * 0.2, L * 0.17); ctx.quadraticCurveTo(-L * 0.46, L * 0.12, -L * 0.5, 0); ctx.closePath();
+    var g = ctx.createLinearGradient(0, -L * 0.17, 0, L * 0.18); g.addColorStop(0, "#2a5f8f"); g.addColorStop(0.6, "#4a86b5"); g.addColorStop(1, "#cfe3ee"); ctx.fillStyle = g; ctx.fill(); ctx.lineWidth = 4; ctx.strokeStyle = "#173a5a"; ctx.stroke();
+    ctx.strokeStyle = "rgba(255,255,255,.35)"; ctx.lineWidth = 3; for (var i = 0; i < 6; i++) { ctx.beginPath(); ctx.moveTo(-L * 0.36 + i * L * 0.04, L * 0.08); ctx.quadraticCurveTo(-L * 0.3 + i * L * 0.04, L * 0.13, -L * 0.22 + i * L * 0.04, L * 0.15); ctx.stroke(); }
+    ctx.strokeStyle = "#173a5a"; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(-L * 0.5, L * 0.02); ctx.quadraticCurveTo(-L * 0.3, L * 0.09, -L * 0.14, L * 0.06); ctx.stroke();
+    ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(-L * 0.36, -L * 0.01, L * 0.018, 0, 6.283); ctx.fill(); ctx.fillStyle = "#101820"; ctx.beginPath(); ctx.arc(-L * 0.355, -L * 0.01, L * 0.01, 0, 6.283); ctx.fill();
+    ctx.save(); ctx.translate(-L * 0.15, L * 0.12); ctx.rotate(0.5 + Math.sin(t * 1.6 + 1) * 0.25); ctx.beginPath(); ctx.ellipse(L * 0.04, L * 0.07, L * 0.05, L * 0.11, 0.3, 0, 6.283); ol("#2f6f9f"); ctx.restore();
+    ctx.restore();
+  }
+  function subDraw(x, y, t, dir) {
+    ctx.save(); ctx.translate(x, y); ctx.scale(dir || 1, 1); ctx.globalCompositeOperation = "lighter"; var bm = ctx.createLinearGradient(-190, 0, -700, 0); bm.addColorStop(0, "rgba(255,250,190,.55)"); bm.addColorStop(1, "rgba(255,250,190,0)"); ctx.fillStyle = bm; ctx.beginPath(); ctx.moveTo(-190, -10); ctx.lineTo(-700, -170); ctx.lineTo(-700, 150); ctx.lineTo(-190, 20); ctx.fill(); ctx.globalCompositeOperation = "source-over";
+    ctx.beginPath(); ctx.ellipse(0, 0, 200, 76, 0, 0, 6.283); ol("#f2c230"); ctx.beginPath(); ctx.rect(-40, -120, 80, 56); ol("#e8b020"); ctx.fillStyle = "#e8b020"; ctx.fillRect(-4, -170, 8, 52); ctx.fillRect(-4, -170, 34, 8);
+    [-100, -30, 40, 110].forEach(function (px) { ctx.beginPath(); ctx.arc(px, -4, 20, 0, 6.283); ol("#8fd4f2", 4); ctx.fillStyle = "rgba(255,255,255,.45)"; ctx.beginPath(); ctx.arc(px - 6, -10, 6, 0, 6.283); ctx.fill(); });
+    ctx.save(); ctx.translate(206, 0); ctx.rotate(t * 14); ctx.beginPath(); ctx.ellipse(0, 0, 8, 46, 0, 0, 6.283); ol("#6a7686", 3); ctx.restore(); ctx.beginPath(); ctx.moveTo(180, -40); ctx.lineTo(236, -66); ctx.lineTo(236, 66); ctx.lineTo(180, 40); ctx.closePath(); ol("#d89a1c");
+    ctx.restore();
+  }
+  function anglerDraw(x, y, s, t) { ctx.save(); ctx.translate(x, y); ctx.scale(s, s); ctx.beginPath(); ctx.ellipse(0, 0, 70, 52, 0, 0, 6.283); ol("#1d3a4a"); ctx.beginPath(); ctx.moveTo(-70, 0); ctx.lineTo(-100, -20); ctx.lineTo(-100, 24); ctx.closePath(); ol("#1d3a4a"); ctx.fillStyle = "#fff"; for (var i = 0; i < 6; i++) { ctx.beginPath(); ctx.moveTo(30 + i * 7, 6); ctx.lineTo(34 + i * 7, 26); ctx.lineTo(38 + i * 7, 6); ctx.fill(); } ctx.beginPath(); ctx.arc(34, -16, 9, 0, 6.283); ctx.fillStyle = "#fff"; ctx.fill(); ctx.fillStyle = "#111"; ctx.beginPath(); ctx.arc(37, -16, 4, 0, 6.283); ctx.fill(); ctx.strokeStyle = "#1d3a4a"; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(20, -48); ctx.quadraticCurveTo(70, -110 + Math.sin(t * 2) * 10, 110, -60); ctx.stroke(); ctx.globalCompositeOperation = "lighter"; ctx.fillStyle = S.rgrad(110, -60, 2, 70, [[0, "rgba(200,255,230,1)"], [0.3, "rgba(80,255,200,.55)"], [1, "rgba(0,255,200,0)"]]); ctx.beginPath(); ctx.arc(110, -60, 70, 0, 6.283); ctx.fill(); ctx.restore(); }
+  function jellyDraw(x, y, s, t, c) { ctx.save(); ctx.translate(x, y); ctx.scale(s * (1 + Math.sin(t * 2) * 0.06), s * (1 - Math.sin(t * 2) * 0.06)); ctx.globalCompositeOperation = "lighter"; ctx.fillStyle = S.rgrad(0, -10, 4, 60, [[0, c + ",.75)"], [1, c + ",.1)"]]); ctx.beginPath(); ctx.arc(0, 0, 50, Math.PI, 0); ctx.quadraticCurveTo(30, 18, 0, 10); ctx.quadraticCurveTo(-30, 18, -50, 0); ctx.fill(); ctx.strokeStyle = c + ",.5)"; ctx.lineWidth = 3; for (var i = -3; i <= 3; i++) { ctx.beginPath(); ctx.moveTo(i * 13, 8); for (var k = 1; k <= 5; k++) ctx.lineTo(i * 13 + Math.sin(t * 2 + k + i) * 8, 8 + k * 22); ctx.stroke(); } ctx.restore(); }
+  function darkOcean(depth) { PL.ocean({}); S.layer(1, function () { var v = S.viewRect(1); ctx.fillStyle = "rgba(2,8,22," + depth + ")"; ctx.fillRect(v.l, v.t, v.r - v.l, v.b - v.t); }); }
+  function lamp(c, on) { if (!on) return; S.layer(1, function () { ctx.save(); ctx.globalCompositeOperation = "lighter"; var fx = c.x + (c.face || 1) * 40, fy = c.y - 205, d = c.face || 1; var g = ctx.createLinearGradient(fx, 0, fx + d * 520, 0); g.addColorStop(0, "rgba(255,245,190,.55)"); g.addColorStop(1, "rgba(255,245,190,0)"); ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(fx, fy - 6); ctx.lineTo(fx + d * 520, fy - 190); ctx.lineTo(fx + d * 520, fy + 210); ctx.lineTo(fx, fy + 10); ctx.fill(); ctx.restore(); }); }
+  function mkCrew(era) { A.key = era === "space" ? "astro" : "diver"; return A; }
+
+  // --- SPACE: rocket launch (astronauts walk to the rocket, board it, it lifts off) ---
+  scene({ text: "", dur: 10, chapter: "Launch", tod: "gold", weather: null, tags: "launch",
+    setup: function () { A.key = "astro"; R[0].key = "astro2"; R[0].item = null; R[0].shield = false; put(A, -520, 1, { pose: "walk", ex: "happy" }); put(R[0], -640, 1, { pose: "walk", ex: "happy" }); this.rk = 0; },
+    update: function (u, dt) { var walk = clamp(u / 0.34, 0, 1); A.x = lerp(-520, -24, ease(walk)); R[0].x = lerp(-640, -110, ease(walk)); if (walk >= 1) { A.pose = "idle"; R[0].pose = "idle"; } if (u > 0.34) { A.show = false; R[0].show = false; } this.rk = clamp((u - 0.5) / 0.5, 0, 1); if (u > 0.46 && u < 0.5) cam.shake = 5; else cam.shake = this.rk > 0 ? 4 + this.rk * 8 : 0; if (u > 0.46) puff(0, -20, 3, "#e8e0d4", 40, -60); if (this.rk > 0) puff(0, -10 + this.rk * -900 * 0.2, 4, "#d8d8d8", 60, 30); },
+    world: function (m, u) { var rk = this.rk || 0; bgPlain({}); S.layer(1, function () { var v = S.viewRect(1); ctx.fillStyle = "#9aa2ac"; ctx.fillRect(-420, -20, 840, 40); towerDraw(-230); drawPuffs(1 / 30); rocketDraw(0, -10 - Math.pow(rk, 2.2) * 2600, rk > 0 ? Math.min(1, rk * 4) : 0, u > 0.2 && u < 0.5); }); },
+    shots: [{ a: 0, cam: function (v) { return { x: -230, y: -300, z: lerp(0.72, 0.8, v) }; } }, { a: 0.14, views: { A: "side" }, cam: follow(A, 1.3, 1.5, 130, -170) }, { a: 0.34, cam: function (v) { return { x: 0, y: -150, z: lerp(0.78, 0.7, v) }; } }, { a: 0.5, cam: function (v) { return { x: 0, y: lerp(-350, -1200, ease(v)), z: lerp(0.62, 0.5, v) }; } }, { a: 0.78, cam: function (v) { return { x: 0, y: lerp(-1500, -2600, v), z: 0.42 }; } }] });
+
+  // --- SPACE: inside the spacecraft, window on the stars ---
+  scene({ text: "", dur: 8, chapter: "Cabin", tod: "inner", tags: "cabin",
+    setup: function () { A.key = "astro"; R[0].key = "astro2"; R[0].item = null; R[0].shield = false; put(A, -90, 1, { pose: "sit", ex: "neutral" }); put(R[0], 120, -1, { pose: "sit", ex: "happy" }); },
+    update: function (u, dt) { A.y = Math.sin(S.time * 0.9) * 10 - 14; R[0].y = Math.sin(S.time * 0.9 + 1.5) * 10 - 14; A.look = [Math.cos(u * 3) * 0.3 + 0.3, -0.05]; },
+    world: function (m, u) { S.layer(0, function () { var v = S.viewRect(0); ctx.fillStyle = S.vgrad(v.t, v.b, [[0, "#2a3446"], [1, "#161c28"]]); ctx.fillRect(v.l, v.t, v.r - v.l, v.b - v.t); }); S.layer(0.5, function () { ctx.save(); ctx.beginPath(); ctx.arc(0, -300, 250, 0, 6.283); ctx.clip(); ctx.fillStyle = "#02040c"; ctx.fillRect(-300, -560, 600, 560); var r = S.rng(3); for (var i = 0; i < 60; i++) { var sx = ((r() * 600 - S.time * 14 * (0.5 + r())) % 600 + 600) % 600 - 300, sy = -540 + r() * 480; ctx.fillStyle = "rgba(255,255,240," + (0.4 + r() * 0.6) + ")"; ctx.fillRect(sx, sy, 2.5, 2.5); } ctx.fillStyle = S.rgrad(120 - u * 40, -330, 4, 60 + u * 60, [[0, "#e88a5a"], [1, "#8a2e20"]]); ctx.beginPath(); ctx.arc(120 - u * 40, -330, 28 + u * 60, 0, 6.283); ctx.fill(); ctx.restore(); ctx.beginPath(); ctx.arc(0, -300, 250, 0, 6.283); ctx.lineWidth = 26; ctx.strokeStyle = "#8d98a6"; ctx.stroke(); ctx.lineWidth = 5; ctx.strokeStyle = "#4b5663"; ctx.stroke(); }); S.layer(1, function () { ctx.fillStyle = "#3a4558"; ctx.fillRect(-900, -20, 1800, 400); ctx.fillStyle = "#222a38"; ctx.fillRect(-900, -26, 1800, 8); [-340, 340].forEach(function (x) { ctx.fillStyle = "#1b2230"; ctx.fillRect(x - 40, -380, 80, 300); for (var i = 0; i < 5; i++) { ctx.fillStyle = i % 2 ? "#4fd08a" : "#e8a23a"; ctx.beginPath(); ctx.arc(x - 20 + (i % 3) * 20, -350 + Math.floor(i / 3) * 24, 5, 0, 6.283); ctx.fill(); } }); }); },
+    shots: [{ a: 0, cam: function (v) { return { x: 0, y: -230, z: lerp(0.95, 1.1, ease(v)) }; } }, { a: 0.4, views: { A: "side" }, blur: 5, cam: head(A, 2.2, 2.5, 30, 250) }, { a: 0.7, views: { A: "back" }, cam: function (v) { return { x: -40, y: -260, z: lerp(1.25, 1.5, ease(v)) }; } }] });
+
+  // --- SPACE: the red planet approaches (spacecraft flying in) ---
+  scene({ text: "", dur: 7, chapter: "Approach", tod: "night", tags: "approach",
+    setup: function () { },
+    world: function (m, u) { S.layer(0, function () { var v = S.viewRect(0); ctx.fillStyle = "#03050d"; ctx.fillRect(v.l, v.t, v.r - v.l, v.b - v.t); }); PLstars(); S.layer(0.1, function () { var R0 = 60 + u * 520; ctx.fillStyle = S.rgrad(240 - 20 * u, -300, R0 * 0.1, R0 * 1.05, [[0, "#f0a070"], [0.5, "#c8693a"], [1, "#4a1812"]]); ctx.beginPath(); ctx.arc(240 - 20 * u, -300, R0, 0, 6.283); ctx.fill(); ctx.save(); ctx.beginPath(); ctx.arc(240 - 20 * u, -300, R0, 0, 6.283); ctx.clip(); ctx.fillStyle = "rgba(90,30,20,.5)"; for (var i = 0; i < 5; i++) { ctx.beginPath(); ctx.ellipse(240 + i * 60 - 150, -300 + (i % 2 ? 40 : -50) * (R0 / 200), 40 * R0 / 200, 14 * R0 / 200, 0.2, 0, 6.283); ctx.fill(); } ctx.fillStyle = S.rgrad(240 + R0 * 0.5, -300 + R0 * 0.4, R0 * 0.2, R0 * 1.3, [[0, "rgba(0,0,10,0)"], [1, "rgba(0,0,20,.7)"]]); ctx.fillRect(-1000, -1000, 2000, 1500); ctx.restore(); }); S.layer(1, function () { ctx.save(); ctx.translate(lerp(-520, 40, ease(u)), lerp(-100, -240, ease(u))); ctx.rotate(1.4); ctx.scale(0.42, 0.42); rocketDraw(0, 360, 0.5, false); ctx.restore(); }); },
+    shots: [{ a: 0, nochars: true, cam: function (v) { return { x: lerp(-120, 80, v), y: -220, z: 0.9 }; } }, { a: 0.55, nochars: true, cam: function (v) { return { x: lerp(60, 160, v), y: -250, z: lerp(1.1, 1.5, ease(v)) }; } }] });
+  function PLstars() { var r = S.rng(11); S.layer(0.05, function () { var v = S.viewRect(0.05); for (var i = 0; i < 100; i++) { ctx.fillStyle = "rgba(255,255,240," + (0.4 + r() * 0.6) + ")"; ctx.beginPath(); ctx.arc(v.l + r() * (v.r - v.l), v.t + r() * (v.b - v.t), 0.8 + r() * 1.8, 0, 6.283); ctx.fill(); } }); }
+
+  // --- SPACE: landing; astronaut steps onto the dust and plants a flag ---
+  scene({ text: "", dur: 9, chapter: "Landing", tod: "dusk", tags: "landing",
+    setup: function () { A.key = "astro"; R[0].key = "astro2"; R[0].item = null; R[0].shield = false; put(A, -40, 1, { pose: "walk", ex: "happy", y: -30 }); put(R[0], -120, 1, { pose: "idle", ex: "happy" }); this.flag = 0; },
+    update: function (u, dt) { var w = clamp(u / 0.5, 0, 1); A.x = lerp(-40, 260, ease(w)); A.y = lerp(-30, 0, clamp(w * 3, 0, 1)); A.pose = u < 0.5 ? "walk" : u < 0.7 ? "cheer" : "idle"; R[0].pose = "cheer"; R[0].x = -120; if (u < 0.5 && Math.random() < 0.3) puff(A.x - 20, -6, 1, "#c98a68", 22, -30); this.flag = clamp((u - 0.55) / 0.15, 0, 1); },
+    world: function (m, u) { PL.space({}); var fl = this.flag; S.layer(1, function () { ctx.save(); ctx.translate(-190, -10); ctx.strokeStyle = "#cfd6de"; ctx.lineWidth = 8; for (var i = -1; i <= 1; i += 2) { ctx.beginPath(); ctx.moveTo(i * 36, -90); ctx.lineTo(i * 100, 0); ctx.stroke(); } ctx.beginPath(); ctx.moveTo(-50, -90); ctx.lineTo(-30, -190); ctx.quadraticCurveTo(0, -260, 30, -190); ctx.lineTo(50, -90); ctx.closePath(); ol("#e8ecf2"); ctx.beginPath(); ctx.arc(0, -168, 14, 0, 6.283); ol("#7fc8ee", 3); ctx.restore(); if (fl > 0) { ctx.fillStyle = "#cfd6de"; ctx.fillRect(398, -10 - 300 * fl, 6, 300 * fl); if (fl > 0.6) { ctx.beginPath(); ctx.moveTo(404, -300 * fl + 10); ctx.quadraticCurveTo(450, -290 * fl + 22, 500, -300 * fl + 10); ctx.lineTo(500, -300 * fl + 90); ctx.quadraticCurveTo(450, -300 * fl + 100, 404, -300 * fl + 90); ctx.closePath(); ol("#e8e8f0", 2); ctx.fillStyle = "#2c4a9a"; ctx.fillRect(404, -300 * fl + 14, 40, 40); } } drawPuffs(1 / 30); }); },
+    shots: [{ a: 0, views: { A: "side" }, cam: function (v) { return { x: lerp(-120, 60, v), y: -150, z: 1.1 }; } }, { a: 0.32, cam: follow(A, 1.4, 1.65, 120, -120) }, { a: 0.55, views: { A: "back" }, cam: function (v) { return { x: A.x + 60, y: -200, z: lerp(1.2, 1.45, ease(v)) }; } }, { a: 0.8, cam: function (v) { return { x: 200, y: lerp(-180, -330, ease(v)), z: lerp(1.1, 0.8, ease(v)) }; } }] });
+
+  // --- OCEAN: diver sinks down through the water ---
+  scene({ text: "", dur: 8, chapter: "Dive", tod: "day", tags: "dive",
+    setup: function () { A.key = "diver"; put(A, 0, 1, { pose: "idle", ex: "happy", y: -820 }); this.dp = 0; },
+    update: function (u, dt) { A.y = lerp(-820, 0, ease(u)); A.x = Math.sin(u * 5) * 40; A.pose = u < 0.9 ? "idle" : "idle"; this.dp = u * 0.6; if (Math.random() < 0.5) puff(A.x + 40, A.y - 210, 1, "#bfe8ff", 7, -90); },
+    world: function (m, u) { darkOcean(this.dp); S.layer(1, function () { drawPuffs(1 / 30); }); },
+    shots: [{ a: 0, cam: function (v) { return { x: 0, y: -200 + A.y, z: 0.85 }; } }, { a: 0.4, views: { A: "side" }, cam: function (v) { return { x: A.x + 40, y: A.y - 120, z: 1.35 }; } }, { a: 0.7, blur: 4, cam: function (v) { return { x: A.x, y: A.y - 200, z: lerp(2, 2.4, ease(v)) }; } }] });
+
+  // --- OCEAN: whale swims past, diver watches ---
+  scene({ text: "", dur: 8, chapter: "Whale", tod: "day", tags: "whale",
+    setup: function () { A.key = "diver"; put(A, -120, 1, { pose: "look", ex: "shock", look: [1, -0.2] }); this.wx = 1600; },
+    update: function (u, dt) { this.wx = lerp(1700, -1700, u); A.ex = u < 0.4 ? "shock" : "happy"; A.pose = u > 0.3 && u < 0.7 ? "point" : "look"; A.look = [(this.wx - A.x) > 0 ? 1 : -1, -0.3]; A.face = this.wx > A.x ? 1 : -1; },
+    world: function (m, u) { darkOcean(0.35); var wx = this.wx; S.layer(0.85, function () { whaleDraw(wx, -330, 1250, S.time, 1); }); },
+    shots: [{ a: 0, cam: function (v) { return { x: lerp(300, 0, ease(v)), y: -260, z: 0.7 }; } }, { a: 0.3, views: { A: "back" }, fg: [], cam: function (v) { return { x: A.x + 160, y: -240, z: lerp(0.9, 1.0, v) }; } }, { a: 0.62, cam: head(A, 1.9, 2.2, 40, 250) }] });
+
+  // --- OCEAN: submarine descending past glowing fish ---
+  scene({ text: "", dur: 8, chapter: "Sub", tod: "day", tags: "sub",
+    setup: function () { },
+    world: function (m, u) { darkOcean(0.5 + u * 0.2); var t = S.time; S.layer(0.7, function () { var r = S.rng(7); for (var i = 0; i < 16; i++) { var fx = -900 + r() * 1800, fy = -500 + r() * 520 + Math.sin(t + i) * 12; ctx.globalCompositeOperation = "lighter"; ctx.fillStyle = S.rgrad(fx, fy, 1, 22, [[0, "rgba(120,255,230,.9)"], [1, "rgba(0,255,200,0)"]]); ctx.beginPath(); ctx.arc(fx, fy, 22, 0, 6.283); ctx.fill(); ctx.globalCompositeOperation = "source-over"; ctx.fillStyle = "#0b2a3a"; ctx.beginPath(); ctx.ellipse(fx, fy, 16, 8, 0, 0, 6.283); ctx.fill(); } }); S.layer(1, function () { subDraw(lerp(-300, 360, ease(u)), lerp(-520, -200, ease(u)), t, 1); }); },
+    shots: [{ a: 0, nochars: true, cam: function (v) { return { x: lerp(-200, 300, v), y: -340, z: 0.8 }; } }, { a: 0.5, nochars: true, cam: function (v) { return { x: lerp(200, 380, v), y: -230, z: lerp(1.1, 1.4, ease(v)) }; } }] });
+
+  // --- OCEAN: the dark trench, glowing creatures, diver with lamp ---
+  scene({ text: "", dur: 8, chapter: "Trench", tod: "night", tags: "trench",
+    setup: function () { A.key = "diver"; put(A, -300, 1, { pose: "walk", ex: "shock" }); },
+    update: function (u, dt) { A.x = lerp(-300, 160, u); A.ex = u > 0.5 ? "shock" : "neutral"; },
+    world: function (m, u) { darkOcean(0.82); var t = S.time; S.layer(0.9, function () { anglerDraw(lerp(1200, 150, ease(u)), -300 + Math.sin(t) * 20, 1.5, t); jellyDraw(-400, -520 + Math.sin(t * 0.7) * 30, 1.6, t, "rgba(220,120,255"); jellyDraw(520, -600 + Math.sin(t * 0.6 + 2) * 30, 1.2, t + 1, "rgba(120,200,255"); }); },
+    foreground: function () { lamp(A, true); },
+    shots: [{ a: 0, cam: function (v) { return { x: lerp(-200, 40, v), y: -250, z: 0.8 }; } }, { a: 0.4, views: { A: "side" }, cam: follow(A, 1.3, 1.5, 150, -190) }, { a: 0.7, cam: head(A, 2.2, 2.5, 70, 250) }] });
+
+  var LIBSET = {}; SCENES.slice(10).forEach(function (sc) { LIBSET[sc.tags] = sc; }); SCENES.length = 10;
+  var LIBRULES = [
+    [/\b(rocket|spacecraft|launch)\b.*\b(rose|launch|lift|took off|blast)|\brocket rose\b/i, "launch"], [/\b(drifted|months|silent dark|journey through space)\b/i, "cabin"],
+    [/\bred planet\b|\bplanet appeared\b|\bappeared.*distance\b/i, "approach"], [/\blanded on mars\b|\bstepped onto the dust\b|\bfirst step\b/i, "landing"],
+    [/\bdiver\b.*\b(sank|dived|dove|beneath)|\bsank slowly\b/i, "dive"], [/\bwhale|shark\b/i, "whale"], [/\bsubmarine\b/i, "sub"], [/\b(trench|strange creatures|pressure)\b/i, "trench"],
+    [/\bsunlight faded|water turned dark\b/i, "dive"]
+  ];
   // ---------- script-driven director: builds SCENES from a plan JSON (window.__PLAN) ----------
   function buildFromPlan(plan) {
     var BG = { sea: function (m, u) { bgSea({ farShips: true }); W.ship(0.5, lerp(-260, 220, u) * 0.5, -100, 0.62, S.time); }, beach: bgBeach, egypt: bgEgypt, plain: bgPlain, temple: bgTempleFront, hall: bgHall, night: function (m, u) { bgNight(lerp(900, 4200, u)); campfire(330); }, cliff: bgCliff };
@@ -241,6 +346,13 @@
     var ERAKEY = window.ERAS || {};
     plan.forEach(function (p, idx) {
       var loc = p.location || "plain", era = p.era || "ancient", act = ((p.characters && p.characters[0] && p.characters[0].action) || "talk"), pose = POSE[act] || "talk";
+      var low = p.text.toLowerCase(), pickS = null;
+      LIBRULES.forEach(function (r) { if (!pickS && r[0].test(p.text)) pickS = LIBSET[r[1]]; });
+      if (!pickS && era === "ancient") {
+        var T0 = function (rx) { return rx.test(low); };
+        pickS = T0(/\b(clash|clashed|battle|armies)\b/) ? BUILT[4] : T0(/\b(crown|knelt)\b/) ? BUILT[5] : T0(/\b(council|halls?)\b/) ? BUILT[6] : (p.quote && T0(/\b(she|queen)\b/)) ? BUILT[3] : T0(/\b(pyramids?|egypt)\b/) ? BUILT[2] : T0(/\b(march|marched|desert)\b/) ? BUILT[7] : T0(/\b(cliff|looked over)\b/) ? BUILT[8] : T0(/\b(died|forever|night)\b/) ? BUILT[9] : T0(/\b(shore|beach|sand)\b/) ? BUILT[1] : T0(/\b(sea|fleet|ship|sail)\b/) ? BUILT[0] : null;
+      }
+      if (pickS) { SCENES.push(Object.assign({}, pickS, { text: p.quote ? p.text.replace(/\s*"[^"]*"\s*/g, " ").replace(/\s+$/, "") : p.text, quote: p.quote || null, speaker: p.speaker || null })); return; }
       var moving = pose === "walk" || pose === "march";
       var fighting = pose === "fight" || /\b(fight|fought|battle|clash|clashed|war)\b/i.test(p.text);
       var palKey = era === "ancient" ? "red" : (ERAKEY[era] && CH.KIND[ERAKEY[era][1]] ? ERAKEY[era][1] : "red");
@@ -281,7 +393,7 @@
   function setCap(sc) { var words = sc.text.split(/\s+/); capWords = words.map(function (w, i) { return { w: w, noun: NOUNS.test(w.replace(/[^A-Za-z]/g, "")) || !!(window.PR && PR.has(w.replace(/[^A-Za-z]/g, "").toLowerCase().replace(/s$/, ""))), i: i }; }); capHi = -2; renderCap(sc, -1); }
   function renderCap(sc, hi) { var h = capWords.map(function (o) { return o.noun ? '<span class="nn' + (hi >= o.i ? " hi" : "") + '">' + o.w + "</span>" : o.w; }).join(" "); cap.innerHTML = sc.quote ? h + '<br><b style="margin-top:8px">' + (sc.speaker || "The Queen") + '</b>“' + sc.quote + "”" : h; cap.className = "on"; }
   function enter(i) {
-    si = i; st = 0; shotIdx = -1; var sc = SCENES[i]; resetChars(); W.setTod(sc.tod || "day"); sparks = []; flash = 0; if (sc.setup) sc.setup(); setCap(sc);
+    si = i; st = 0; shotIdx = -1; var sc = SCENES[i]; resetChars(); puffs = []; cam.shake = 0; W.setTod(sc.tod || "day"); sparks = []; flash = 0; if (sc.setup) sc.setup(); setCap(sc);
   }
   function drawScene(sc, u, dt) {
     var VW = S.VW, VH = S.VH, shot = sc.shots[shotIdx];
@@ -302,7 +414,7 @@
     if (sc.foreground) sc.foreground();
     weatherFx(shot.weather || sc.weather, dt);
     // noun pop-up: icon of the noun just spoken (props library from studio_props.js)
-    if (window.PR && capHi >= 0 && capWords[capHi]) { var nn = capWords[capHi].w.replace(/[^A-Za-z]/g, "").toLowerCase().replace(/s$/, ""), age = S.time - (popT || 0); if (nn !== popN) { popN = nn; popT = S.time; age = 0; } if (PR.has(nn) && age < 2.2) { var pa = Math.min(1, age / 0.25), po = age > 1.7 ? (2.2 - age) / 0.5 : 1, sc2 = (0.6 + 0.4 * S.easeOut(pa)) * 1.25 * (1 + 0.05 * Math.sin(age * 5)); ctx.save(); ctx.globalAlpha = po; ctx.fillStyle = "rgba(255,248,225,.82)"; ctx.beginPath(); ctx.arc(VW * 0.78, VH * 0.17, 95 * sc2, 0, 6.283); ctx.fill(); ctx.lineWidth = 4; ctx.strokeStyle = "rgba(60,40,20,.55)"; ctx.stroke(); PR.draw(nn, VW * 0.78, VH * 0.17, sc2, S.time); ctx.restore(); } }
+    if (false && window.PR && capHi >= 0 && capWords[capHi]) { var nn = capWords[capHi].w.replace(/[^A-Za-z]/g, "").toLowerCase().replace(/s$/, ""), age = S.time - (popT || 0); if (nn !== popN) { popN = nn; popT = S.time; age = 0; } if (PR.has(nn) && age < 2.2) { var pa = Math.min(1, age / 0.25), po = age > 1.7 ? (2.2 - age) / 0.5 : 1, sc2 = (0.6 + 0.4 * S.easeOut(pa)) * 1.25 * (1 + 0.05 * Math.sin(age * 5)); ctx.save(); ctx.globalAlpha = po; ctx.fillStyle = "rgba(255,248,225,.82)"; ctx.beginPath(); ctx.arc(VW * 0.78, VH * 0.17, 95 * sc2, 0, 6.283); ctx.fill(); ctx.lineWidth = 4; ctx.strokeStyle = "rgba(60,40,20,.55)"; ctx.stroke(); PR.draw(nn, VW * 0.78, VH * 0.17, sc2, S.time); ctx.restore(); } }
     W.vignetteGrade(shot.blur ? 1.15 : 0.9);
     if (flash > 0) { ctx.fillStyle = "rgba(255,244,200," + (0.55 * flash) + ")"; ctx.fillRect(0, 0, VW, VH); flash = Math.max(0, flash - dt * 2.2); }
     W.grain();
@@ -327,7 +439,7 @@
   }
   if (window.__DUR) SCENES.forEach(function (sc, i) { if (window.__DUR[i]) sc.dur = window.__DUR[i]; });
   var last = 0; function loop(ts) { if (playing) { var dt = last ? Math.min(0.05, (ts - last) / 1000) : 0.033; last = ts; tick(dt); } else last = ts; requestAnimationFrame(loop); }
-  window.__film = { texts: SCENES.map(function (sc) { return { text: sc.text, quote: sc.quote || "" }; }), step: function () { tick(1 / 30); }, start: function () { var b = $("start"); if (b) b.hidden = true; playing = !EXPORT; enter(0); tick(0.0001); if (EXPORT) playing = false; if (!EXPORT) { last = 0; playing = true; } } };
+  window.__film = { texts: SCENES.map(function (sc) { return { text: sc.text, quote: sc.quote || "", speaker: sc.speaker || "" }; }), step: function () { tick(1 / 30); }, start: function () { var b = $("start"); if (b) b.hidden = true; playing = !EXPORT; enter(0); tick(0.0001); if (EXPORT) playing = false; if (!EXPORT) { last = 0; playing = true; } } };
   window.__still = function (i, u) { enter(i); var sc = SCENES[i]; var dt = 1 / 30, n = Math.floor(u * sc.dur / dt); for (var k = 0; k < n; k++) tick(dt); };
   if (!EXPORT) requestAnimationFrame(loop);
   var sb = $("start"); if (sb) sb.onclick = function () { window.__film.start(); };

@@ -1,5 +1,5 @@
 # texts.json -> per-scene narration (Kokoro), durations.json, mix.wav (narration + mood music + sfx)
-import json, os, sys, subprocess
+import re, json, os, sys, subprocess
 import numpy as np, soundfile as sf
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..")); sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "remotion", "scripts"))
 from stickman_studio import voice
@@ -183,7 +183,7 @@ def main():
             
         a = synth(txt, i, "n")
         if quote:
-            q_voice = os.environ.get("QUOTE_VOICE", "af_heart")
+            q_voice = os.environ.get("QUOTE_VOICE", "af_heart") if re.search(r"queen|she|woman|lady", str(texts[i].get("speaker") or ""), re.I) else os.environ.get("MALE_QUOTE_VOICE", "bm_lewis")
             a = np.concatenate([a, np.zeros(int(0.12 * SR), "float32"), synth(quote, i, "q", q_voice)])
         d = len(a) / SR + 0.14
         parts.append(a)

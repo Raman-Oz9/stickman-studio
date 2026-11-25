@@ -336,7 +336,7 @@
   var LIBRULES = [
     ["space", /\b(rocket|spacecraft|shuttle)\b.*\b(rose|launch|lift|lifted|took off|blast|ignit)|\blaunchpad\b/i, "launch"], ["space", /\b(drifted|months|silent dark|deep space|journey)\b/i, "cabin"],
     ["space", /\b(red planet|rusty|planet appeared|appeared.*(distance|horizon))\b/i, "approach"], ["space", /\b(landed|landing|touched down)\b|\bstepped (out|onto)\b|\bsmall step\b/i, "landing"],
-    ["ocean", /\bsubmarine\b.*\b(sank|descend|dive|dove|beneath)|\bsank slowly\b|\bdiver\b.*\b(sank|dived|dove|beneath)/i, "dive"], ["ocean", /\b(whale|shark|orca|dolphin)\b/i, "whale"],
+    ["ocean", /\bsubmarine\b/i, "sub"], ["ocean", /\bsubmarine\b.*\b(sank|descend|dive|dove|beneath)|\bsank slowly\b|\bdiver\b.*\b(sank|dived|dove|beneath)/i, "dive"], ["ocean", /\b(whale|shark|orca|dolphin)\b/i, "whale"],
     ["ocean", /\b(squid|jellyfish|angler|anglerfish|bioluminescent|glowing|lures|creatures|floodlights|trench|pressure|abyss)\b/i, "trench"], ["ocean", /\bsubmarine\b/i, "sub"], ["ocean", /\b(sunlight faded|water turned dark|dark blue)\b/i, "dive"], ["ocean", /\b(bottom|silt|seabed|ocean floor)\b/i, "trench"]
   ];
   // ---------- script-driven director: builds SCENES from a plan JSON (window.__PLAN) ----------

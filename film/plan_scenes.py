@@ -35,7 +35,7 @@ ROLE = [("surgeon", r"\b(surgeon|surgery|operating (room|theatre|theater)|scalpe
         ("miner", r"\b(miner|miners|mining|coal mine|gold mine|mineshaft)\b"), ("farmer", r"\b(farmer|farmers|farm|harvest|tractor)\b"),
         ("athlete", r"\b(athlete|footballer|football|soccer|marathon|sprinter|olympic\w*|basketball)\b"), ("pirate", r"\b(pirate|pirates|buccaneer)\b"),
         ("builder", r"\b(builder|construction|skyscraper|crane operator|bricklayer)\b"), ("tycoon", r"\b(businessman|business|ceo|company|startup|entrepreneur|investor)\b"),
-        ("monk", r"\b(monk|monks|monastery)\b"), ("soldier", r"\b(soldiers?|modern soldier|military|rifles?|marines?|commando|special forces|infantry|battalion)\b"),
+        ("monk", r"\b(monk|monks|monastery)\b"), ("soldier", r"\b(modern soldier|military|rifles?|marines?|commando|special forces|infantry|battalion)\b"),
         ("knight", r"\b(knight|knights|crusader)\b"), ("viking", r"\b(viking|vikings|longship)\b")]
 ROLE_ERA = {"soldier": "modern", "knight": "medieval", "viking": "medieval", "pirate": "pirate", "monk": "medieval"}
 
@@ -75,6 +75,7 @@ def plan(text):
         n = len(re.findall(rx, full, re.I))
         if n: counts[k] = n
     grole = max(counts, key=counts.get) if counts else None
+    if grole and re.search(r"\b(alexander|pharaoh|egypt|persians?|crown|empire|temple|gladiator|caesar|spartan|roman)\b", full, re.I): grole = None
     if grole and re.search(ERA[0][1], full, re.I): grole = None
     if grole and re.search(ERA[1][1], full, re.I): grole = None
     scenes = []; prev_loc = "plain"; prev_era = (ROLE_ERA.get(grole, "modern") if grole else "ancient")

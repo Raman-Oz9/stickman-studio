@@ -136,3 +136,21 @@
     ocean: ["diver", "diver2", "pirate"]
   };
 })();
+
+// === real outfits (override agent-made armor-with-different-colours) ===
+(function () {
+  var K = CH.KIND;
+  K.astro  = { skin: "#e3b68e", hair: "#4a3020", style: "short", suit: "astro", tunic: "#f2f4f7", sleeve: "#f2f4f7", pants: "#f2f4f7", glove: "#9aa5b3", cuff: "#e8782c", boots: "#d6dce4", shoe: "#7d8794", pack: "#dfe5ec", helmet: "bubble", trim: "#e8782c", eye: "#3a2a1a", puff: 4, w: 1.12 };
+  K.astro2 = { skin: "#8a5a3a", hair: "#16100d", style: "short", suit: "astro", tunic: "#eef1f5", sleeve: "#eef1f5", pants: "#eef1f5", glove: "#9aa5b3", cuff: "#2f7fd0", boots: "#d6dce4", shoe: "#7d8794", pack: "#dfe5ec", helmet: "bubble", trim: "#2f7fd0", eye: "#2a1a10", puff: 4, w: 1.12 };
+  K.diver  = { skin: "#e3b68e", hair: "#4a3020", style: "none", suit: "diver", tunic: "#5a6a58", sleeve: "#5a6a58", pants: "#5a6a58", glove: "#3f4a3f", cuff: "#c9923a", boots: "#2a2f36", shoe: "#1f2429", helmet: "brass", eye: "#3a2a1a", puff: 3, w: 1.1 };
+  K.diver2 = { skin: "#8a5a3a", hair: "#16100d", style: "none", suit: "diver", tunic: "#6a5a48", sleeve: "#6a5a48", pants: "#6a5a48", glove: "#4a3f34", cuff: "#c9923a", boots: "#2a2f36", shoe: "#1f2429", helmet: "brass", eye: "#2a1a10", puff: 3, w: 1.1 };
+  K.soldier  = { skin: "#e3b68e", hair: "#3a2a1c", style: "none", suit: "soldier", tunic: "#6b7a45", vest: "#3d4a2c", sleeve: "#6b7a45", pants: "#6b7a45", glove: "#2f3626", boots: "#2a2218", shoe: "#1c150f", helmet: "combat", helm: "#4f5c36", eye: "#3a2a1a", w: 1.05 };
+  K.soldier2 = { skin: "#8a5a3a", hair: "#16100d", style: "none", suit: "soldier", tunic: "#a89466", vest: "#7a6a44", sleeve: "#a89466", pants: "#a89466", glove: "#5a4a2e", boots: "#3a2e1c", shoe: "#2a2014", helmet: "combat", helm: "#8f7d52", eye: "#2a1a10", w: 1.05 };
+  K.suit  = { skin: "#e3b68e", hair: "#3a2a1c", style: "short", suit: "jacket", tunic: "#1f3350", sleeve: "#1f3350", pants: "#1f3350", boots: "#1a1a1a", shoe: "#111", tie: "#b3262d", eye: "#3a2a1a", w: 1 };
+  K.suit2 = { skin: "#c8946a", hair: "#16100d", style: "bob", suit: "jacket", tunic: "#a8324a", sleeve: "#a8324a", pants: "#2a2a36", boots: "#1a1a1a", shoe: "#111", tie: "#f2e8d8", trim: "#f2e8d8", trim2: "#f2e8d8", eye: "#2a1a10", female: true, w: 0.9 };
+  K.sci   = { skin: "#e3b68e", hair: "#9a9a9a", style: "short", suit: "coat", tunic: "#f4f6f9", sleeve: "#f4f6f9", pants: "#3a4452", boots: "#222", shoe: "#222", eye: "#3a2a1a", w: 1 };
+  K.knight = { skin: "#e3b68e", hair: "#4a3020", style: "none", suit: "plate", tunic: "#b4bdc9", tabard: "#2c4a80", sleeve: "#b4bdc9", pants: "#9aa5b3", glove: "#9aa5b3", boots: "#8a95a3", shoe: "#6a7482", helmet: "combat", helm: "#aab4c2", nasal: true, cape: "#2c4a80", shield: "#2c4a80", eye: "#3a2a1a", w: 1.08 };
+  K.viking = { skin: "#e8c2a0", hair: "#b07a3a", style: "none", suit: "fur", tunic: "#7a4a2a", sleeve: "#7a4a2a", pants: "#5a4630", boots: "#3a2a1a", shoe: "#2a1e12", helmet: "combat", helm: "#8a8f98", horns: true, beard: "#b07a3a", shield: "#a8602a", cape: "#3a5a3a", eye: "#3b78a8", w: 1.1 };
+  window.ERAS.military = ["soldier", "soldier2"];
+  window.ERAS.space = ["astro", "astro2"]; window.ERAS.ocean = ["diver", "diver2"]; window.ERAS.modern = ["suit", "suit2"]; window.ERAS.medieval = ["knight", "viking"];
+})();

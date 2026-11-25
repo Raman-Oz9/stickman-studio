@@ -357,6 +357,8 @@
       var fighting = pose === "fight" || /\b(fight|fought|battle|clash|clashed|war)\b/i.test(p.text);
       var palKey = era === "ancient" ? "red" : (ERAKEY[era] && CH.KIND[ERAKEY[era][1]] ? ERAKEY[era][1] : "red");
       var heroKey = era === "ancient" ? "alex" : (ERAKEY[era] && ERAKEY[era][0] && CH.KIND[ERAKEY[era][0]]) ? ERAKEY[era][0] : "alex";
+      var rk = p.role && CH.KIND[p.role] ? p.role : null;
+      if (rk) { heroKey = rk; palKey = CH.KIND[rk + "2"] ? rk + "2" : rk; }
       var others = (p.characters || []).slice(1);
       var bgf = (era === "space" || era === "ocean") ? function () { window.PL[era]({ t: S.time }); } : BG[loc] || (window.PL && window.PL[loc] ? function () { window.PL[loc]({ t: S.time }); } : bgPlain);
       var shotSet = (p.shots && p.shots.length ? p.shots : ["wide", "follow", "closeup"]);
@@ -375,9 +377,10 @@
       scene({ text: p.quote ? p.text.replace(/\s*"[^"]*"\s*/g, " ").replace(/\s+$/, "").replace(/,$/, ",") : p.text, quote: p.quote || null, speaker: p.speaker || null, dur: 7 + (p.text.length / 20), chapter: p.location || "x", tod: loc === "space" ? "dusk" : (p.tod || "day"), weather: p.weather && p.weather !== "none" ? p.weather : null,
         setup: function () {
           put(A, moving ? -420 : 0, 1, { key: heroKey, pose: pose, ex: p.mood === "sad" ? "sad" : p.mood === "tense" ? "angry" : "happy" });
-          var pals = [R[0], R[1], R[2]]; (fighting ? [T[0], T[1], T[2]] : []).forEach(function (c, i) { put(c, 380 + i * 120, -1, { pose: "fight", ex: "angry" }); });
+          var pals = [R[0], R[1], R[2]]; (fighting && !rk ? [T[0], T[1], T[2]] : []).forEach(function (c, i) { put(c, 380 + i * 120, -1, { pose: "fight", ex: "angry" }); });
           pals.slice(0, Math.min(3, others.length + (fighting ? 2 : 0))).forEach(function (c, i) { put(c, (moving ? -420 : 0) - 130 - i * 110, 1, { pose: pose, ex: "happy", key: palKey }); });
           ALLC.forEach(function (c) { if (c.show && !fighting) { c.item = null; c.shield = false; } }); if (fighting) { A.item = "sword"; }
+          if (rk) { var kk = CH.KIND[rk]; ALLC.forEach(function (c) { c.shield = false; if (c.show) c.item = (c === A || /^(firefighter|police|soldier|pirate|miner|builder|mechanic|farmer|chef)$/.test(rk)) ? (kk.item || (rk === "soldier" ? "rifle" : null)) : null; }); if (rk === "soldier") ALLC.forEach(function (c) { if (c.show) c.item = "rifle"; }); if (fighting && rk !== "soldier" && !kk.item) A.item = null; }
         },
         update: function (u, dt) { if (moving) ALLC.forEach(function (c) { if (c.show && c.pose === pose) c.x += 74 * dt * (c.face || 1); }); if (A.pose === "talk" || pose === "talk") { A.talk = true; } },
         world: function (m, u) { bgf(m, u); },

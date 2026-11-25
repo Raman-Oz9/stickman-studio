@@ -41,6 +41,8 @@ var CH = (function () {
       c._thrust = th2;
     } else if (nm === "kneel") {
       P.hf = 1.25; P.kf = 1.25; P.hb = -0.25; P.kb = 1.5; P.crouch = 1; P.sf = 0.18; P.ef = 0.25; P.sb = -0.05; P.eb = 0.2; P.head = 0.18 + Math.sin(t * 1.5) * 0.015; P.bob = Math.sin(t * 1.7) * 1.5;
+    } else if (nm === "swim") {
+      var sw = Math.sin(t * 7 + (c.phase || 0)); P.rot = c.rotv != null ? c.rotv : 2.2; P.hf = sw * 0.5; P.hb = -sw * 0.5; P.kf = Math.max(0, -sw) * 0.5; P.kb = Math.max(0, sw) * 0.5; P.sf = 2.9; P.ef = 0.05; P.sb = 2.8; P.eb = 0.08; P.head = -0.05; P.drop = 0;
     } else if (nm === "cheer") {
       var up = Math.sin(t * 7) * 0.25; P.sf = 2.7 + up; P.ef = 0.2; P.sb = 2.6 - up; P.eb = 0.25; P.bob = Math.abs(Math.sin(t * 7)) * 8; P.head = -0.06;
     } else if (nm === "hold") { // arms raised forward holding something at head height

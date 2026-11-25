@@ -263,8 +263,8 @@
     ctx.save(); ctx.translate(-L * 0.15, L * 0.12); ctx.rotate(0.5 + Math.sin(t * 1.6 + 1) * 0.25); ctx.beginPath(); ctx.ellipse(L * 0.04, L * 0.07, L * 0.05, L * 0.11, 0.3, 0, 6.283); ol("#2f6f9f"); ctx.restore();
     ctx.restore();
   }
-  function subDraw(x, y, t, dir) {
-    ctx.save(); ctx.translate(x, y); ctx.scale(dir || 1, 1); ctx.globalCompositeOperation = "lighter"; var bm = ctx.createLinearGradient(-190, 0, -700, 0); bm.addColorStop(0, "rgba(255,250,190,.55)"); bm.addColorStop(1, "rgba(255,250,190,0)"); ctx.fillStyle = bm; ctx.beginPath(); ctx.moveTo(-190, -10); ctx.lineTo(-700, -170); ctx.lineTo(-700, 150); ctx.lineTo(-190, 20); ctx.fill(); ctx.globalCompositeOperation = "source-over";
+  function subDraw(x, y, t, dir, sz) {
+    ctx.save(); ctx.translate(x, y); ctx.scale((dir || 1) * (sz || 1), sz || 1); ctx.globalCompositeOperation = "lighter"; var bm = ctx.createLinearGradient(-190, 0, -700, 0); bm.addColorStop(0, "rgba(255,250,190,.55)"); bm.addColorStop(1, "rgba(255,250,190,0)"); ctx.fillStyle = bm; ctx.beginPath(); ctx.moveTo(-190, -10); ctx.lineTo(-700, -170); ctx.lineTo(-700, 150); ctx.lineTo(-190, 20); ctx.fill(); ctx.globalCompositeOperation = "source-over";
     ctx.beginPath(); ctx.ellipse(0, 0, 200, 76, 0, 0, 6.283); ol("#f2c230"); ctx.beginPath(); ctx.rect(-40, -120, 80, 56); ol("#e8b020"); ctx.fillStyle = "#e8b020"; ctx.fillRect(-4, -170, 8, 52); ctx.fillRect(-4, -170, 34, 8);
     [-100, -30, 40, 110].forEach(function (px) { ctx.beginPath(); ctx.arc(px, -4, 20, 0, 6.283); ol("#8fd4f2", 4); ctx.fillStyle = "rgba(255,255,255,.45)"; ctx.beginPath(); ctx.arc(px - 6, -10, 6, 0, 6.283); ctx.fill(); });
     ctx.save(); ctx.translate(206, 0); ctx.rotate(t * 14); ctx.beginPath(); ctx.ellipse(0, 0, 8, 46, 0, 0, 6.283); ol("#6a7686", 3); ctx.restore(); ctx.beginPath(); ctx.moveTo(180, -40); ctx.lineTo(236, -66); ctx.lineTo(236, 66); ctx.lineTo(180, 40); ctx.closePath(); ol("#d89a1c");
@@ -306,10 +306,12 @@
 
   // --- OCEAN: diver sinks down through the water ---
   scene({ text: "", dur: 8, chapter: "Dive", tod: "day", tags: "dive",
-    setup: function () { A.key = "diver"; put(A, 0, 1, { pose: "idle", ex: "happy", y: -820 }); this.dp = 0; },
-    update: function (u, dt) { A.y = lerp(-820, 0, ease(u)); A.x = Math.sin(u * 5) * 40; A.pose = u < 0.9 ? "idle" : "idle"; this.dp = u * 0.6; if (Math.random() < 0.5) puff(A.x + 40, A.y - 210, 1, "#bfe8ff", 7, -90); },
+    setup: function () { A.key = "diver"; put(A, -380, 1, { pose: "swim", ex: "happy", y: -1000 }); A.rotv = 2.6; this.dp = 0; },
+    update: function (u, dt) { var e = ease(u); A.pose = "swim"; A.rotv = lerp(2.65, 1.75, ease(Math.min(1, u * 1.2))); A.x = lerp(-380, 220, e) + Math.sin(u * 9) * 14; A.y = lerp(-1000, -120, e); A.ex = "happy"; this.dp = u * 0.55;
+      var ax = A.x + Math.sin(A.rotv) * 150 * 0 , ay = A.y; if (Math.random() < 0.8) puff(A.x - 20, A.y + 40, 1, "#e6f6ff", 9, -70);
+      if (u < 0.22 && Math.random() < 0.9) puff(A.x + (Math.random() - 0.5) * 120, -1000 + (Math.random() * 60), 1, "#ffffff", 14, 40); },
     world: function (m, u) { darkOcean(this.dp); S.layer(1, function () { drawPuffs(1 / 30); }); },
-    shots: [{ a: 0, cam: function (v) { return { x: 0, y: -200 + A.y, z: 0.85 }; } }, { a: 0.4, views: { A: "side" }, cam: function (v) { return { x: A.x + 40, y: A.y - 120, z: 1.35 }; } }, { a: 0.7, blur: 4, cam: function (v) { return { x: A.x, y: A.y - 200, z: lerp(2, 2.4, ease(v)) }; } }] });
+    shots: [{ a: 0, roll: 0.05, cam: function (v) { return { x: -80, y: -820 + v * 160, z: 0.75 }; } }, { a: 0.25, views: { A: "side" }, cam: function (v) { return { x: A.x + 80, y: A.y - 40, z: lerp(1.1, 1.3, v) }; } }, { a: 0.55, roll: -0.06, cam: function (v) { return { x: A.x + 160, y: A.y + 60, z: lerp(0.8, 1.2, ease(v)) }; } }, { a: 0.82, cam: function (v) { return { x: A.x + 40, y: A.y - 160, z: lerp(0.9, 0.7, ease(v)) }; } }] });
 
   // --- OCEAN: whale swims past, diver watches ---
   scene({ text: "", dur: 8, chapter: "Whale", tod: "day", tags: "whale",
@@ -321,8 +323,8 @@
   // --- OCEAN: submarine descending past glowing fish ---
   scene({ text: "", dur: 8, chapter: "Sub", tod: "day", tags: "sub",
     setup: function () { },
-    world: function (m, u) { darkOcean(0.5 + u * 0.2); var t = S.time; S.layer(0.7, function () { var r = S.rng(7); for (var i = 0; i < 16; i++) { var fx = -900 + r() * 1800, fy = -500 + r() * 520 + Math.sin(t + i) * 12; ctx.globalCompositeOperation = "lighter"; ctx.fillStyle = S.rgrad(fx, fy, 1, 22, [[0, "rgba(120,255,230,.9)"], [1, "rgba(0,255,200,0)"]]); ctx.beginPath(); ctx.arc(fx, fy, 22, 0, 6.283); ctx.fill(); ctx.globalCompositeOperation = "source-over"; ctx.fillStyle = "#0b2a3a"; ctx.beginPath(); ctx.ellipse(fx, fy, 16, 8, 0, 0, 6.283); ctx.fill(); } }); S.layer(1, function () { subDraw(lerp(-300, 360, ease(u)), lerp(-520, -200, ease(u)), t, 1); }); },
-    shots: [{ a: 0, nochars: true, cam: function (v) { return { x: lerp(-200, 300, v), y: -340, z: 0.8 }; } }, { a: 0.5, nochars: true, cam: function (v) { return { x: lerp(200, 380, v), y: -230, z: lerp(1.1, 1.4, ease(v)) }; } }] });
+    world: function (m, u) { darkOcean(0.5 + u * 0.2); var t = S.time; S.layer(0.7, function () { var r = S.rng(7); for (var i = 0; i < 16; i++) { var fx = -900 + r() * 1800, fy = -500 + r() * 520 + Math.sin(t + i) * 12; ctx.globalCompositeOperation = "lighter"; ctx.fillStyle = S.rgrad(fx, fy, 1, 22, [[0, "rgba(120,255,230,.9)"], [1, "rgba(0,255,200,0)"]]); ctx.beginPath(); ctx.arc(fx, fy, 22, 0, 6.283); ctx.fill(); ctx.globalCompositeOperation = "source-over"; ctx.fillStyle = "#0b2a3a"; ctx.beginPath(); ctx.ellipse(fx, fy, 16, 8, 0, 0, 6.283); ctx.fill(); } }); S.layer(1, function () { subDraw(lerp(-500, 420, ease(u)), lerp(-560, -220, ease(u)), t, 1, 1.5); }); },
+    shots: [{ a: 0, nochars: true, cam: function (v) { return { x: lerp(-500, 420, ease(v * 0.5)), y: lerp(-560, -400, ease(v * 0.5)) + 40, z: 0.62 }; } }, { a: 0.5, nochars: true, cam: function (v) { return { x: lerp(-500, 420, ease(0.5 + v * 0.5)) + 40, y: lerp(-560, -220, ease(0.5 + v * 0.5)) - 30, z: lerp(0.62, 0.8, ease(v)) }; } }] });
 
   // --- OCEAN: the dark trench, glowing creatures, diver with lamp ---
   scene({ text: "", dur: 8, chapter: "Trench", tod: "night", tags: "trench",

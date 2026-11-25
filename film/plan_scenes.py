@@ -62,7 +62,7 @@ def plan(text):
         low = s.lower()
         loc = pick(LOC, low, prev_loc)
         era0 = pick(ERA, low, prev_era)
-        if era0 in ("space", "ocean") and loc not in ("space", "ocean", "cliff"): loc = era0
+        if era0 in ("space", "ocean") and loc not in ("space", "ocean"): loc = era0
         prev_loc = loc
         act = pick(ACT, low, "talk" if quote else "idle")
         tod = pick(TOD, low, "day"); wea = pick(WEA, low, "none")

@@ -334,10 +334,10 @@
 
   var LIBSET = {}; SCENES.slice(10).forEach(function (sc) { LIBSET[sc.tags] = sc; }); SCENES.length = 10;
   var LIBRULES = [
-    [/\b(rocket|spacecraft|launch)\b.*\b(rose|launch|lift|took off|blast)|\brocket rose\b/i, "launch"], [/\b(drifted|months|silent dark|journey through space)\b/i, "cabin"],
-    [/\bred planet\b|\bplanet appeared\b|\bappeared.*distance\b/i, "approach"], [/\blanded on mars\b|\bstepped onto the dust\b|\bfirst step\b/i, "landing"],
-    [/\bdiver\b.*\b(sank|dived|dove|beneath)|\bsank slowly\b/i, "dive"], [/\bwhale|shark\b/i, "whale"], [/\bsubmarine\b/i, "sub"], [/\b(trench|strange creatures|pressure)\b/i, "trench"],
-    [/\bsunlight faded|water turned dark\b/i, "dive"]
+    ["space", /\b(rocket|spacecraft|shuttle)\b.*\b(rose|launch|lift|lifted|took off|blast|ignit)|\blaunchpad\b/i, "launch"], ["space", /\b(drifted|months|silent dark|deep space|journey)\b/i, "cabin"],
+    ["space", /\b(red planet|rusty|planet appeared|appeared.*(distance|horizon))\b/i, "approach"], ["space", /\b(landed|landing|touched down)\b|\bstepped (out|onto)\b|\bsmall step\b/i, "landing"],
+    ["ocean", /\bsubmarine\b.*\b(sank|descend|dive|dove|beneath)|\bsank slowly\b|\bdiver\b.*\b(sank|dived|dove|beneath)/i, "dive"], ["ocean", /\b(whale|shark|orca|dolphin)\b/i, "whale"],
+    ["ocean", /\b(squid|jellyfish|angler|anglerfish|bioluminescent|glowing|lures|creatures|floodlights|trench|pressure|abyss)\b/i, "trench"], ["ocean", /\bsubmarine\b/i, "sub"], ["ocean", /\b(sunlight faded|water turned dark|dark blue)\b/i, "dive"], ["ocean", /\b(bottom|silt|seabed|ocean floor)\b/i, "trench"]
   ];
   // ---------- script-driven director: builds SCENES from a plan JSON (window.__PLAN) ----------
   function buildFromPlan(plan) {
@@ -347,7 +347,7 @@
     plan.forEach(function (p, idx) {
       var loc = p.location || "plain", era = p.era || "ancient", act = ((p.characters && p.characters[0] && p.characters[0].action) || "talk"), pose = POSE[act] || "talk";
       var low = p.text.toLowerCase(), pickS = null;
-      LIBRULES.forEach(function (r) { if (!pickS && r[0].test(p.text)) pickS = LIBSET[r[1]]; });
+      LIBRULES.forEach(function (r) { if (!pickS && r[0] === era && r[1].test(p.text)) pickS = LIBSET[r[2]]; });
       if (!pickS && era === "ancient") {
         var T0 = function (rx) { return rx.test(low); };
         pickS = T0(/\b(clash|clashed|battle|armies)\b/) ? BUILT[4] : T0(/\b(crown|knelt)\b/) ? BUILT[5] : T0(/\b(council|halls?)\b/) ? BUILT[6] : (p.quote && T0(/\b(she|queen)\b/)) ? BUILT[3] : T0(/\b(pyramids?|egypt)\b/) ? BUILT[2] : T0(/\b(march|marched|desert)\b/) ? BUILT[7] : T0(/\b(cliff|looked over)\b/) ? BUILT[8] : T0(/\b(died|forever|night)\b/) ? BUILT[9] : T0(/\b(shore|beach|sand)\b/) ? BUILT[1] : T0(/\b(sea|fleet|ship|sail)\b/) ? BUILT[0] : null;
@@ -358,7 +358,7 @@
       var palKey = era === "ancient" ? "red" : (ERAKEY[era] && CH.KIND[ERAKEY[era][1]] ? ERAKEY[era][1] : "red");
       var heroKey = era === "ancient" ? "alex" : (ERAKEY[era] && ERAKEY[era][0] && CH.KIND[ERAKEY[era][0]]) ? ERAKEY[era][0] : "alex";
       var others = (p.characters || []).slice(1);
-      var bgf = BG[loc] || (window.PL && window.PL[loc] ? function () { window.PL[loc]({ t: S.time }); } : bgPlain);
+      var bgf = (era === "space" || era === "ocean") ? function () { window.PL[era]({ t: S.time }); } : BG[loc] || (window.PL && window.PL[loc] ? function () { window.PL[loc]({ t: S.time }); } : bgPlain);
       var shotSet = (p.shots && p.shots.length ? p.shots : ["wide", "follow", "closeup"]);
       function mkShot(name, i, n) {
         var a = i / n, o = { a: a };

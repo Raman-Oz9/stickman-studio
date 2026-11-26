@@ -436,7 +436,19 @@
     var tg = sh.cam(v);
     // subtle handheld breathing
     tg = { x: tg.x + Math.sin(S.time * 0.8) * 3, y: tg.y + Math.cos(S.time * 1.1) * 2, z: tg.z * (1 + Math.sin(S.time * 0.5) * 0.004) };
-    if (idx !== shotIdx) { shotIdx = idx; cam.x = tg.x; cam.y = tg.y; cam.z = tg.z; } else { var kf = 1 - Math.exp(-dt * 7); cam.x += (tg.x - cam.x) * kf; cam.y += (tg.y - cam.y) * kf; cam.z += (tg.z - cam.z) * (1 - Math.exp(-dt * 5)); }
+    // one continuous take: never snap inside a scene, glide (critically-damped spring) toward every new shot target
+    if (!cam.vx) { cam.vx = 0; cam.vy = 0; cam.vz = 0; }
+    if (idx !== shotIdx) { if (shotIdx < 0 || st < dt * 2) { cam.x = tg.x; cam.y = tg.y; cam.z = tg.z; cam.vx = cam.vy = cam.vz = 0; } shotIdx = idx; }
+    var w0 = 4.2, kk = w0 * dt;
+    function spring(p, v, g, w) { var d = p - g, a = -w * w * d - 2 * w * v; v += a * dt; return [p + v * dt, v]; }
+    var rx = spring(cam.x, cam.vx, tg.x, w0), ry = spring(cam.y, cam.vy, tg.y, w0), rz = spring(cam.z, cam.vz, tg.z, w0 * 0.8);
+    cam.x = rx[0]; cam.vx = rx[1]; cam.y = ry[0]; cam.vy = ry[1]; cam.z = rz[0]; cam.vz = rz[1];
+    // auto-framing: everyone who is on stage stays in frame (pull back / re-centre) unless this is a deliberate close-up
+    (function () { var shown = ALLC.filter(function (c) { return c.show && !(sh.nochars) && !(sh.fg && sh.fg.some(function (f) { return chars[f.id] === c; })); }); if (!shown.length) return; var VWd = S.VW, VHd = S.VH, lo = VWd * 0.14, hi = VWd * 0.86, k = Math.min(1, dt * 6);
+      var xs = shown.map(function (c) { return c.x; }), mn = Math.min.apply(0, xs), mx = Math.max.apply(0, xs), span = mx - mn + 160;
+      if (cam.z <= 2.0) { var maxz = (hi - lo) / span; if (cam.z > maxz && shown.length > 1) cam.z += (Math.max(maxz, 0.55) - cam.z) * k; var mid = (mn + mx) / 2; if (shown.length > 1 && span * cam.z < hi - lo) cam.x += (mid - cam.x) * k * 0.6; }
+      var f = A.show ? A : shown[0]; var sxA = VWd / 2 + (f.x - cam.x) * cam.z; if (sxA < lo) cam.x += (sxA - lo) / cam.z * k; else if (sxA > hi) cam.x += (sxA - hi) / cam.z * k;
+      if (cam.z <= 1.9) { var low = Math.max.apply(0, shown.map(function (c) { return S.screenOfWorld(c.x, c.y)[1]; })); var lim = VHd * 0.8; if (low > lim) cam.y += (low - lim) / cam.z * k; } })();
     // caption nouns light up as they are spoken
     var hi = -1; capWords.forEach(function (o) { if (o.noun && u >= (o.i + 0.3) / capWords.length * 0.92) hi = Math.max(hi, o.i); }); if (hi !== capHi) { capHi = hi; renderCap(sc, hi); }
     drawScene(sc, u, dt);

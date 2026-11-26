@@ -432,8 +432,8 @@
 
   // 9 crisis: bailout for the rich, a box and the rain for the worker
   scene({ text: "", dur: 9, chapter: "Crisis", tod: "storm", weather: "rain", tags: "m_fired",
-    setup: function () { coinsFly = []; A.key = "builder"; put(A, 300, -1, { pose: "walk", act: "carry", ex: "sad", item: null }); put(R[0], -300, 1, { key: "tycoon", pose: "cheer", ex: "happy", item: null, act: null }); put(R[1], -180, -1, { key: "tycoon2", pose: "idle", act: "carry", ex: "smug", item: null }); this.t = 0; },
-    update: function (u, dt) { this.t += dt; A.x = lerp(300, 760, u); A.pose = "walk"; A.act = "carry"; if (u > 0.05 && u < 0.7 && Math.random() < 0.18) shootCoin(-170, -170, -290, -170, true); R[0].pose = "cheer"; },
+    setup: function () { coinsFly = []; A.key = "builder"; put(A, 560, -1, { pose: "walk", act: "carry", ex: "sad", item: null }); put(R[0], -300, 1, { key: "tycoon", pose: "cheer", ex: "happy", item: null, act: null }); put(R[1], -180, -1, { key: "tycoon2", pose: "idle", act: "carry", ex: "smug", item: null }); this.t = 0; },
+    update: function (u, dt) { this.t += dt; A.x = lerp(560, -80, u); A.pose = "walk"; A.act = "carry"; if (u > 0.05 && u < 0.7 && Math.random() < 0.18) shootCoin(-170, -170, -290, -170, true); R[0].pose = "cheer"; },
     world: function (m, u) { mCity("rain", true); S.layer(1, function () { ctx.fillStyle = "#5a6070"; ctx.fillRect(380, -760, 260, 760); mText("FACTORY", 510, -790, 34, "#c8ccd8"); ctx.fillStyle = "#111"; ctx.fillRect(425, -400, 170, 400); mText("CLOSED", 510, -300, 28, "#e84a3a"); mText("YOU'RE FIRED", 510, -500, 30, "#e84a3a"); flyCoins(1 / 30, true); }); },
     shots: [{ a: 0, cam: function (v) { return { x: lerp(-250, -230, v), y: -220, z: lerp(1.05, 1.4, ease(v)) }; } }, { a: 0.4, cam: function (v) { return { x: lerp(-100, 380, ease(v)), y: -200, z: 0.8 }; } }, { a: 0.7, cam: function (v) { return { x: A.x - 80, y: -200, z: lerp(1.2, 2.0, ease(v)) }; } }] });
 

@@ -53,6 +53,18 @@ var CH = (function () {
       P.sf = 0.25; P.ef = 0.3; P.sb = -0.15; P.eb = 0.25; P.bob = Math.sin(t * 1.8) * 2; P.head = 0.04 + Math.sin(t * 0.6) * 0.03;
     } else if (nm === "sit") { P.hf = 1.45; P.kf = 1.45; P.hb = 1.35; P.kb = 1.5; P.sf = 0.4; P.ef = 0.6; P.sb = 0.35; P.eb = 0.6; P.crouch = 1; }
     else { P.bob = Math.sin(t * 2 + (c.phase || 0)) * 2.4; P.lean = Math.sin(t * 0.7 + (c.phase || 0)) * 0.018; P.sf += Math.sin(t * 1.9 + (c.phase || 0)) * 0.05; P.sb -= Math.sin(t * 1.9) * 0.05; P.ef += Math.sin(t * 1.3 + 1) * 0.04; P.head = Math.sin(t * 0.8 + (c.phase || 0)) * 0.03; }
+    if (c.act) {
+      var q = c.t * (c.actSpeed || 1);
+      if (c.act === "count") { var a1 = Math.sin(q * 5), a2 = Math.sin(q * 5 + 2.2); P.sf = 1.05 + a1 * 0.18; P.ef = 1.25 + a1 * 0.2; P.sb = 0.95 + a2 * 0.18; P.eb = 1.35 + a2 * 0.2; P.head = 0.22 + Math.sin(q * 2) * 0.03; P.lean = 0.12; }
+      else if (c.act === "lever") { var pl = Math.sin(q * 3.2); P.sf = 1.35 + pl * 0.55; P.ef = 0.35 + (1 - pl) * 0.25; P.sb = 0.9; P.eb = 0.5; P.lean = 0.16 + pl * 0.1; P.head = 0.08; P.bob = Math.abs(pl) * 3; }
+      else if (c.act === "hammer") { var hp = Math.sin(q * 4.2), hu = Math.max(0, hp); P.sf = 0.9 + hu * 1.7; P.ef = 0.6 - hu * 0.3; P.sb = 0.8 + hu * 1.4; P.eb = 0.7; P.lean = 0.1 + (1 - hu) * 0.14; P.bob = (1 - hu) * 4; P.head = 0.1; }
+      else if (c.act === "carry") { P.sf = 1.45; P.ef = 1.2; P.sb = 1.3; P.eb = 1.25; P.lean = -0.06; }
+      else if (c.act === "type") { var ty = Math.sin(q * 11); P.sf = 1.0 + ty * 0.08; P.ef = 1.2; P.sb = 1.0 - ty * 0.08; P.eb = 1.2; P.head = 0.12; P.lean = 0.08; }
+      else if (c.act === "sip") { var sp2 = Math.max(0, Math.sin(q * 0.9)); P.sf = 0.3 + sp2 * 1.9; P.ef = 0.5 + sp2 * 1.3; P.sb = 0.05; P.eb = 0.2; P.head = -sp2 * 0.14; }
+      else if (c.act === "wave") { P.sf = 2.7 + Math.sin(q * 7) * 0.3; P.ef = 0.5 + Math.sin(q * 7) * 0.4; }
+      else if (c.act === "beg") { P.sf = 1.3; P.ef = 1.0; P.sb = 1.3; P.eb = 1.0; P.head = 0.2; }
+      else if (c.act === "push") { P.sf = 1.4; P.ef = 0.15; P.sb = 1.35; P.eb = 0.15; P.lean = 0.3; }
+    }
     return P;
   }
 

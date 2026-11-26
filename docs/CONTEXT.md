@@ -312,4 +312,10 @@
 - Updated `film/studio_char.js` (`face()` function) to feature big glossy eyes with pupils and two highlights, thick expressive eyebrows, a small nose, support for smile, open, frown, and O mouth shapes, cheek blush, and detailed ears.
 - Verified with `bash film/check.sh` and `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` with zero errors.
 
+### 2026-11-26 — Add true-scale prop library window.PROPS2 in film/studio_props2.js
+- Created `film/studio_props2.js` providing `window.PROPS2` with true-scale draw functions (`bench`, `tree`, `bush`, `house`, `shop`, `fence`, `bin`, `bus`, `truck`, `bicycle`, `billboard`, `traffic light`, `sofa`, `table`, `chair`, `TV`, `fridge`, `bed`) following `docs/SCALE.md`, each featuring gradient shading and contact shadows.
+- Loaded `studio_props2.js` in `film/studio.html` after `studio_roles.js`.
+- Verified with `bash film/check.sh` and `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` with zero errors.
+
+
 

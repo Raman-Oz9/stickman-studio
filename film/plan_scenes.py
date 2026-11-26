@@ -2,7 +2,7 @@
 """Rule-based script -> scene plan.  python3 film/plan_scenes.py script.txt out.json"""
 import json, re, sys
 
-LOC = [("city", r"\b(hospital|clinic|operating room|kitchen|restaurant|garage|race track|airport|runway|stadium|laboratory|station)\b"), ("snow", r"\b(snow|snowy|blizzard|glacier|arctic)\b"), ("volcano", r"\b(volcano|lava|eruption)\b"), ("jungle", r"\b(jungle|rainforest|amazon)\b"), ("forest", r"\b(forest|woods|trees)\b"), ("castle", r"\b(castle|knight|knights|kingdom|fortress|dragon)\b"), ("city", r"\b(city|skyscraper|skyscrapers|street|streets|downtown|office)\b"),
+LOC = [("city", r"\b(hospital|clinic|operating room|office|factory|bank|kitchen|restaurant|garage|race track|airport|runway|stadium|laboratory|station)\b"), ("snow", r"\b(snow|snowy|blizzard|glacier|arctic)\b"), ("volcano", r"\b(volcano|lava|eruption)\b"), ("jungle", r"\b(jungle|rainforest|amazon)\b"), ("forest", r"\b(forest|woods|trees)\b"), ("castle", r"\b(castle|knight|knights|kingdom|fortress|dragon)\b"), ("city", r"\b(city|skyscraper|skyscrapers|street|streets|downtown|office)\b"),
        ("space", r"\b(space|rocket|planet|mars|moon|star|stars|galaxy|orbit|astronaut)\b"),
        ("ocean", r"\b(diver|submarine|seabed|trench|whale|deep sea|beneath the waves|underwater|reef)\b"),
        ("egypt", r"\b(egypt|pyramid|pyramids|pharaoh|sphinx|nile)\b"),
@@ -34,7 +34,7 @@ ROLE = [("surgeon", r"\b(surgeon|surgery|operating (room|theatre|theater)|scalpe
         ("chef", r"\b(chef|kitchen|restaurant|cooking|cook)\b"), ("mechanic", r"\b(mechanic|garage|engine repair)\b"),
         ("miner", r"\b(miner|miners|mining|coal mine|gold mine|mineshaft)\b"), ("farmer", r"\b(farmer|farmers|farm|harvest|tractor)\b"),
         ("athlete", r"\b(athlete|footballer|football|soccer|marathon|sprinter|olympic\w*|basketball)\b"), ("pirate", r"\b(pirate|pirates|buccaneer)\b"),
-        ("builder", r"\b(builder|construction|skyscraper|crane operator|bricklayer)\b"), ("tycoon", r"\b(businessman|business|ceo|company|startup|entrepreneur|investor)\b"),
+        ("builder", r"\b(builder|construction|skyscraper|crane operator|bricklayer|worker|workers|factory|wage)\b"), ("tycoon", r"\b(businessman|business|ceo|company|startup|entrepreneur|investor|banker|bank|rich man|profits?)\b"),
         ("monk", r"\b(monk|monks|monastery)\b"), ("soldier", r"\b(modern soldier|military|rifles?|marines?|commando|special forces|infantry|battalion)\b"),
         ("knight", r"\b(knight|knights|crusader)\b"), ("viking", r"\b(viking|vikings|longship)\b")]
 ROLE_ERA = {"soldier": "modern", "knight": "medieval", "viking": "medieval", "pirate": "pirate", "monk": "medieval"}
@@ -57,7 +57,7 @@ def speaker_of(s, era, role=None):
     m = re.search(r"\b([Ss]he|[Hh]e|[Tt]he [a-z]+|[A-Z][a-z]+)\s+(said|whispered|asked|replied)", s)
     w = m.group(1) if m else None
     if w is None or w.lower() in ("she", "he"):
-        if role: return "The " + role[0].upper() + role[1:]
+        if role: return "The " + {"tycoon": "Businessman", "builder": "Worker"}.get(role, role[0].upper() + role[1:])
         return {"space": "The Astronaut", "ocean": "The Diver"}.get(era, "The Queen" if ((w or "").lower() == "she" or re.search(r"\b[Ss]he\b", s)) else "The King")
     return w[0].upper() + w[1:]
 
@@ -94,10 +94,16 @@ def plan(text):
         if re.search(r"\b(queen|she|her)\b", low): chars.append({"role": "queen", "kind": "queen", "action": "talk"})
         if re.search(r"\b(army|armies|soldiers|crew|council|fleet|persians)\b", low): chars.append({"role": "crowd", "kind": "soldier", "action": act})
         role = pick(ROLE, low, grole) if era not in ("space", "ocean") else None
+        found = sorted((m.start(), k) for k, rx in ROLE for m in [re.search(rx, low, re.I)] if m)
+        seen = []
+        for _, k in found:
+            if k not in seen: seen.append(k)
+        role2 = None
+        if era not in ("space", "ocean") and len(seen) >= 2: role, role2 = seen[0], seen[1]
         if era == "ancient" and role not in ("monk",): role = None
         nouns = [w for w in NOUNS if re.search(r"\b" + w + r"\b", low)]
         scenes.append({"text": re.sub(r"\s+", " ", s), "quote": quote, "location": loc, "tod": tod, "weather": wea, "era": era,
-                       "speaker": speaker_of(s, era, role), "role": role, "characters": chars, "nouns": nouns, "mood": mood, "shots": shots_for(loc, act, i, quote)})
+                       "speaker": speaker_of(s, era, role), "role": role, "role2": role2, "characters": chars, "nouns": nouns, "mood": mood, "shots": shots_for(loc, act, i, quote)})
     return scenes
 
 if __name__ == "__main__":

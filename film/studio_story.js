@@ -407,7 +407,7 @@
   function fgDeco(sc, shot) {
     if (shot.nochars && !sc.fgdeco) return; var tag = sc.tags || "", era = sc.era || ""; if (/launch|cabin|approach|sub|dive|whale|trench/.test(tag) && !/launch/.test(tag)) return;
     var dark = { dusk: 0.55, night: 0.8, storm: 0.6 }[sc.tod] || 0.25;
-    S.layer(1.45, function () { ctx.save(); ctx.filter = "blur(4px)"; var r = S.rng(11), vr = S.viewRect(1.45), base = vr.b - 20;
+    S.layer(1.45, function () { ctx.save(); ctx.globalAlpha = 0.85; var r = S.rng(11), vr = S.viewRect(1.45), base = vr.b - 20;
       for (var x = Math.floor(vr.l / 160) * 160; x < vr.r + 160; x += 160) { var k = Math.abs(x * 7 + 3) % 5, hh = 30 + ((Math.abs(x) * 13) % 70); ctx.fillStyle = "rgba(" + (40 - dark * 25 | 0) + "," + (28 - dark * 18 | 0) + "," + (20 - dark * 12 | 0) + ",.9)"; if (k < 3) { ctx.beginPath(); ctx.moveTo(x - 40, base + 40); for (var j = 0; j < 5; j++) ctx.quadraticCurveTo(x - 30 + j * 16, base - hh * (0.5 + (j % 2) * 0.6), x - 24 + j * 16, base + 40); ctx.fill(); } else if (k === 3) { ctx.beginPath(); ctx.ellipse(x, base + 30, 70, 34, 0, Math.PI, 0); ctx.fill(); } }
       ctx.restore(); });
   }

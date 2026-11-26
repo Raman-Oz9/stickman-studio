@@ -215,7 +215,7 @@
     shots: [{ a: 0, cam: pan(-120, 40, -200, 0.95, 1.0) }, { a: 0.18, cam: follow(A, 1.7, 1.95, 60, -190) }, { a: 0.36, blur: 5, cam: head(Q, 2.4, 2.65, 70, 258) }, { a: 0.58, cam: follow(chars.T1, 1.7, 1.9, -50, -190) }, { a: 0.8, cam: pan(260, -100, -200, 0.95, 1.0) }] });
 
   scene({ text: "Across the sunlit plains, the eight soldiers marched in steadfast formation.", dur: 9.0, chapter: "March", tod: "dusk", weather: "sand",
-    setup: function () { put(A, 0, 1, { key: "alexc", pose: "march", ex: "smug", cloak: 6 }); R.slice(0, 4).forEach(function (c, i) { put(c, -150 - i * 105, 1, { pose: "march", phase: i * 0.9, ex: "happy", s: 0.96 }); }); T.slice(0, 3).forEach(function (c, i) { put(c, -120 - i * 125 - 60, 1, { pose: "march", phase: i * 1.7 + 1, ex: "neutral", s: 0.94, layer: 0.9, face: 1 }); }); },
+    setup: function () { put(A, 0, 1, { key: "alexc", pose: "march", ex: "smug", cloak: 6 }); R.slice(0, 4).forEach(function (c, i) { put(c, -150 - i * 105, 1, { pose: "march", phase: i * 0.9, ex: "happy", s: 0.96 }); }); T.slice(0, 3).forEach(function (c, i) { put(c, -120 - i * 125 - 60, 1, { key: "red", pose: "march", phase: i * 1.7 + 1, ex: "neutral", s: 0.94, layer: 0.9, face: 1 }); }); },
     update: function (u, dt) { var sp = 124; ALLC.forEach(function (c) { if (c.show) c.x += sp * dt; }); },
     world: function () { bgPlain(); W.dust(40, "rgba(255,210,150,.5)", 120, 3, 3); },
     shots: [{ a: 0, cam: function (v) { return { x: A.x - 160, y: -190, z: 1.05 }; } }, { a: 0.34, cam: function (v) { return { x: A.x - 40, y: -90, z: lerp(1.35, 1.5, v) }; } }, { a: 0.66, blur: 6, cam: function (v) { return { x: A.x + 40, y: -250, z: lerp(2.2, 2.5, v) }; } }] });
@@ -398,7 +398,18 @@
   function setCap(sc) { var words = sc.text.split(/\s+/); capWords = words.map(function (w, i) { return { w: w, noun: NOUNS.test(w.replace(/[^A-Za-z]/g, "")) || !!(window.PR && PR.has(w.replace(/[^A-Za-z]/g, "").toLowerCase().replace(/s$/, ""))), i: i }; }); capHi = -2; renderCap(sc, -1); }
   function renderCap(sc, hi) { var h = capWords.map(function (o) { return o.noun ? '<span class="nn' + (hi >= o.i ? " hi" : "") + '">' + o.w + "</span>" : o.w; }).join(" "); cap.innerHTML = sc.quote ? h + '<br><b style="margin-top:8px">' + (sc.speaker || "The Queen") + '</b>“' + sc.quote + "”" : h; cap.className = "on"; }
   function enter(i) {
+    if (si >= 0) { if (prevCv.width !== S.cv.width) { prevCv.width = S.cv.width; prevCv.height = S.cv.height; } pctx.clearRect(0, 0, prevCv.width, prevCv.height); pctx.drawImage(S.cv, 0, 0); hasPrev = true; fade = 1; }
     si = i; st = 0; shotIdx = -1; var sc = SCENES[i]; resetChars(); puffs = []; cam.shake = 0; W.setTod(sc.tod || "day"); sparks = []; flash = 0; if (sc.setup) sc.setup(); setCap(sc);
+  }
+  // ---- cinematic polish: foreground silhouettes with parallax + soft bloom + scene crossfade ----
+  var bcv = document.createElement("canvas"), bctx = bcv.getContext("2d"), prevCv = document.createElement("canvas"), pctx = prevCv.getContext("2d"), fade = 0, hasPrev = false;
+  function bloom() { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); var w = S.cv.width, hh = S.cv.height, bw = w >> 2, bh = hh >> 2; if (bcv.width !== bw) { bcv.width = bw; bcv.height = bh; } bctx.clearRect(0, 0, bw, bh); bctx.filter = "blur(6px) brightness(1.1) saturate(1.2)"; bctx.drawImage(S.cv, 0, 0, bw, bh); bctx.filter = "none"; ctx.globalCompositeOperation = "screen"; ctx.globalAlpha = 0.14; ctx.drawImage(bcv, 0, 0, w, hh); ctx.restore(); }
+  function fgDeco(sc, shot) {
+    if (shot.nochars && !sc.fgdeco) return; var tag = sc.tags || "", era = sc.era || ""; if (/launch|cabin|approach|sub|dive|whale|trench/.test(tag) && !/launch/.test(tag)) return;
+    var dark = { dusk: 0.55, night: 0.8, storm: 0.6 }[sc.tod] || 0.25;
+    S.layer(1.45, function () { ctx.save(); ctx.filter = "blur(4px)"; var r = S.rng(11), vr = S.viewRect(1.45), base = vr.b - 20;
+      for (var x = Math.floor(vr.l / 160) * 160; x < vr.r + 160; x += 160) { var k = Math.abs(x * 7 + 3) % 5, hh = 30 + ((Math.abs(x) * 13) % 70); ctx.fillStyle = "rgba(" + (40 - dark * 25 | 0) + "," + (28 - dark * 18 | 0) + "," + (20 - dark * 12 | 0) + ",.9)"; if (k < 3) { ctx.beginPath(); ctx.moveTo(x - 40, base + 40); for (var j = 0; j < 5; j++) ctx.quadraticCurveTo(x - 30 + j * 16, base - hh * (0.5 + (j % 2) * 0.6), x - 24 + j * 16, base + 40); ctx.fill(); } else if (k === 3) { ctx.beginPath(); ctx.ellipse(x, base + 30, 70, 34, 0, Math.PI, 0); ctx.fill(); } }
+      ctx.restore(); });
   }
   function drawScene(sc, u, dt) {
     var VW = S.VW, VH = S.VH, shot = sc.shots[shotIdx];
@@ -417,10 +428,13 @@
     // over-the-shoulder / foreground characters (nearer layer, soft)
     if (shot.fg) { shot.fg.forEach(function (f) { var base = chars[f.id]; if (!base.show) return; var cl = Object.create(base); cl.x = (f.abs != null ? f.abs : base.x + (f.dx || 0)); cl.view = f.view || "back"; cl.face = f.face || base.face; cl.pose = f.pose || base.pose; cl.s = f.s || 1; cl.y = f.y || 0; S.layer(f.layer || 1.5, function () { CH.draw(cl); }); }); }
     if (sc.foreground) sc.foreground();
+    fgDeco(sc, shot);
     weatherFx(shot.weather || sc.weather, dt);
     // noun pop-up: icon of the noun just spoken (props library from studio_props.js)
     if (false && window.PR && capHi >= 0 && capWords[capHi]) { var nn = capWords[capHi].w.replace(/[^A-Za-z]/g, "").toLowerCase().replace(/s$/, ""), age = S.time - (popT || 0); if (nn !== popN) { popN = nn; popT = S.time; age = 0; } if (PR.has(nn) && age < 2.2) { var pa = Math.min(1, age / 0.25), po = age > 1.7 ? (2.2 - age) / 0.5 : 1, sc2 = (0.6 + 0.4 * S.easeOut(pa)) * 1.25 * (1 + 0.05 * Math.sin(age * 5)); ctx.save(); ctx.globalAlpha = po; ctx.fillStyle = "rgba(255,248,225,.82)"; ctx.beginPath(); ctx.arc(VW * 0.78, VH * 0.17, 95 * sc2, 0, 6.283); ctx.fill(); ctx.lineWidth = 4; ctx.strokeStyle = "rgba(60,40,20,.55)"; ctx.stroke(); PR.draw(nn, VW * 0.78, VH * 0.17, sc2, S.time); ctx.restore(); } }
+    bloom();
     W.vignetteGrade(shot.blur ? 1.15 : 0.9);
+    if (fade > 0 && hasPrev) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = fade * fade; ctx.drawImage(prevCv, 0, 0); ctx.restore(); fade = Math.max(0, fade - dt / 0.6); }
     if (flash > 0) { ctx.fillStyle = "rgba(255,244,200," + (0.55 * flash) + ")"; ctx.fillRect(0, 0, VW, VH); flash = Math.max(0, flash - dt * 2.2); }
     W.grain();
     ctx.restore();
@@ -439,7 +453,7 @@
     // one continuous take: never snap inside a scene, glide (critically-damped spring) toward every new shot target
     if (!cam.vx) { cam.vx = 0; cam.vy = 0; cam.vz = 0; }
     if (idx !== shotIdx) { if (shotIdx < 0 || st < dt * 2) { cam.x = tg.x; cam.y = tg.y; cam.z = tg.z; cam.vx = cam.vy = cam.vz = 0; } shotIdx = idx; }
-    var w0 = 4.2, kk = w0 * dt;
+    var w0 = 2.4, kk = w0 * dt; tg.z = Math.min(tg.z, 1.7);
     function spring(p, v, g, w) { var d = p - g, a = -w * w * d - 2 * w * v; v += a * dt; return [p + v * dt, v]; }
     var rx = spring(cam.x, cam.vx, tg.x, w0), ry = spring(cam.y, cam.vy, tg.y, w0), rz = spring(cam.z, cam.vz, tg.z, w0 * 0.8);
     cam.x = rx[0]; cam.vx = rx[1]; cam.y = ry[0]; cam.vy = ry[1]; cam.z = rz[0]; cam.vz = rz[1];

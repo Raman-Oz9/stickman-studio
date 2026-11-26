@@ -141,7 +141,16 @@ var CH = (function () {
   function w0(k) { return 30 * (k.w || 1); }
   function suitBody(k, tun, gr, w, wh) {
     function torso() { ctx.beginPath(); ctx.moveTo(-w, -100); ctx.quadraticCurveTo(-w - 2, -40, -wh - 3, 10); ctx.lineTo(wh + 3, 10); ctx.quadraticCurveTo(w + 2, -40, w, -100); ctx.quadraticCurveTo(0, -108, -w, -100); ctx.closePath(); }
-    var st = k.suit; ctx.fillStyle = gr; torso(); ctx.fill(); ctx.strokeStyle = dk(tun, 0.35); ctx.lineWidth = 2.4; ctx.stroke();
+    var st = k.suit; ctx.fillStyle = gr; torso(); ctx.fill();
+    var sg = ctx.createLinearGradient(-w, -100, w, 10); sg.addColorStop(0, "rgba(0,0,0,0)"); sg.addColorStop(0.6, "rgba(0,0,0,0.06)"); sg.addColorStop(1, "rgba(0,0,0,0.22)"); ctx.fillStyle = sg; torso(); ctx.fill();
+    ctx.strokeStyle = dk(tun, 0.35); ctx.lineWidth = 2.4; ctx.stroke();
+    ctx.strokeStyle = dk(tun, 0.45); ctx.lineWidth = 1.6; ctx.beginPath();
+    ctx.moveTo(-wh + 4, -18); ctx.quadraticCurveTo(0, -14, wh - 4, -18);
+    ctx.moveTo(-wh + 6, -6); ctx.quadraticCurveTo(0, -2, wh - 6, -6);
+    ctx.moveTo(-wh + 8, 6); ctx.quadraticCurveTo(0, 9, wh - 8, 6);
+    ctx.stroke();
+    ctx.fillStyle = lt(tun, 0.2); ctx.beginPath(); ctx.moveTo(-16, -104); ctx.quadraticCurveTo(0, -94, 16, -104); ctx.lineTo(10, -98); ctx.quadraticCurveTo(0, -90, -10, -98); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = dk(tun, 0.4); ctx.lineWidth = 1.8; ctx.stroke();
     if (SUITS[st]) SUITS[st](k, tun, w, wh, torso);
     else if (st === "astro") {
       ctx.fillStyle = tint("#c9d2dc"); S.rrect(-14, -86, 30, 26, 5); ctx.fill(); ctx.strokeStyle = "#5c6878"; ctx.lineWidth = 2; ctx.stroke(); ["#e8782c", "#4fb0e8", "#4fd08a"].forEach(function (c2, i) { ball(-6 + i * 10, -78, 3.4, c2); }); ctx.fillStyle = "#2a3646"; ctx.fillRect(-10, -68, 22, 5);
@@ -217,7 +226,20 @@ var CH = (function () {
     limb(sx, sy, x1, y1, 14.5 + pf, uc, null, 11.5 + pf);
     if (k.armband) { ctx.strokeStyle = tint("#e2b23d"); ctx.lineWidth = 5; ctx.lineCap = "butt"; ctx.beginPath(); ctx.moveTo(sx + (x1 - sx) * 0.55 - 8, sy + (y1 - sy) * 0.55); ctx.lineTo(sx + (x1 - sx) * 0.55 + 8, sy + (y1 - sy) * 0.55); ctx.stroke(); }
     limb(x1, y1, x2, y2, 11.5 + pf, fc, null, 9.5 + pf);
-    ball(x1, y1, 6.8 + pf / 2, uc); if (k.cuff) { ctx.strokeStyle = tint(k.cuff); ctx.lineWidth = 6; ctx.lineCap = "butt"; var cx0 = x2 - Math.sin(a2) * 8, cy0 = y2 - Math.cos(a2) * 8; ctx.beginPath(); ctx.moveTo(cx0 - Math.cos(a2) * 8, cy0 + Math.sin(a2) * 8); ctx.lineTo(cx0 + Math.cos(a2) * 8, cy0 - Math.sin(a2) * 8); ctx.stroke(); } hand(x2, y2, a2, gc);
+    ball(x1, y1, 6.8 + pf / 2, uc);
+    ctx.strokeStyle = dk(fc, 0.45); ctx.lineWidth = 1.5; ctx.beginPath();
+    var ea = a2 - 0.2;
+    ctx.moveTo(x1 - Math.cos(ea) * 5, y1 + Math.sin(ea) * 5); ctx.lineTo(x1 + Math.cos(ea) * 5, y1 - Math.sin(ea) * 5);
+    ctx.moveTo(x2 - Math.sin(a2) * 14 - Math.cos(a2) * 4, y2 - Math.cos(a2) * 14 + Math.sin(a2) * 4); ctx.lineTo(x2 - Math.sin(a2) * 14 + Math.cos(a2) * 4, y2 - Math.cos(a2) * 14 - Math.sin(a2) * 4);
+    ctx.moveTo(x2 - Math.sin(a2) * 22 - Math.cos(a2) * 3, y2 - Math.cos(a2) * 22 + Math.sin(a2) * 3); ctx.lineTo(x2 - Math.sin(a2) * 22 + Math.cos(a2) * 3, y2 - Math.cos(a2) * 22 - Math.sin(a2) * 3);
+    ctx.stroke();
+    if (k.cuff) { ctx.strokeStyle = tint(k.cuff); ctx.lineWidth = 6; ctx.lineCap = "butt"; var cx0 = x2 - Math.sin(a2) * 8, cy0 = y2 - Math.cos(a2) * 8; ctx.beginPath(); ctx.moveTo(cx0 - Math.cos(a2) * 8, cy0 + Math.sin(a2) * 8); ctx.lineTo(cx0 + Math.cos(a2) * 8, cy0 - Math.sin(a2) * 8); ctx.stroke(); }
+    else {
+      ctx.strokeStyle = dk(fc, 0.4); ctx.lineWidth = 2; ctx.lineCap = "butt";
+      var cx1 = x2 - Math.sin(a2) * 10, cy1 = y2 - Math.cos(a2) * 10;
+      ctx.beginPath(); ctx.moveTo(cx1 - Math.cos(a2) * 6, cy1 + Math.sin(a2) * 6); ctx.lineTo(cx1 + Math.cos(a2) * 6, cy1 - Math.sin(a2) * 6); ctx.stroke();
+    }
+    hand(x2, y2, a2, gc);
     if (itemDraw) itemDraw(x2, y2, a2);
     // sleeve cap over the shoulder
     if (!k.dress) { var sl = tint(k.sleeve || k.tunic); ctx.fillStyle = front ? sl : dk(sl, 0.2); ctx.beginPath(); ctx.arc(sx, sy + 1, 14, 0, 6.283); ctx.fill(); }
@@ -243,8 +265,14 @@ var CH = (function () {
     if (k.cape) { var cp = tint(k.cape), sway = Math.sin(c.t * 2.4 + (c.phase || 0)) * 8 + (c.cloak || 0), wind = c.wind || 0; var cg = ctx.createLinearGradient(0, hy - 100, 0, hy + 90); cg.addColorStop(0, lt(cp, 0.1)); cg.addColorStop(1, dk(cp, 0.3)); ctx.fillStyle = cg; ctx.beginPath(); ctx.moveTo(-8, hy - 104); ctx.quadraticCurveTo(-46 - wind * 0.4, hy - 40, -52 - sway - wind, hy + 78 + sway * 0.3); ctx.quadraticCurveTo(-24 - sway * 0.5, hy + 92, -4, hy + 70); ctx.lineTo(10, hy - 98); ctx.closePath(); ctx.fill(); ctx.strokeStyle = dk(cp, 0.4); ctx.lineWidth = 2; ctx.stroke(); ctx.strokeStyle = "rgba(255,255,255,.12)"; ctx.beginPath(); ctx.moveTo(-14, hy - 80); ctx.quadraticCurveTo(-36 - sway, hy, -42 - sway, hy + 60); ctx.stroke(); }
     // legs
     function leg(hxo, h, kn, back) { var hx = hxo, x1 = hx + Math.sin(h) * TH, y1 = hy + Math.cos(h) * TH, x2 = x1 + Math.sin(h - kn) * SH, y2 = y1 + Math.cos(h - kn) * SH, col = back ? dk(legCol, 0.16) : legCol; if (k.dress) { return; } limb(hx, hy, x1, y1, 18, col, null, 13); limb(x1, y1, x2, y2, 13, col, null, 10); ball(x1, y1, 6.5, col); if (k.shorts) { limb(hx, hy, hx + (x1 - hx) * 0.62, hy + (y1 - hy) * 0.62, 21, back ? dk(tint(k.shorts), 0.16) : tint(k.shorts), null, 19); } if (k.fins) { ctx.fillStyle = back ? dk(tint(k.fins), 0.15) : tint(k.fins); ctx.beginPath(); ctx.moveTo(x2 - 2, y2 - 8); ctx.lineTo(x2 + 60, y2 + 2); ctx.lineTo(x2 + 66, y2 + 12); ctx.lineTo(x2 + 4, y2 + 12); ctx.closePath(); ctx.fill(); ctx.strokeStyle = dk(tint(k.fins), 0.4); ctx.lineWidth = 2; ctx.stroke(); }
-      if (k.boots) { limb(x1 + (x2 - x1) * 0.42, y1 + (y2 - y1) * 0.42, x2, y2, 17, back ? dk(tint(k.boots), 0.15) : tint(k.boots), null, 17); } ctx.fillStyle = back ? dk(shoe, 0.15) : shoe; ctx.beginPath(); ctx.ellipse(x2 + 8, y2 + 2, k.boots ? 19 : 15, k.boots ? 9 : 7.5, 0, 0, 6.283); ctx.fill(); ctx.strokeStyle = dk(shoe, 0.4); ctx.lineWidth = 2; ctx.stroke(); if ((k.armor || k.cape) && !k.suit) { ctx.strokeStyle = tint("#8a5a2b"); ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(x2 - 3, y2 - 18); ctx.lineTo(x2 + 9, y2 - 18); ctx.moveTo(x2 - 4, y2 - 10); ctx.lineTo(x2 + 10, y2 - 10); ctx.stroke(); } }
-    leg(-10, P.hb, P.kb, true); if (k.dress) { /* feet peek out */ ctx.fillStyle = tint(k.shoe); ctx.beginPath(); ctx.ellipse(10, -2, 14, 6, 0, 0, 6.283); ctx.ellipse(-10, -2, 14, 6, 0, 0, 6.283); ctx.fill(); }
+      if (k.boots) { limb(x1 + (x2 - x1) * 0.42, y1 + (y2 - y1) * 0.42, x2, y2, 17, back ? dk(tint(k.boots), 0.15) : tint(k.boots), null, 17); }
+      ctx.fillStyle = back ? dk(shoe, 0.35) : dk(shoe, 0.25);
+      ctx.beginPath(); ctx.ellipse(x2 + 8, y2 + 6, k.boots ? 18 : 14, k.boots ? 4 : 3, 0, 0, 6.283); ctx.fill();
+      ctx.strokeStyle = dk(shoe, 0.5); ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.fillStyle = back ? dk(shoe, 0.15) : shoe; ctx.beginPath(); ctx.ellipse(x2 + 8, y2 + 2, k.boots ? 19 : 15, k.boots ? 9 : 7.5, 0, 0, 6.283); ctx.fill(); ctx.strokeStyle = dk(shoe, 0.4); ctx.lineWidth = 2; ctx.stroke();
+      ctx.strokeStyle = "rgba(255,255,255,0.45)"; ctx.lineWidth = 2; ctx.lineCap = "round"; ctx.beginPath(); ctx.arc(x2 + 5, y2, k.boots ? 12 : 9, 3.4, 5.6); ctx.stroke();
+      if ((k.armor || k.cape) && !k.suit) { ctx.strokeStyle = tint("#8a5a2b"); ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(x2 - 3, y2 - 18); ctx.lineTo(x2 + 9, y2 - 18); ctx.moveTo(x2 - 4, y2 - 10); ctx.lineTo(x2 + 10, y2 - 10); ctx.stroke(); } }
+    leg(-10, P.hb, P.kb, true); if (k.dress) { /* feet peek out */ [10, -10].forEach(function(fx) { ctx.fillStyle = dk(shoe, 0.3); ctx.beginPath(); ctx.ellipse(fx, 1, 14, 3, 0, 0, 6.283); ctx.fill(); ctx.fillStyle = tint(k.shoe); ctx.beginPath(); ctx.ellipse(fx, -2, 14, 6, 0, 0, 6.283); ctx.fill(); ctx.strokeStyle = dk(shoe, 0.4); ctx.lineWidth = 2; ctx.stroke(); ctx.strokeStyle = "rgba(255,255,255,0.4)"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(fx - 4, -3, 8, 3.4, 5.6); ctx.stroke(); }); }
     // torso frame
     ctx.save(); ctx.translate(0, hy); ctx.rotate(P.lean); if (view === "side") ctx.scale(0.84, 1);
     var shY = -98;

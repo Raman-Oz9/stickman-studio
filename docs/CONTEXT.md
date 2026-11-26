@@ -304,3 +304,8 @@
 - Updated `PL.city`, `PL.castle`, `PL.forest`, `PL.snow`, and `PL.jungle` in `film/studio_places.js` to true scale per `docs/SCALE.md` with 3 parallax layers, atmospheric haze, ground detail, and cast shadows.
 - Verified with `bash film/check.sh` and `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` with zero errors.
 
+### 2026-11-26 — Redesign character faces in film/studio_char.js
+- Updated `film/studio_char.js` (`face()` function) to feature big glossy eyes with pupils and two highlights, thick expressive eyebrows, a small nose, support for smile, open, frown, and O mouth shapes, cheek blush, and detailed ears.
+- Verified with `bash film/check.sh` and `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` with zero errors.
+
+

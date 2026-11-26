@@ -72,46 +72,72 @@ var CH = (function () {
   function face(c, k, P, ex, talkAmt) {
     var r = HEAD_R, skin = tint(k.skin), look = c.look || [1, 0], blink = (Math.sin(c.t * 1.3 + (c.phase || 0) * 3) > 0.985) || c.blink;
     var ox = 5, side = c.vw === "side";
+    // ears
+    if (side) {
+      ctx.fillStyle = dk(skin, 0.08);
+      ctx.beginPath(); ctx.ellipse(-HEAD_R + 8, 4, 6.5, 9.5, 0, 0, 6.283); ctx.fill();
+      ctx.strokeStyle = dk(skin, 0.4); ctx.lineWidth = 2; ctx.stroke();
+      ctx.beginPath(); ctx.arc(-HEAD_R + 8, 4, 3.8, 0.8, 5.4); ctx.stroke();
+    } else {
+      [-1, 1].forEach(function (s) {
+        var earX = s * (HEAD_R - 2);
+        ctx.fillStyle = dk(skin, 0.08);
+        ctx.beginPath(); ctx.ellipse(earX, 4, 6.5, 9.5, s * 0.12, 0, 6.283); ctx.fill();
+        ctx.strokeStyle = dk(skin, 0.4); ctx.lineWidth = 2; ctx.stroke();
+        ctx.beginPath(); ctx.arc(earX, 4, 3.8, s > 0 ? 2.2 : 0.8, s > 0 ? 4.0 : 5.6); ctx.stroke();
+      });
+    }
     // eyes
     (side ? [1] : [-1, 1]).forEach(function (s) {
       var ex0 = side ? 20 : ox + s * 15.5, ey = -2;
-      if (blink) { ctx.strokeStyle = dk(skin, 0.6); ctx.lineWidth = 3; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(ex0 - 7, ey); ctx.lineTo(ex0 + 7, ey + 1); ctx.stroke(); return; }
-      var ew = s > 0 ? 9.5 : 8.5, eh = ex === "shock" ? 13 : ex === "sad" ? 10 : ex === "smug" ? 7 : ex === "happy" ? 8 : ex === "angry" ? 8.5 : 11;
-      ctx.fillStyle = "#fffaf0"; ctx.beginPath(); ctx.ellipse(ex0, ey, ew, eh, 0, 0, 6.283); ctx.fill();
+      if (blink) { ctx.strokeStyle = dk(skin, 0.6); ctx.lineWidth = 3.2; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(ex0 - 7, ey); ctx.lineTo(ex0 + 7, ey + 1); ctx.stroke(); return; }
+      var ew = s > 0 ? 9.5 : 8.5;
+      var eh = (ex === "shock" || ex === "O") ? 13 : ex === "sad" ? 10 : ex === "smug" ? 7 : (ex === "happy" || ex === "smile") ? 8.5 : ex === "angry" ? 8.5 : 11;
+      ctx.fillStyle = "#fffaf5"; ctx.beginPath(); ctx.ellipse(ex0, ey, ew, eh, 0, 0, 6.283); ctx.fill();
       ctx.strokeStyle = dk(skin, 0.55); ctx.lineWidth = 1.6; ctx.stroke();
       var ix = ex0 + look[0] * 3.2, iy = ey + look[1] * 3 + (ex === "sad" ? 1.5 : 0);
-      ctx.fillStyle = tint(k.eye); ctx.beginPath(); ctx.arc(ix, iy, 6.1, 0, 6.283); ctx.fill();
-      ctx.fillStyle = "#15100c"; ctx.beginPath(); ctx.arc(ix, iy, ex === "shock" ? 2.2 : 3.4, 0, 6.283); ctx.fill();
-      ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(ix + 2.2, iy - 2.4, 1.9, 0, 6.283); ctx.fill();
+      ctx.fillStyle = tint(k.eye); ctx.beginPath(); ctx.arc(ix, iy, 6.4, 0, 6.283); ctx.fill();
+      ctx.fillStyle = "#15100c"; ctx.beginPath(); ctx.arc(ix, iy, (ex === "shock" || ex === "O") ? 2.2 : 3.6, 0, 6.283); ctx.fill();
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath(); ctx.arc(ix + 2.2, iy - 2.4, 2.0, 0, 6.283); ctx.fill();
+      ctx.beginPath(); ctx.arc(ix - 1.8, iy + 1.6, 1.1, 0, 6.283); ctx.fill();
       // upper lid for smug / sad / angry
       if (ex === "smug" || ex === "sad" || ex === "angry") { ctx.fillStyle = skin; ctx.beginPath(); ctx.rect(ex0 - ew - 1, ey - eh - 1, ew * 2 + 2, ex === "smug" ? eh * 0.85 : eh * 0.45); ctx.fill(); ctx.strokeStyle = dk(skin, 0.6); ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(ex0 - ew, ey - eh * (ex === "smug" ? -0.7 : -0.05)); ctx.lineTo(ex0 + ew, ey - eh * (ex === "smug" ? -0.7 : -0.05)); ctx.stroke(); }
     });
     // brows
-    var bc = k.hair === "#d9d9d9" ? "#c8c8c8" : dk(k.hair, 0.1); ctx.strokeStyle = tint(bc); ctx.lineWidth = 4.2; ctx.lineCap = "round";
+    var bc = k.hair === "#d9d9d9" ? "#c8c8c8" : dk(k.hair, 0.1); ctx.strokeStyle = tint(bc); ctx.lineWidth = 4.8; ctx.lineCap = "round";
     var bl = [-14, -13], br = [-13, -14], by = -19;
-    if (ex === "angry") { bl = [-8, 5]; br = [5, -8]; by = -17; } else if (ex === "sad") { bl = [5, -9]; br = [-9, 5]; by = -19; } else if (ex === "shock") { bl = [-6, -6]; br = [-6, -6]; by = -27; } else if (ex === "happy") { bl = [-4, -10]; br = [-10, -4]; by = -23; } else if (ex === "smug") { bl = [-6, -12]; br = [-1, 0]; by = -21; }
-    if (side) { ctx.beginPath(); ctx.moveTo(8, by + bl[0]); ctx.quadraticCurveTo(20, by + Math.min(bl[0], bl[1]) - 4, 32, by + bl[1]); ctx.stroke(); } else
-    ctx.beginPath(); ctx.moveTo(ox - 25, by + bl[0]); ctx.quadraticCurveTo(ox - 16, by + Math.min(bl[0], bl[1]) - 4, ox - 6, by + bl[1]); ctx.moveTo(ox + 6, by + br[0]); ctx.quadraticCurveTo(ox + 16, by + Math.min(br[0], br[1]) - 4, ox + 25, by + br[1]); ctx.stroke();
+    if (ex === "angry") { bl = [-8, 6]; br = [6, -8]; by = -17; } else if (ex === "sad" || ex === "frown") { bl = [6, -10]; br = [-10, 6]; by = -19; } else if (ex === "shock" || ex === "O") { bl = [-7, -7]; br = [-7, -7]; by = -28; } else if (ex === "happy" || ex === "smile") { bl = [-5, -11]; br = [-11, -5]; by = -23; } else if (ex === "smug") { bl = [-6, -13]; br = [-1, 1]; by = -21; }
+    if (side) { ctx.beginPath(); ctx.moveTo(6, by + bl[0]); ctx.quadraticCurveTo(20, by + Math.min(bl[0], bl[1]) - 5, 32, by + bl[1]); ctx.stroke(); } else
+    ctx.beginPath(); ctx.moveTo(ox - 26, by + bl[0]); ctx.quadraticCurveTo(ox - 16, by + Math.min(bl[0], bl[1]) - 5, ox - 6, by + bl[1]); ctx.moveTo(ox + 6, by + br[0]); ctx.quadraticCurveTo(ox + 16, by + Math.min(br[0], br[1]) - 5, ox + 26, by + br[1]); ctx.stroke();
     // nose
-    if (side) { ctx.fillStyle = skin; ctx.beginPath(); ctx.moveTo(HEAD_R - 6, -4); ctx.quadraticCurveTo(HEAD_R + 12, 10, HEAD_R - 2, 17); ctx.lineTo(HEAD_R - 8, 16); ctx.closePath(); ctx.fill(); ctx.strokeStyle = dk(skin, 0.4); ctx.lineWidth = 2.2; ctx.stroke(); ctx.fillStyle = dk(skin, 0.1); ctx.beginPath(); ctx.ellipse(-4, 6, 9, 12, 0, 0, 6.283); ctx.fill(); ctx.strokeStyle = dk(skin, 0.4); ctx.beginPath(); ctx.arc(-4, 6, 4, 0.3, 4.2); ctx.stroke(); } else {
-    ctx.strokeStyle = dk(skin, 0.38); ctx.lineWidth = 2.6; ctx.beginPath(); ctx.moveTo(ox + 1, 6); ctx.quadraticCurveTo(ox + 9, 13, ox + 2, 15); ctx.stroke(); }
-    // cheeks
-    ctx.fillStyle = "rgba(230,110,100,0.22)"; ctx.beginPath(); if (side) ctx.ellipse(22, 14, 7, 4.5, 0, 0, 6.283); else { ctx.ellipse(ox - 26, 12, 7, 4.5, 0, 0, 6.283); ctx.ellipse(ox + 26, 12, 7, 4.5, 0, 0, 6.283); } ctx.fill();
+    if (side) { ctx.fillStyle = skin; ctx.beginPath(); ctx.moveTo(HEAD_R - 6, -4); ctx.quadraticCurveTo(HEAD_R + 12, 10, HEAD_R - 2, 17); ctx.lineTo(HEAD_R - 8, 16); ctx.closePath(); ctx.fill(); ctx.strokeStyle = dk(skin, 0.4); ctx.lineWidth = 2.2; ctx.stroke(); } else {
+    ctx.strokeStyle = dk(skin, 0.38); ctx.lineWidth = 2.6; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(ox + 1, 6); ctx.quadraticCurveTo(ox + 9, 13, ox + 2, 16); ctx.stroke(); }
+    // cheeks (blush)
+    ctx.fillStyle = "rgba(235,100,105,0.28)"; ctx.beginPath(); if (side) ctx.ellipse(22, 14, 8, 5, 0, 0, 6.283); else { ctx.ellipse(ox - 27, 13, 8, 5, 0, 0, 6.283); ctx.ellipse(ox + 27, 13, 8, 5, 0, 0, 6.283); } ctx.fill();
     // mouth
     var my = 24, mx = side ? 28 : ox + 1, open = talkAmt; if (side) { talkAmt = talkAmt * 0.8; }
     ctx.lineWidth = 3; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = "#5a2020";
-    function mouthShape(w, h, teeth, tongue) {
-      ctx.save(); ctx.beginPath(); ctx.moveTo(mx - w, my); ctx.quadraticCurveTo(mx, my - h * 0.35, mx + w, my); ctx.quadraticCurveTo(mx + w * 0.8, my + h * 1.5, mx, my + h * 1.6); ctx.quadraticCurveTo(mx - w * 0.8, my + h * 1.5, mx - w, my); ctx.closePath(); ctx.fillStyle = "#6b1c24"; ctx.fill(); ctx.clip();
-      if (teeth) { ctx.fillStyle = "#fffdf6"; ctx.fillRect(mx - w, my - 2, w * 2, Math.min(h * 0.75 + 3, 11)); ctx.strokeStyle = "rgba(160,150,140,.55)"; ctx.lineWidth = 1; for (var i = -2; i <= 2; i++) { ctx.beginPath(); ctx.moveTo(mx + i * w * 0.38, my - 2); ctx.lineTo(mx + i * w * 0.38, my + Math.min(h * 0.75 + 1, 9)); ctx.stroke(); } }
-      if (tongue) { ctx.fillStyle = "#e0707a"; ctx.beginPath(); ctx.ellipse(mx, my + h * 1.25, w * 0.55, h * 0.5, 0, 0, 6.283); ctx.fill(); }
-      ctx.restore(); ctx.strokeStyle = "#5a2020"; ctx.lineWidth = 2.6; ctx.beginPath(); ctx.moveTo(mx - w, my); ctx.quadraticCurveTo(mx, my - h * 0.35, mx + w, my); ctx.quadraticCurveTo(mx + w * 0.8, my + h * 1.5, mx, my + h * 1.6); ctx.quadraticCurveTo(mx - w * 0.8, my + h * 1.5, mx - w, my); ctx.stroke();
+    function mouthShape(w, h, teeth, tongue, roundO) {
+      ctx.save(); ctx.beginPath();
+      if (roundO) { ctx.arc(mx, my - 2, w * 0.85, 0, 6.283); } else {
+        ctx.moveTo(mx - w, my); ctx.quadraticCurveTo(mx, my - h * 0.35, mx + w, my); ctx.quadraticCurveTo(mx + w * 0.8, my + h * 1.5, mx, my + h * 1.6); ctx.quadraticCurveTo(mx - w * 0.8, my + h * 1.5, mx - w, my);
+      }
+      ctx.closePath(); ctx.fillStyle = "#6b1c24"; ctx.fill(); ctx.clip();
+      if (teeth && !roundO) { ctx.fillStyle = "#fffdf6"; ctx.fillRect(mx - w, my - 2, w * 2, Math.min(h * 0.75 + 3, 11)); ctx.strokeStyle = "rgba(160,150,140,.55)"; ctx.lineWidth = 1; for (var i = -2; i <= 2; i++) { ctx.beginPath(); ctx.moveTo(mx + i * w * 0.38, my - 2); ctx.lineTo(mx + i * w * 0.38, my + Math.min(h * 0.75 + 1, 9)); ctx.stroke(); } }
+      if (tongue) { ctx.fillStyle = "#e0707a"; ctx.beginPath(); ctx.ellipse(mx, my + h * (roundO ? 0.3 : 1.25), w * 0.55, h * 0.5, 0, 0, 6.283); ctx.fill(); }
+      ctx.restore(); ctx.strokeStyle = "#5a2020"; ctx.lineWidth = 2.6; ctx.beginPath();
+      if (roundO) { ctx.arc(mx, my - 2, w * 0.85, 0, 6.283); } else {
+        ctx.moveTo(mx - w, my); ctx.quadraticCurveTo(mx, my - h * 0.35, mx + w, my); ctx.quadraticCurveTo(mx + w * 0.8, my + h * 1.5, mx, my + h * 1.6); ctx.quadraticCurveTo(mx - w * 0.8, my + h * 1.5, mx - w, my);
+      }
+      ctx.stroke();
     }
-    if (ex === "angry") { if (open > 0.05 || c.pose === "fight") mouthShape(13, 6 + open * 9, true, open > 0.5); else { ctx.beginPath(); ctx.moveTo(mx - 10, my + 3); ctx.quadraticCurveTo(mx, my - 4, mx + 10, my + 3); ctx.stroke(); } }
-    else if (ex === "sad") { if (open > 0.05) mouthShape(9, 4 + open * 7, false, open > 0.6); else { ctx.beginPath(); ctx.moveTo(mx - 9, my + 5); ctx.quadraticCurveTo(mx, my - 3, mx + 9, my + 5); ctx.stroke(); } }
-    else if (ex === "shock") { mouthShape(7.5, 9 + open * 4, false, true); }
-    else if (ex === "happy") { mouthShape(15, 7 + open * 8, true, open > 0.45); }
-    else if (ex === "smug") { ctx.beginPath(); ctx.moveTo(mx - 8, my + 1); ctx.quadraticCurveTo(mx + 3, my + 8, mx + 13, my - 4); ctx.stroke(); }
-    else { if (open > 0.05) mouthShape(11, 3.5 + open * 9, true, open > 0.55); else { ctx.beginPath(); ctx.moveTo(mx - 9, my); ctx.quadraticCurveTo(mx, my + 5, mx + 9, my); ctx.stroke(); } }
+    if (ex === "angry") { if (open > 0.05 || c.pose === "fight") mouthShape(13, 6 + open * 9, true, open > 0.5, false); else { ctx.beginPath(); ctx.moveTo(mx - 10, my + 3); ctx.quadraticCurveTo(mx, my - 4, mx + 10, my + 3); ctx.stroke(); } }
+    else if (ex === "sad" || ex === "frown") { if (open > 0.05) mouthShape(9, 4 + open * 7, false, open > 0.6, false); else { ctx.beginPath(); ctx.moveTo(mx - 10, my + 5); ctx.quadraticCurveTo(mx, my - 5, mx + 10, my + 5); ctx.stroke(); } }
+    else if (ex === "shock" || ex === "O") { mouthShape(7.5, 9 + open * 4, false, true, ex === "O"); }
+    else if (ex === "happy" || ex === "smile") { mouthShape(15, 7 + open * 8, true, open > 0.45, false); }
+    else if (ex === "smug") { ctx.beginPath(); ctx.moveTo(mx - 9, my + 1); ctx.quadraticCurveTo(mx + 3, my + 9, mx + 14, my - 4); ctx.stroke(); }
+    else { if (open > 0.05) mouthShape(11, 3.5 + open * 9, true, open > 0.55, false); else { ctx.beginPath(); ctx.moveTo(mx - 10, my - 1); ctx.quadraticCurveTo(mx, my + 6, mx + 10, my - 1); ctx.stroke(); } }
   }
 
   function leaf(x, y, a, len, col) { ctx.save(); ctx.translate(x, y); ctx.rotate(a); ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(len * 0.5, -len * 0.38, len, 0); ctx.quadraticCurveTo(len * 0.5, len * 0.38, 0, 0); ctx.fill(); ctx.restore(); }
@@ -300,8 +326,6 @@ var CH = (function () {
     headBackLayer(k);
     var hg = S.rgrad(-14 * ls, -16, 6, HEAD_R + 8, [[0, lt(skinC, 0.22)], [0.7, skinC], [1, dk(skinC, 0.2)]]); ctx.fillStyle = hg; ctx.beginPath(); ctx.ellipse(0, 4, HEAD_R - 2, HEAD_R + 2, 0, 0, 6.283); ctx.fill();
     ctx.strokeStyle = dk(skinC, 0.3); ctx.lineWidth = 2.2; ctx.stroke();
-    // ears
-    ball(-HEAD_R + 2, 8, 8, dk(skinC, 0.06)); ball(HEAD_R - 2, 8, 8, dk(skinC, 0.06));
     var backV = view === "back";
     var talkAmt = c.talk ? (0.5 + 0.5 * Math.abs(Math.sin(c.t * 10.5))) * (0.55 + 0.45 * Math.sin(c.t * 3.3 + 1)) : 0;
     var ex = c.ex || "neutral"; if (c.pose === "down" && (c.fall || 0) > 0.2) ex = "shock";

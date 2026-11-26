@@ -142,7 +142,8 @@ var CH = (function () {
   function suitBody(k, tun, gr, w, wh) {
     function torso() { ctx.beginPath(); ctx.moveTo(-w, -100); ctx.quadraticCurveTo(-w - 2, -40, -wh - 3, 10); ctx.lineTo(wh + 3, 10); ctx.quadraticCurveTo(w + 2, -40, w, -100); ctx.quadraticCurveTo(0, -108, -w, -100); ctx.closePath(); }
     var st = k.suit; ctx.fillStyle = gr; torso(); ctx.fill();
-    var sg = ctx.createLinearGradient(-w, -100, w, 10); sg.addColorStop(0, "rgba(0,0,0,0)"); sg.addColorStop(0.6, "rgba(0,0,0,0.06)"); sg.addColorStop(1, "rgba(0,0,0,0.22)"); ctx.fillStyle = sg; torso(); ctx.fill();
+    var ls = S.LIGHT_DX || 1;
+    var sg = ctx.createLinearGradient(ls > 0 ? -w : w, -100, ls > 0 ? w : -w, 10); sg.addColorStop(0, "rgba(0,0,0,0)"); sg.addColorStop(0.5, "rgba(0,0,0,0.08)"); sg.addColorStop(1, "rgba(0,0,0,0.26)"); ctx.fillStyle = sg; torso(); ctx.fill();
     ctx.strokeStyle = dk(tun, 0.35); ctx.lineWidth = 2.4; ctx.stroke();
     ctx.strokeStyle = dk(tun, 0.45); ctx.lineWidth = 1.6; ctx.beginPath();
     ctx.moveTo(-wh + 4, -18); ctx.quadraticCurveTo(0, -14, wh - 4, -18);
@@ -221,7 +222,8 @@ var CH = (function () {
 
   function arm(sx, sy, a1, e, k, col, front, itemDraw) {
     var x1 = sx + Math.sin(a1) * UA, y1 = sy + Math.cos(a1) * UA, a2 = a1 + e, x2 = x1 + Math.sin(a2) * FA, y2 = y1 + Math.cos(a2) * FA;
-    var sleeve = k.dress || k.armor ? null : null, skin = tint(k.skin);
+    var skin = tint(k.skin);
+    var ls = S.LIGHT_DX || 1;
     var pf = k.puff || 0, sc = k.sleeve ? tint(k.sleeve) : skin, uc = front ? sc : dk(sc, 0.16), fc = front ? (k.sleeve && !k.sleeveShort ? sc : skin) : dk(k.sleeve && !k.sleeveShort ? sc : skin, 0.16), gc = k.glove ? tint(k.glove) : skin; gc = front ? gc : dk(gc, 0.16);
     limb(sx, sy, x1, y1, 14.5 + pf, uc, null, 11.5 + pf);
     if (k.armband) { ctx.strokeStyle = tint("#e2b23d"); ctx.lineWidth = 5; ctx.lineCap = "butt"; ctx.beginPath(); ctx.moveTo(sx + (x1 - sx) * 0.55 - 8, sy + (y1 - sy) * 0.55); ctx.lineTo(sx + (x1 - sx) * 0.55 + 8, sy + (y1 - sy) * 0.55); ctx.stroke(); }
@@ -233,11 +235,14 @@ var CH = (function () {
     ctx.moveTo(x2 - Math.sin(a2) * 14 - Math.cos(a2) * 4, y2 - Math.cos(a2) * 14 + Math.sin(a2) * 4); ctx.lineTo(x2 - Math.sin(a2) * 14 + Math.cos(a2) * 4, y2 - Math.cos(a2) * 14 - Math.sin(a2) * 4);
     ctx.moveTo(x2 - Math.sin(a2) * 22 - Math.cos(a2) * 3, y2 - Math.cos(a2) * 22 + Math.sin(a2) * 3); ctx.lineTo(x2 - Math.sin(a2) * 22 + Math.cos(a2) * 3, y2 - Math.cos(a2) * 22 - Math.sin(a2) * 3);
     ctx.stroke();
-    if (k.cuff) { ctx.strokeStyle = tint(k.cuff); ctx.lineWidth = 6; ctx.lineCap = "butt"; var cx0 = x2 - Math.sin(a2) * 8, cy0 = y2 - Math.cos(a2) * 8; ctx.beginPath(); ctx.moveTo(cx0 - Math.cos(a2) * 8, cy0 + Math.sin(a2) * 8); ctx.lineTo(cx0 + Math.cos(a2) * 8, cy0 - Math.sin(a2) * 8); ctx.stroke(); }
-    else {
+    if (k.cuff) {
+      ctx.strokeStyle = tint(k.cuff); ctx.lineWidth = 6; ctx.lineCap = "butt"; var cx0 = x2 - Math.sin(a2) * 8, cy0 = y2 - Math.cos(a2) * 8; ctx.beginPath(); ctx.moveTo(cx0 - Math.cos(a2) * 8, cy0 + Math.sin(a2) * 8); ctx.lineTo(cx0 + Math.cos(a2) * 8, cy0 - Math.sin(a2) * 8); ctx.stroke();
+      ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(cx0 - Math.cos(a2) * 6, cy0 + Math.sin(a2) * 6); ctx.lineTo(cx0 + Math.cos(a2) * 6, cy0 - Math.sin(a2) * 6); ctx.stroke();
+    } else {
       ctx.strokeStyle = dk(fc, 0.4); ctx.lineWidth = 2; ctx.lineCap = "butt";
       var cx1 = x2 - Math.sin(a2) * 10, cy1 = y2 - Math.cos(a2) * 10;
       ctx.beginPath(); ctx.moveTo(cx1 - Math.cos(a2) * 6, cy1 + Math.sin(a2) * 6); ctx.lineTo(cx1 + Math.cos(a2) * 6, cy1 - Math.sin(a2) * 6); ctx.stroke();
+      ctx.strokeStyle = lt(fc, 0.3); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(cx1 - Math.sin(a2) * 4 - Math.cos(a2) * 4, cy1 - Math.cos(a2) * 4 + Math.sin(a2) * 4); ctx.lineTo(cx1 - Math.sin(a2) * 4 + Math.cos(a2) * 4, cy1 - Math.cos(a2) * 4 - Math.sin(a2) * 4); ctx.stroke();
     }
     hand(x2, y2, a2, gc);
     if (itemDraw) itemDraw(x2, y2, a2);
@@ -269,8 +274,9 @@ var CH = (function () {
       ctx.fillStyle = back ? dk(shoe, 0.35) : dk(shoe, 0.25);
       ctx.beginPath(); ctx.ellipse(x2 + 8, y2 + 6, k.boots ? 18 : 14, k.boots ? 4 : 3, 0, 0, 6.283); ctx.fill();
       ctx.strokeStyle = dk(shoe, 0.5); ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.strokeStyle = "rgba(255,255,255,0.6)"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(x2 + 8, y2 + 5.5, k.boots ? 16 : 12, k.boots ? 2.5 : 2, 0, 0, Math.PI); ctx.stroke();
       ctx.fillStyle = back ? dk(shoe, 0.15) : shoe; ctx.beginPath(); ctx.ellipse(x2 + 8, y2 + 2, k.boots ? 19 : 15, k.boots ? 9 : 7.5, 0, 0, 6.283); ctx.fill(); ctx.strokeStyle = dk(shoe, 0.4); ctx.lineWidth = 2; ctx.stroke();
-      ctx.strokeStyle = "rgba(255,255,255,0.45)"; ctx.lineWidth = 2; ctx.lineCap = "round"; ctx.beginPath(); ctx.arc(x2 + 5, y2, k.boots ? 12 : 9, 3.4, 5.6); ctx.stroke();
+      ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.lineWidth = 2.2; ctx.lineCap = "round"; ctx.beginPath(); ctx.arc(x2 + 5, y2, k.boots ? 12 : 9, 3.4, 5.6); ctx.stroke();
       if ((k.armor || k.cape) && !k.suit) { ctx.strokeStyle = tint("#8a5a2b"); ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(x2 - 3, y2 - 18); ctx.lineTo(x2 + 9, y2 - 18); ctx.moveTo(x2 - 4, y2 - 10); ctx.lineTo(x2 + 10, y2 - 10); ctx.stroke(); } }
     leg(-10, P.hb, P.kb, true); if (k.dress) { /* feet peek out */ [10, -10].forEach(function(fx) { ctx.fillStyle = dk(shoe, 0.3); ctx.beginPath(); ctx.ellipse(fx, 1, 14, 3, 0, 0, 6.283); ctx.fill(); ctx.fillStyle = tint(k.shoe); ctx.beginPath(); ctx.ellipse(fx, -2, 14, 6, 0, 0, 6.283); ctx.fill(); ctx.strokeStyle = dk(shoe, 0.4); ctx.lineWidth = 2; ctx.stroke(); ctx.strokeStyle = "rgba(255,255,255,0.4)"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(fx - 4, -3, 8, 3.4, 5.6); ctx.stroke(); }); }
     // torso frame

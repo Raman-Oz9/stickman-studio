@@ -1,3 +1,7 @@
+### 2026-11-26 — FILM ENGINE 2D clothing shading and folds in film/studio_char.js
+- Added clothing shading and folds to `suitBody()` and sleeves (`arm()`) in `film/studio_char.js`: soft gradient away from light, 2-3 fold lines at elbows and waist, collar and cuff details, and shoe soles with highlight.
+- Verified with `bash film/check.sh` and `cd remotion && npx tsc --noEmit` with zero errors.
+
 ### 2026-11-26 — Add clothing shading and folds to film engine characters in film/studio_char.js
 - Updated `film/studio_char.js` (`suitBody()`, `arm()`, and `leg()`) to add soft gradient shading away from light, 2-3 fold lines at waist and elbows, collar and cuff details, and shoe soles with highlight.
 - Verified with `bash film/check.sh` and `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` with zero errors.

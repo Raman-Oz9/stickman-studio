@@ -299,3 +299,8 @@
 - Created `film/studio_fx.js` providing global `FX` with 13 screen-space and parallax layer effects (snow, embers, fireflies, dust puff function `puff(x,y)`, water ripples, speed lines, shockwave ring, floating dust motes in light shafts, confetti, bubbles rising, shooting stars, aurora ribbon, heat shimmer), each fully deterministic using `ST.rng` and `ST.time`.
 - Added script tag for `studio_fx.js` to `film/studio.html` before `studio_story.js`.
 - Verified with `node --check film/studio_fx.js` and `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` with zero errors.
+
+### 2026-11-26 — Improve film engine environments in film/studio_places.js to true scale per docs/SCALE.md
+- Updated `PL.city`, `PL.castle`, `PL.forest`, `PL.snow`, and `PL.jungle` in `film/studio_places.js` to true scale per `docs/SCALE.md` with 3 parallax layers, atmospheric haze, ground detail, and cast shadows.
+- Verified with `bash film/check.sh` and `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` with zero errors.
+

@@ -48,96 +48,145 @@ var PL = (function () {
 
   function castle(opt) {
     W.sky(); W.clouds(5, 0.05, -820, 5);
-    W.ridge(0.08, -150, 110, 4, "#5a7a5a", "#7ca87c", 0.003, 0.45);
-    S.layer(0.2, function () {
-      ctx.fillStyle = "#8a8f9a";
-      ctx.fillRect(-220, -320, 140, 320);
-      ctx.fillRect(80, -380, 160, 380);
-      ctx.fillStyle = "#6e737e";
-      ctx.fillRect(-230, -350, 160, 40);
-      ctx.fillRect(70, -410, 180, 40);
+    // Layer 1: Distant mountain ridge and watchtowers (parallax 0.15, atmospheric haze)
+    W.ridge(0.15, -160, 130, 4, "#4a6a5a", "#7ca87c", 0.003, 0.45);
+    S.layer(0.15, function () {
+      ctx.fillStyle = S.alpha(W.cur.haze || "#f4e6c4", 0.22);
+      ctx.fillRect(-1600, -350, 3200, 450);
+      var r = rng(42);
       for (var i = 0; i < 5; i++) {
-        ctx.fillRect(-220 + i * 30, -376, 18, 26);
-        ctx.fillRect(80 + i * 34, -436, 20, 26);
+        var tx = -1200 + i * 550 + r() * 100;
+        ctx.fillStyle = "#5a5f6a";
+        ctx.fillRect(tx, -280, 50, 230);
+        ctx.fillStyle = "#3e424a";
+        ctx.beginPath(); ctx.moveTo(tx - 10, -280); ctx.lineTo(tx + 25, -330); ctx.lineTo(tx + 60, -280); ctx.closePath(); ctx.fill();
       }
+    });
+
+    // Layer 2: Mid-ground castle citadel, fortified walls, true-scale gate (170w x 400h), towers (parallax 0.45)
+    S.layer(0.45, function () {
+      // Cast shadows under castle towers/walls
+      ctx.fillStyle = "rgba(0,0,0,0.25)";
+      ctx.beginPath(); ctx.ellipse(-90, -45, 290, 26, 0, 0, 6.283); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(160, -45, 310, 26, 0, 0, 6.283); ctx.fill();
+
+      ctx.fillStyle = "#8a8f9a";
+      ctx.fillRect(-240, -420, 160, 420); // Citadel wall
+      ctx.fillRect(70, -500, 180, 500);  // Grand keep tower (true scale >= 500-600h)
+      ctx.fillStyle = "#6e737e";
+      ctx.fillRect(-250, -450, 180, 40);
+      ctx.fillRect(60, -530, 200, 40);
+      for (var i = 0; i < 5; i++) {
+        ctx.fillRect(-240 + i * 34, -478, 20, 28);
+        ctx.fillRect(70 + i * 38, -562, 22, 28);
+      }
+      // Grand arch door (true scale: 170w x 400h proportion)
       ctx.fillStyle = "#2a1e16";
-      ctx.beginPath(); ctx.arc(160, -80, 40, Math.PI, 0, false); ctx.lineTo(200, 0); ctx.lineTo(120, 0); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.arc(160, -90, 85, Math.PI, 0, false); ctx.lineTo(220, 0); ctx.lineTo(100, 0); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = "#1a120c"; ctx.lineWidth = 4; ctx.stroke();
+
       ctx.fillStyle = "#ffd966";
-      ctx.fillRect(-160, -220, 16, 26); ctx.fillRect(-100, -220, 16, 26);
-      ctx.fillRect(120, -280, 18, 28); ctx.fillRect(180, -280, 18, 28);
+      ctx.fillRect(-180, -280, 18, 30); ctx.fillRect(-110, -280, 18, 30);
+      ctx.fillRect(120, -340, 20, 34); ctx.fillRect(190, -340, 20, 34);
+
       ctx.fillStyle = "#b5242c";
-      ctx.fillRect(-154, -450, 4, 100);
-      ctx.beginPath(); ctx.moveTo(-150, -450); ctx.lineTo(-100, -435 + Math.sin(S.time * 3) * 4); ctx.lineTo(-150, -420); ctx.fill();
-      ctx.fillRect(164, -510, 4, 100);
+      ctx.fillRect(-154, -550, 5, 110);
+      ctx.beginPath(); ctx.moveTo(-149, -550); ctx.lineTo(-95, -535 + Math.sin(S.time * 3) * 5); ctx.lineTo(-149, -520); ctx.fill();
+      ctx.fillRect(164, -620, 5, 110);
       ctx.fillStyle = "#2c6fb3";
-      ctx.beginPath(); ctx.moveTo(168, -510); ctx.lineTo(218, -495 + Math.sin(S.time * 3.5) * 5); ctx.lineTo(168, -480); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(169, -620); ctx.lineTo(225, -605 + Math.sin(S.time * 3.5) * 6); ctx.lineTo(169, -590); ctx.fill();
     });
-    S.layer(0.4, function () {
-      for (var i = 0; i < 4; i++) {
-        var hx = -650 + i * 340 + (i > 1 ? 200 : 0);
+
+    // Layer 3: Foreground houses & fortifications (true scale house: 560w x 620 wall+roof proportion, parallax 0.75)
+    S.layer(0.75, function () {
+      ctx.fillStyle = "rgba(0,0,0,0.3)";
+      ctx.beginPath(); ctx.ellipse(-480, -45, 190, 19, 0, 0, 6.283); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(450, -45, 210, 21, 0, 0, 6.283); ctx.fill();
+
+      for (var i = 0; i < 2; i++) {
+        var hx = i === 0 ? -520 : 380, hw = 260, hh = 220;
         ctx.fillStyle = "#a87d54";
-        ctx.fillRect(hx, -140, 120, 140);
+        ctx.fillRect(hx, -hh, hw, hh);
         ctx.fillStyle = "#8a3a24";
-        ctx.beginPath(); ctx.moveTo(hx - 15, -140); ctx.lineTo(hx + 60, -220); ctx.lineTo(hx + 135, -140); ctx.closePath(); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(hx - 25, -hh); ctx.lineTo(hx + hw / 2, -hh - 130); ctx.lineTo(hx + hw + 25, -hh); ctx.closePath(); ctx.fill();
         ctx.fillStyle = "#3a2212";
-        ctx.fillRect(hx + 45, -80, 30, 80);
+        ctx.fillRect(hx + hw / 2 - 22, -110, 44, 110); // door
         ctx.fillStyle = "#ffb84d";
-        ctx.fillRect(hx + 20, -110, 22, 22);
+        ctx.fillRect(hx + 35, -hh + 35, 34, 34); // window
       }
     });
+
     W.ground(1, -50, "#85a363", "#557038");
+
     S.layer(1, function () {
       var v = S.viewRect(1);
       ctx.fillStyle = "#b59868";
-      ctx.beginPath(); ctx.moveTo(-180, -50); ctx.lineTo(180, -50); ctx.lineTo(320, 300); ctx.lineTo(-320, 300); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(-180, -50); ctx.lineTo(180, -50); ctx.lineTo(340, 300); ctx.lineTo(-340, 300); ctx.closePath(); ctx.fill();
+      var R = rng(79);
+      ctx.fillStyle = "#4a6230";
+      for (var i = 0; i < 18; i++) {
+        var sx = -1000 + R() * 2000, sy = -45 + R() * 320;
+        ctx.beginPath(); ctx.ellipse(sx, sy, 14 + R() * 20, 7 + R() * 9, 0, 0, 6.283); ctx.fill();
+      }
     });
   }
 
   function city(opt) {
     W.sky(); W.clouds(3, 0.04, -820, 4);
-    S.layer(0.08, function () {
-      var r = rng(8), x = -1400;
+    // Layer 1: Distant skyscrapers with atmospheric haze (parallax 0.15)
+    W.ridge(0.15, -150, 100, 3, "#252b38", "#3a4254", 0.003, 0.4);
+    S.layer(0.15, function () {
+      ctx.fillStyle = S.alpha(W.cur.haze || "#f4e6c4", 0.25);
+      ctx.fillRect(-1600, -400, 3200, 500);
+      var r = rng(18), x = -1400;
       while (x < 1400) {
-        var w = 50 + r() * 90, h = 180 + r() * 250;
-        ctx.fillStyle = "#32384a";
+        var w = 70 + r() * 90, h = 250 + r() * 250;
+        ctx.fillStyle = "#222733";
         ctx.fillRect(x, -h, w, h + 100);
-        ctx.fillStyle = "rgba(255,220,130,.4)";
-        for (var wy = -h + 20; wy < -20; wy += 24) {
-          for (var wx = x + 10; wx < x + w - 10; wx += 16) {
-            if (r() > 0.3) ctx.fillRect(wx, wy, 8, 12);
-          }
-        }
-        x += w + 6;
+        x += w + 10;
       }
     });
-    S.layer(0.2, function () {
+
+    // Layer 2: Mid-ground major bank/big buildings (520+ w x 640+ h, columns >= 600 tall per scale bible, parallax 0.45)
+    S.layer(0.45, function () {
+      ctx.fillStyle = "rgba(0,0,0,0.28)";
+      ctx.beginPath(); ctx.ellipse(-280, -45, 340, 28, 0, 0, 6.283); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(320, -45, 360, 28, 0, 0, 6.283); ctx.fill();
+
       var r = rng(14), x = -1200;
       while (x < 1200) {
-        var w = 70 + r() * 110, h = 300 + r() * 320;
+        var w = 110 + r() * 140, h = 550 + r() * 150; // true scale height 550-700h
         ctx.fillStyle = "#1e222d";
         ctx.fillRect(x, -h, w, h + 150);
         ctx.fillStyle = "rgba(255,235,160,.65)";
-        for (var wy = -h + 25; wy < -30; wy += 22) {
-          for (var wx = x + 12; wx < x + w - 12; wx += 18) {
-            if (r() > 0.25) ctx.fillRect(wx, wy, 9, 11);
+        for (var wy = -h + 30; wy < -40; wy += 26) {
+          for (var wx = x + 14; wx < x + w - 14; wx += 20) {
+            if (r() > 0.25) ctx.fillRect(wx, wy, 10, 14);
           }
         }
-        x += w + 12;
+        x += w + 16;
       }
     });
+
     W.ground(1, -50, "#424756", "#252833");
-    S.layer(1, function () {
+
+    // Layer 3: Foreground street level with street lamps (760 high), curbs, storefronts, and cast shadows (parallax 0.75)
+    S.layer(0.75, function () {
       var v = S.viewRect(1);
       ctx.fillStyle = "#2d323d";
       ctx.fillRect(v.l, -50, v.r - v.l, 600);
       ctx.strokeStyle = "#e8c850"; ctx.lineWidth = 6; ctx.setLineDash([35, 35]);
       ctx.beginPath(); ctx.moveTo(0, -30); ctx.lineTo(0, 500); ctx.stroke(); ctx.setLineDash([]);
       for (var lx = -900; lx <= 900; lx += 450) {
-        ctx.fillStyle = "#1a1c22"; ctx.fillRect(lx - 4, -220, 8, 220);
-        ctx.fillStyle = "#e2b23d"; ctx.beginPath(); ctx.arc(lx, -220, 14, 0, 6.283); ctx.fill();
+        // Cast shadow under street lamp
+        ctx.fillStyle = "rgba(0,0,0,0.3)";
+        ctx.beginPath(); ctx.ellipse(lx, -45, 25, 12, 0, 0, 6.283); ctx.fill();
+
+        ctx.fillStyle = "#1a1c22"; ctx.fillRect(lx - 6, -760, 12, 760); // street lamp height 760 per scale bible
+        ctx.fillStyle = "#e2b23d"; ctx.beginPath(); ctx.arc(lx, -760, 18, 0, 6.283); ctx.fill();
         ctx.save(); ctx.globalCompositeOperation = "lighter";
-        var gl = S.rgrad(lx, -200, 4, 180, [[0, "rgba(255,230,150,.55)"], [1, "rgba(255,230,150,0)"]]);
-        ctx.fillStyle = gl; ctx.fillRect(lx - 120, -240, 240, 300);
+        var gl = S.rgrad(lx, -730, 6, 220, [[0, "rgba(255,230,150,.65)"], [1, "rgba(255,230,150,0)"]]);
+        ctx.fillStyle = gl; ctx.fillRect(lx - 140, -800, 280, 350);
         ctx.restore();
       }
     });
@@ -145,57 +194,90 @@ var PL = (function () {
 
   function forest(opt) {
     W.sky(); W.clouds(6, 0.05, -820, 6);
-    W.ridge(0.08, -160, 130, 7, "#2c4a38", "#467256", 0.003, 0.5);
-    W.ridge(0.15, -135, 90, 11, "#365c44", "#528a64", 0.005, 0.4);
-    S.layer(0.3, function () {
+    // Layer 1: Distant hazy pine ridges with atmospheric haze (parallax 0.15)
+    W.ridge(0.15, -180, 140, 7, "#2c4a38", "#467256", 0.003, 0.5);
+    S.layer(0.15, function () {
+      ctx.fillStyle = S.alpha(W.cur.haze || "#f4e6c4", 0.25);
+      ctx.fillRect(-1600, -350, 3200, 450);
+    });
+
+    // Layer 2: Mid-ground pine forest layer (trunk 330, canopy 400 true scale context, parallax 0.45)
+    S.layer(0.45, function () {
       var r = rng(19);
-      for (var i = 0; i < 22; i++) {
-        var tx = -1400 + i * 130 + r() * 40, th = 220 + r() * 160;
+      for (var i = 0; i < 28; i++) {
+        var tx = -1500 + i * 110 + r() * 30, th = 330 + r() * 180;
+        ctx.fillStyle = "rgba(0,0,0,0.22)";
+        ctx.beginPath(); ctx.ellipse(tx, -45, th * 0.22, 14, 0, 0, 6.283); ctx.fill();
+
         ctx.fillStyle = "#253f2e";
-        ctx.beginPath(); ctx.moveTo(tx, -50); ctx.lineTo(tx - th * 0.3, -50 - th * 0.4); ctx.lineTo(tx, -50 - th); ctx.lineTo(tx + th * 0.3, -50 - th * 0.4); ctx.closePath(); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(tx, -50); ctx.lineTo(tx - th * 0.32, -50 - th * 0.45); ctx.lineTo(tx, -50 - th); ctx.lineTo(tx + th * 0.32, -50 - th * 0.45); ctx.closePath(); ctx.fill();
         ctx.fillStyle = "#1b2f21";
-        ctx.fillRect(tx - th * 0.05, -50, th * 0.1, 40);
+        ctx.fillRect(tx - th * 0.06, -50, th * 0.12, 50);
       }
     });
+
     W.ground(1, -50, "#3e5c38", "#243820", { grass: "#689e5a" });
-    S.layer(0.8, function () {
+
+    // Layer 3: Foreground giant ancient trees, mossy rocks, and cast shadows (parallax 0.75)
+    S.layer(0.75, function () {
       var r = rng(22);
-      for (var i = 0; i < 18; i++) {
-        var x = -1300 + r() * 2600, w = 40 + r() * 60, h = 60 + r() * 90;
+      for (var i = 0; i < 14; i++) {
+        var x = -1300 + r() * 2600, w = 60 + r() * 80, h = 90 + r() * 120;
+        ctx.fillStyle = "rgba(0,0,0,0.32)";
+        ctx.beginPath(); ctx.ellipse(x, -45, w * 0.8, 18, 0, 0, 6.283); ctx.fill();
+
         ctx.fillStyle = "#2d442a";
-        ctx.beginPath(); ctx.ellipse(x, -35, w, h * 0.5, 0, 0, 6.283); ctx.fill();
-        ctx.fillStyle = "rgba(120,180,100,.3)";
-        ctx.beginPath(); ctx.ellipse(x - w * 0.2, -45 - h * 0.2, w * 0.4, h * 0.25, 0, 0, 6.283); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(x, -40, w, h * 0.5, 0, 0, 6.283); ctx.fill();
+        ctx.fillStyle = "rgba(120,180,100,.35)";
+        ctx.beginPath(); ctx.ellipse(x - w * 0.2, -50 - h * 0.2, w * 0.4, h * 0.25, 0, 0, 6.283); ctx.fill();
       }
     });
   }
 
   function snow(opt) {
     W.sky(); W.clouds(4, 0.05, -820, 5);
-    S.layer(0.06, function () {
-      var v = S.viewRect(0.06), pts = [], step = 60;
+    // Layer 1: Distant snow mountain peaks and glaciers with atmospheric haze (parallax 0.15)
+    S.layer(0.15, function () {
+      var v = S.viewRect(0.15), pts = [], step = 60;
       for (var x = v.l - 60; x <= v.r + 60; x += step) {
-        pts.push([x, -140 - (S.noise1(x * 0.003, 15) * 0.5 + 0.5) * 280]);
+        pts.push([x, -180 - (S.noise1(x * 0.003, 15) * 0.5 + 0.5) * 320]);
       }
-      var g = S.vgrad(-420, 100, [[0, "#eef6ff"], [0.6, "#8fa3cf"], [1, "#546e96"]]);
+      var g = S.vgrad(-460, 100, [[0, "#d8e8fc"], [0.6, "#7892be"], [1, "#425a82"]]);
       ctx.fillStyle = g;
       S.smooth(pts.concat([[v.r + 60, 600], [v.l - 60, 600]]), true); ctx.fill();
-      ctx.fillStyle = "#ffffff";
-      for (var i = 1; i < pts.length - 1; i += 2) {
-        ctx.beginPath(); ctx.moveTo(pts[i][0], pts[i][1]); ctx.lineTo(pts[i - 1][0] - 20, pts[i - 1][1] + 60); ctx.lineTo(pts[i + 1][0] + 20, pts[i + 1][1] + 60); ctx.closePath(); ctx.fill();
-      }
+      ctx.fillStyle = S.alpha(W.cur.haze || "#f4e6c4", 0.2);
+      ctx.fillRect(v.l, -400, v.r - v.l, 500);
     });
-    S.layer(0.25, function () {
+
+    // Layer 2: Mid-ground snow-laden fir trees (trunk 330, canopy 400 true scale context, parallax 0.45)
+    S.layer(0.45, function () {
       var r = rng(31);
-      for (var i = 0; i < 16; i++) {
-        var tx = -1200 + i * 160 + r() * 50, th = 180 + r() * 120;
+      for (var i = 0; i < 20; i++) {
+        var tx = -1300 + i * 140 + r() * 40, th = 240 + r() * 160;
+        ctx.fillStyle = "rgba(0,0,0,0.2)";
+        ctx.beginPath(); ctx.ellipse(tx, -45, th * 0.25, 14, 0, 0, 6.283); ctx.fill();
+
         ctx.fillStyle = "#3b4f63";
-        ctx.beginPath(); ctx.moveTo(tx, -50); ctx.lineTo(tx - th * 0.35, -50 - th * 0.5); ctx.lineTo(tx, -50 - th); ctx.lineTo(tx + th * 0.35, -50 - th * 0.5); ctx.closePath(); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(tx, -50); ctx.lineTo(tx - th * 0.38, -50 - th * 0.55); ctx.lineTo(tx, -50 - th); ctx.lineTo(tx + th * 0.38, -50 - th * 0.55); ctx.closePath(); ctx.fill();
         ctx.fillStyle = "#e6f0fa";
-        ctx.beginPath(); ctx.moveTo(tx, -50 - th); ctx.lineTo(tx - th * 0.25, -50 - th * 0.7); ctx.lineTo(tx + th * 0.25, -50 - th * 0.7); ctx.closePath(); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(tx, -50 - th); ctx.lineTo(tx - th * 0.28, -50 - th * 0.75); ctx.lineTo(tx + th * 0.28, -50 - th * 0.75); ctx.closePath(); ctx.fill();
       }
     });
+
     W.ground(1, -50, "#e8f2fc", "#c5d7ed");
+
+    // Layer 3: Foreground snow drifts, icy rocks, and blue-gray cast shadows (parallax 0.75)
+    S.layer(0.75, function () {
+      var r = rng(45);
+      for (var i = 0; i < 14; i++) {
+        var rx = -1300 + r() * 2600, rw = 50 + r() * 70, rh = 30 + r() * 40;
+        ctx.fillStyle = "rgba(70,95,130,0.3)";
+        ctx.beginPath(); ctx.ellipse(rx, -42, rw * 0.9, 16, 0, 0, 6.283); ctx.fill();
+        ctx.fillStyle = "#d2e2f6";
+        ctx.beginPath(); ctx.ellipse(rx, -45, rw, rh, 0, 0, 6.283); ctx.fill();
+      }
+    });
+
     S.layer(1.2, function () {
       var r = rng(45);
       for (var i = 0; i < 120; i++) {
@@ -207,60 +289,44 @@ var PL = (function () {
     });
   }
 
-  function volcano(opt) {
-    W.sky(); W.clouds(7, 0.05, -820, 5);
-    S.layer(0.08, function () {
-      var g = S.vgrad(-400, 0, [[0, "#3a120c"], [0.5, "#5c2415"], [1, "#240a08"]]);
-      ctx.fillStyle = g;
-      ctx.beginPath(); ctx.moveTo(-900, 0); ctx.lineTo(-120, -380); ctx.lineTo(120, -380); ctx.lineTo(900, 0); ctx.closePath(); ctx.fill();
-      var lg = ctx.createLinearGradient(-40, -380, 40, -100);
-      lg.addColorStop(0, "#ffcc44"); lg.addColorStop(0.3, "#ff4411"); lg.addColorStop(1, "#881100");
-      ctx.fillStyle = lg;
-      ctx.beginPath(); ctx.moveTo(-60, -380); ctx.lineTo(60, -380); ctx.lineTo(110, 0); ctx.lineTo(30, 0); ctx.closePath(); ctx.fill();
-      var gl = S.rgrad(0, -380, 10, 160, [[0, "rgba(255,160,50,.8)"], [1, "rgba(255,160,50,0)"]]);
-      ctx.fillStyle = gl; ctx.fillRect(-200, -500, 400, 300);
-    });
-    W.ground(1, -50, "#381a15", "#1c0d0a");
-    S.layer(1.1, function () {
-      var r = rng(55);
-      for (var i = 0; i < 70; i++) {
-        var ex = ((r() * S.VW + Math.sin(S.time + i) * 80) % S.VW);
-        var ey = S.VH - ((S.time * (80 + r() * 120) + r() * S.VH) % S.VH);
-        ctx.fillStyle = i % 2 ? "#ffaa33" : "#ff4422";
-        ctx.beginPath(); ctx.arc(ex, ey, 1 + r() * 2.5, 0, 6.283); ctx.fill();
-      }
-    });
-  }
-
   function jungle(opt) {
     W.sky(); W.clouds(5, 0.05, -820, 6);
-    W.ridge(0.08, -150, 120, 13, "#1b3826", "#2f5c40", 0.003, 0.5);
-    W.ridge(0.16, -125, 90, 17, "#244a32", "#3e7050", 0.005, 0.4);
-    S.layer(0.3, function () {
+    // Layer 1: Distant tropical mountain ridges with humid atmospheric haze (parallax 0.15)
+    W.ridge(0.15, -160, 130, 13, "#1b3826", "#2f5c40", 0.003, 0.5);
+    S.layer(0.15, function () {
+      ctx.fillStyle = S.alpha(W.cur.haze || "#f4e6c4", 0.25);
+      ctx.fillRect(-1600, -350, 3200, 450);
+    });
+
+    // Layer 2: Mid-ground towering jungle canopy trees (trunk 330+, canopy 400+ true scale context, parallax 0.45)
+    S.layer(0.45, function () {
       var r = rng(66);
-      for (var i = 0; i < 18; i++) {
-        var jx = -1300 + i * 150 + r() * 40, jh = 240 + r() * 180;
+      for (var i = 0; i < 22; i++) {
+        var jx = -1400 + i * 130 + r() * 40, jh = 280 + r() * 200;
+        ctx.fillStyle = "rgba(0,0,0,0.28)";
+        ctx.beginPath(); ctx.ellipse(jx, -45, jh * 0.22, 16, 0, 0, 6.283); ctx.fill();
+
         ctx.fillStyle = "#183020";
-        ctx.fillRect(jx - 15, -50 - jh, 30, jh);
+        ctx.fillRect(jx - 18, -50 - jh, 36, jh);
         ctx.fillStyle = "#2c5c38";
-        ctx.beginPath(); ctx.arc(jx, -50 - jh, jh * 0.45, 0, 6.283); ctx.fill();
-        if (i % 2 === 0) {
-          ctx.strokeStyle = "#3a7a48"; ctx.lineWidth = 3;
-          ctx.beginPath(); ctx.moveTo(jx - 20, -50 - jh * 0.7);
-          ctx.quadraticCurveTo(jx - 40 + Math.sin(S.time + i) * 10, -50 - jh * 0.3, jx - 10, -50);
-          ctx.stroke();
-        }
+        ctx.beginPath(); ctx.arc(jx, -50 - jh, jh * 0.5, 0, 6.283); ctx.fill();
       }
     });
+
     W.ground(1, -50, "#2c4a30", "#182b1c", { grass: "#488a52" });
-    S.layer(0.8, function () {
+
+    // Layer 3: Foreground giant ferns, hanging vines, mossy roots, and cast shadows (parallax 0.75)
+    S.layer(0.75, function () {
       var r = rng(77);
-      for (var i = 0; i < 12; i++) {
-        var fx = -1200 + r() * 2400;
+      for (var i = 0; i < 16; i++) {
+        var fx = -1300 + r() * 2600;
+        ctx.fillStyle = "rgba(0,0,0,0.35)";
+        ctx.beginPath(); ctx.ellipse(fx, -45, 50, 18, 0, 0, 6.283); ctx.fill();
+
         ctx.fillStyle = "#356840";
         for (var f = 0; f < 5; f++) {
           ctx.beginPath();
-          ctx.ellipse(fx + (f - 2) * 22, -45 - f * 8, 36, 12, (f - 2) * 0.25, 0, 6.283);
+          ctx.ellipse(fx + (f - 2) * 24, -45 - f * 9, 40, 14, (f - 2) * 0.25, 0, 6.283);
           ctx.fill();
         }
       }

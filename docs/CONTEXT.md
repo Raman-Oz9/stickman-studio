@@ -317,5 +317,10 @@
 - Loaded `studio_props2.js` in `film/studio.html` after `studio_roles.js`.
 - Verified with `bash film/check.sh` and `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` with zero errors.
 
+### 2026-11-26 — Add location detection for sports, school, kitchen, farm, hospital, and airport in film/plan_scenes.py
+- Updated `film/plan_scenes.py` to add dedicated regex detection for sports, school, kitchen, farm, hospital, and airport subjects, setting `scene['location']` appropriately while keeping existing output fields.
+- Added test suite in `film/test_plan.py` and verified with `python3 film/test_plan.py` and `cd remotion && npx tsc --noEmit` with zero errors.
+
+
 
 

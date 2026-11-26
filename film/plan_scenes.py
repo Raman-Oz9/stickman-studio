@@ -2,7 +2,13 @@
 """Rule-based script -> scene plan.  python3 film/plan_scenes.py script.txt out.json"""
 import json, re, sys
 
-LOC = [("city", r"\b(hospital|clinic|operating room|office|factory|bank|kitchen|restaurant|garage|race track|airport|runway|stadium|laboratory|station)\b"), ("snow", r"\b(snow|snowy|blizzard|glacier|arctic)\b"), ("volcano", r"\b(volcano|lava|eruption)\b"), ("jungle", r"\b(jungle|rainforest|amazon)\b"), ("forest", r"\b(forest|woods|trees)\b"), ("castle", r"\b(castle|knight|knights|kingdom|fortress|dragon)\b"), ("city", r"\b(city|skyscraper|skyscrapers|street|streets|downtown|office)\b"),
+LOC = [("sports", r"\b(sports?|stadium|arena|match|game|race|football|soccer|basketball|olympics?|track|race track)\b"),
+       ("school", r"\b(school|class|classroom|students?|teacher|lessons?|university|college|academy)\b"),
+       ("kitchen", r"\b(kitchen|chef|cooking|cook|restaurant|stove|oven|recipe)\b"),
+       ("farm", r"\b(farm|farmers?|tractor|harvest|barn|crops?|livestock)\b"),
+       ("hospital", r"\b(hospital|clinic|operating room|patients?|doctor|nurse|surgery|medicine)\b"),
+       ("airport", r"\b(airport|runway|airplane|aeroplane|terminal|pilot|jet|flight|station)\b"),
+       ("snow", r"\b(snow|snowy|blizzard|glacier|arctic)\b"), ("volcano", r"\b(volcano|lava|eruption)\b"), ("jungle", r"\b(jungle|rainforest|amazon)\b"), ("forest", r"\b(forest|woods|trees)\b"), ("castle", r"\b(castle|knight|knights|kingdom|fortress|dragon)\b"), ("city", r"\b(city|skyscraper|skyscrapers|street|streets|downtown|office|factory|bank|garage|laboratory)\b"),
        ("space", r"\b(space|rocket|planet|mars|moon|star|stars|galaxy|orbit|astronaut)\b"),
        ("ocean", r"\b(diver|submarine|seabed|trench|whale|deep sea|beneath the waves|underwater|reef)\b"),
        ("egypt", r"\b(egypt|pyramid|pyramids|pharaoh|sphinx|nile)\b"),

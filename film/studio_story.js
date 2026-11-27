@@ -655,11 +655,26 @@
       for (var x = Math.floor(vr.l / 160) * 160; x < vr.r + 160; x += 160) { var k = Math.abs(x * 7 + 3) % 5, hh = 30 + ((Math.abs(x) * 13) % 70); ctx.fillStyle = "rgba(" + (40 - dark * 25 | 0) + "," + (28 - dark * 18 | 0) + "," + (20 - dark * 12 | 0) + ",.9)"; if (k < 3) { ctx.beginPath(); ctx.moveTo(x - 40, base + 40); for (var j = 0; j < 5; j++) ctx.quadraticCurveTo(x - 30 + j * 16, base - hh * (0.5 + (j % 2) * 0.6), x - 24 + j * 16, base + 40); ctx.fill(); } else if (k === 3) { ctx.beginPath(); ctx.ellipse(x, base + 30, 70, 34, 0, Math.PI, 0); ctx.fill(); } }
       ctx.restore(); });
   }
+  // ink-world look: desaturate the painted world to greys, add pencil hatching + paper grain; characters/accents stay coloured on top
+  var hatch = null;
+  function inkWorld() {
+    if (window.__noInk) return;
+    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalCompositeOperation = "saturation"; ctx.fillStyle = "#808080"; ctx.globalAlpha = 0.86; ctx.fillRect(0, 0, S.cv.width, S.cv.height);
+    ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
+    if (!hatch) { var hc = document.createElement("canvas"); hc.width = hc.height = 64; var h = hc.getContext("2d"); h.strokeStyle = "rgba(30,28,26,.55)"; h.lineWidth = 1.2; for (var i = -64; i < 128; i += 9) { h.beginPath(); h.moveTo(i, 64); h.lineTo(i + 64, 0); h.stroke(); } hatch = ctx.createPattern(hc, "repeat"); }
+    // hatching concentrated in the lower third + edges (shadow zones)
+    var W = S.cv.width, H = S.cv.height, g = ctx.createLinearGradient(0, H * 0.55, 0, H); g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, "rgba(0,0,0,1)");
+    ctx.save(); ctx.globalAlpha = 0.16; ctx.fillStyle = hatch; ctx.fillRect(0, H * 0.55, W, H * 0.45); ctx.restore();
+    var v = ctx.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, H * 0.85); v.addColorStop(0, "rgba(0,0,0,0)"); v.addColorStop(1, "rgba(15,15,20,.38)"); ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+  }
   function drawScene(sc, u, dt) {
     var VW = S.VW, VH = S.VH, shot = sc.shots[shotIdx];
     ctx.save(); ctx.setTransform(S.SC, 0, 0, S.SC, 0, 0);
     cam.roll = shot.roll ? shot.roll * Math.sin(S.time * 0.9) : 0;
     if (sc.world) sc.world(shot.mode, u);
+    inkWorld();
     // depth of field: soften the background behind close-ups
     if (shot.blur) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); if (tmp.width !== S.cv.width) { tmp.width = S.cv.width; tmp.height = S.cv.height; } tctx.clearRect(0, 0, tmp.width, tmp.height); tctx.drawImage(S.cv, 0, 0); ctx.filter = "blur(" + Math.round(shot.blur * S.SC) + "px)"; ctx.drawImage(tmp, 0, 0); ctx.filter = "none"; ctx.restore(); }
     // characters, back to front by layer then x

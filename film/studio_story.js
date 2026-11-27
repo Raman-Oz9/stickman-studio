@@ -595,13 +595,14 @@
 
       function mkShot(name, i, n) {
         var a = i / n, o = { a: a };
-        if (name === "wide") o.cam = function (v) { return { x: A.x * 0.5, y: -190, z: lerp(0.85, 0.95, ease(v)) }; };
-        else if (name === "follow") o.cam = follow(A, 1.25, 1.5, 150, -170);
-        else if (name === "closeup") { o.blur = 6; o.cam = head(A, 2.4, 2.7, 70, 258); }
-        else if (name === "side") { o.views = { A: "side" }; o.cam = follow(A, 1.3, 1.5, 150, -170); }
-        else if (name === "back") { o.views = { A: "back" }; o.cam = function (v) { return { x: A.x + lerp(-90, 40, ease(v)), y: -210, z: lerp(1.5, 1.1, ease(v)) }; }; }
-        else if (name === "ots") { o.views = { A: "back" }; o.fg = [{ id: "A", dx: -150, view: "back", layer: 1.35, s: 1.12 }]; o.cam = function (v) { return { x: A.x + 40, y: -210, z: lerp(1.5, 1.75, ease(v)) }; }; }
-        else if (name === "crane") o.cam = function (v) { return { x: A.x + 40, y: lerp(-220, -460, ease(v)), z: lerp(1.2, 0.65, ease(v)) }; };
+        if (name === "wide") o.cam = function (v) { return { x: A.x * 0.4, y: -190, z: lerp(0.8, 1.0, ease(v)) }; };
+        else if (name === "follow" || name === "track") o.cam = follow(A, 1.1, 1.35, 120, -170);
+        else if (name === "closeup" || name === "rack" || name === "push") { o.blur = 6; o.cam = head(A, 2.1, 2.6, 50, 250); }
+        else if (name === "side") { o.views = { A: "side" }; o.cam = follow(A, 1.2, 1.4, 140, -170); }
+        else if (name === "back" || name === "dolly") { o.views = { A: "back" }; o.cam = function (v) { return { x: A.x + lerp(-40, 20, ease(v)), y: -205, z: lerp(1.3, 1.6, ease(v)) }; }; }
+        else if (name === "ots") { o.views = { A: "back" }; o.fg = [{ id: "A", dx: -130, view: "back", layer: 1.35, s: 1.12 }]; o.cam = function (v) { return { x: A.x + 35, y: -210, z: lerp(1.4, 1.7, ease(v)) }; }; }
+        else if (name === "crane") o.cam = function (v) { return { x: A.x, y: lerp(-190, -420, ease(v)), z: lerp(1.2, 0.7, ease(v)) }; };
+        else if (name === "pan" || name === "whip") o.cam = function (v) { return { x: lerp(A.x - 180, A.x + 180, ease(v)), y: -190, z: 1.0 }; };
         else o.cam = fixed(A.x, -190, 1.1);
         return o;
       }
@@ -642,11 +643,10 @@
   function setCap(sc) { var words = sc.text.split(/\s+/); capWords = words.map(function (w, i) { return { w: w, noun: NOUNS.test(w.replace(/[^A-Za-z]/g, "")) || !!(window.PR && PR.has(w.replace(/[^A-Za-z]/g, "").toLowerCase().replace(/s$/, ""))), i: i }; }); capHi = -2; renderCap(sc, -1); }
   function renderCap(sc, hi) { var h = capWords.map(function (o) { return o.noun ? '<span class="nn' + (hi >= o.i ? " hi" : "") + '">' + o.w + "</span>" : o.w; }).join(" "); cap.innerHTML = sc.quote ? h + '<br><b style="margin-top:8px">' + (sc.speaker || "The Queen") + '</b>“' + sc.quote + "”" : h; cap.className = "on"; }
   function enter(i) {
-    if (si >= 0) { if (prevCv.width !== S.cv.width) { prevCv.width = S.cv.width; prevCv.height = S.cv.height; } pctx.clearRect(0, 0, prevCv.width, prevCv.height); pctx.drawImage(S.cv, 0, 0); hasPrev = true; fade = 1; }
     si = i; st = 0; shotIdx = -1; var sc = SCENES[i]; resetChars(); puffs = []; cam.shake = 0; W.setTod(sc.tod || "day"); sparks = []; flash = 0; if (sc.setup) sc.setup(); setCap(sc);
   }
-  // ---- cinematic polish: foreground silhouettes with parallax + soft bloom + scene crossfade ----
-  var bcv = document.createElement("canvas"), bctx = bcv.getContext("2d"), prevCv = document.createElement("canvas"), pctx = prevCv.getContext("2d"), fade = 0, hasPrev = false;
+  // ---- cinematic polish: foreground silhouettes with parallax + soft bloom ----
+  var bcv = document.createElement("canvas"), bctx = bcv.getContext("2d");
   function bloom() { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); var w = S.cv.width, hh = S.cv.height, bw = w >> 2, bh = hh >> 2; if (bcv.width !== bw) { bcv.width = bw; bcv.height = bh; } bctx.clearRect(0, 0, bw, bh); bctx.filter = "blur(6px) brightness(1.1) saturate(1.2)"; bctx.drawImage(S.cv, 0, 0, bw, bh); bctx.filter = "none"; ctx.globalCompositeOperation = "screen"; ctx.globalAlpha = 0.14; ctx.drawImage(bcv, 0, 0, w, hh); ctx.restore(); }
   function fgDeco(sc, shot) {
     if (shot.nochars && !sc.fgdeco) return; var tag = sc.tags || "", era = sc.era || ""; if (/launch|cabin|approach|sub|dive|whale|trench/.test(tag) && !/launch/.test(tag)) return;
@@ -678,7 +678,6 @@
     if (false && window.PR && capHi >= 0 && capWords[capHi]) { var nn = capWords[capHi].w.replace(/[^A-Za-z]/g, "").toLowerCase().replace(/s$/, ""), age = S.time - (popT || 0); if (nn !== popN) { popN = nn; popT = S.time; age = 0; } if (PR.has(nn) && age < 2.2) { var pa = Math.min(1, age / 0.25), po = age > 1.7 ? (2.2 - age) / 0.5 : 1, sc2 = (0.6 + 0.4 * S.easeOut(pa)) * 1.25 * (1 + 0.05 * Math.sin(age * 5)); ctx.save(); ctx.globalAlpha = po; ctx.fillStyle = "rgba(255,248,225,.82)"; ctx.beginPath(); ctx.arc(VW * 0.78, VH * 0.17, 95 * sc2, 0, 6.283); ctx.fill(); ctx.lineWidth = 4; ctx.strokeStyle = "rgba(60,40,20,.55)"; ctx.stroke(); PR.draw(nn, VW * 0.78, VH * 0.17, sc2, S.time); ctx.restore(); } }
     bloom();
     W.vignetteGrade(shot.blur ? 1.15 : 0.9);
-    if (fade > 0 && hasPrev) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = fade * fade * 0.9; ctx.drawImage(prevCv, 0, 0); ctx.restore(); fade = Math.max(0, fade - dt / 0.3); }
     if (flash > 0) { ctx.fillStyle = "rgba(255,244,200," + (0.55 * flash) + ")"; ctx.fillRect(0, 0, VW, VH); flash = Math.max(0, flash - dt * 2.2); }
     W.grain();
     ctx.restore();
@@ -703,7 +702,15 @@
       if (tg.z <= 1.9) { var low = Math.max.apply(0, shown.map(function (c) { return VHd * 0.46 + (c.y - tg.y) * tg.z; })); var lim = VHd * 0.8; if (low > lim) tg.y += (low - lim) / tg.z; } })();
     // one continuous take: never snap inside a scene; critically-damped spring toward the (smooth) target path
     if (!cam.vx) { cam.vx = 0; cam.vy = 0; cam.vz = 0; }
-    if (idx !== shotIdx) { if (shotIdx < 0 || st < dt * 2) { cam.x = tg.x; cam.y = tg.y; cam.z = tg.z; cam.vx = cam.vy = cam.vz = 0; } shotIdx = idx; }
+    if (idx !== shotIdx) {
+      if (shotIdx < 0) {
+        if (si === 0) {
+          cam.x = tg.x; cam.y = tg.y; cam.z = tg.z; cam.vx = cam.vy = cam.vz = 0;
+        }
+        // For si > 0, match-cut carries camera position across scene boundaries without resetting
+      }
+      shotIdx = idx;
+    }
     var w0 = 2.6;
     function spring(p, v, g, w) { var d = p - g, a = -w * w * d - 2 * w * v; v += a * dt; return [p + v * dt, v]; }
     var rx = spring(cam.x, cam.vx, tg.x, w0), ry = spring(cam.y, cam.vy, tg.y, w0), rz = spring(cam.z, cam.vz, tg.z, w0 * 0.9);

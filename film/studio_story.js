@@ -722,7 +722,7 @@
   }
   if (window.__DUR) SCENES.forEach(function (sc, i) { if (window.__DUR[i]) sc.dur = window.__DUR[i]; });
   var last = 0; function loop(ts) { if (playing) { var dt = last ? Math.min(0.05, (ts - last) / 1000) : 0.033; last = ts; tick(dt); } else last = ts; requestAnimationFrame(loop); }
-  window.__film = { texts: SCENES.map(function (sc) { return { text: sc.text, quote: sc.quote || "", speaker: sc.speaker || "" }; }), step: function () { tick(1 / 30); }, start: function () { var b = $("start"); if (b) b.hidden = true; playing = !EXPORT; enter(0); tick(0.0001); if (EXPORT) playing = false; if (!EXPORT) { last = 0; playing = true; } } };
+  window.__film = { texts: SCENES.map(function (sc) { return { text: sc.text, quote: sc.quote || "", speaker: sc.speaker || "", mood: sc.mood || "", location: sc.location || "", weather: sc.weather || "", tod: sc.tod || "", shots: sc.shots ? sc.shots.map(function (s) { return { a: s.a }; }) : [] }; }), step: function () { tick(1 / 30); }, start: function () { var b = $("start"); if (b) b.hidden = true; playing = !EXPORT; enter(0); tick(0.0001); if (EXPORT) playing = false; if (!EXPORT) { last = 0; playing = true; } } };
   window.__still = function (i, u) { enter(i); var sc = SCENES[i]; var dt = 1 / 30, n = Math.floor(u * sc.dur / dt); for (var k = 0; k < n; k++) tick(dt); };
   if (!EXPORT) requestAnimationFrame(loop);
   var sb = $("start"); if (sb) sb.onclick = function () { window.__film.start(); };

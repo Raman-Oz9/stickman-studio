@@ -25,6 +25,20 @@ def pad(ms, dur, vel=1.0):
     fade = np.minimum(1, t / 0.4) * np.minimum(1, (dur - t) / 0.5)
     return x * fade * vel / len(ms)
 
+def string_pad(ms, dur, vel=1.0):
+    n = int(SR * dur); t = np.arange(n) / SR
+    vibrato = np.sin(2 * np.pi * 5.5 * t) * 0.015
+    x = sum(np.sin(2 * np.pi * hz(m) * (1 + vibrato) * t + i * 0.7) + 
+            0.5 * np.sin(2 * np.pi * hz(m) * 2.001 * t) +
+            0.25 * np.sin(2 * np.pi * hz(m) * 3.003 * t) for i, m in enumerate(ms))
+    env_str = np.minimum(1, t / 0.6) * np.minimum(1, (dur - t) / 0.8)
+    return lowpass(x * env_str * vel / len(ms), 2800)
+
+def pulse_synth(m, dur, vel=1.0):
+    n = int(SR * dur); t = np.arange(n) / SR; f = hz(m)
+    x = sum((1.0 / k) * np.sin(2 * np.pi * f * k * t) for k in range(1, 8, 2))
+    return x * env(n, 0.01, dur * 0.6) * vel
+
 def pluck(m, dur, vel=1.0):
     n = int(SR * dur); t = np.arange(n) / SR; f = hz(m)
     x = sum(np.sin(2 * np.pi * f * k * t) / (k ** 1.5) for k in (1, 2, 3, 4)) * env(n, 0.002, dur * 0.4)
@@ -74,28 +88,28 @@ def generate_scene_music(dur, mood="calm"):
         chord_info = chords[b % len(chords)]
         ch, root = chord_info[0], chord_info[1]
         p_dur = min(bar + 0.5, dur - t0)
-        p = pad([m - 12 for m in ch] + [ch[0]], p_dur, 0.85)
+        p = string_pad([m - 12 for m in ch] + [ch[0]], p_dur, 0.8)
         put_buf(buf, p, t0)
         if mood in ("calm", "wonder", "mystery"):
             for q in range(4):
-                put_buf(buf, kick(0.3 if q == 0 else 0.15), t0 + q * beat)
+                put_buf(buf, kick(0.35 if q == 0 else 0.18), t0 + q * beat)
             for q in range(8):
                 put_buf(buf, shaker(0.4), t0 + q * beat / 2)
             for k, off in enumerate([0, 7, 12, 7]):
-                put_buf(buf, pluck(root + off - 12, beat * 0.9, 0.25), t0 + k * beat / 2)
+                put_buf(buf, pulse_synth(root + off - 12, beat * 0.8, 0.25), t0 + k * beat / 2)
         elif mood in ("epic", "tense"):
             for q in range(4):
-                put_buf(buf, kick(0.6), t0 + q * beat)
-                put_buf(buf, snare(0.5), t0 + (q + 0.5) * beat)
+                put_buf(buf, kick(0.7), t0 + q * beat)
+                put_buf(buf, snare(0.6), t0 + (q + 0.5) * beat)
             for q in range(8):
                 put_buf(buf, shaker(0.6), t0 + q * beat / 2)
             for k, off in enumerate([0, 3, 7, 10, 12, 7, 3, 0]):
-                put_buf(buf, pluck(root + off - 12, beat * 0.8, 0.3), t0 + k * beat / 4)
+                put_buf(buf, pulse_synth(root + off - 12, beat * 0.7, 0.35), t0 + k * beat / 4)
         else:
             for q in range(2):
-                put_buf(buf, kick(0.25), t0 + q * bar / 2)
+                put_buf(buf, kick(0.3), t0 + q * bar / 2)
             for k, off in enumerate([0, 5, 7, 5]):
-                put_buf(buf, pluck(root + off - 12, beat * 1.5, 0.2), t0 + k * beat)
+                put_buf(buf, pulse_synth(root + off - 12, beat * 1.2, 0.25), t0 + k * beat)
     return lowpass(buf, 3800)
 
 def put_buf(buf, x, t):
@@ -117,6 +131,17 @@ def sfx_clash(dur=0.6):
     metal = sum(np.sin(2 * np.pi * f * t) * np.exp(-t * (6 + i)) for i, f in enumerate(freqs))
     noise = rng.standard_normal(n) * np.exp(-t * 15)
     return (metal * 0.8 + noise * 0.5) * np.exp(-t * 8) * 0.75
+
+def sfx_footstep(vel=1.0):
+    n = int(SR * 0.12); t = np.arange(n) / SR
+    thud = np.sin(2 * np.pi * 90 * t) * np.exp(-t * 30)
+    noise = (rng.standard_normal(n) * np.exp(-t * 40)) * 0.4
+    return (thud + noise) * vel * 0.5
+
+def sfx_coin(vel=1.0):
+    n = int(SR * 0.35); t = np.arange(n) / SR
+    chime = np.sin(2 * np.pi * 1760 * t) * np.exp(-t * 12) + np.sin(2 * np.pi * 2637 * t) * np.exp(-t * 15)
+    return chime * vel * 0.6
 
 def sfx_rain(dur):
     n = int(SR * dur); x = rng.standard_normal(n)
@@ -216,10 +241,29 @@ def main():
             put_buf(sfx_buf, sfx_whoosh(0.35, 0.6), t0)
             
         txt_low = texts[i]["text"].lower() if isinstance(texts[i], dict) else texts[i].lower()
-        if any(k in txt_low for k in ("clash", "fight", "battle", "war", "attack", "struck")) or meta["mood"] == "tense":
-            put_buf(sfx_buf, sfx_clash(0.6), t0 + 0.2 * d)
-            if "battle" in txt_low or "clash" in txt_low:
-                put_buf(sfx_buf, sfx_clash(0.5), t0 + 0.6 * d)
+        shots = texts[i].get("shots", []) if isinstance(texts[i], dict) else []
+        for s_idx, sh in enumerate(shots):
+            if isinstance(sh, dict) and "a" in sh:
+                shot_t = t0 + sh["a"] * d
+                if s_idx > 0 or shot_t > t0 + 0.05:
+                    put_buf(sfx_buf, sfx_whoosh(0.32, 0.55), shot_t)
+            elif isinstance(sh, (int, float)) and sh > 0:
+                put_buf(sfx_buf, sfx_whoosh(0.32, 0.55), t0 + sh * d)
+
+        if any(k in txt_low for k in ("walk", "march", "stepped", "crossed", "drove", "run")):
+            step_interval = 0.38
+            num_steps = int(d / step_interval)
+            for st_i in range(num_steps):
+                put_buf(sfx_buf, sfx_footstep(0.65), t0 + 0.15 + st_i * step_interval)
+
+        if any(k in txt_low for k in ("coin", "gold", "bank", "rent", "money", "save", "count", "rich", "assets", "salary")):
+            put_buf(sfx_buf, sfx_coin(0.75), t0 + 0.3 * d)
+            put_buf(sfx_buf, sfx_coin(0.65), t0 + 0.65 * d)
+
+        if any(k in txt_low for k in ("clash", "fight", "battle", "war", "attack", "struck", "hammer", "lever", "build", "impact", "hit")) or meta["mood"] == "tense":
+            put_buf(sfx_buf, sfx_clash(0.75), t0 + 0.25 * d)
+            if "battle" in txt_low or "clash" in txt_low or "fight" in txt_low:
+                put_buf(sfx_buf, sfx_clash(0.65), t0 + 0.65 * d)
                 
         if meta["weather"] in ("rain", "storm") or any(k in txt_low for k in ("rain", "storm", "thunder")):
             put_buf(sfx_buf, sfx_rain(d), t0)
@@ -246,6 +290,19 @@ def main():
     if sr_sfx > 1e-6:
         target_sfx_rms = vr * 0.4
         sfx_buf *= target_sfx_rms / sr_sfx
+
+    # Proper ducking under narration (-14 dB)
+    win_n = int(0.2 * SR)
+    nar_sq = nar ** 2
+    if len(nar_sq) >= win_n:
+        nar_env = np.sqrt(np.convolve(nar_sq, np.ones(win_n)/win_n, mode='same'))
+    else:
+        nar_env = np.abs(nar)
+    
+    duck_factor = 10.0 ** (-14 / 20)
+    duck_mask = np.where(nar_env > 0.015, duck_factor, 1.0)
+    music_bed *= duck_mask
+    sfx_buf *= np.where(nar_env > 0.015, 0.6, 1.0)
     
     vp = np.abs(nar).max()
     cap = 0.5 * max(vp, 0.1)

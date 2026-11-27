@@ -753,7 +753,7 @@ Eng.loadTextures().catch(function () {}).then(function () {
     renderer.render(scene, camera);
   }
   function frame() { tick(Math.min(0.05, clock.getDelta())); requestAnimationFrame(frame); }
-  window.__film = { texts: SCENES.map(function (sc) { return { text: sc.text, quote: sc.quote || "" }; }), step: function () { tick(1 / 30); }, start: function () { $("start").hidden = true; playing = true; goScene(0); tick(0.0001); } };
+  window.__film = { texts: SCENES.map(function (sc) { return { text: sc.text, quote: sc.quote || "", speaker: sc.speaker || "", mood: sc.mood || "", location: sc.location || "", weather: sc.weather || "", tod: sc.tod || "", shots: sc.shots ? sc.shots.map(function (s) { return { a: s.a }; }) : [] }; }), step: function () { tick(1 / 30); }, start: function () { $("start").hidden = true; playing = true; goScene(0); tick(0.0001); } };
   if (!EXPORT) frame();
 });
 </script>

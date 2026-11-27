@@ -243,7 +243,8 @@
   function rocketDraw(x, y, flame, door) {
     ctx.save(); ctx.translate(x, y);
     if (flame > 0) { var fl = 120 + 260 * flame + Math.random() * 40; var g = S.rgrad(0, 40, 4, fl, [[0, "rgba(255,250,200,1)"], [0.35, "rgba(255,170,40,.9)"], [1, "rgba(255,80,0,0)"]]); ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(-34, 0); ctx.quadraticCurveTo(-50, fl * 0.5, 0, fl); ctx.quadraticCurveTo(50, fl * 0.5, 34, 0); ctx.fill(); ctx.globalCompositeOperation = "lighter"; ctx.fillStyle = S.rgrad(0, 30, 10, 300, [[0, "rgba(255,170,60,.45)"], [1, "rgba(255,120,0,0)"]]); ctx.fillRect(-300, -270, 600, 600); ctx.globalCompositeOperation = "source-over"; }
-    ctx.beginPath(); ctx.moveTo(-70, 0); ctx.lineTo(-92, 0); ctx.lineTo(-52, -140); ctx.lineTo(-52, -40); ctx.closePath(); ol("#d33a2e"); ctx.beginPath(); ctx.moveTo(70, 0); ctx.lineTo(92, 0); ctx.lineTo(52, -140); ctx.lineTo(52, -40); ctx.closePath(); ol("#d33a2e");
+    ctx.beginPath(); ctx.moveTo(-70, 0); ctx.lineTo(-92, 0); ctx.lineTo(-52, -140); ctx.lineTo(-52, -40); ctx.closePath(); ol("#d33a2e");
+    ctx.beginPath(); ctx.moveTo(70, 0); ctx.lineTo(92, 0); ctx.lineTo(52, -140); ctx.lineTo(52, -40); ctx.closePath(); ol("#d33a2e");
     ctx.beginPath(); ctx.moveTo(-58, 0); ctx.lineTo(-58, -430); ctx.quadraticCurveTo(-52, -640, 0, -720); ctx.quadraticCurveTo(52, -640, 58, -430); ctx.lineTo(58, 0); ctx.closePath();
     var bg = ctx.createLinearGradient(-58, 0, 58, 0); bg.addColorStop(0, "#c9d2dc"); bg.addColorStop(0.35, "#ffffff"); bg.addColorStop(1, "#aab6c4"); ctx.fillStyle = bg; ctx.fill(); ctx.lineWidth = 3.5; ctx.strokeStyle = "#5c6878"; ctx.stroke();
     ctx.fillStyle = "#d33a2e"; ctx.fillRect(-58, -250, 116, 26); ctx.fillRect(-58, -300, 116, 10);
@@ -364,7 +365,7 @@
   function flyCoins(dt, draw) { coinsFly = coinsFly.filter(function (c) { c.t += dt / c.d; return c.t < 1; }); if (draw) coinsFly.forEach(function (c) { var e = c.t, x = lerp(c.x0, c.x1, e), y = lerp(c.y0, c.y1, e) - Math.sin(e * Math.PI) * c.h; if (c.bill) mBill(x, y, e * 6); else mCoin(x, y, c.r || 12); }); }
   function shootCoin(x0, y0, x1, y1, bill) { coinsFly.push({ x0: x0, y0: y0, x1: x1, y1: y1, t: 0, d: 0.9, h: 90, r: 12, bill: bill }); }
   function factoryBG(t) { mSky("#3a4150", "#555e6e"); S.layer(1, function () { var v = S.viewRect(1); ctx.fillStyle = S.vgrad(-700, 100, [[0, "#596273"], [1, "#3c4352"]]); ctx.fillRect(v.l, -700, v.r - v.l, 800); ctx.fillStyle = "#2d3441"; for (var x = Math.floor(v.l / 220) * 220; x < v.r + 220; x += 220) { ctx.fillRect(x + 20, -560, 140, 230); var wg = ctx.createLinearGradient(0, -552, 0, -340); wg.addColorStop(0, "#a8cdee"); wg.addColorStop(1, "#6f93b8"); ctx.fillStyle = wg; ctx.fillRect(x + 28, -552, 124, 214); ctx.fillStyle = "#2d3441"; ctx.fillRect(x + 88, -552, 4, 214); } ctx.fillStyle = "#6c717a"; ctx.fillRect(v.l, -40, v.r - v.l, 60); ctx.fillStyle = "#1f242d"; ctx.fillRect(v.l, -48, v.r - v.l, 8);
-      ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(-120, -420, 52, 0, 6.283); ctx.fill(); ctx.strokeStyle = "#222"; ctx.lineWidth = 5; ctx.stroke(); ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(-120, -420); ctx.lineTo(-120 + Math.sin(t * 2.5) * 36, -420 - Math.cos(t * 2.5) * 36); ctx.stroke(); ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(-120, -420); ctx.lineTo(-120 + Math.sin(t * 0.21) * 26, -420 - Math.cos(t * 0.21) * 26); ctx.stroke(); }); }
+    ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(-120, -420, 52, 0, 6.283); ctx.fill(); ctx.strokeStyle = "#222"; ctx.lineWidth = 5; ctx.stroke(); ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(-120, -420); ctx.lineTo(-120 + Math.sin(t * 2.5) * 36, -420 - Math.cos(t * 2.5) * 36); ctx.stroke(); ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(-120, -420); ctx.lineTo(-120 + Math.sin(t * 0.21) * 26, -420 - Math.cos(t * 0.21) * 26); ctx.stroke(); }); }
   function machineDraw(x, t, lever) { ctx.fillStyle = "#4b5668"; ctx.fillRect(x - 90, -300, 180, 300); ctx.fillStyle = "#c0392b"; ctx.fillRect(x - 70, -280, 140, 70); ctx.fillStyle = "#222"; ctx.fillRect(x - 70, -170, 140, 120); mGear(x - 30, -110, 30, t * 2.4); mGear(x + 28, -90, 22, -t * 3.4); ctx.fillStyle = "#222"; ctx.fillRect(x + 50, -330, 18, 40); ctx.strokeStyle = "#cfcfcf"; ctx.lineWidth = 9; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(x - 110, -150); ctx.lineTo(x - 110 + Math.sin(lever) * 26, -230 + Math.abs(Math.cos(lever)) * -10); ctx.stroke(); ctx.fillStyle = "#e84a3a"; ctx.beginPath(); ctx.arc(x - 110 + Math.sin(lever) * 26, -232, 12, 0, 6.283); ctx.fill(); }
 
   // 1 walking to the factory at dawn
@@ -438,7 +439,7 @@
     shots: [{ a: 0, cam: function (v) { return { x: lerp(-250, -230, v), y: -220, z: lerp(1.05, 1.4, ease(v)) }; } }, { a: 0.4, cam: function (v) { return { x: lerp(-100, 380, ease(v)), y: -200, z: 0.8 }; } }, { a: 0.7, cam: function (v) { return { x: A.x - 80, y: -200, z: lerp(1.2, 2.0, ease(v)) }; } }] });
 
   // 10 the lesson children get
-  scene({ text: "", dur: 9, chapter: "Kids", tod: "day", tags: "m_kids",
+  scene({ text: "", dur: 10, chapter: "Kids", tod: "day", tags: "m_kids",
     setup: function () { coinsFly = []; A.key = "tycoon"; put(A, -300, 1, { pose: "point", ex: "happy", item: null, act: null }); put(R[0], -170, 1, { key: "tycoon2", s: 0.58, pose: "look", ex: "happy", item: null, act: null }); put(R[1], 240, -1, { key: "builder", pose: "hold", ex: "sad", item: null, act: "push" }); put(R[2], 380, -1, { key: "builder2", s: 0.58, pose: "hold", ex: "sad", item: null, act: "beg" }); this.t = 0; },
     update: function (u, dt) { this.t += dt; A.pose = Math.sin(this.t * 2) > 0 ? "point" : "talk"; R[1].pose = "idle"; R[1].act = "hammer"; R[1].item = "wrench"; if (Math.random() < 0.04) shootCoin(-100, -300, -170, -120, false); },
     world: function (m, u) { mSky("#9ed2f0", "#e6f4ff"); S.layer(1, function () { var v = S.viewRect(1); ctx.fillStyle = "#2f8a52"; ctx.fillRect(v.l, -10, 760, 720); ctx.fillStyle = "#6a6a72"; ctx.fillRect(40, -10, v.r - 40, 720); ctx.fillStyle = "#e9dcc4"; ctx.fillRect(-900, -620, 560, 620); ctx.fillStyle = "#a33a2a"; ctx.beginPath(); ctx.moveTo(-940, -620); ctx.lineTo(-620, -820); ctx.lineTo(-300, -620); ctx.fill(); ctx.fillStyle = "#8fc3e8"; ctx.fillRect(-860, -520, 120, 140); ctx.fillRect(-520, -520, 120, 140); ctx.fillStyle = "#6a3f1a"; ctx.fillRect(-700, -400, 130, 400);
@@ -450,7 +451,7 @@
     setup: function () { coinsFly = []; A.key = "builder"; put(A, 260, -1, { pose: "look", ex: "sad", item: null, act: null }); put(R[0], -260, 1, { key: "tycoon", pose: "cheer", ex: "happy", item: null, act: null }); this.t = 0; },
     update: function (u, dt) { this.t += dt; A.ex = u > 0.7 ? "happy" : "sad"; A.pose = u > 0.8 ? "cheer" : "look"; },
     world: function (m, u) { var g = ease(u); mCity("dusk", true); S.layer(1, function () { ctx.fillStyle = "#3d5a80"; var th = 220 + g * 1500; ctx.fillRect(-420, -th, 240, th); ctx.fillStyle = "rgba(255,230,160,.75)"; for (var yy = -th + 24; yy < -20; yy += 42) for (var xx = -400; xx < -200; xx += 56) ctx.fillRect(xx, yy, 24, 22); mText("$ " + (1 + Math.floor(g * 99)) + "x", -300, -th - 24, 34, "#7be39a"); ctx.fillStyle = "#8a6a4a"; ctx.fillRect(140, -170 - g * 14, 190, 170 + g * 14); ctx.fillStyle = "#7a4a3a"; ctx.beginPath(); ctx.moveTo(130, -170 - g * 14); ctx.lineTo(235, -250 - g * 14); ctx.lineTo(340, -170 - g * 14); ctx.fill(); mText("salary", 235, -280 - g * 14, 24, "#ffd6a0"); if (u > 0.75) { var k = clamp((u - 0.75) / 0.2, 0, 1); for (var i = 0; i < 4; i++) { ctx.save(); ctx.globalAlpha = k; mStack(380 + i * 54, -10, 3 + i); ctx.restore(); } mText("OWN ASSETS", 470, -300 - k * 20, 34, "#7be39a"); } }); },
-    shots: [{ a: 0, cam: function (v) { return { x: 0, y: -260, z: 0.62 }; } }, { a: 0.4, cam: function (v) { return { x: lerp(-100, 0, v), y: lerp(-500, -700, ease(v)), z: lerp(0.5, 0.36, ease(v)) }; } }, { a: 0.72, cam: function (v) { return { x: lerp(120, 300, ease(v)), y: lerp(-500, -230, ease(v)), z: lerp(0.55, 0.9, ease(v)) }; } }] });
+    shots: [{ a: 0, cam: function (v) { return { x: 0, y: -260, z: 0.62 }; } }, { a: 0.4, cam: function (v) { return { x: lerp(-100, 0, v), y: lerp(-500, -700, ease(v)), z: lerp(0.5, 0.36, ease(v)) }; } }, { a: 0.72, cam: function (v) { return { x: lerp(120, 300, ease(v)), y: lerp(-500, -230, ease(v)), z: lerp(0.55, 0.9, ease(v)) }; }] });
 
   var LIBSET = {}; SCENES.slice(10).forEach(function (sc) { LIBSET[sc.tags] = sc; }); SCENES.length = 10;
   var LIBRULES = [
@@ -520,18 +521,31 @@
   var capWords = [], capHi = -2;
   function setCap(sc) { var words = sc.text.split(/\s+/); capWords = words.map(function (w, i) { return { w: w, noun: NOUNS.test(w.replace(/[^A-Za-z]/g, "")) || !!(window.PR && PR.has(w.replace(/[^A-Za-z]/g, "").toLowerCase().replace(/s$/, ""))), i: i }; }); capHi = -2; renderCap(sc, -1); }
   function renderCap(sc, hi) { var h = capWords.map(function (o) { return o.noun ? '<span class="nn' + (hi >= o.i ? " hi" : "") + '">' + o.w + "</span>" : o.w; }).join(" "); cap.innerHTML = sc.quote ? h + '<br><b style="margin-top:8px">' + (sc.speaker || "The Queen") + '</b>“' + sc.quote + "”" : h; cap.className = "on"; }
+
+  // Match-cut transition state
+  var matchCutActive = false, matchCutStart = { x: 0, y: -170, z: 1 }, matchCutTarget = { x: 0, y: -170, z: 1 }, matchCutElapsed = 0, matchCutDuration = 0.6;
+
   function enter(i) {
-    if (si >= 0) { if (prevCv.width !== S.cv.width) { prevCv.width = S.cv.width; prevCv.height = S.cv.height; } pctx.clearRect(0, 0, prevCv.width, prevCv.height); pctx.drawImage(S.cv, 0, 0); hasPrev = true; fade = 1; }
+    // Capture previous scene's end camera for match-cut
+    if (si >= 0) {
+      matchCutStart = { x: cam.x, y: cam.y, z: cam.z };
+      var nextSc = SCENES[i];
+      if (nextSc.shots && nextSc.shots.length > 0) {
+        matchCutTarget = nextSc.shots[0].cam(0);
+        matchCutActive = true;
+        matchCutElapsed = 0;
+      }
+    }
     si = i; st = 0; shotIdx = -1; var sc = SCENES[i]; resetChars(); puffs = []; cam.shake = 0; W.setTod(sc.tod || "day"); sparks = []; flash = 0; if (sc.setup) sc.setup(); setCap(sc);
   }
-  // ---- cinematic polish: foreground silhouettes with parallax + soft bloom + scene crossfade ----
-  var bcv = document.createElement("canvas"), bctx = bcv.getContext("2d"), prevCv = document.createElement("canvas"), pctx = prevCv.getContext("2d"), fade = 0, hasPrev = false;
+  // ---- cinematic polish: foreground silhouettes with parallax + soft bloom ----
+  var bcv = document.createElement("canvas"), bctx = bcv.getContext("2d");
   function bloom() { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); var w = S.cv.width, hh = S.cv.height, bw = w >> 2, bh = hh >> 2; if (bcv.width !== bw) { bcv.width = bw; bcv.height = bh; } bctx.clearRect(0, 0, bw, bh); bctx.filter = "blur(6px) brightness(1.1) saturate(1.2)"; bctx.drawImage(S.cv, 0, 0, bw, bh); bctx.filter = "none"; ctx.globalCompositeOperation = "screen"; ctx.globalAlpha = 0.14; ctx.drawImage(bcv, 0, 0, w, hh); ctx.restore(); }
   function fgDeco(sc, shot) {
     if (shot.nochars && !sc.fgdeco) return; var tag = sc.tags || "", era = sc.era || ""; if (/launch|cabin|approach|sub|dive|whale|trench/.test(tag) && !/launch/.test(tag)) return;
     var dark = { dusk: 0.55, night: 0.8, storm: 0.6 }[sc.tod] || 0.25;
     S.layer(1.45, function () { ctx.save(); ctx.globalAlpha = 0.85; var r = S.rng(11), vr = S.viewRect(1.45), base = vr.b - 20;
-      for (var x = Math.floor(vr.l / 160) * 160; x < vr.r + 160; x += 160) { var k = Math.abs(x * 7 + 3) % 5, hh = 30 + ((Math.abs(x) * 13) % 70); ctx.fillStyle = "rgba(" + (40 - dark * 25 | 0) + "," + (28 - dark * 18 | 0) + "," + (20 - dark * 12 | 0) + ",.9)"; if (k < 3) { ctx.beginPath(); ctx.moveTo(x - 40, base + 40); for (var j = 0; j < 5; j++) ctx.quadraticCurveTo(x - 30 + j * 16, base - hh * (0.5 + (j % 2) * 0.6), x - 24 + j * 16, base + 40); ctx.fill(); } else if (k === 3) { ctx.beginPath(); ctx.ellipse(x, base + 30, 70, 34, 0, Math.PI, 0); ctx.fill(); } }
+      for (var x = Math.floor(vr.l / 160) * 160; x < vr.r + 160; x += 160) { var k = Math.abs(x * 7 + 3) % 5, hh = 30 + ((Math.abs(x) * 13) % 70); ctx.fillStyle = "rgba(" + (40 - dark * 25 | 0) + "," + (28 - dark * 18 | 0) + "," + (20 - dark * 12 | 0) + ",.9)"; if (k < 3) { ctx.beginPath(); ctx.moveTo(x - 40, base + 40); for (var j = 0; j < 5; j++) ctx.quadraticCurveTo(x - 30 + j * 16, base - hh * (0.5 + (j % 2) * 0.6), x - 24 + j * 16, base + 40); ctx.fill(); } else if (k === 3) { ctx.beginPath(); ctx.ellipse(x, base + 30, 70, 34, 0, Math.PI, 0); ctx.fill(); }
       ctx.restore(); });
   }
   function drawScene(sc, u, dt) {
@@ -557,7 +571,6 @@
     if (false && window.PR && capHi >= 0 && capWords[capHi]) { var nn = capWords[capHi].w.replace(/[^A-Za-z]/g, "").toLowerCase().replace(/s$/, ""), age = S.time - (popT || 0); if (nn !== popN) { popN = nn; popT = S.time; age = 0; } if (PR.has(nn) && age < 2.2) { var pa = Math.min(1, age / 0.25), po = age > 1.7 ? (2.2 - age) / 0.5 : 1, sc2 = (0.6 + 0.4 * S.easeOut(pa)) * 1.25 * (1 + 0.05 * Math.sin(age * 5)); ctx.save(); ctx.globalAlpha = po; ctx.fillStyle = "rgba(255,248,225,.82)"; ctx.beginPath(); ctx.arc(VW * 0.78, VH * 0.17, 95 * sc2, 0, 6.283); ctx.fill(); ctx.lineWidth = 4; ctx.strokeStyle = "rgba(60,40,20,.55)"; ctx.stroke(); PR.draw(nn, VW * 0.78, VH * 0.17, sc2, S.time); ctx.restore(); } }
     bloom();
     W.vignetteGrade(shot.blur ? 1.15 : 0.9);
-    if (fade > 0 && hasPrev) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = fade * fade * 0.9; ctx.drawImage(prevCv, 0, 0); ctx.restore(); fade = Math.max(0, fade - dt / 0.3); }
     if (flash > 0) { ctx.fillStyle = "rgba(255,244,200," + (0.55 * flash) + ")"; ctx.fillRect(0, 0, VW, VH); flash = Math.max(0, flash - dt * 2.2); }
     W.grain();
     ctx.restore();
@@ -578,13 +591,25 @@
       var f = A.show ? A : shown[0]; if (tg.z <= 2.0 && shown.length > 1 && span * tg.z < hi - lo) { var mid = (mn + mx) / 2; var sm = VWd / 2 + (mid - tg.x) * tg.z; if (sm < lo || sm > hi) tg.x = mid; }
       var sxA = VWd / 2 + (f.x - tg.x) * tg.z; if (sxA < lo) tg.x += (sxA - lo) / tg.z; else if (sxA > hi) tg.x += (sxA - hi) / tg.z;
       if (tg.z <= 1.9) { var low = Math.max.apply(0, shown.map(function (c) { return VHd * 0.46 + (c.y - tg.y) * tg.z; })); var lim = VHd * 0.8; if (low > lim) tg.y += (low - lim) / tg.z; } })();
-    // one continuous take: never snap inside a scene; critically-damped spring toward the (smooth) target path
-    if (!cam.vx) { cam.vx = 0; cam.vy = 0; cam.vz = 0; }
-    if (idx !== shotIdx) { if (shotIdx < 0 || st < dt * 2) { cam.x = tg.x; cam.y = tg.y; cam.z = tg.z; cam.vx = cam.vy = cam.vz = 0; } shotIdx = idx; }
-    var w0 = 2.6;
-    function spring(p, v, g, w) { var d = p - g, a = -w * w * d - 2 * w * v; v += a * dt; return [p + v * dt, v]; }
-    var rx = spring(cam.x, cam.vx, tg.x, w0), ry = spring(cam.y, cam.vy, tg.y, w0), rz = spring(cam.z, cam.vz, tg.z, w0 * 0.9);
-    cam.x = rx[0]; cam.vx = rx[1]; cam.y = ry[0]; cam.vy = ry[1]; cam.z = rz[0]; cam.vz = rz[1];
+    // Match-cut transition: ease from previous scene's end camera to first shot over 0.6s
+    if (matchCutActive) {
+      matchCutElapsed += dt;
+      var t = clamp(matchCutElapsed / matchCutDuration, 0, 1);
+      var e = ease(t);
+      cam.x = lerp(matchCutStart.x, matchCutTarget.x, e);
+      cam.y = lerp(matchCutStart.y, matchCutTarget.y, e);
+      cam.z = lerp(matchCutStart.z, matchCutTarget.z, e);
+      cam.vx = cam.vy = cam.vz = 0;
+      if (t >= 1) matchCutActive = false;
+    } else {
+      // one continuous take: never snap inside a scene; critically-damped spring toward the (smooth) target path
+      if (!cam.vx) { cam.vx = 0; cam.vy = 0; cam.vz = 0; }
+      if (idx !== shotIdx) { if (shotIdx < 0 || st < dt * 2) { cam.x = tg.x; cam.y = tg.y; cam.z = tg.z; cam.vx = cam.vy = cam.vz = 0; } shotIdx = idx; }
+      var w0 = 2.6;
+      function spring(p, v, g, w) { var d = p - g, a = -w * w * d - 2 * w * v; v += a * dt; return [p + v * dt, v]; }
+      var rx = spring(cam.x, cam.vx, tg.x, w0), ry = spring(cam.y, cam.vy, tg.y, w0), rz = spring(cam.z, cam.vz, tg.z, w0 * 0.9);
+      cam.x = rx[0]; cam.vx = rx[1]; cam.y = ry[0]; cam.vy = ry[1]; cam.z = rz[0]; cam.vz = rz[1];
+    }
     // caption nouns light up as they are spoken
     var hi = -1; capWords.forEach(function (o) { if (o.noun && u >= (o.i + 0.3) / capWords.length * 0.92) hi = Math.max(hi, o.i); }); if (hi !== capHi) { capHi = hi; renderCap(sc, hi); }
     drawScene(sc, u, dt);

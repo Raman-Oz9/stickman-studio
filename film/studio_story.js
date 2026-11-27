@@ -545,12 +545,26 @@
   // ---------- script-driven director: builds SCENES from a plan JSON (window.__PLAN) ----------
   function buildFromPlan(plan) {
     var BG = { sea: function (m, u) { bgSea({ farShips: true }); W.ship(0.5, lerp(-260, 220, u) * 0.5, -100, 0.62, S.time); }, beach: bgBeach, egypt: bgEgypt, plain: bgPlain, temple: bgTempleFront, hall: bgHall, night: function (m, u) { bgNight(lerp(900, 4200, u)); campfire(330); }, cliff: bgCliff };
-    var POSE = { walk: "walk", march: "march", fight: "fight", kneel: "kneel", point: "point", sit: "sit", cheer: "cheer", talk: "talk", look: "look", idle: "idle", hold: "hold", run: "march" };
+    var VERBS = ["walk", "run", "climb", "dig", "build", "carry", "open", "close", "throw", "catch", "read", "write", "drink", "eat", "point", "wave", "hug", "salute", "drive"];
+    var POSE = { walk: "walk", run: "walk", climb: "idle", dig: "idle", build: "idle", carry: "idle", open: "idle", close: "idle", throw: "idle", catch: "idle", read: "idle", write: "idle", drink: "idle", eat: "idle", point: "point", wave: "cheer", hug: "idle", salute: "idle", drive: "sit", march: "march", fight: "fight", kneel: "kneel", sit: "sit", cheer: "cheer", talk: "talk", look: "look", idle: "idle", hold: "hold" };
     var ERAKEY = window.ERAS || {};
     var lastTag = null;
+    var lastShotName = null;
     plan.forEach(function (p, idx) {
-      var loc = p.location || "plain", era = p.era || "ancient", act = ((p.characters && p.characters[0] && p.characters[0].action) || "talk"), pose = POSE[act] || "talk";
-      var low = p.text.toLowerCase(), pickS = null;
+      var loc = p.location || "plain", era = p.era || "ancient";
+      var low = p.text.toLowerCase();
+      var matchedVerb = "talk";
+      VERBS.forEach(function (v) {
+        if (new RegExp("\\b" + v + "\\b", "i").test(low)) matchedVerb = v;
+      });
+      var matchedNoun = null;
+      var commonNouns = ["crown", "spear", "shield", "sword", "scroll", "gold", "ship", "torch", "rocket", "planet", "star", "moon", "sun", "whale", "fish", "anchor", "castle", "pyramid", "throne", "flag", "helmet", "key", "book", "map", "horse", "tent", "chest", "bow", "arrow", "satellite"];
+      commonNouns.forEach(function (n) {
+        if (new RegExp("\\b" + n + "\\b", "i").test(low)) matchedNoun = n;
+      });
+      var act = matchedVerb;
+      var pose = POSE[act] || "talk";
+      var pickS = null;
       LIBRULES.forEach(function (r) { if (!pickS && r[0] === era && r[1].test(p.text)) pickS = LIBSET[r[2]]; });
       if (!pickS && era === "ancient") {
         var T0 = function (rx) { return rx.test(low); };
@@ -559,16 +573,26 @@
       if (pickS && pickS.tags && pickS.tags === lastTag) pickS = null; // never repeat the same set piece back-to-back: fall to the generic builder
       lastTag = pickS ? pickS.tags : null;
       if (pickS) { SCENES.push(Object.assign({}, pickS, { text: p.quote ? p.text.replace(/\s*"[^"]*"\s*/g, " ").replace(/\s+$/, "") : p.text, quote: p.quote || null, speaker: p.speaker || null })); return; }
-      var moving = pose === "walk" || pose === "march";
+      var moving = pose === "walk" || pose === "march" || act === "walk" || act === "run" || act === "drive";
       var fighting = pose === "fight" || /\b(fight|fought|battle|clash|clashed|war)\b/i.test(p.text);
       var palKey = era === "ancient" ? "red" : (ERAKEY[era] && CH.KIND[ERAKEY[era][1]] ? ERAKEY[era][1] : "red");
       var heroKey = era === "ancient" ? "alex" : (ERAKEY[era] && ERAKEY[era][0] && CH.KIND[ERAKEY[era][0]]) ? ERAKEY[era][0] : "alex";
       var rk = p.role && CH.KIND[p.role] ? p.role : null;
       if (rk) { heroKey = rk; palKey = CH.KIND[rk + "2"] ? rk + "2" : rk; }
       var rk2 = p.role2 && CH.KIND[p.role2] ? p.role2 : null;
-      var others = (p.characters || []).slice(1);
       var bgf = era === "ocean" ? (function (dd) { return function () { darkOcean(dd); }; })(/\b(dark|darkness|deep|deeper|trench|bottom|night|abyss)\b/i.test(p.text) ? 0.72 : /\b(sunlight|surface|shallow|reef)\b/i.test(p.text) ? 0.05 : 0.3) : era === "space" ? function () { window.PL[era]({ t: S.time }); } : BG[loc] || (window.PL && window.PL[loc] ? function () { window.PL[loc]({ t: S.time }); } : bgPlain);
-      var shotSet = (p.shots && p.shots.length ? p.shots : ["wide", "follow", "closeup"]);
+      
+      var baseShotNames = ["wide", "follow", "closeup", "side", "back", "ots", "crane"];
+      var requestedShots = (p.shots && p.shots.length ? p.shots : ["wide", "follow", "closeup"]);
+      var shotNames = [];
+      requestedShots.forEach(function (sName) {
+        if (sName === lastShotName) {
+          sName = baseShotNames.find(function (n) { return n !== lastShotName; }) || "wide";
+        }
+        lastShotName = sName;
+        shotNames.push(sName);
+      });
+
       function mkShot(name, i, n) {
         var a = i / n, o = { a: a };
         if (name === "wide") o.cam = function (v) { return { x: A.x * 0.5, y: -190, z: lerp(0.85, 0.95, ease(v)) }; };
@@ -583,15 +607,30 @@
       }
       scene({ text: p.quote ? p.text.replace(/\s*"[^"]*"\s*/g, " ").replace(/\s+$/, "").replace(/,$/, ",") : p.text, quote: p.quote || null, speaker: p.speaker || null, dur: 7 + (p.text.length / 20), chapter: p.location || "x", tod: loc === "space" ? "dusk" : (p.tod || "day"), weather: p.weather && p.weather !== "none" ? p.weather : null,
         setup: function () {
-          put(A, moving ? -420 : 0, 1, { key: heroKey, pose: pose, ex: p.mood === "sad" ? "sad" : p.mood === "tense" ? "angry" : "happy" });
-          var pals = [R[0], R[1], R[2]]; (fighting && !rk ? [T[0], T[1], T[2]] : []).forEach(function (c, i) { put(c, 380 + i * 120, -1, { pose: "fight", ex: "angry" }); });
-          pals.slice(0, Math.min(3, others.length + (fighting ? 2 : 0))).forEach(function (c, i) { put(c, (moving ? -420 : 0) - 130 - i * 110, 1, { pose: pose, ex: "happy", key: (rk2 && i === 0) ? rk2 : palKey }); });
-          ALLC.forEach(function (c) { if (c.show && !fighting) { c.item = null; c.shield = false; } }); if (fighting) { A.item = "sword"; }
-          if (rk) { var kk = CH.KIND[rk]; ALLC.forEach(function (c) { c.shield = false; if (c.show) c.item = (c === A || /^(firefighter|police|soldier|pirate|miner|builder|mechanic|farmer|chef)$/.test(rk)) ? (kk.item || (rk === "soldier" ? "rifle" : null)) : null; }); if (rk === "soldier") ALLC.forEach(function (c) { if (c.show) c.item = "rifle"; }); if (fighting && rk !== "soldier" && !kk.item) A.item = null; }
+          put(A, moving ? -420 : 0, 1, { key: heroKey, pose: pose, act: act, ex: p.mood === "sad" ? "sad" : p.mood === "tense" ? "angry" : "happy", item: matchedNoun });
         },
-        update: function (u, dt) { if (moving) ALLC.forEach(function (c) { if (c.show && c.pose === pose) c.x += 120 * dt * (c.face || 1); }); if (A.pose === "talk" || pose === "talk") { A.talk = true; } },
-        world: function (m, u) { bgf(m, u); },
-        shots: shotSet.map(function (n, i) { return mkShot(n, i, shotSet.length); }) });
+        update: function (u, dt) {
+          if (moving) {
+            ALLC.forEach(function (c) {
+              if (c.show && (c.pose === pose || c.act === act)) {
+                var dir = c.face || 1;
+                c.x += 120 * dt * dir;
+                c.face = dir >= 0 ? 1 : -1;
+              }
+            });
+          }
+          if (A.pose === "talk" || pose === "talk" || act === "talk") { A.talk = true; }
+        },
+        world: function (m, u) {
+          bgf(m, u);
+          if (matchedNoun && window.PR && PR.has(matchedNoun)) {
+            S.layer(1, function () {
+              PR.draw(matchedNoun, A.x + 85, -12, 0.85, S.time);
+            });
+          }
+        },
+        shots: shotNames.map(function (n, i) { return mkShot(n, i, shotNames.length); })
+      });
     });
   }
   if (window.__PLAN && window.__PLAN.length) { SCENES.length = 0; buildFromPlan(window.__PLAN); }

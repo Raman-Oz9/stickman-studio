@@ -1,3 +1,8 @@
+### 2026-11-26 — Add distinct twilight zone LIBSET scene and LIBRULES entry in film/studio_story.js
+- Added a distinct 'twilight zone' LIBSET scene in `film/studio_story.js` featuring a dim blue gradient background, rising bubbles/particles, fish silhouettes, and a diver descending slowly with a lit lamp.
+- Added a `twilight` LIBRULES entry before the dive rule to match sentences like "Sunlight faded...".
+- Verified with `bash film/check.sh` and `cd remotion && npm install --no-audit --no-fund && npx tsc --noEmit` with zero errors.
+
 ### 2026-11-26 — FILM ENGINE 2D clothing shading and folds in film/studio_char.js
 - Added clothing shading and folds to `suitBody()` and sleeves (`arm()`) in `film/studio_char.js`: soft gradient away from light, 2-3 fold lines at elbows and waist, collar and cuff details, and shoe soles with highlight.
 - Verified with `bash film/check.sh` and `cd remotion && npx tsc --noEmit` with zero errors.

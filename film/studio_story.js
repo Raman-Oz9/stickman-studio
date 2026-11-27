@@ -334,6 +334,62 @@
     foreground: function () { lamp(A, true); },
     shots: [{ a: 0, cam: function (v) { return { x: lerp(-200, 40, v), y: -250, z: 0.8 }; } }, { a: 0.4, views: { A: "side" }, cam: follow(A, 1.3, 1.5, 150, -190) }, { a: 0.7, cam: head(A, 2.2, 2.5, 70, 250) }] });
 
+  // --- OCEAN: twilight zone, dim blue gradient, particles, fish silhouettes, diver descending with lamp ---
+  scene({ text: "", dur: 8, chapter: "Twilight", tod: "inner", tags: "twilight",
+    setup: function () { A.key = "diver"; put(A, -250, 1, { pose: "swim", ex: "neutral", y: -500 }); },
+    update: function (u, dt) {
+      A.pose = "swim";
+      A.x = lerp(-250, 150, ease(u));
+      A.y = lerp(-500, -250, ease(u));
+      A.ex = "neutral";
+      if (Math.random() < 0.75) puff(A.x - 20, A.y + 35, 1, "#d0f0ff", 8, -50);
+    },
+    world: function (m, u) {
+      S.layer(0, function () {
+        var v = S.viewRect(0);
+        var g = ctx.createLinearGradient(0, v.t, 0, v.b);
+        g.addColorStop(0, "#0a2240");
+        g.addColorStop(0.5, "#103866");
+        g.addColorStop(1, "#051224");
+        ctx.fillStyle = g;
+        ctx.fillRect(v.l, v.t, v.r - v.l, v.b - v.t);
+      });
+      S.layer(0.8, function () {
+        var r = S.rng(19);
+        for (var i = 0; i < 22; i++) {
+          var px = ((S.time * (18 + i * 4) + r() * 1400) % 1600) - 800;
+          var py = 250 - ((S.time * (28 + r() * 35) + r() * 1200) % 1400);
+          ctx.fillStyle = "rgba(140,210,255,.45)";
+          ctx.beginPath();
+          ctx.arc(px + Math.sin(S.time * 0.7 + i) * 12, py, 2 + r() * 2.5, 0, 6.283);
+          ctx.fill();
+        }
+      });
+      S.layer(0.6, function () {
+        var r = S.rng(23);
+        for (var i = 0; i < 10; i++) {
+          var fx = ((S.time * (22 + i * 7) + r() * 1600) % 1800) - 900;
+          var fy = -350 + (i * 45) + Math.sin(S.time * 0.6 + i) * 18;
+          ctx.fillStyle = "#040e1c";
+          ctx.beginPath();
+          ctx.ellipse(fx, fy, 26, 11, 0, 0, 6.283);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.moveTo(fx - 22, fy);
+          ctx.lineTo(fx - 38, fy - 9);
+          ctx.lineTo(fx - 38, fy + 9);
+          ctx.fill();
+        }
+      });
+      S.layer(1, function () { drawPuffs(1 / 30); });
+    },
+    foreground: function () { lamp(A, true); },
+    shots: [
+      { a: 0, cam: function (v) { return { x: A.x, y: A.y - 120, z: 0.85 }; } },
+      { a: 0.35, views: { A: "side" }, cam: follow(A, 1.2, 1.4, 120, -180) },
+      { a: 0.68, cam: head(A, 2.1, 2.4, 60, 245) }
+    ] });
+
 
   // ================= MODERN / MONEY STORY SET PIECES =================
   var lt = S.lt, dk = S.dk; function sparkBurst(x, y) { emit(x, y, 5, "#ffcc66", 0.5); }
@@ -460,7 +516,7 @@
     ["modern", /\b(ten hours|built machines|wage)\b/i, "m_factory"], ["modern", /\b(walked|sunrise|empty stomach)\b/i, "m_walk"],
     ["space", /\b(rocket|spacecraft|shuttle)\b.*\b(rose|launch|lift|lifted|took off|blast|ignit)|\blaunchpad\b/i, "launch"], ["space", /\b(drifted|months|silent dark|deep space|journey)\b/i, "cabin"],
     ["space", /\b(red planet|rusty|planet appeared|appeared.*(distance|horizon))\b/i, "approach"], ["space", /\b(landed|landing|touched down)\b|\bstepped (out|onto)\b|\bsmall step\b/i, "landing"],
-    ["ocean", /\bsubmarine\b/i, "sub"], ["ocean", /\bsubmarine\b.*\b(sank|descend|dive|dove|beneath)|\bsank slowly\b|\bdiver\b.*\b(sank|dived|dove|beneath)/i, "dive"], ["ocean", /\b(whale|shark|orca|dolphin)\b/i, "whale"],
+    ["ocean", /\bsubmarine\b/i, "sub"], ["ocean", /\b(sunlight faded)\b/i, "twilight"], ["ocean", /\bsubmarine\b.*\b(sank|descend|dive|dove|beneath)|\bsank slowly\b|\bdiver\b.*\b(sank|dived|dove|beneath)/i, "dive"], ["ocean", /\b(whale|shark|orca|dolphin)\b/i, "whale"],
     ["ocean", /\b(squid|jellyfish|angler|anglerfish|bioluminescent|glowing|lures|creatures|floodlights|trench|pressure|abyss)\b/i, "trench"], ["ocean", /\bsubmarine\b/i, "sub"], ["ocean", /\b(sunlight faded|water turned dark|dark blue)\b/i, "dive"], ["ocean", /\b(bottom|silt|seabed|ocean floor)\b/i, "trench"]
   ];
   // ---------- script-driven director: builds SCENES from a plan JSON (window.__PLAN) ----------

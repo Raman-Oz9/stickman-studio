@@ -129,11 +129,11 @@
   };
 
   window.ERAS = {
-    ancient: ["roman", "hoplite", "pharaoh", "peasant", "merchant", "alex", "queen"],
-    medieval: ["knight", "viking", "samurai", "pirate", "peasant"],
-    modern: ["suit", "suit2", "sci", "merchant"],
+    ancient: ["roman", "hoplite", "pharaoh", "peasant", "merchant", "alex", "queen", "king"],
+    medieval: ["knight", "viking", "samurai", "pirate", "peasant", "king", "queen"],
+    modern: ["suit", "suit2", "sci", "merchant", "teacher", "student"],
     space: ["astro", "astro2"],
-    ocean: ["diver", "diver2", "pirate"]
+    ocean: ["diver", "diver2", "pirate", "sailor"]
   };
 })();
 

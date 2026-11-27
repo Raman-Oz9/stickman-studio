@@ -22,6 +22,53 @@
   SU.jersey = function (k, tun, w, wh) { ctx.fillStyle = tint(k.trim || "#fff"); ctx.fillRect(-w, -100, 2 * w, 6); ctx.fillStyle = "#fff"; ctx.font = "bold 34px sans-serif"; ctx.textAlign = "center"; ctx.fillText("10", 0, -48); ctx.strokeStyle = tint(k.trim || "#fff"); ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-wh - 2, 6); ctx.lineTo(wh + 2, 6); ctx.stroke(); };
   SU.pirate = function (k, tun, w, wh) { ctx.fillStyle = "rgba(255,255,255,.85)"; for (var i = 0; i < 5; i++) ctx.fillRect(-w, -90 + i * 20, 2 * w, 8); ctx.fillStyle = "#5a2a1a"; ctx.beginPath(); ctx.moveTo(-w + 4, -98); ctx.lineTo(-14, -98); ctx.lineTo(-wh, 4); ctx.lineTo(-wh - 4, 4); ctx.fill(); ctx.beginPath(); ctx.moveTo(w - 4, -98); ctx.lineTo(14, -98); ctx.lineTo(wh, 4); ctx.lineTo(wh + 4, 4); ctx.fill(); ctx.fillStyle = "#222"; ctx.fillRect(-wh - 6, -16, wh * 2 + 12, 11); ctx.fillStyle = "#e8c14a"; ctx.fillRect(-6, -16, 12, 11); };
   SU.robe = function (k, tun, w, wh) { longCoat(k, tun, w, wh, 70); ctx.fillStyle = tint(k.trim || "#d8a73a"); ctx.fillRect(-w - 2, -20, 2 * w + 4, 6); ctx.strokeStyle = dk(tun, 0.3); ctx.beginPath(); ctx.moveTo(0, -96); ctx.lineTo(0, 70); ctx.stroke(); };
+  SU.royal = function (k, tun, w, wh) {
+    longCoat(k, tun, w, wh, 50);
+    ctx.fillStyle = "#f8f9fa"; ctx.beginPath(); ctx.moveTo(-w - 4, -98); ctx.quadraticCurveTo(0, -74, w + 4, -98); ctx.quadraticCurveTo(0, -84, -w - 4, -98); ctx.fill(); ctx.strokeStyle = "#222"; ctx.lineWidth = 1.5; ctx.stroke();
+    [-18, -6, 6, 18].forEach(function(x) { ball(x, -90, 2, "#111"); });
+    ctx.fillStyle = "#e8c14a"; ctx.fillRect(-wh - 4, -18, wh * 2 + 8, 10);
+    ctx.fillStyle = "#fff1b8"; ctx.fillRect(-6, -18, 12, 10); ctx.strokeStyle = "#7a6320"; ctx.lineWidth = 1.5; ctx.strokeRect(-6, -18, 12, 10);
+    ctx.fillStyle = tint(k.sash || "#8c1c22"); ctx.beginPath(); ctx.moveTo(-16, -100); ctx.lineTo(-wh - 4, 30); ctx.lineTo(-wh + 6, 30); ctx.lineTo(-6, -100); ctx.fill();
+    buttons(5, -74, -30, "#e8c14a");
+  };
+  SU.royaldress = function (k, tun, w, wh) {
+    ctx.fillStyle = tint(k.dress || "#2f5fb5");
+    ctx.beginPath(); ctx.moveTo(-w, -100); ctx.quadraticCurveTo(-w + 4, -40, -wh - 16, 80); ctx.lineTo(wh + 16, 80); ctx.quadraticCurveTo(w - 4, -40, w, -100); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = dk(tint(k.dress), 0.35); ctx.lineWidth = 2.2; ctx.stroke();
+    ctx.fillStyle = tint(k.trim || "#e8c14a"); ctx.beginPath(); ctx.moveTo(-w + 2, -98); ctx.quadraticCurveTo(0, -60, w - 2, -98); ctx.lineTo(0, -90); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#e8c14a"; ctx.fillRect(-wh - 6, -16, wh * 2 + 12, 8); ball(0, -12, 5, "#d9232e");
+  };
+  SU.merchant = function (k, tun, w, wh) {
+    lapels(k, w, dk(tun, 0.2));
+    buttons(4, -80, -30, "#e8c14a");
+    ctx.fillStyle = "#5a3a20"; ctx.fillRect(-wh - 4, -16, wh * 2 + 8, 9);
+    ctx.fillStyle = "#7a4e28"; ctx.beginPath(); ctx.arc(w - 14, -8, 8, 0, 6.283); ctx.fill();
+    ctx.strokeStyle = "#3a2210"; ctx.lineWidth = 2; ctx.stroke();
+  };
+  SU.teacher = function (k, tun, w, wh) {
+    lapels(k, w, "#4a3a5c");
+    ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.moveTo(-12, -98); ctx.lineTo(0, -78); ctx.lineTo(12, -98); ctx.fill();
+    ctx.fillStyle = "#2f5fb5"; ctx.beginPath(); ctx.moveTo(-3, -94); ctx.lineTo(3, -94); ctx.lineTo(2, -50); ctx.lineTo(-2, -50); ctx.fill();
+    buttons(3, -54, -26, "#c9d2dc");
+    ctx.fillStyle = "#c9d2dc"; ctx.fillRect(w - 18, -80, 10, 8);
+  };
+  SU.student = function (k, tun, w, wh) {
+    ctx.fillStyle = "#fff"; ctx.fillRect(-w + 4, -98, 2 * w - 8, 20);
+    ctx.fillStyle = tint(k.tunic);
+    ctx.beginPath(); ctx.moveTo(-w + 4, -98); ctx.lineTo(0, -68); ctx.lineTo(w - 4, -98); ctx.lineTo(w - 4, 10); ctx.lineTo(-w + 4, 10); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#b3262d"; ctx.beginPath(); ctx.moveTo(-4, -92); ctx.lineTo(4, -92); ctx.lineTo(2, -58); ctx.lineTo(-2, -58); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#e8c14a"; ctx.beginPath(); ctx.moveTo(-w + 14, -76); ctx.lineTo(-w + 22, -70); ctx.lineTo(-w + 18, -60); ctx.lineTo(-w + 10, -60); ctx.lineTo(-w + 6, -70); ctx.closePath(); ctx.fill();
+  };
+  SU.sailor = function (k, tun, w, wh) {
+    ctx.fillStyle = "#f4f6f9";
+    ctx.beginPath(); ctx.moveTo(-w - 6, -100); ctx.lineTo(-w + 4, -70); ctx.lineTo(w - 4, -70); ctx.lineTo(w + 6, -100); ctx.lineTo(0, -90); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = "#14203a"; ctx.lineWidth = 2.5; ctx.stroke();
+    ctx.strokeStyle = "#24366b"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(-w - 2, -94); ctx.lineTo(-w + 6, -74); ctx.moveTo(w + 2, -94); ctx.lineTo(w - 6, -74); ctx.stroke();
+    ctx.fillStyle = "#b3262d"; ctx.beginPath(); ctx.moveTo(-5, -84); ctx.lineTo(5, -84); ctx.lineTo(0, -56); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#14203a";
+    for (var i = 0; i < 4; i++) ctx.fillRect(-wh - 2, -44 + i * 16, wh * 2 + 4, 7);
+  };
 
   // ---- headgear (origin = head centre, R = 44) ----
   function dome(col, y0, hh) { var g = ctx.createLinearGradient(-R, -R, R, 0); g.addColorStop(0, lt(col, 0.25)); g.addColorStop(1, dk(col, 0.25)); ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(-R - 4, y0); ctx.quadraticCurveTo(-R - 6, -R - hh, 0, -R - hh); ctx.quadraticCurveTo(R + 6, -R - hh, R + 4, y0); ctx.closePath(); ctx.fill(); ctx.strokeStyle = dk(col, 0.45); ctx.lineWidth = 3; ctx.stroke(); }
@@ -39,6 +86,60 @@
   GE.surgcap = function (k) { var c = tint(k.helm || "#2aa6a0"); dome(c, -6, 8); ctx.fillStyle = "#e8f4f4"; ctx.beginPath(); ctx.moveTo(-R + 2, 6); ctx.quadraticCurveTo(0, 38, R - 2, 6); ctx.lineTo(R - 4, 28); ctx.quadraticCurveTo(0, 52, -R + 4, 28); ctx.closePath(); ctx.fill(); ctx.strokeStyle = "#9ab"; ctx.lineWidth = 2; ctx.stroke(); ctx.strokeStyle = "#9ab"; ctx.beginPath(); ctx.moveTo(-R, 12); ctx.lineTo(-R - 10, 4); ctx.moveTo(R, 12); ctx.lineTo(R + 10, 4); ctx.stroke(); };
   GE.headband = function () { ctx.fillStyle = "#e63b2e"; ctx.fillRect(-R - 1, -24, 2 * R + 2, 9); ctx.beginPath(); ctx.moveTo(-R, -20); ctx.lineTo(-R - 22, -10); ctx.lineTo(-R - 18, -26); ctx.fill(); };
   GE.headlamp = function (k) { GE.hardhat(k); ball(0, -22, 9, "#fff"); ball(0, -22, 5, "#fff6a8"); };
+  GE.crown = function (k) {
+    var g = tint(k.helm || "#f2c64a"), y0 = -R - 6;
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(-R - 2, y0 + 12);
+    ctx.lineTo(-R - 8, y0 - 24);
+    ctx.lineTo(-R + 4, y0 - 8);
+    ctx.lineTo(-18, y0 - 32);
+    ctx.lineTo(0, y0 - 12);
+    ctx.lineTo(18, y0 - 32);
+    ctx.lineTo(R - 4, y0 - 8);
+    ctx.lineTo(R + 8, y0 - 24);
+    ctx.lineTo(R + 2, y0 + 12);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = dk(g, 0.4); ctx.lineWidth = 2.5; ctx.stroke();
+    ball(0, y0 - 4, 4.5, "#d9232e");
+    ball(-20, y0 + 2, 3.2, "#2b78d8");
+    ball(20, y0 + 2, 3.2, "#2b78d8");
+  };
+  GE.sailorcap = function () {
+    ctx.fillStyle = "#f4f6f9";
+    ctx.beginPath();
+    ctx.ellipse(0, -R - 10, R + 6, 12, 0, Math.PI, 0);
+    ctx.lineTo(R + 10, -R + 2);
+    ctx.lineTo(-R - 10, -R + 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = "#14203a"; ctx.lineWidth = 2.5; ctx.stroke();
+    ctx.fillStyle = "#14203a";
+    ctx.fillRect(-R - 8, -R - 4, 2 * R + 16, 8);
+  };
+  GE.mortarboard = function () {
+    ctx.fillStyle = "#1a1a24";
+    ctx.beginPath();
+    ctx.moveTo(-R - 26, -R - 22);
+    ctx.lineTo(0, -R - 36);
+    ctx.lineTo(R + 26, -R - 22);
+    ctx.lineTo(0, -R - 12);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = "#0a0a10"; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = "#1a1a24";
+    ctx.beginPath();
+    ctx.arc(0, -R + 4, R - 4, Math.PI, 6.283);
+    ctx.fill();
+    ctx.strokeStyle = "#e8c14a"; ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(0, -R - 24);
+    ctx.lineTo(R + 18, -R - 10);
+    ctx.lineTo(R + 16, -R + 8);
+    ctx.stroke();
+    ball(R + 16, -R + 8, 4, "#e8c14a");
+  };
 
   // ---- accessories ----
   AC.steth = { front: function () { ctx.strokeStyle = "#2a2f36"; ctx.lineWidth = 4.2; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(-16, -104); ctx.quadraticCurveTo(-26, -60, 0, -44); ctx.quadraticCurveTo(26, -60, 16, -104); ctx.stroke(); ctx.beginPath(); ctx.moveTo(0, -44); ctx.lineTo(0, -34); ctx.stroke(); ball(0, -30, 7, "#c9d2dc"); ctx.strokeStyle = "#5a6878"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, -30, 7, 0, 6.283); ctx.stroke(); ball(0, -30, 3, "#8a97a6"); }, rear: function () { ctx.strokeStyle = "#2a2f36"; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(-16, -104); ctx.quadraticCurveTo(0, -96, 16, -104); ctx.stroke(); } };
@@ -62,6 +163,19 @@
   IT.mic = function (x, y, a) { ctx.save(); ctx.translate(x, y); ctx.rotate(a - Math.PI / 2); ctx.fillStyle = "#2a2f36"; rr(-4, -3, 30, 7, 3); ctx.fill(); ball(32, 0, 9, "#555"); ctx.restore(); };
   IT.ball = function (x, y, a) { ctx.save(); ctx.translate(x, y + 10); ball(0, 0, 20, "#fff"); ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, 20, 0, 6.283); ctx.moveTo(-18, -6); ctx.quadraticCurveTo(0, 6, 18, -6); ctx.stroke(); ctx.restore(); };
   IT.flagpole = function (x, y, a) { ctx.save(); ctx.translate(x, y); ctx.rotate(a - Math.PI / 2 - 0.1); ctx.fillStyle = "#c9ccd0"; ctx.fillRect(-60, -2.5, 190, 5); ctx.fillStyle = "#e8e8e8"; ctx.fillRect(70, -6, 0, 0); ctx.restore(); };
+  IT.sceptre = function (x, y, a) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(a - Math.PI / 2 - 0.2);
+    ctx.fillStyle = "#e8c14a"; ctx.fillRect(-50, -3, 130, 6);
+    ball(80, 0, 12, "#e8c14a");
+    ball(80, 0, 6, "#d9232e");
+    ctx.restore();
+  };
+  IT.pointer = function (x, y, a) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(a - Math.PI / 2 - 0.2);
+    ctx.fillStyle = wood(); ctx.fillRect(-30, -2.5, 150, 5);
+    ctx.fillStyle = "#fff"; ctx.fillRect(116, -4, 14, 8);
+    ctx.restore();
+  };
 
   // ---- role kinds (variant 2 = alternate skin/hair/colour) ----
   var SK = ["#e3b68e", "#8a5a3a", "#c8946a", "#f2c7a3"], HR = ["#3a2a1c", "#16100d", "#6a4a2a", "#9a9a9a"];
@@ -85,6 +199,12 @@
   R2("builder", { suit: "vest", vest: "#ffd23a", tunic: "#6a7a8a", sleeve: "#6a7a8a", pants: "#3a4a68", glove: "#c8a050", boots: "#5a4630", helmet: "hardhat", helm: "#ffcf24", style: "none", item: "wrench" });
   R2("tycoon", { suit: "jacket", tunic: "#222a38", sleeve: "#222a38", pants: "#222a38", tie: "#b3262d", boots: "#111", shoe: "#111", item: "briefcase" });
   R2("monk", { suit: "robe", tunic: "#8a5a2c", sleeve: "#8a5a2c", pants: "#8a5a2c", trim: "#d8a73a", style: "none", boots: "#5a3a20" });
-  window.ROLES = ["doctor", "surgeon", "nurse", "scientist", "firefighter", "racer", "skydiver", "scuba", "police", "pilot", "chef", "mechanic", "miner", "farmer", "athlete", "pirate", "builder", "tycoon", "monk", "astro", "diver", "soldier", "suit", "knight", "viking"];
+  R2("king", { suit: "royal", tunic: "#7a2438", sleeve: "#7a2438", pants: "#3b2f4a", helmet: "crown", helm: "#e8c45a", cape: "#8c1c22", item: "sceptre", w: 1.08 });
+  R2("queen", { suit: "royaldress", dress: "#2f5fb5", tunic: "#2f5fb5", sleeve: "#2f5fb5", pants: "#2f5fb5", trim: "#e8c45a", trim2: "#f2e8d8", helmet: "crown", helm: "#e8c45a", cape: "#2f5fb5", female: true, item: "sceptre", w: 0.88 });
+  R2("merchant", { suit: "merchant", tunic: "#b5653f", sleeve: "#b5653f", pants: "#3b3f52", helmet: "straw", style: "turban", item: "briefcase", w: 1.02 });
+  R2("teacher", { suit: "teacher", tunic: "#7a5a8c", sleeve: "#7a5a8c", pants: "#3a3a44", helmet: "mortarboard", style: "short", item: "pointer", w: 1 });
+  R2("student", { suit: "student", tunic: "#3a8f6a", sleeve: "#3a8f6a", pants: "#3a4a6a", helmet: "cap", style: "short", item: "clipboard", w: 0.95 });
+  R2("sailor", { suit: "sailor", tunic: "#e8e8f0", sleeve: "#e8e8f0", pants: "#24366b", helmet: "sailorcap", style: "short", item: "flagpole", w: 1 });
+  window.ROLES = ["doctor", "surgeon", "nurse", "scientist", "firefighter", "racer", "skydiver", "scuba", "police", "pilot", "chef", "mechanic", "miner", "farmer", "athlete", "pirate", "builder", "tycoon", "monk", "astro", "diver", "soldier", "suit", "knight", "viking", "king", "queen", "merchant", "teacher", "student", "sailor"];
 })();
 window.ERAS = window.ERAS || {}; window.ERAS.ocean = ["scuba", "scuba2"];

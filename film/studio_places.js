@@ -333,6 +333,31 @@ var PL = (function () {
     });
   }
 
+  function volcano(opt) {
+    W.sky(); W.clouds(7, 0.05, -820, 5);
+    S.layer(0.08, function () {
+      var g = S.vgrad(-400, 0, [[0, "#3a120c"], [0.5, "#5c2415"], [1, "#240a08"]]);
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.moveTo(-900, 0); ctx.lineTo(-120, -380); ctx.lineTo(120, -380); ctx.lineTo(900, 0); ctx.closePath(); ctx.fill();
+      var lg = ctx.createLinearGradient(-40, -380, 40, -100);
+      lg.addColorStop(0, "#ffcc44"); lg.addColorStop(0.3, "#ff4411"); lg.addColorStop(1, "#881100");
+      ctx.fillStyle = lg;
+      ctx.beginPath(); ctx.moveTo(-60, -380); ctx.lineTo(60, -380); ctx.lineTo(110, 0); ctx.lineTo(30, 0); ctx.closePath(); ctx.fill();
+      var gl = S.rgrad(0, -380, 10, 160, [[0, "rgba(255,160,50,.8)"], [1, "rgba(255,160,50,0)"]]);
+      ctx.fillStyle = gl; ctx.fillRect(-200, -500, 400, 300);
+    });
+    W.ground(1, -50, "#381a15", "#1c0d0a");
+    S.layer(1.1, function () {
+      var r = rng(55);
+      for (var i = 0; i < 70; i++) {
+        var ex = ((r() * S.VW + Math.sin(S.time + i) * 80) % S.VW);
+        var ey = S.VH - ((S.time * (80 + r() * 120) + r() * S.VH) % S.VH);
+        ctx.fillStyle = i % 2 ? "#ffaa33" : "#ff4422";
+        ctx.beginPath(); ctx.arc(ex, ey, 1 + r() * 2.5, 0, 6.283); ctx.fill();
+      }
+    });
+  }
+
   return {
     space: space,
     ocean: ocean,

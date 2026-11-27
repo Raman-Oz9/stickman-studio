@@ -574,7 +574,7 @@
     // shot selection
     var idx = 0; for (var k = 0; k < sc.shots.length; k++) if (u >= sc.shots[k].a) idx = k;
     var sh = sc.shots[idx], nxt = sc.shots[idx + 1] ? sc.shots[idx + 1].a : 1, v = clamp((u - sh.a) / Math.max(0.001, nxt - sh.a), 0, 1);
-    ALLC.forEach(function (c) { c.view = null; }); if (sh.views) for (var vk in sh.views) chars[vk].view = sh.views[vk];
+    ALLC.forEach(function (c) { c.view = null; }); if (sh.views) for (var vk in sh.views) chars[vk].view = sh.views[vk]; ALLC.forEach(function (c) { if (c.show && c._gmove > 0 && !c.view) c.view = "side"; });
     var tg = sh.cam(v); tg = { x: tg.x, y: tg.y, z: Math.min(tg.z, 2.6) };
     // auto-framing applied to the TARGET (never fights the spring => no shake): everyone on stage stays in frame unless it is a deliberate close-up
     (function () { var shown = ALLC.filter(function (c) { return c.show && !(sh.nochars) && !(sh.fg && sh.fg.some(function (f) { return chars[f.id] === c; })); }); if (!shown.length) return; var VWd = S.VW, VHd = S.VH, lo = VWd * 0.14, hi = VWd * 0.86;

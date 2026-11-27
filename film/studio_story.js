@@ -455,7 +455,7 @@
 
   // 2 ten hours on the line: lever, hammer, clock spinning, products coming out
   scene({ text: "", dur: 9, chapter: "Factory", tod: "day", tags: "m_factory",
-    setup: function () { coinsFly = []; A.key = "builder"; put(A, -40, 1, { pose: "idle", act: "lever", ex: "sad", item: null }); put(R[0], 330, -1, { key: "builder2", pose: "idle", act: "hammer", ex: "sad", item: "wrench" }); this.t = 0; },
+    setup: function () { coinsFly = []; A.key = "builder"; put(A, -40, 1, { pose: "idle", act: "lever", ex: "sad", item: null }); this.t = 0; },
     update: function (u, dt) { this.t += dt * (1 + u * 1.2); A.act = "lever"; A.ex = u > 0.6 ? "sad" : "neutral"; if (Math.sin(this.t * 4.2) > 0.96) { sparkBurst(R[0].x - 80, -120); } if (Math.random() < 0.2) puff(140, -330, 1, "#cfcfcf", 16, -50); },
     world: function (m, u) { var t = this.t || 0; factoryBG(t * 3); S.layer(1, function () { machineDraw(140, t, t * 3.2); for (var bx = -700 - ((t * 120) % 220); bx < 900; bx += 220) { ctx.fillStyle = "#7a7f86"; ctx.fillRect(bx, -58, 190, 16); ctx.fillStyle = "#c28a4a"; ctx.fillRect(bx + 50, -118, 70, 62); ctx.strokeStyle = "#7a5128"; ctx.lineWidth = 3; ctx.strokeRect(bx + 50, -118, 70, 62); ctx.fillStyle = "#e8c38a"; ctx.fillRect(bx + 76, -118, 14, 62); } drawPuffs(1 / 30); }); },
     shots: [{ a: 0, cam: function (v) { return { x: lerp(-200, 40, v), y: -200, z: 0.8 }; } }, { a: 0.28, cam: function (v) { return { x: lerp(40, 90, v), y: -200, z: lerp(1.0, 1.7, ease(v)) }; } }, { a: 0.55, cam: function (v) { return { x: lerp(120, 300, ease(v)), y: -180, z: lerp(1.3, 1.5, v) }; } }, { a: 0.8, cam: function (v) { return { x: lerp(0, -30, v), y: -250, z: lerp(2.0, 2.5, ease(v)) }; } }] });

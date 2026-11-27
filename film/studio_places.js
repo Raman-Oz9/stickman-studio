@@ -497,22 +497,404 @@ var PL = (function () {
   }
 
   function ocean(opt) {
-    S.layer(0, function () { var v = S.viewRect(0); ctx.fillStyle = S.vgrad(v.t, v.b, [[0, "#1a8fc0"], [0.35, "#0d5a8c"], [0.75, "#06243f"], [1, "#030d1c"]]); ctx.fillRect(v.l, v.t, v.r - v.l, v.b - v.t); });
-    S.layer(0.1, function () { for (var i = 0; i < 6; i++) { var x = -900 + i * 380 + Math.sin(S.time * 0.3 + i) * 40; var g = ctx.createLinearGradient(x, -1000, x + 240, 300); g.addColorStop(0, "rgba(170,235,255,.28)"); g.addColorStop(1, "rgba(170,235,255,0)"); ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(x - 50, -1000); ctx.lineTo(x + 70, -1000); ctx.lineTo(x + 330, 300); ctx.lineTo(x + 90, 300); ctx.fill(); } });
-    S.layer(0.18, function () {
-      var wx = ((S.time * 38) % 3200) - 1600, wy = -320 + Math.sin(S.time * 0.5) * 20;
-      ctx.fillStyle = "#14405e"; ctx.beginPath(); ctx.moveTo(wx - 260, wy); ctx.quadraticCurveTo(wx - 120, wy - 90, wx + 120, wy - 40); ctx.quadraticCurveTo(wx + 240, wy - 20, wx + 300, wy - 70); ctx.quadraticCurveTo(wx + 290, wy, wx + 330, wy + 40); ctx.quadraticCurveTo(wx + 230, wy + 20, wx + 120, wy + 40); ctx.quadraticCurveTo(wx - 60, wy + 100, wx - 260, wy); ctx.fill();
-      ctx.fillStyle = "#cfe6f2"; ctx.beginPath(); ctx.arc(wx - 190, wy - 12, 5, 0, 6.283); ctx.fill();
+    opt = opt || {};
+
+    // 1. Water gradient background (from upper surface blue to abyss dark navy/teal)
+    S.layer(0, function () {
+      var v = S.viewRect(0);
+      var bgGrad = S.vgrad(v.t, v.b, [
+        [0, "#1c82b0"],
+        [0.2, "#0e5a88"],
+        [0.5, "#073558"],
+        [0.8, "#041b34"],
+        [1, "#020c1a"]
+      ]);
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(v.l, v.t, v.r - v.l, v.b - v.t);
     });
-    S.layer(0.35, function () { ctx.fillStyle = "#0a2a45"; ctx.beginPath(); ctx.moveTo(-1500, -60); for (var x = -1500; x <= 1500; x += 50) ctx.lineTo(x, -60 - 90 * Math.max(0, S.noise1(x * 0.005, 8))); ctx.lineTo(1500, 200); ctx.lineTo(-1500, 200); ctx.fill(); });
-    W.ground(1, -50, "#bfae88", "#8a7a5a", {});
-    S.layer(0.7, function () {
-      var r = rng(9); for (var i = 0; i < 14; i++) { var x = -1400 + r() * 2800, h = 120 + r() * 160, sw = Math.sin(S.time * 1.2 + i) * 14; ctx.strokeStyle = i % 2 ? "#1f7a4a" : "#2c9a5a"; ctx.lineWidth = 12; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(x, -45); ctx.quadraticCurveTo(x + sw, -45 - h / 2, x + sw * 1.6, -45 - h); ctx.stroke(); }
-      for (i = 0; i < 7; i++) { var x2 = -1300 + r() * 2600; ctx.fillStyle = ["#e06a7a", "#e8a23a", "#c04a9a"][i % 3]; for (var k = 0; k < 5; k++) { ctx.beginPath(); ctx.arc(x2 + k * 16 - 32, -50 - (k % 2) * 12, 16, 0, 6.283); ctx.fill(); } }
+
+    // 2. Sunshafts / Caustic light beams filtering down from the surface
+    S.layer(0.08, function () {
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      for (var i = 0; i < 7; i++) {
+        var x = -1100 + i * 360 + Math.sin(S.time * 0.4 + i * 1.5) * 50;
+        var g = ctx.createLinearGradient(x, -800, x + 280, 400);
+        g.addColorStop(0, "rgba(180,240,255,0.24)");
+        g.addColorStop(0.5, "rgba(140,220,255,0.12)");
+        g.addColorStop(1, "rgba(100,200,255,0)");
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.moveTo(x - 60, -800);
+        ctx.lineTo(x + 80, -800);
+        ctx.lineTo(x + 380, 400);
+        ctx.lineTo(x + 120, 400);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.restore();
     });
-    S.layer(0.9, function () { var r = rng(2); for (var i = 0; i < 10; i++) { var fx = ((S.time * (30 + i * 7) + r() * 2600) % 2800) - 1400, fy = -420 + r() * 300 + Math.sin(S.time + i) * 12; ctx.fillStyle = ["#f2a03a", "#f0d048", "#5ad0e0"][i % 3]; ctx.beginPath(); ctx.ellipse(fx, fy, 22, 10, 0, 0, 6.283); ctx.moveTo(fx - 18, fy); ctx.lineTo(fx - 36, fy - 10); ctx.lineTo(fx - 36, fy + 10); ctx.fill(); ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(fx + 12, fy - 2, 2.5, 0, 6.283); ctx.fill(); } });
-    S.layer(1.1, function () { var r = rng(4); for (var i = 0; i < 26; i++) { var bx = -700 + r() * 1400, by = 200 - ((S.time * (50 + r() * 60) + r() * 1500) % 1500), rr = 3 + r() * 7; ctx.strokeStyle = "rgba(220,245,255,.6)"; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(bx + Math.sin(S.time + i) * 10, by, rr, 0, 6.283); ctx.stroke(); } });
-    S.layer(1, function () { var v = S.viewRect(1); ctx.fillStyle = "rgba(10,60,110,.18)"; ctx.fillRect(v.l, v.t, v.r - v.l, v.b - v.t); });
+
+    // 3. Ocean Surface with animated waves, foam crests & water spray
+    S.layer(0.12, function () {
+      var v = S.viewRect(0.12);
+      var surfY = -360;
+
+      // Deep sky line above surface
+      ctx.fillStyle = "#3daee2";
+      ctx.fillRect(v.l, v.t, v.r - v.l, surfY - v.t + 40);
+
+      // Back wave layer
+      ctx.fillStyle = "#1b6d9c";
+      ctx.beginPath();
+      ctx.moveTo(v.l - 40, surfY);
+      for (var x = v.l - 40; x <= v.r + 40; x += 30) {
+        var wy = surfY + Math.sin(x * 0.008 + S.time * 2.2) * 18 + Math.cos(x * 0.015 - S.time * 1.5) * 10;
+        ctx.lineTo(x, wy);
+      }
+      ctx.lineTo(v.r + 40, v.b);
+      ctx.lineTo(v.l - 40, v.b);
+      ctx.closePath();
+      ctx.fill();
+
+      // Front wave layer with foam crests
+      ctx.fillStyle = "#145982";
+      ctx.beginPath();
+      ctx.moveTo(v.l - 40, surfY + 15);
+      for (var x2 = v.l - 40; x2 <= v.r + 40; x2 += 25) {
+        var wy2 = surfY + 15 + Math.sin(x2 * 0.01 - S.time * 2.8) * 22 + Math.sin(x2 * 0.02 + S.time * 1.8) * 8;
+        ctx.lineTo(x2, wy2);
+      }
+      ctx.lineTo(v.r + 40, v.b);
+      ctx.lineTo(v.l - 40, v.b);
+      ctx.closePath();
+      ctx.fill();
+
+      // Wave Foam & Crest Spray
+      ctx.fillStyle = "rgba(230,248,255,0.85)";
+      for (var x3 = v.l - 20; x3 <= v.r + 20; x3 += 45) {
+        var wy3 = surfY + 12 + Math.sin(x3 * 0.01 - S.time * 2.8) * 22;
+        if (Math.sin(x3 * 0.03 + S.time * 3) > 0.2) {
+          ctx.beginPath();
+          ctx.ellipse(x3, wy3, 24, 7, 0, 0, 6.283);
+          ctx.fill();
+
+          // Foam spray dots
+          ctx.fillStyle = "#ffffff";
+          ctx.beginPath();
+          ctx.arc(x3 - 8, wy3 - 6, 2.5, 0, 6.283);
+          ctx.arc(x3 + 10, wy3 - 9, 3, 0, 6.283);
+          ctx.fill();
+          ctx.fillStyle = "rgba(230,248,255,0.85)";
+        }
+      }
+    });
+
+    // 4. Distant Layered Reef Silhouettes (Parallax 0.25)
+    S.layer(0.25, function () {
+      var v = S.viewRect(0.25);
+      ctx.fillStyle = "#0a2840";
+      ctx.beginPath();
+      ctx.moveTo(v.l - 40, -40);
+      for (var x = v.l - 40; x <= v.r + 40; x += 40) {
+        var rh = -40 - Math.max(0, S.noise1(x * 0.004, 10)) * 120 - Math.sin(x * 0.007) * 35;
+        ctx.lineTo(x, rh);
+      }
+      ctx.lineTo(v.r + 40, 300);
+      ctx.lineTo(v.l - 40, 300);
+      ctx.closePath();
+      ctx.fill();
+    });
+
+    // 5. Manta Rays Swimming Gracefully (Parallax 0.4)
+    S.layer(0.4, function () {
+      for (var i = 0; i < 2; i++) {
+        var rx = ((S.time * (35 + i * 15) + i * 1400) % 3200) - 1600;
+        var ry = -280 + i * 160 + Math.sin(S.time * 0.8 + i) * 30;
+        var rSize = 0.85 + i * 0.3;
+        var wingFlap = Math.sin(S.time * 2.5 + i * 1.5) * 14;
+
+        ctx.save();
+        ctx.translate(rx, ry);
+        ctx.scale(rSize, rSize);
+
+        // Manta Ray Body & Undulating Wings
+        ctx.fillStyle = "#183246";
+        ctx.beginPath();
+        ctx.moveTo(70, 0);
+        ctx.quadraticCurveTo(20, -50 - wingFlap, -40, -10);
+        ctx.quadraticCurveTo(-60, 0, -80, 2);
+        ctx.quadraticCurveTo(-60, 4, -40, 10);
+        ctx.quadraticCurveTo(20, 50 + wingFlap, 70, 0);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.strokeStyle = "#0e1f2c";
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+
+        // Manta Horns / Cephalic Fins
+        ctx.fillStyle = "#1e3d54";
+        ctx.beginPath();
+        ctx.ellipse(72, -10, 12, 5, -0.4, 0, 6.283);
+        ctx.ellipse(72, 10, 12, 5, 0.4, 0, 6.283);
+        ctx.fill();
+
+        // White belly markings / gills glow
+        ctx.fillStyle = "rgba(180,225,245,0.35)";
+        ctx.beginPath();
+        ctx.ellipse(10, 0, 35, 12, 0, 0, 6.283);
+        ctx.fill();
+
+        // Long whip tail
+        ctx.strokeStyle = "#102332";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(-80, 2);
+        ctx.quadraticCurveTo(-140, 6 + Math.sin(S.time * 3 + i) * 10, -210, 2);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+    });
+
+    // 6. Midground Coral Reef structures & Swaying Kelp Forest (Parallax 0.6)
+    S.layer(0.6, function () {
+      var r = rng(71);
+
+      // Kelp Forest (Tall swaying ribbon kelp)
+      for (var k = 0; k < 22; k++) {
+        var kx = -1400 + k * 130 + r() * 40;
+        var kh = 180 + r() * 220;
+        var kSway = Math.sin(S.time * 1.4 + k * 0.7) * 28;
+
+        ctx.strokeStyle = k % 2 === 0 ? "#1b6e40" : "#289456";
+        ctx.lineWidth = 10 + r() * 6;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(kx, -45);
+        ctx.quadraticCurveTo(kx + kSway * 0.6, -45 - kh * 0.5, kx + kSway, -45 - kh);
+        ctx.stroke();
+
+        // Kelp Blade Leaves
+        ctx.fillStyle = k % 2 === 0 ? "#22804b" : "#32aa68";
+        for (var bl = 0; bl < 5; bl++) {
+          var bly = -45 - (kh / 5) * bl;
+          var blx = kx + (kSway / 5) * bl;
+          var side = bl % 2 === 0 ? 1 : -1;
+          ctx.beginPath();
+          ctx.ellipse(blx + side * 22, bly, 20, 7, side * 0.4 + (kSway * 0.005), 0, 6.283);
+          ctx.fill();
+        }
+      }
+
+      // Colorful Coral Formations (Brain coral, Staghorn, Fan corals)
+      for (var c = 0; c < 12; c++) {
+        var cx = -1350 + c * 230 + r() * 60;
+        var col = ["#e05068", "#e89234", "#9b3eb8", "#2bb898", "#d4ac28"][c % 5];
+        var cType = c % 3;
+
+        ctx.fillStyle = col;
+        ctx.strokeStyle = "#120d18";
+        ctx.lineWidth = 2;
+
+        if (cType === 0) {
+          // Brain Coral dome with ink ridges
+          ctx.beginPath();
+          ctx.ellipse(cx, -45, 45, 32, 0, Math.PI, 0);
+          ctx.fill();
+          ctx.stroke();
+          ctx.strokeStyle = "rgba(0,0,0,0.3)";
+          ctx.lineWidth = 2.5;
+          for (var cr = -30; cr <= 30; cr += 12) {
+            ctx.beginPath();
+            ctx.arc(cx + cr, -55 + Math.abs(cr) * 0.3, 10, 0, 3.14);
+            ctx.stroke();
+          }
+        } else if (cType === 1) {
+          // Branching Staghorn Coral
+          for (var b = 0; b < 6; b++) {
+            var bx = cx + (b - 2.5) * 18;
+            var bh = 45 + (b % 3) * 20;
+            ctx.fillStyle = col;
+            ctx.fillRect(bx - 6, -45 - bh, 12, bh);
+            ctx.beginPath(); ctx.arc(bx, -45 - bh, 7, 0, 6.283); ctx.fill();
+          }
+        } else {
+          // Sea Fan / Plate Coral
+          ctx.beginPath();
+          ctx.moveTo(cx - 50, -45);
+          ctx.quadraticCurveTo(cx - 30, -110, cx, -120);
+          ctx.quadraticCurveTo(cx + 30, -110, cx + 50, -45);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+        }
+      }
+    });
+
+    // 7. Schools of Fish & Individual Tropical Fish (Parallax 0.75)
+    S.layer(0.75, function () {
+      var r = rng(42);
+
+      // Large Coordinated School of Fish (28 small fish swimming in formation)
+      var schoolX = ((S.time * 65) % 3200) - 1600;
+      var schoolY = -260 + Math.sin(S.time * 1.2) * 45;
+
+      for (var f = 0; f < 28; f++) {
+        var fx = schoolX + (f % 7) * 22 - (Math.floor(f / 7) * 18) + Math.sin(f + S.time * 3) * 6;
+        var fy = schoolY + (Math.floor(f / 7) * 16) + Math.cos(f * 2 + S.time * 2) * 8;
+        var fTail = Math.sin(S.time * 12 + f) * 5;
+
+        ctx.fillStyle = f % 2 === 0 ? "#46d2f0" : "#ffd23b";
+        ctx.beginPath();
+        ctx.ellipse(fx, fy, 11, 5, 0, 0, 6.283);
+        ctx.fill();
+
+        // Tail fin
+        ctx.beginPath();
+        ctx.moveTo(fx - 9, fy);
+        ctx.lineTo(fx - 17, fy - 6 + fTail);
+        ctx.lineTo(fx - 17, fy + 6 + fTail);
+        ctx.closePath();
+        ctx.fill();
+
+        // Eye
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath(); ctx.arc(fx + 6, fy - 1, 1.8, 0, 6.283); ctx.fill();
+      }
+
+      // Individual Colorful Tropical Fish (Clownfish, Tangs, Angelfish)
+      for (var i = 0; i < 12; i++) {
+        var tX = ((S.time * (40 + i * 9) + r() * 2600) % 2800) - 1400;
+        var tY = -380 + r() * 280 + Math.sin(S.time * 1.5 + i) * 16;
+        var fType = i % 3;
+
+        ctx.save();
+        ctx.translate(tX, tY);
+
+        if (fType === 0) {
+          // Clownfish (Orange with black-outlined white stripes)
+          ctx.fillStyle = "#f56b23";
+          ctx.beginPath(); ctx.ellipse(0, 0, 20, 11, 0, 0, 6.283); ctx.fill();
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(-6, -10, 5, 20);
+          ctx.fillRect(4, -9, 4, 18);
+          ctx.strokeStyle = "#1a120c"; ctx.lineWidth = 1.5; ctx.strokeRect(-6, -10, 5, 20);
+          ctx.fillStyle = "#f56b23";
+          ctx.beginPath(); ctx.moveTo(-18, 0); ctx.lineTo(-28, -9); ctx.lineTo(-28, 9); ctx.closePath(); ctx.fill();
+          ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(12, -3, 2.5, 0, 6.283); ctx.fill();
+        } else if (fType === 1) {
+          // Blue Tang (Vivid Royal Blue with yellow tail)
+          ctx.fillStyle = "#2266e6";
+          ctx.beginPath(); ctx.ellipse(0, 0, 22, 13, 0, 0, 6.283); ctx.fill();
+          ctx.fillStyle = "#ffe033";
+          ctx.beginPath(); ctx.moveTo(-18, 0); ctx.lineTo(-30, -11); ctx.lineTo(-30, 11); ctx.closePath(); ctx.fill();
+          ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(13, -3, 2.5, 0, 6.283); ctx.fill();
+        } else {
+          // Yellow Tang / Angelfish
+          ctx.fillStyle = "#fada28";
+          ctx.beginPath(); ctx.ellipse(0, 0, 16, 18, 0, 0, 6.283); ctx.fill();
+          ctx.beginPath(); ctx.moveTo(-14, 0); ctx.lineTo(-25, -8); ctx.lineTo(-25, 8); ctx.closePath(); ctx.fill();
+          ctx.fillStyle = "#111111"; ctx.beginPath(); ctx.arc(9, -4, 2.2, 0, 6.283); ctx.fill();
+        }
+        ctx.restore();
+      }
+    });
+
+    // 8. Seabed Ground Plane
+    W.ground(1, -50, "#c2b28a", "#857554", {});
+
+    // 9. Bioluminescence at Depth & Translucent Jellyfish (Parallax 0.95 - 1.1)
+    S.layer(0.95, function () {
+      var r = rng(99);
+
+      // Translucent Bioluminescent Jellyfish
+      for (var j = 0; j < 6; j++) {
+        var jx = -1100 + j * 420 + Math.sin(S.time * 0.7 + j) * 40;
+        var jy = -220 + (j % 3) * 90 + Math.cos(S.time * 0.9 + j) * 25;
+        var jPulse = Math.sin(S.time * 2.2 + j * 1.3) * 0.15 + 0.85;
+        var jCol = ["rgba(80,227,194,", "rgba(180,110,255,", "rgba(100,200,255,"][j % 3];
+
+        ctx.save();
+        ctx.translate(jx, jy);
+        ctx.scale(jPulse, jPulse);
+
+        // Glowing Outer Radial Aura
+        var jGlow = S.rgrad(0, -10, 5, 65, [
+          [0, jCol + "0.6)"],
+          [1, jCol + "0)"]
+        ]);
+        ctx.fillStyle = jGlow;
+        ctx.fillRect(-70, -70, 140, 140);
+
+        // Jellyfish Bell (Dome)
+        ctx.fillStyle = jCol + "0.45)";
+        ctx.beginPath();
+        ctx.arc(0, 0, 26, Math.PI, 0, false);
+        ctx.quadraticCurveTo(15, 6, 0, 4);
+        ctx.quadraticCurveTo(-15, 6, -26, 0);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.strokeStyle = jCol + "0.9)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Trailing Bioluminescent Tentacles
+        ctx.strokeStyle = jCol + "0.65)";
+        ctx.lineWidth = 1.6;
+        for (var t = -18; t <= 18; t += 6) {
+          ctx.beginPath();
+          ctx.moveTo(t, 4);
+          var tSway = Math.sin(S.time * 3 + t + j) * 12;
+          ctx.quadraticCurveTo(t + tSway * 0.5, 35, t + tSway, 70);
+          ctx.stroke();
+        }
+
+        ctx.restore();
+      }
+
+      // Bioluminescent Plankton Spores (Rising and glowing in deep water)
+      for (var p = 0; p < 45; p++) {
+        var px = -1300 + (r() * 2600 + Math.sin(S.time + p) * 20);
+        var py = 150 - ((S.time * (35 + r() * 40) + r() * 1200) % 1200);
+        var pSize = 1.5 + r() * 3.5;
+        var pGlowVal = (Math.sin(S.time * 3.5 + p) * 0.4 + 0.6).toFixed(2);
+        var pCol = p % 3 === 0 ? "rgba(80,235,210," : (p % 3 === 1 ? "rgba(160,120,255," : "rgba(100,210,255,");
+
+        ctx.fillStyle = pCol + pGlowVal + ")";
+        ctx.beginPath();
+        ctx.arc(px, py, pSize, 0, 6.283);
+        ctx.fill();
+      }
+    });
+
+    // 10. Floating Bubbles (Parallax 1.1)
+    S.layer(1.1, function () {
+      var r = rng(14);
+      for (var i = 0; i < 32; i++) {
+        var bx = -1200 + r() * 2400;
+        var by = 200 - ((S.time * (60 + r() * 70) + r() * 1600) % 1600);
+        var br = 2.5 + r() * 7.5;
+        ctx.strokeStyle = "rgba(210,245,255,0.65)";
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.arc(bx + Math.sin(S.time * 1.5 + i) * 14, by, br, 0, 6.283);
+        ctx.stroke();
+        ctx.fillStyle = "rgba(255,255,255,0.3)";
+        ctx.beginPath();
+        ctx.arc(bx + Math.sin(S.time * 1.5 + i) * 14 - br * 0.3, by - br * 0.3, br * 0.3, 0, 6.283);
+        ctx.fill();
+      }
+    });
+
+    // Ambient Deep Water Haze
+    S.layer(1, function () {
+      var v = S.viewRect(1);
+      ctx.fillStyle = "rgba(4,24,52,0.18)";
+      ctx.fillRect(v.l, v.t, v.r - v.l, v.b - v.t);
+    });
   }
 
   function castle(opt) {
@@ -1422,26 +1804,237 @@ var PL = (function () {
   }
 
   function volcano(opt) {
-    W.sky(); W.clouds(7, 0.05, -820, 5);
-    S.layer(0.08, function () {
-      var g = S.vgrad(-400, 0, [[0, "#3a120c"], [0.5, "#5c2415"], [1, "#240a08"]]);
-      ctx.fillStyle = g;
-      ctx.beginPath(); ctx.moveTo(-900, 0); ctx.lineTo(-120, -380); ctx.lineTo(120, -380); ctx.lineTo(900, 0); ctx.closePath(); ctx.fill();
-      var lg = ctx.createLinearGradient(-40, -380, 40, -100);
-      lg.addColorStop(0, "#ffcc44"); lg.addColorStop(0.3, "#ff4411"); lg.addColorStop(1, "#881100");
-      ctx.fillStyle = lg;
-      ctx.beginPath(); ctx.moveTo(-60, -380); ctx.lineTo(60, -380); ctx.lineTo(110, 0); ctx.lineTo(30, 0); ctx.closePath(); ctx.fill();
-      var gl = S.rgrad(0, -380, 10, 160, [[0, "rgba(255,160,50,.8)"], [1, "rgba(255,160,50,0)"]]);
-      ctx.fillStyle = gl; ctx.fillRect(-200, -500, 400, 300);
+    opt = opt || {};
+
+    // 1. Dark Apocalyptic Sky & Fiery Horizon Glow
+    S.layer(0, function () {
+      var v = S.viewRect(0);
+      var bgGrad = S.vgrad(v.t, v.b, [
+        [0, "#0d0406"],
+        [0.4, "#240a0b"],
+        [0.75, "#52160e"],
+        [1, "#85260c"]
+      ]);
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(v.l, v.t, v.r - v.l, v.b - v.t);
     });
-    W.ground(1, -50, "#381a15", "#1c0d0a");
-    S.layer(1.1, function () {
+
+    // 2. Distant Volcanic Ridges & Mountain Silhouettes (Parallax 0.1)
+    W.ridge(0.1, -160, 150, 6, "#240a08", "#42120b", 0.003, 0.5);
+
+    // 3. Volcanic Cone, Crater Summit, Inner Magma Glow & Eruption Plume (Parallax 0.2)
+    S.layer(0.2, function () {
+      var v = S.viewRect(0.2);
+
+      // Main Volcano Mountain Body
+      ctx.fillStyle = "#220c09";
+      ctx.beginPath();
+      ctx.moveTo(v.l - 40, 100);
+      ctx.lineTo(-240, -360);
+      ctx.lineTo(240, -360);
+      ctx.lineTo(v.r + 40, 100);
+      ctx.closePath();
+      ctx.fill();
+
+      // Mountain ink contour shadow
+      ctx.strokeStyle = "#120504";
+      ctx.lineWidth = 4;
+      ctx.stroke();
+
+      // Deep crater basin dip
+      ctx.fillStyle = "#5e150a";
+      ctx.beginPath();
+      ctx.ellipse(0, -360, 240, 45, 0, 0, 6.283);
+      ctx.fill();
+
+      // Intense White-Hot Lava Lake in Crater
+      var craterGlow = S.rgrad(0, -360, 10, 220, [
+        [0, "rgba(255,255,220,1)"],
+        [0.25, "rgba(255,180,40,0.95)"],
+        [0.6, "rgba(255,60,10,0.75)"],
+        [1, "rgba(180,20,0,0)"]
+      ]);
+      ctx.fillStyle = craterGlow;
+      ctx.fillRect(-300, -550, 600, 380);
+
+      // Massive Billowing Ash Smoke Plume
+      var rAsh = rng(33);
+      for (var a = 0; a < 24; a++) {
+        var ax = (rAsh() - 0.5) * 260 + Math.sin(S.time * 0.8 + a) * 35;
+        var ay = -380 - a * 28 + Math.cos(S.time * 0.6 + a) * 15;
+        var ar = 45 + a * 12 + rAsh() * 30;
+
+        var ashGrad = S.rgrad(ax, ay, 5, ar, [
+          [0, a < 6 ? "rgba(255,140,40,0.85)" : (a % 2 === 0 ? "rgba(65,50,54,0.85)" : "rgba(35,26,28,0.85)")],
+          [0.65, "rgba(25,18,20,0.75)"],
+          [1, "rgba(10,5,6,0)"]
+        ]);
+        ctx.fillStyle = ashGrad;
+        ctx.beginPath();
+        ctx.arc(ax, ay, ar, 0, 6.283);
+        ctx.fill();
+      }
+
+      // Volcanic Lightning in Ash Cloud
+      if (Math.sin(S.time * 8) > 0.65) {
+        ctx.strokeStyle = "rgba(255,250,210,0.9)";
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(-30, -480);
+        ctx.lineTo(20, -540);
+        ctx.lineTo(-10, -600);
+        ctx.lineTo(40, -670);
+        ctx.stroke();
+      }
+    });
+
+    // 4. Molten Lava Rivers Cascading Down Mountain Slopes (Parallax 0.45)
+    S.layer(0.45, function () {
+      // Main Central Lava River
+      ctx.fillStyle = "#e64a00";
+      ctx.beginPath();
+      ctx.moveTo(-40, -360);
+      ctx.quadraticCurveTo(-20, -200, -90, -80);
+      ctx.quadraticCurveTo(-150, 20, -220, 100);
+      ctx.lineTo(-140, 100);
+      ctx.quadraticCurveTo(-80, 20, 20, -200);
+      ctx.lineTo(40, -360);
+      ctx.closePath();
+      ctx.fill();
+
+      // Right Branch Lava River
+      ctx.beginPath();
+      ctx.moveTo(80, -360);
+      ctx.quadraticCurveTo(120, -220, 180, -100);
+      ctx.quadraticCurveTo(240, 0, 310, 100);
+      ctx.lineTo(250, 100);
+      ctx.quadraticCurveTo(170, 0, 110, -220);
+      ctx.lineTo(50, -360);
+      ctx.closePath();
+      ctx.fill();
+
+      // White-Hot Molten Core Stripes inside Lava Rivers
+      ctx.strokeStyle = "#fff2a3";
+      ctx.lineWidth = 8;
+      ctx.beginPath();
+      ctx.moveTo(-10, -360);
+      ctx.quadraticCurveTo(-10, -200, -70, -80);
+      ctx.quadraticCurveTo(-130, 20, -180, 100);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(65, -360);
+      ctx.quadraticCurveTo(115, -220, 160, -100);
+      ctx.quadraticCurveTo(220, 0, 280, 100);
+      ctx.stroke();
+    });
+
+    // 5. Glowing Cracks & Fissures across Terrain (Parallax 0.7)
+    S.layer(0.7, function () {
+      ctx.save();
+      ctx.strokeStyle = "rgba(255,140,30,0.85)";
+      ctx.lineWidth = 3.5;
+
+      var crackPts = [
+        [[-600, 20], [-480, -30], [-380, 10], [-260, -20]],
+        [[300, 10], [420, -40], [550, 20], [680, -10]],
+        [[-180, -40], [-80, -10], [60, -30], [160, 0]]
+      ];
+
+      for (var c = 0; c < crackPts.length; c++) {
+        var pts = crackPts[c];
+        ctx.beginPath();
+        ctx.moveTo(pts[0][0], pts[0][1]);
+        for (var p = 1; p < pts.length; p++) {
+          ctx.lineTo(pts[p][0], pts[p][1]);
+        }
+        ctx.stroke();
+
+        // Inner glowing core
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+        ctx.strokeStyle = "rgba(255,140,30,0.85)";
+        ctx.lineWidth = 3.5;
+      }
+      ctx.restore();
+    });
+
+    // 6. Volcanic Ground Plane & Bubbling Lava Pools
+    W.ground(1, -50, "#30120d", "#170805", {});
+
+    S.layer(1.01, function () {
+      var r = rng(77);
+
+      // Basalt Rock Outcrops
+      for (var b = 0; b < 14; b++) {
+        var bx = -1300 + b * 200 + r() * 50;
+        var bw = 50 + r() * 60, bh = 30 + r() * 40;
+        ctx.fillStyle = "#1c0b08";
+        ctx.beginPath();
+        ctx.moveTo(bx - bw * 0.5, -45);
+        ctx.lineTo(bx - bw * 0.3, -45 - bh);
+        ctx.lineTo(bx + bw * 0.3, -45 - bh * 0.8);
+        ctx.lineTo(bx + bw * 0.5, -45);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = "#3d1712";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      // Bubbling Lava Pools in Foreground Ground
+      for (var lp = 0; lp < 5; lp++) {
+        var lpx = -900 + lp * 450 + r() * 80;
+        var lpy = 20 + (lp % 2) * 50;
+        var lpr = 45 + r() * 35;
+
+        var poolGlow = S.rgrad(lpx, lpy, 4, lpr, [
+          [0, "#fff099"],
+          [0.4, "#ff6600"],
+          [0.8, "#b32400"],
+          [1, "rgba(30,10,8,0)"]
+        ]);
+        ctx.fillStyle = poolGlow;
+        ctx.beginPath();
+        ctx.ellipse(lpx, lpy, lpr, lpr * 0.4, 0, 0, 6.283);
+        ctx.fill();
+
+        // Popping Lava Bubbles
+        ctx.fillStyle = "#ffee55";
+        var bPop = Math.sin(S.time * 5 + lp * 2);
+        if (bPop > 0) {
+          ctx.beginPath();
+          ctx.arc(lpx + Math.sin(lp) * 15, lpy - 4, 4 + bPop * 4, 0, 6.283);
+          ctx.fill();
+        }
+      }
+    });
+
+    // 7. Swirling Fiery Embers & Heat Haze (Parallax 1.15)
+    S.layer(1.15, function () {
       var r = rng(55);
-      for (var i = 0; i < 70; i++) {
-        var ex = ((r() * S.VW + Math.sin(S.time + i) * 80) % S.VW);
-        var ey = S.VH - ((S.time * (80 + r() * 120) + r() * S.VH) % S.VH);
-        ctx.fillStyle = i % 2 ? "#ffaa33" : "#ff4422";
-        ctx.beginPath(); ctx.arc(ex, ey, 1 + r() * 2.5, 0, 6.283); ctx.fill();
+      for (var i = 0; i < 90; i++) {
+        var ex = ((r() * S.VW + Math.sin(S.time * 2 + i) * 70) % S.VW);
+        var ey = S.VH - ((S.time * (90 + r() * 140) + r() * S.VH) % S.VH);
+        var ez = 1 + r() * 3.2;
+        var eCol = i % 3 === 0 ? "#ffee44" : (i % 3 === 1 ? "#ff7711" : "#ff2200");
+
+        ctx.fillStyle = eCol;
+        ctx.beginPath();
+        ctx.arc(ex, ey, ez, 0, 6.283);
+        ctx.fill();
+
+        if (i % 8 === 0) {
+          var embGlow = S.rgrad(ex, ey, 1, ez * 4, [
+            [0, "rgba(255,200,50,0.8)"],
+            [1, "rgba(255,100,0,0)"]
+          ]);
+          ctx.fillStyle = embGlow;
+          ctx.beginPath();
+          ctx.arc(ex, ey, ez * 4, 0, 6.283);
+          ctx.fill();
+        }
       }
     });
   }

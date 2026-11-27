@@ -241,6 +241,7 @@
   function drawPuffs(dt) { puffs = puffs.filter(function (p) { return p.t < p.life; }); puffs.forEach(function (p) { p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; var k = p.t / p.life; ctx.globalAlpha = 0.55 * (1 - k); ctx.fillStyle = p.col; ctx.beginPath(); ctx.arc(p.x, p.y, p.r * (1 + k * 2.2), 0, 6.283); ctx.fill(); }); ctx.globalAlpha = 1; }
   function ol(fill, w) { ctx.fillStyle = fill; ctx.fill(); ctx.lineWidth = w || 3; ctx.strokeStyle = S.dk(fill, 0.55); ctx.lineJoin = "round"; ctx.stroke(); }
   function rocketDraw(x, y, flame, door) {
+    if (window.ST && ST.rocketDraw && ST.__newRocket !== false) { ST.rocketDraw(x, y, flame > 0 ? S.time : 0, 0.2); return; }
     ctx.save(); ctx.translate(x, y);
     if (flame > 0) { var fl = 120 + 260 * flame + Math.random() * 40; var g = S.rgrad(0, 40, 4, fl, [[0, "rgba(255,250,200,1)"], [0.35, "rgba(255,170,40,.9)"], [1, "rgba(255,80,0,0)"]]); ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(-34, 0); ctx.quadraticCurveTo(-50, fl * 0.5, 0, fl); ctx.quadraticCurveTo(50, fl * 0.5, 34, 0); ctx.fill(); ctx.globalCompositeOperation = "lighter"; ctx.fillStyle = S.rgrad(0, 30, 10, 300, [[0, "rgba(255,170,60,.45)"], [1, "rgba(255,120,0,0)"]]); ctx.fillRect(-300, -270, 600, 600); ctx.globalCompositeOperation = "source-over"; }
     ctx.beginPath(); ctx.moveTo(-70, 0); ctx.lineTo(-92, 0); ctx.lineTo(-52, -140); ctx.lineTo(-52, -40); ctx.closePath(); ol("#d33a2e"); ctx.beginPath(); ctx.moveTo(70, 0); ctx.lineTo(92, 0); ctx.lineTo(52, -140); ctx.lineTo(52, -40); ctx.closePath(); ol("#d33a2e");

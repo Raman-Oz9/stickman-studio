@@ -70,11 +70,18 @@ def gen_or(prompt):
 def gen_cf(prompt):
     tok, acc = os.environ.get("CLOUDFLARE_API_TOKEN", "").strip(), os.environ.get("CLOUDFLARE_ACCOUNT_ID", "").strip()
     if not tok or not acc: return None
-    short = prompt.split("Scene")[0][-400:] + prompt[prompt.index("Illustrate"):][:700]
+    import re
+    m = re.search(r'sentence literally: "(.*?)"\nSetting: (.*?)\.\nCharacters: (.*?)\. Every', prompt, re.S)
+    sent, setting, chars = (m.group(1), m.group(2), m.group(3)) if m else ("", "", "")
+    sent = re.sub(r'["\u201c\u201d]', "", sent)
+    short = ("black and white greyscale pen and ink cartoon illustration, thick black outlines, ink hatching, painterly grey background, "
+             "stickman character with a big round white head, huge expressive eyes, thin black stick arms and legs, "
+             f"{chars}, one single orange accent colour on the clothes. Scene: {sent}. {setting}. "
+             "wide cinematic shot, tall vertical composition, detailed realistic-scale props, no text, no letters, no speech bubbles, no words")
     for model in ["@cf/black-forest-labs/flux-1-schnell"]:
         try:
             r = requests.post(f"https://api.cloudflare.com/client/v4/accounts/{acc}/ai/run/{model}", headers={"Authorization": "Bearer " + tok},
-                              json={"prompt": short[:2000], "steps": 6}, timeout=240)
+                              json={"prompt": short[:1800], "steps": 8}, timeout=240)
             if r.status_code != 200: print("  cloudflare", r.status_code, r.text[:120]); continue
             im = Image.open(io.BytesIO(base64.b64decode(r.json()["result"]["image"]))).convert("RGB")
             return im.resize((768, 1344), Image.LANCZOS) if im.width > im.height * 0.8 else im

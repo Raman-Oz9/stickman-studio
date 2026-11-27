@@ -87,3 +87,4 @@
   R2("monk", { suit: "robe", tunic: "#8a5a2c", sleeve: "#8a5a2c", pants: "#8a5a2c", trim: "#d8a73a", style: "none", boots: "#5a3a20" });
   window.ROLES = ["doctor", "surgeon", "nurse", "scientist", "firefighter", "racer", "skydiver", "scuba", "police", "pilot", "chef", "mechanic", "miner", "farmer", "athlete", "pirate", "builder", "tycoon", "monk", "astro", "diver", "soldier", "suit", "knight", "viking"];
 })();
+window.ERAS = window.ERAS || {}; window.ERAS.ocean = ["scuba", "scuba2"];

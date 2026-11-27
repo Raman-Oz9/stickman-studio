@@ -27,7 +27,7 @@ var CH = (function () {
     var nm = c.pose;
     if (nm === "walk" || nm === "march") {
       var sp = nm === "march" ? 5.2 : 6.6, ph = (c._gmove > 0 && c._gait != null ? c._gait : t * sp) + (c.phase || 0), s = Math.sin(ph), s2 = Math.sin(ph + Math.PI);
-      P.hf = s * 0.5; P.hb = s2 * 0.5; P.kf = Math.max(0, -Math.cos(ph)) * 0.9; P.kb = Math.max(0, Math.cos(ph)) * 0.9;
+      P.hf = s * 0.5; P.hb = s2 * 0.5; P.kf = Math.max(0, Math.cos(ph)) * 0.9; P.kb = Math.max(0, -Math.cos(ph)) * 0.9;
       P.sf = s2 * 0.5 + 0.1; P.sb = s * 0.5 - 0.1; P.ef = 0.35 + Math.max(0, s2) * 0.3; P.eb = 0.3 + Math.max(0, s) * 0.3; P.bob = Math.abs(Math.cos(ph)) * 7; P.lean = 0.05 + Math.sin(ph) * 0.025; P.head = Math.sin(ph) * 0.02 - Math.cos(ph * 2) * 0.012;
       if (c.item === "spear") { P.sf = 0.35; P.ef = 0.25; }
     } else if (nm === "talk" || nm === "point") {

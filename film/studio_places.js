@@ -17,14 +17,483 @@ var PL = (function () {
   }
 
   function space(opt) {
-    S.layer(0, function () { var v = S.viewRect(0); ctx.fillStyle = S.vgrad(v.t, v.b, [[0, "#02040a"], [0.55, "#0b0c1e"], [1, "#1a0f2b"]]); ctx.fillRect(v.l, v.t, v.r - v.l, v.b - v.t); });
-    stars(0.03, 100, 11); stars(0.07, 50, 23);
-    S.layer(0.04, function () { var cols = ["rgba(120,60,180,.22)", "rgba(40,110,190,.18)", "rgba(190,70,110,.16)"]; for (var i = 0; i < 3; i++) { ctx.fillStyle = S.rgrad(-500 + i * 520, -520 + i * 60, 10, 460, [[0, cols[i]], [1, "rgba(0,0,0,0)"]]); ctx.fillRect(-1300, -1100, 2600, 1400); } });
-    planet(0.08, 470, -560, 190, "#c8693a", "#5a1f18", true);
-    planet(0.06, -520, -700, 60, "#8fa7c4", "#2a3550", false);
-    S.layer(0.12, function () { ctx.fillStyle = "#1a0e1c"; ctx.beginPath(); ctx.moveTo(-1500, -80); for (var x = -1500; x <= 1500; x += 60) ctx.lineTo(x, -80 - 70 * Math.max(0, S.noise1(x * 0.004, 3)) - 30 * Math.abs(Math.sin(x * 0.011))); ctx.lineTo(1500, 200); ctx.lineTo(-1500, 200); ctx.fill(); });
-    W.ground(1, -50, "#3a1c24", "#1a0c10", {});
-    S.layer(0.8, function () { var r = rng(5); for (var i = 0; i < 16; i++) { var x = -1400 + r() * 2800, s = 18 + r() * 40; ctx.fillStyle = "#2a151b"; ctx.beginPath(); ctx.ellipse(x, -40, s, s * 0.55, 0, 0, 6.283); ctx.fill(); ctx.fillStyle = "rgba(180,120,200,.25)"; ctx.beginPath(); ctx.ellipse(x - s * 0.3, -50, s * 0.5, s * 0.2, 0, 0, 6.283); ctx.fill(); } });
+    opt = opt || {};
+
+    // 1. Sky background, angled Milky Way dust band & cosmic nebulae
+    S.layer(0, function () {
+      var v = S.viewRect(0);
+      var bgGrad = S.vgrad(v.t, v.b, [
+        [0, "#010207"],
+        [0.45, "#080614"],
+        [0.75, "#15091a"],
+        [1, "#240e16"]
+      ]);
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(v.l, v.t, v.r - v.l, v.b - v.t);
+
+      // Milky Way dust band
+      ctx.save();
+      ctx.translate(0, -250);
+      ctx.rotate(-0.24);
+      var mwGrad = S.vgrad(-350, 350, [
+        [0, "rgba(0,0,0,0)"],
+        [0.2, "rgba(140,50,160,0.14)"],
+        [0.45, "rgba(190,90,140,0.22)"],
+        [0.55, "rgba(80,140,210,0.18)"],
+        [0.8, "rgba(210,120,70,0.12)"],
+        [1, "rgba(0,0,0,0)"]
+      ]);
+      ctx.fillStyle = mwGrad;
+      ctx.fillRect(v.l - 400, -350, v.r - v.l + 800, 700);
+
+      var cols = ["rgba(210,130,220,0.25)", "rgba(100,180,240,0.2)", "rgba(240,160,110,0.18)"];
+      for (var i = 0; i < 4; i++) {
+        var g = S.rgrad(-600 + i * 420, -50 + (i % 2) * 60, 20, 380, [
+          [0, cols[i % 3]],
+          [1, "rgba(0,0,0,0)"]
+        ]);
+        ctx.fillStyle = g;
+        ctx.fillRect(-1400, -400, 2800, 800);
+      }
+      ctx.restore();
+    });
+
+    // Realistic multi-tier star field with spectral tints & twinkling
+    S.layer(0.02, function () {
+      var v = S.viewRect(0.02);
+      var r = rng(101);
+      for (var i = 0; i < 220; i++) {
+        var sx = v.l + r() * (v.r - v.l);
+        var sy = v.t + r() * (v.b - v.t) * 0.88;
+        var b = 0.3 + r() * 0.7;
+        var sz = 0.6 + r() * 1.4;
+        var tw = Math.sin(S.time * (1.5 + r() * 2) + i) * 0.25 + 0.75;
+        var tintCol = i % 7 === 0 ? "rgba(180,220,255," : (i % 11 === 0 ? "rgba(255,200,170," : "rgba(255,255,245,");
+        ctx.fillStyle = tintCol + (b * tw * 0.85).toFixed(3) + ")";
+        ctx.beginPath();
+        ctx.arc(sx, sy, sz, 0, 6.283);
+        ctx.fill();
+      }
+    });
+
+    S.layer(0.04, function () {
+      var v = S.viewRect(0.04);
+      var r = rng(303);
+      for (var i = 0; i < 45; i++) {
+        var sx = v.l + r() * (v.r - v.l);
+        var sy = v.t + r() * (v.b - v.t) * 0.82;
+        var sz = 1.2 + r() * 1.8;
+        var tw = Math.sin(S.time * 2.5 + i * 1.3) * 0.3 + 0.7;
+        ctx.fillStyle = "rgba(255,255,255," + (0.7 * tw).toFixed(3) + ")";
+        ctx.beginPath();
+        ctx.arc(sx, sy, sz, 0, 6.283);
+        ctx.fill();
+        if (i % 6 === 0) {
+          ctx.strokeStyle = "rgba(220,240,255," + (0.45 * tw).toFixed(3) + ")";
+          ctx.lineWidth = 0.8;
+          ctx.beginPath();
+          ctx.moveTo(sx - sz * 3, sy); ctx.lineTo(sx + sz * 3, sy);
+          ctx.moveTo(sx, sy - sz * 3); ctx.lineTo(sx, sy + sz * 3);
+          ctx.stroke();
+        }
+      }
+    });
+
+    // 2. Two Small Moons (Phobos & Deimos) - NO ring artefact
+    // Phobos (larger moon)
+    S.layer(0.05, function () {
+      var mx = 380, my = -560, mr = 26;
+      ctx.save();
+      ctx.beginPath();
+      var r = rng(77);
+      for (var a = 0; a < 6.283; a += 0.3) {
+        var rad = mr + (r() - 0.5) * 4;
+        var px = mx + Math.cos(a) * rad;
+        var py = my + Math.sin(a) * rad;
+        if (a === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      var phGrad = S.rgrad(mx - mr * 0.3, my - mr * 0.3, 3, mr * 1.1, [
+        [0, "#aa9b92"],
+        [0.6, "#685950"],
+        [1, "#2a201c"]
+      ]);
+      ctx.fillStyle = phGrad;
+      ctx.fill();
+      ctx.strokeStyle = "rgba(30,20,15,0.6)";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      ctx.fillStyle = "rgba(40,28,24,0.55)";
+      ctx.beginPath(); ctx.arc(mx - 6, my - 4, 6, 0, 6.283); ctx.fill();
+      ctx.beginPath(); ctx.arc(mx + 8, my + 6, 4, 0, 6.283); ctx.fill();
+      ctx.beginPath(); ctx.arc(mx - 10, my + 8, 3, 0, 6.283); ctx.fill();
+      ctx.restore();
+    });
+
+    // Deimos (smaller moon)
+    S.layer(0.07, function () {
+      var dx = -460, dy = -640, dr = 14;
+      ctx.save();
+      ctx.beginPath();
+      var r = rng(88);
+      for (var a = 0; a < 6.283; a += 0.4) {
+        var rad = dr + (r() - 0.5) * 2.5;
+        var px = dx + Math.cos(a) * rad;
+        var py = dy + Math.sin(a) * rad;
+        if (a === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      var deGrad = S.rgrad(dx - dr * 0.3, dy - dr * 0.3, 2, dr * 1.1, [
+        [0, "#beafaa"],
+        [0.65, "#7a6a62"],
+        [1, "#332622"]
+      ]);
+      ctx.fillStyle = deGrad;
+      ctx.fill();
+      ctx.strokeStyle = "rgba(30,20,15,0.5)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.restore();
+    });
+
+    // 3. Martian Atmosphere & Horizon Dust Haze
+    S.layer(0.08, function () {
+      var v = S.viewRect(0.08);
+      var hzGrad = S.vgrad(-300, 100, [
+        [0, "rgba(220,90,50,0)"],
+        [0.65, "rgba(200,80,45,0.18)"],
+        [1, "rgba(160,50,30,0.35)"]
+      ]);
+      ctx.fillStyle = hzGrad;
+      ctx.fillRect(v.l, -300, v.r - v.l, 400);
+
+      // Distant canyon rim plateau line
+      ctx.fillStyle = "#361313";
+      ctx.beginPath();
+      ctx.moveTo(v.l - 40, -130);
+      for (var x = v.l - 40; x <= v.r + 40; x += 50) {
+        var h = -130 - S.noise1(x * 0.003, 7) * 45 - Math.sin(x * 0.008) * 20;
+        ctx.lineTo(x, h);
+      }
+      ctx.lineTo(v.r + 40, 200);
+      ctx.lineTo(v.l - 40, 200);
+      ctx.closePath();
+      ctx.fill();
+    });
+
+    // 4. Visible Giant Canyon & Natural Rock Arch Bridge
+    S.layer(0.18, function () {
+      var v = S.viewRect(0.18);
+      // Deep canyon: two visible depth walls (far rim + near rim) with shadowed floor
+      // Far depth wall — receding, atmospheric haze tone
+      ctx.fillStyle = "#5c241c";
+      ctx.beginPath();
+      ctx.moveTo(v.l - 40, -140);
+      for (var x = v.l - 40; x <= v.r + 40; x += 40) {
+        var fy = -140 - S.noise1(x * 0.004, 12) * 55 - Math.sin(x * 0.006) * 15;
+        ctx.lineTo(x, fy);
+      }
+      ctx.lineTo(v.r + 40, 40);
+      ctx.lineTo(v.l - 40, 40);
+      ctx.closePath();
+      ctx.fill();
+
+      // Deep canyon floor between the walls (dark rocky bottom)
+      ctx.fillStyle = "#2a0d0b";
+      ctx.beginPath();
+      ctx.moveTo(v.l - 40, -30);
+      for (var x = v.l - 40; x <= v.r + 40; x += 40) {
+        var lf = -30 - S.noise1(x * 0.006, 22) * 22;
+        ctx.lineTo(x, lf);
+      }
+      ctx.lineTo(v.r + 40, 160);
+      ctx.lineTo(v.l - 40, 160);
+      ctx.closePath();
+      ctx.fill();
+
+      // Near depth wall — dark foreground rim of the gorge
+      ctx.fillStyle = "#3a1110";
+      ctx.beginPath();
+      ctx.moveTo(v.l - 40, -60);
+      for (var x = v.l - 40; x <= v.r + 40; x += 40) {
+        var ny = -60 - S.noise1(x * 0.005, 14) * 70 - Math.sin(x * 0.008) * 20;
+        ctx.lineTo(x, ny);
+      }
+      ctx.lineTo(v.r + 40, 180);
+      ctx.lineTo(v.l - 40, 180);
+      ctx.closePath();
+      ctx.fill();
+
+      // Stratified cliff face wall layers with depth shadows
+      ctx.fillStyle = "#381110";
+      ctx.beginPath();
+      ctx.moveTo(-1500, -60);
+      for (var x = -1500; x <= 1500; x += 40) {
+        var cliffY = -60 - Math.max(0, S.noise1(x * 0.006, 18)) * 80 - (x > -200 && x < 400 ? 50 : 0);
+        ctx.lineTo(x, cliffY);
+      }
+      ctx.lineTo(1500, 250);
+      ctx.lineTo(-1500, 250);
+      ctx.closePath();
+      ctx.fill();
+
+      // Canyon rock strata lines (ink-style geological stripes)
+      ctx.strokeStyle = "rgba(180,70,50,0.22)";
+      ctx.lineWidth = 3;
+      for (var sy = -80; sy <= 20; sy += 18) {
+        ctx.beginPath();
+        ctx.moveTo(v.l - 40, sy + Math.sin(sy * 0.1) * 5);
+        ctx.lineTo(v.r + 40, sy + Math.cos(sy * 0.1) * 5);
+        ctx.stroke();
+      }
+
+      // Natural Rock Arch
+      var ax = -420, ay = -70, aw = 320, ah = 170;
+      ctx.save();
+      ctx.fillStyle = "#5c201a";
+      ctx.beginPath();
+      ctx.moveTo(ax - aw * 0.5, ay + 60);
+      ctx.quadraticCurveTo(ax - aw * 0.48, ay - ah, ax, ay - ah);
+      ctx.quadraticCurveTo(ax + aw * 0.48, ay - ah, ax + aw * 0.5, ay + 60);
+      ctx.lineTo(ax + aw * 0.32, ay + 60);
+      ctx.quadraticCurveTo(ax + aw * 0.28, ay - ah * 0.55, ax, ay - ah * 0.55);
+      ctx.quadraticCurveTo(ax - aw * 0.28, ay - ah * 0.55, ax - aw * 0.32, ay + 60);
+      ctx.closePath();
+      ctx.fill();
+
+      // Rock arch ink highlights
+      ctx.strokeStyle = "#8d3429";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(ax - aw * 0.5, ay + 20);
+      ctx.quadraticCurveTo(ax - aw * 0.48, ay - ah, ax, ay - ah);
+      ctx.quadraticCurveTo(ax + aw * 0.48, ay - ah, ax + aw * 0.5, ay + 20);
+      ctx.stroke();
+
+      // Arch inner shadow edge
+      ctx.strokeStyle = "rgba(35,10,10,0.65)";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(ax - aw * 0.32, ay + 60);
+      ctx.quadraticCurveTo(ax - aw * 0.28, ay - ah * 0.55, ax, ay - ah * 0.55);
+      ctx.quadraticCurveTo(ax + aw * 0.28, ay - ah * 0.55, ax + aw * 0.32, ay + 60);
+      ctx.stroke();
+      ctx.restore();
+    });
+
+    // 5. Layered Martian Sand Dunes
+    W.dunes(0.35, -45, 90, 15, "#c8553d", "#7a271c", 0.0035);
+
+    // Dust haze overlay
+    S.layer(0.45, function () {
+      var v = S.viewRect(0.45);
+      var midHaze = S.vgrad(-80, 80, [
+        [0, "rgba(210,95,55,0)"],
+        [0.5, "rgba(200,85,45,0.22)"],
+        [1, "rgba(160,60,35,0)"]
+      ]);
+      ctx.fillStyle = midHaze;
+      ctx.fillRect(v.l, -80, v.r - v.l, 160);
+    });
+
+    // Dust haze layer 2 — near-ground atmospheric haze for depth
+    S.layer(0.55, function () {
+      var v = S.viewRect(0.55);
+      var nearHaze = S.vgrad(v.b - 120, v.b, [
+        [0, "rgba(200,90,50,0)"],
+        [0.5, "rgba(190,80,45,0.16)"],
+        [1, "rgba(150,50,28,0.3)"]
+      ]);
+      ctx.fillStyle = nearHaze;
+      ctx.fillRect(v.l, v.b - 120, v.r - v.l, 120);
+    });
+
+    // 6. Launch Site with Gantry Tower, Rocket, Engine Exhaust Glow & Smoke Trail
+    S.layer(0.65, function () {
+      var lx = 480, ly = -50;
+
+      // Launch Pad Base
+      ctx.fillStyle = "#2d2426";
+      ctx.beginPath();
+      ctx.moveTo(lx - 160, ly);
+      ctx.lineTo(lx - 130, ly - 20);
+      ctx.lineTo(lx + 130, ly - 20);
+      ctx.lineTo(lx + 160, ly);
+      ctx.lineTo(lx + 180, ly + 40);
+      ctx.lineTo(lx - 180, ly + 40);
+      ctx.closePath();
+      ctx.fill();
+
+      // Industrial hazard warning stripes on launch platform
+      ctx.fillStyle = "#d49b28";
+      ctx.fillRect(lx - 120, ly - 18, 240, 6);
+      ctx.fillStyle = "#1a181c";
+      for (var hz = lx - 115; hz < lx + 115; hz += 24) {
+        ctx.fillRect(hz, ly - 18, 10, 6);
+      }
+
+      // Flame trench under rocket
+      ctx.fillStyle = "#140e10";
+      ctx.fillRect(lx - 55, ly - 20, 110, 30);
+
+      // Gantry Service Tower
+      var gx = lx + 85, gy = ly - 20, gw = 44, gh = 340;
+      ctx.fillStyle = "#2a303c";
+      ctx.fillRect(gx - gw / 2, gy - gh, 8, gh);
+      ctx.fillRect(gx + gw / 2 - 8, gy - gh, 8, gh);
+
+      ctx.strokeStyle = "#465268";
+      ctx.lineWidth = 2.5;
+      for (var ty = gy - gh; ty < gy; ty += 34) {
+        ctx.beginPath(); ctx.moveTo(gx - gw / 2, ty); ctx.lineTo(gx + gw / 2, ty); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(gx - gw / 2, ty); ctx.lineTo(gx + gw / 2, ty + 34); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(gx + gw / 2, ty); ctx.lineTo(gx - gw / 2, ty + 34); ctx.stroke();
+      }
+
+      // Umbilical service arms
+      ctx.fillStyle = "#5a6880";
+      ctx.fillRect(gx - gw / 2 - 45, gy - gh + 70, 45, 10);
+      ctx.fillRect(gx - gw / 2 - 50, gy - gh + 180, 50, 12);
+      ctx.fillRect(gx - gw / 2 - 40, gy - gh + 270, 40, 10);
+
+      // Flashing red beacon on gantry tip
+      var beaconFlash = Math.sin(S.time * 6) * 0.5 + 0.5;
+      ctx.fillStyle = "rgba(255,40,40," + (0.5 + 0.5 * beaconFlash).toFixed(2) + ")";
+      ctx.beginPath(); ctx.arc(gx, gy - gh - 6, 7, 0, 6.283); ctx.fill();
+      var bGlow = S.rgrad(gx, gy - gh - 6, 2, 28, [
+        [0, "rgba(255,50,50,0.8)"],
+        [1, "rgba(255,0,0,0)"]
+      ]);
+      ctx.fillStyle = bGlow;
+      ctx.fillRect(gx - 30, gy - gh - 36, 60, 60);
+
+      // Rocket
+      var rx = lx, ry = ly - 20, rw = 36, rh = 260;
+      var rkGrad = S.hgrad(rx - rw / 2, rx + rw / 2, [
+        [0, "#b0b8c4"],
+        [0.35, "#f0f4f8"],
+        [0.7, "#d0d8e2"],
+        [1, "#687488"]
+      ]);
+      ctx.fillStyle = rkGrad;
+      ctx.beginPath();
+      ctx.moveTo(rx, ry - rh);
+      ctx.quadraticCurveTo(rx + rw * 0.5, ry - rh + 50, rx + rw / 2, ry - rh + 90);
+      ctx.lineTo(rx + rw / 2, ry - 20);
+      ctx.lineTo(rx - rw / 2, ry - 20);
+      ctx.lineTo(rx - rw / 2, ry - rh + 90);
+      ctx.quadraticCurveTo(rx - rw * 0.5, ry - rh + 50, rx, ry - rh);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = "#1e2430";
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      // Rocket detail markings
+      ctx.fillStyle = "#c84028";
+      ctx.fillRect(rx - rw / 2 + 1, ry - rh + 110, rw - 2, 18);
+      ctx.fillStyle = "#202634";
+      ctx.fillRect(rx - rw / 2 + 1, ry - rh + 175, rw - 2, 8);
+
+      // Tail Fins
+      ctx.fillStyle = "#343c4d";
+      ctx.beginPath();
+      ctx.moveTo(rx - rw / 2, ry - 80);
+      ctx.lineTo(rx - rw / 2 - 24, ry - 10);
+      ctx.lineTo(rx - rw / 2, ry - 20);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(rx + rw / 2, ry - 80);
+      ctx.lineTo(rx + rw / 2 + 24, ry - 10);
+      ctx.lineTo(rx + rw / 2, ry - 20);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+
+      // Nozzle
+      ctx.fillStyle = "#181a20";
+      ctx.beginPath();
+      ctx.moveTo(rx - 14, ry - 20);
+      ctx.lineTo(rx - 18, ry - 4);
+      ctx.lineTo(rx + 18, ry - 4);
+      ctx.lineTo(rx + 14, ry - 20);
+      ctx.closePath(); ctx.fill();
+
+      // Engine Exhaust Plume & Shock Cone Glow
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      var exGlow = S.rgrad(rx, ry + 25, 10, 160, [
+        [0, "rgba(255,255,240,1)"],
+        [0.25, "rgba(255,200,60,0.9)"],
+        [0.6, "rgba(255,90,20,0.6)"],
+        [1, "rgba(200,30,0,0)"]
+      ]);
+      ctx.fillStyle = exGlow;
+      ctx.fillRect(rx - 180, ry - 40, 360, 240);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.moveTo(rx - 16, ry - 4);
+      ctx.lineTo(rx, ry + 75 + Math.sin(S.time * 20) * 8);
+      ctx.lineTo(rx + 16, ry - 4);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "#ffcc33";
+      ctx.beginPath();
+      ctx.moveTo(rx - 22, ry - 4);
+      ctx.lineTo(rx, ry + 110 + Math.sin(S.time * 15) * 12);
+      ctx.lineTo(rx + 22, ry - 4);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+
+      // Exhaust Smoke Trail
+      var smkSeed = rng(44);
+      for (var sm = 0; sm < 24; sm++) {
+        var smx = rx + (smkSeed() - 0.5) * 280 + Math.sin(S.time * 1.5 + sm) * 20;
+        var smy = ry + 10 + smkSeed() * 50 + Math.cos(S.time * 1.2 + sm) * 10;
+        var smr = 28 + smkSeed() * 45;
+        var smkGrad = S.rgrad(smx, smy, 4, smr, [
+          [0, sm % 2 === 0 ? "rgba(240,170,100,0.65)" : "rgba(180,90,60,0.55)"],
+          [0.65, "rgba(90,40,30,0.4)"],
+          [1, "rgba(50,20,15,0)"]
+        ]);
+        ctx.fillStyle = smkGrad;
+        ctx.beginPath();
+        ctx.arc(smx, smy, smr, 0, 6.283);
+        ctx.fill();
+      }
+    });
+
+    // 7. Foreground Martian Ground Surface & Dust Fog
+    S.layer(0.8, function () {
+      var r = rng(55);
+      for (var i = 0; i < 18; i++) {
+        var rx = -1400 + r() * 2800, rs = 20 + r() * 45;
+        ctx.fillStyle = "#3a1310";
+        ctx.beginPath();
+        ctx.ellipse(rx, -40, rs, rs * 0.5, 0, 0, 6.283);
+        ctx.fill();
+        ctx.fillStyle = "rgba(210,110,75,0.3)";
+        ctx.beginPath();
+        ctx.ellipse(rx - rs * 0.3, -48, rs * 0.5, rs * 0.22, 0, 0, 6.283);
+        ctx.fill();
+      }
+    });
+
+    W.ground(1, -50, "#8b2c1d", "#3a100b", {});
+
+    S.layer(1, function () {
+      var v = S.viewRect(1);
+      var fgDust = S.vgrad(v.b - 240, v.b, [
+        [0, "rgba(180,70,40,0)"],
+        [0.7, "rgba(160,55,30,0.18)"],
+        [1, "rgba(130,40,20,0.32)"]
+      ]);
+      ctx.fillStyle = fgDust;
+      ctx.fillRect(v.l, v.b - 240, v.r - v.l, 240);
+    });
   }
 
   function ocean(opt) {

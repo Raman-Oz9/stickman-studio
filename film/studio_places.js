@@ -601,61 +601,202 @@ var PL = (function () {
   }
 
   function city(opt) {
-    W.sky(); W.clouds(3, 0.04, -820, 4);
-    // Layer 1: Distant skyscrapers with atmospheric haze (parallax 0.15)
-    W.ridge(0.15, -150, 100, 3, "#252b38", "#3a4254", 0.003, 0.4);
+    opt = opt || {};
+    var tod = opt.tod || W.curName || "day";
+    var weather = opt.weather || (tod === "storm" || tod === "rain" ? "rain" : "none");
+    if (opt.tod && W.setTod) {
+      W.setTod(opt.tod);
+    }
+    W.sky();
+    W.clouds(3, 0.04, -820, 4);
+
+    var isNight = (tod === "night" || W.cur.night);
+    var isDusk = (tod === "dusk" || tod === "gold");
+    var isRain = (weather === "rain" || tod === "storm");
+
+    // Layer 1: Distant Skyline (Parallax 0.15) - Glass towers & distant silhouettes with atmospheric haze
+    W.ridge(0.15, -150, 120, 3, isNight ? "#121622" : "#252b38", isNight ? "#1e2433" : "#3a4254", 0.003, 0.4);
     S.layer(0.15, function () {
-      ctx.fillStyle = S.alpha(W.cur.haze || "#f4e6c4", 0.25);
-      ctx.fillRect(-1600, -400, 3200, 500);
-      var r = rng(18), x = -1400;
-      while (x < 1400) {
-        var w = 70 + r() * 90, h = 250 + r() * 250;
-        ctx.fillStyle = "#222733";
-        ctx.fillRect(x, -h, w, h + 100);
-        x += w + 10;
-      }
-    });
-
-    // Layer 2: Mid-ground major bank/big buildings (520+ w x 640+ h, columns >= 600 tall per scale bible, parallax 0.45)
-    S.layer(0.45, function () {
-      ctx.fillStyle = "rgba(0,0,0,0.28)";
-      ctx.beginPath(); ctx.ellipse(-280, -45, 340, 28, 0, 0, 6.283); ctx.fill();
-      ctx.beginPath(); ctx.ellipse(320, -45, 360, 28, 0, 0, 6.283); ctx.fill();
-
-      var r = rng(14), x = -1200;
-      while (x < 1200) {
-        var w = 110 + r() * 140, h = 550 + r() * 150; // true scale height 550-700h
-        ctx.fillStyle = "#1e222d";
-        ctx.fillRect(x, -h, w, h + 150);
-        ctx.fillStyle = "rgba(255,235,160,.65)";
-        for (var wy = -h + 30; wy < -40; wy += 26) {
-          for (var wx = x + 14; wx < x + w - 14; wx += 20) {
-            if (r() > 0.25) ctx.fillRect(wx, wy, 10, 14);
+      ctx.fillStyle = S.alpha(W.cur.haze || "#f4e6c4", isNight ? 0.12 : 0.25);
+      ctx.fillRect(-1600, -450, 3200, 550);
+      var r = rng(18), x = -1500;
+      while (x < 1500) {
+        var w = 80 + r() * 100, h = 280 + r() * 280;
+        ctx.fillStyle = isNight ? "#181d2a" : "#222733";
+        ctx.fillRect(x, -h, w, h + 120);
+        if (isNight || isDusk) {
+          ctx.fillStyle = isNight ? "rgba(255,230,160,0.8)" : "rgba(255,200,120,0.5)";
+          for (var wy = -h + 20; wy < -30; wy += 22) {
+            for (var wx = x + 10; wx < x + w - 10; wx += 16) {
+              if (r() > 0.3) ctx.fillRect(wx, wy, 8, 12);
+            }
           }
         }
-        x += w + 16;
+        x += w + 12;
       }
     });
 
-    W.ground(1, -50, "#424756", "#252833");
+    // Layer 2: Mid-Ground Skyline (Parallax 0.45) - Varied building silhouettes: glass towers, brick apartments, commercial blocks
+    S.layer(0.45, function () {
+      ctx.fillStyle = "rgba(0,0,0,0.3)";
+      ctx.beginPath(); ctx.ellipse(-320, -45, 380, 28, 0, 0, 6.283); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(360, -45, 400, 28, 0, 0, 6.283); ctx.fill();
 
-    // Layer 3: Foreground street level with street lamps (760 high), curbs, storefronts, and cast shadows (parallax 0.75)
+      var r = rng(14), x = -1300;
+      var bIdx = 0;
+      while (x < 1300) {
+        var type = bIdx % 3;
+        var w = 130 + r() * 140;
+        var h = 550 + r() * 180;
+
+        if (type === 0) {
+          ctx.fillStyle = isNight ? "#1b2230" : "#263248";
+          ctx.fillRect(x, -h, w, h + 150);
+          ctx.strokeStyle = isNight ? "rgba(70,95,130,0.4)" : "rgba(120,160,200,0.3)";
+          ctx.lineWidth = 2;
+          for (var gx = x + 15; gx < x + w - 15; gx += 25) {
+            ctx.beginPath(); ctx.moveTo(gx, -h + 10); ctx.lineTo(gx, -45); ctx.stroke();
+          }
+          ctx.fillStyle = isNight ? (r() > 0.4 ? "rgba(255,240,180,0.85)" : "rgba(100,200,255,0.7)") : "rgba(255,235,160,0.55)";
+          for (var wy = -h + 30; wy < -50; wy += 28) {
+            for (var wx = x + 12; wx < x + w - 12; wx += 22) {
+              if (r() > 0.28) ctx.fillRect(wx, wy, 12, 16);
+            }
+          }
+        } else if (type === 1) {
+          ctx.fillStyle = isNight ? "#2d1a16" : "#6a3b32";
+          ctx.fillRect(x, -h, w, h + 150);
+          ctx.strokeStyle = isNight ? "rgba(80,40,30,0.5)" : "rgba(40,20,15,0.4)";
+          ctx.lineWidth = 1.5;
+          for (var by = -h + 20; by < -45; by += 16) {
+            ctx.beginPath(); ctx.moveTo(x, by); ctx.lineTo(x + w, by); ctx.stroke();
+          }
+          ctx.fillStyle = isNight ? "#3a221d" : "#804c42";
+          ctx.fillRect(x - 10, -h - 15, w + 20, 20);
+          ctx.strokeStyle = "#1a1618";
+          ctx.lineWidth = 3;
+          for (var by2 = -h + 120; by2 < -100; by2 += 140) {
+            ctx.strokeRect(x + 15, by2, w - 30, 12);
+            ctx.beginPath(); ctx.moveTo(x + w / 2, by2); ctx.lineTo(x + w / 2, by2 + 140); ctx.stroke();
+          }
+          ctx.fillStyle = isNight ? "rgba(255,210,140,0.9)" : "rgba(255,240,190,0.6)";
+          for (var wy = -h + 40; wy < -50; wy += 32) {
+            for (var wx = x + 20; wx < x + w - 20; wx += 35) {
+              if (r() > 0.35) {
+                ctx.fillRect(wx, wy, 18, 22);
+                ctx.strokeStyle = "#1a1618"; ctx.lineWidth = 2; ctx.strokeRect(wx, wy, 18, 22);
+              }
+            }
+          }
+        } else {
+          ctx.fillStyle = isNight ? "#222a25" : "#3b4f42";
+          ctx.fillRect(x, -h, w, h + 150);
+          ctx.fillStyle = isNight ? "rgba(255,220,150,0.8)" : "rgba(255,245,200,0.6)";
+          for (var wy = -h + 25; wy < -50; wy += 30) {
+            for (var wx = x + 15; wx < x + w - 15; wx += 28) {
+              if (r() > 0.25) ctx.fillRect(wx, wy, 14, 18);
+            }
+          }
+          ctx.fillStyle = "#c84028";
+          ctx.fillRect(x + 20, -180, w - 40, 35);
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "bold 14px sans-serif";
+          ctx.fillText("MARKET", x + 35, -157);
+        }
+
+        x += w + 18;
+        bIdx++;
+      }
+    });
+
+    W.ground(1, -50, isNight ? "#1f242d" : "#424756", isNight ? "#12151b" : "#252833");
+
+    // Layer 3: Foreground Street Level (Parallax 0.75) - Sidewalk, shops with awnings, street furniture, road with markings
     S.layer(0.75, function () {
       var v = S.viewRect(1);
-      ctx.fillStyle = "#2d323d";
-      ctx.fillRect(v.l, -50, v.r - v.l, 600);
-      ctx.strokeStyle = "#e8c850"; ctx.lineWidth = 6; ctx.setLineDash([35, 35]);
-      ctx.beginPath(); ctx.moveTo(0, -30); ctx.lineTo(0, 500); ctx.stroke(); ctx.setLineDash([]);
-      for (var lx = -900; lx <= 900; lx += 450) {
-        // Cast shadow under street lamp
-        ctx.fillStyle = "rgba(0,0,0,0.3)";
-        ctx.beginPath(); ctx.ellipse(lx, -45, 25, 12, 0, 0, 6.283); ctx.fill();
+      ctx.fillStyle = isNight ? "#242933" : "#343a46";
+      ctx.fillRect(v.l, -50, v.r - v.l, 450);
 
-        ctx.fillStyle = "#1a1c22"; ctx.fillRect(lx - 6, -760, 12, 760); // street lamp height 760 per scale bible
-        ctx.fillStyle = "#e2b23d"; ctx.beginPath(); ctx.arc(lx, -760, 18, 0, 6.283); ctx.fill();
+      var r = rng(25);
+      for (var sx = -1200; sx < 1200; sx += 360) {
+        ctx.fillStyle = isNight ? "#181d24" : "#222933";
+        ctx.fillRect(sx + 20, -220, 220, 170);
+        ctx.fillStyle = "#c84028";
+        ctx.beginPath();
+        ctx.moveTo(sx, -220);
+        ctx.lineTo(sx + 260, -220);
+        ctx.lineTo(sx + 290, -170);
+        ctx.lineTo(sx - 30, -170);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = "#fdebc4";
+        for (var st = sx; st < sx + 240; st += 30) {
+          ctx.fillRect(st, -220, 15, 50);
+        }
+        ctx.fillStyle = isNight ? "rgba(255,230,160,0.7)" : "rgba(180,220,250,0.3)";
+        ctx.fillRect(sx + 35, -205, 190, 140);
+        ctx.fillStyle = "#3a2212";
+        ctx.fillRect(sx + 265, -250, 70, 200);
+        ctx.strokeStyle = "#1a120c"; ctx.lineWidth = 3; ctx.strokeRect(sx + 265, -250, 70, 200);
+      }
+
+      ctx.fillStyle = isNight ? "#161920" : "#262b35";
+      ctx.fillRect(v.l, 100, v.r - v.l, 500);
+      ctx.strokeStyle = "#e8c850"; ctx.lineWidth = 6; ctx.setLineDash([40, 40]);
+      ctx.beginPath(); ctx.moveTo(v.l, 250); ctx.lineTo(v.r, 250); ctx.stroke(); ctx.setLineDash([]);
+
+      for (var lx = -1000; lx <= 1000; lx += 500) {
+        ctx.fillStyle = "rgba(0,0,0,0.35)";
+        ctx.beginPath(); ctx.ellipse(lx, -45, 28, 12, 0, 0, 6.283); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(lx + 180, -45, 45, 14, 0, 0, 6.283); ctx.fill();
+
+        ctx.fillStyle = isNight ? "#121418" : "#1a1c22";
+        ctx.fillRect(lx - 6, -760, 12, 710);
+        ctx.fillStyle = "#e2b23d";
+        ctx.beginPath(); ctx.arc(lx, -760, 20, 0, 6.283); ctx.fill();
+        
         ctx.save(); ctx.globalCompositeOperation = "lighter";
-        var gl = S.rgrad(lx, -730, 6, 220, [[0, "rgba(255,230,150,.65)"], [1, "rgba(255,230,150,0)"]]);
-        ctx.fillStyle = gl; ctx.fillRect(lx - 140, -800, 280, 350);
+        var gl = S.rgrad(lx, -730, 8, 250, [[0, isNight ? "rgba(255,235,160,0.9)" : "rgba(255,230,150,0.65)"], [1, "rgba(255,230,150,0)"]]);
+        ctx.fillStyle = gl; ctx.fillRect(lx - 160, -820, 320, 400);
+        ctx.restore();
+
+        var bx = lx + 180;
+        ctx.fillStyle = "#7a4a28";
+        ctx.fillRect(bx - 35, -75, 70, 12);
+        ctx.fillRect(bx - 35, -110, 70, 35);
+        ctx.fillStyle = "#2a1e16";
+        ctx.fillRect(bx - 30, -63, 8, 20);
+        ctx.fillRect(bx + 22, -63, 8, 20);
+
+        var tx = lx - 220;
+        ctx.fillStyle = "#5c3a21";
+        ctx.fillRect(tx - 12, -220, 24, 175);
+        ctx.fillStyle = isNight ? "#243c2c" : "#387a4a";
+        ctx.beginPath(); ctx.arc(tx, -250, 75, 0, 6.283); ctx.fill();
+        ctx.fillStyle = isNight ? "#2e4f3a" : "#459659";
+        ctx.beginPath(); ctx.arc(tx - 20, -270, 45, 0, 6.283); ctx.fill();
+        ctx.beginPath(); ctx.arc(tx + 25, -260, 50, 0, 6.283); ctx.fill();
+      }
+
+      if (isRain) {
+        ctx.save();
+        ctx.strokeStyle = "rgba(180,210,240,0.45)";
+        ctx.lineWidth = 1.5;
+        var rRain = rng(99);
+        for (var i = 0; i < 180; i++) {
+          var rx = v.l + rRain() * (v.r - v.l);
+          var ry = ((S.time * (900 + rRain() * 400) + rRain() * 1200) % 1200) - 200;
+          ctx.beginPath();
+          ctx.moveTo(rx, ry);
+          ctx.lineTo(rx - 8, ry + 35);
+          ctx.stroke();
+        }
+        ctx.fillStyle = "rgba(120,160,200,0.25)";
+        for (var p = -1200; p < 1200; p += 280) {
+          ctx.beginPath();
+          ctx.ellipse(p + (rRain() * 50), -45, 60 + rRain() * 40, 12, 0, 0, 6.283);
+          ctx.fill();
+        }
         ctx.restore();
       }
     });

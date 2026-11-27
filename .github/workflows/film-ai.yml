@@ -1,0 +1,62 @@
+name: Film AI (Gemini keyframes + cinematic camera)
+on:
+  workflow_dispatch:
+    inputs:
+      size:
+        description: "WxH (720x1280 vertical, 1280x720 wide)"
+        default: "720x1280"
+      season:
+        description: "spring | summer | autumn | winter"
+        default: "summer"
+      era:
+        description: "ancient | medieval | modern | future"
+        default: "ancient"
+      script:
+        description: "repo path of a plain-text script (e.g. docs/scripts/ancient.txt); empty = built-in Alexander film"
+        default: ""
+      page:
+        description: "studio.html (2D illustrated) | index.html (3D)"
+        default: "studio.html"
+permissions:
+  contents: write
+jobs:
+  film:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - name: Deps
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg espeak-ng
+          pip install requests soundfile numpy edge-tts
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install kokoro huggingface_hub
+          for i in 1 2 3 4 5; do pip install "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl" && break || sleep 5; done
+          cd film && npm init -y >/dev/null && npm i playwright three@0.169.0 postprocessing@6.36.4 esbuild >/dev/null && npx playwright install --with-deps chromium >/dev/null
+      - name: Bundle the original world engine for the browser
+        run: |
+          cd film && NODE_PATH=$PWD/node_modules npx esbuild engine.ts --bundle --format=iife --global-name=Eng --alias:remotion=./remotion-stub.ts --loader:.ts=ts --outfile=engine.js --log-level=warning
+          ls -la engine.js
+      - name: Textures for the world
+        run: cp -r remotion/public/tex film/tex
+      - name: Texts, narration, timing
+        run: |
+          if [ -n "${{ inputs.script }}" ]; then python3 film/plan_scenes.py "${{ inputs.script }}" plan.json; echo "FILM_PLAN=$PWD/plan.json" >> $GITHUB_ENV; export FILM_PLAN=$PWD/plan.json; fi
+          cd film && FILM_PAGE="${{ inputs.page }}" node export.mjs texts ../texts.json
+          cd .. && PYTHONPATH=. python3 film/make_audio.py texts.json out
+      - name: AI keyframes + camera + mux
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          pip install opencv-python-headless pillow
+          S="${{ inputs.size }}"; W=${S%x*}; H=${S#*x}
+          python3 film/ai_film.py plan.json out/durs.json out/mix.wav out/film.mp4 $W $H
+          mkdir -p out/frames && cp ai_cache/*.png out/frames/ || true
+      - name: Publish
+        run: |
+          cd out && git init -q && N=$(basename "${{ inputs.script }}" .txt); [ -z "$N" ] && N=alexander; git checkout -q -b film-ai-$N && git config user.name film && git config user.email film@users.noreply.github.com
+          git add film.mp4 frames && git commit -qm "film render" && git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" film-ai-$N

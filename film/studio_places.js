@@ -516,86 +516,195 @@ var PL = (function () {
   }
 
   function castle(opt) {
+    opt = opt || {};
+    var isEgyptian = opt.egyptian || opt.variant === "egyptian" || opt.style === "egyptian" || opt.loc === "egypt" || opt.loc === "desert" || /egypt|desert|nile|pyramid/i.test(W.curName || "" + (opt.name || "") + (opt.loc || ""));
+
+    if (isEgyptian) {
+      W.sky(); W.clouds(4, 0.05, -820, 5);
+      // Layer 1: Distant pyramids & desert ridge
+      W.ridge(0.15, -160, 110, 5, "#d4a359", "#f5d082", 0.003, 0.4);
+      W.pyramid(0.2, -500, -50, 420, 310, -20);
+      W.pyramid(0.25, 450, -50, 360, 260, 15);
+
+      // Layer 2: Mid-ground Egyptian temple pylons, obelisks, sphinx, columns
+      S.layer(0.45, function () {
+        ctx.fillStyle = "rgba(0,0,0,0.3)";
+        ctx.beginPath(); ctx.ellipse(-120, -45, 340, 28, 0, 0, 6.283); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(280, -45, 380, 32, 0, 0, 6.283); ctx.fill();
+      });
+      W.temple(0.45, -80, -50, 0.95);
+      W.obelisk(0.45, -380, -50, 320);
+      W.obelisk(0.45, 380, -50, 290);
+      W.sphinx(0.45, 520, -50, 0.85);
+      W.columns(0.45, -280, -50, 5, 50, 260);
+
+      W.ground(1, -50, "#e8cb96", "#b98a55");
+
+      // Layer 3: Foreground market stalls, palm trees, braziers, ink details
+      S.layer(0.75, function () {
+        W.palm(0.75, -550, -50, 340, 12);
+        W.palm(0.75, 580, -50, 380, 24);
+        W.brazier(0.75, -180, -50);
+        W.brazier(0.75, 180, -50);
+
+        var sx = -220, sy = -50;
+        ctx.fillStyle = "#c87d32";
+        ctx.fillRect(sx - 70, sy - 140, 140, 140);
+        ctx.fillStyle = "#b5242c";
+        ctx.beginPath(); ctx.moveTo(sx - 85, sy - 140); ctx.lineTo(sx + 85, sy - 140); ctx.lineTo(sx + 95, sy - 95); ctx.lineTo(sx - 95, sy - 95); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = "#ffd966";
+        for (var st = sx - 75; st < sx + 75; st += 30) {
+          ctx.fillRect(st, sy - 140, 15, 45);
+        }
+        ctx.fillStyle = "#d49b28";
+        ctx.fillRect(sx - 55, sy - 75, 110, 75);
+      });
+      return;
+    }
+
     W.sky(); W.clouds(5, 0.05, -820, 5);
-    // Layer 1: Distant mountain ridge and watchtowers (parallax 0.15, atmospheric haze)
-    W.ridge(0.15, -160, 130, 4, "#4a6a5a", "#7ca87c", 0.003, 0.45);
+    // Layer 1: Distant rolling hills and watchtowers with atmospheric haze (parallax 0.15)
+    W.ridge(0.15, -160, 130, 4, "#3d5c4a", "#6b966b", 0.003, 0.45);
     S.layer(0.15, function () {
       ctx.fillStyle = S.alpha(W.cur.haze || "#f4e6c4", 0.22);
       ctx.fillRect(-1600, -350, 3200, 450);
       var r = rng(42);
-      for (var i = 0; i < 5; i++) {
-        var tx = -1200 + i * 550 + r() * 100;
-        ctx.fillStyle = "#5a5f6a";
-        ctx.fillRect(tx, -280, 50, 230);
-        ctx.fillStyle = "#3e424a";
-        ctx.beginPath(); ctx.moveTo(tx - 10, -280); ctx.lineTo(tx + 25, -330); ctx.lineTo(tx + 60, -280); ctx.closePath(); ctx.fill();
+      for (var i = 0; i < 6; i++) {
+        var tx = -1300 + i * 500 + r() * 80;
+        ctx.fillStyle = "#4a5260";
+        ctx.fillRect(tx, -290, 55, 240);
+        ctx.fillStyle = "#323842";
+        ctx.beginPath(); ctx.moveTo(tx - 12, -290); ctx.lineTo(tx + 27, -345); ctx.lineTo(tx + 66, -290); ctx.closePath(); ctx.fill();
       }
     });
 
-    // Layer 2: Mid-ground castle citadel, fortified walls, true-scale gate (170w x 400h), towers (parallax 0.45)
+    // Layer 2: Mid-ground castle citadel, stone walls with brick texture, towers with battlements & flags, gate with portcullis, banners, torches (parallax 0.45)
     S.layer(0.45, function () {
       // Cast shadows under castle towers/walls
-      ctx.fillStyle = "rgba(0,0,0,0.25)";
-      ctx.beginPath(); ctx.ellipse(-90, -45, 290, 26, 0, 0, 6.283); ctx.fill();
-      ctx.beginPath(); ctx.ellipse(160, -45, 310, 26, 0, 0, 6.283); ctx.fill();
+      ctx.fillStyle = "rgba(0,0,0,0.28)";
+      ctx.beginPath(); ctx.ellipse(-110, -45, 310, 28, 0, 0, 6.283); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(180, -45, 330, 28, 0, 0, 6.283); ctx.fill();
 
-      ctx.fillStyle = "#8a8f9a";
-      ctx.fillRect(-240, -420, 160, 420); // Citadel wall
-      ctx.fillRect(70, -500, 180, 500);  // Grand keep tower (true scale >= 500-600h)
-      ctx.fillStyle = "#6e737e";
-      ctx.fillRect(-250, -450, 180, 40);
-      ctx.fillRect(60, -530, 200, 40);
-      for (var i = 0; i < 5; i++) {
-        ctx.fillRect(-240 + i * 34, -478, 20, 28);
-        ctx.fillRect(70 + i * 38, -562, 22, 28);
+      function drawStoneWall(x, y, w, h) {
+        ctx.fillStyle = "#7a8290";
+        ctx.fillRect(x, y, w, h);
+        ctx.strokeStyle = "rgba(35,40,48,0.5)";
+        ctx.lineWidth = 1.8;
+        var rH = 24;
+        for (var ry = y; ry < y + h; ry += rH) {
+          ctx.beginPath(); ctx.moveTo(x, ry); ctx.lineTo(x + w, ry); ctx.stroke();
+          var off = ((ry / rH) % 2 === 0) ? 0 : 30;
+          for (var rx = x + off; rx < x + w; rx += 60) {
+            if (rx > x && rx < x + w) {
+              ctx.beginPath(); ctx.moveTo(rx, ry); ctx.lineTo(rx, ry + rH); ctx.stroke();
+            }
+          }
+        }
       }
-      // Grand arch door (true scale: 170w x 400h proportion)
-      ctx.fillStyle = "#2a1e16";
-      ctx.beginPath(); ctx.arc(160, -90, 85, Math.PI, 0, false); ctx.lineTo(220, 0); ctx.lineTo(100, 0); ctx.closePath(); ctx.fill();
-      ctx.strokeStyle = "#1a120c"; ctx.lineWidth = 4; ctx.stroke();
+
+      drawStoneWall(-260, -440, 180, 440);
+      drawStoneWall(60, -540, 200, 540);
+
+      ctx.fillStyle = "#5e6572";
+      ctx.fillRect(-275, -485, 210, 45);
+      ctx.fillRect(45, -585, 230, 45);
+
+      for (var i = 0; i < 6; i++) {
+        ctx.fillStyle = "#7a8290";
+        ctx.fillRect(-265 + i * 35, -515, 22, 32);
+        ctx.fillRect(55 + i * 38, -615, 24, 32);
+      }
+
+      ctx.fillStyle = "#1e1510";
+      ctx.beginPath(); ctx.arc(160, -90, 88, Math.PI, 0, false); ctx.lineTo(230, 0); ctx.lineTo(90, 0); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = "#0d0906"; ctx.lineWidth = 5; ctx.stroke();
+
+      ctx.strokeStyle = "#1a1614"; ctx.lineWidth = 4;
+      for (var gx = 100; gx <= 220; gx += 25) {
+        ctx.beginPath(); ctx.moveTo(gx, -180); ctx.lineTo(gx, 0); ctx.stroke();
+      }
+      for (var gy = -160; gy <= -20; gy += 30) {
+        ctx.beginPath(); ctx.moveTo(100, gy); ctx.lineTo(220, gy); ctx.stroke();
+      }
 
       ctx.fillStyle = "#ffd966";
-      ctx.fillRect(-180, -280, 18, 30); ctx.fillRect(-110, -280, 18, 30);
-      ctx.fillRect(120, -340, 20, 34); ctx.fillRect(190, -340, 20, 34);
+      ctx.fillRect(-190, -300, 20, 34); ctx.fillRect(-120, -300, 20, 34);
+      ctx.fillRect(110, -360, 22, 38); ctx.fillRect(190, -360, 22, 38);
 
       ctx.fillStyle = "#b5242c";
-      ctx.fillRect(-154, -550, 5, 110);
-      ctx.beginPath(); ctx.moveTo(-149, -550); ctx.lineTo(-95, -535 + Math.sin(S.time * 3) * 5); ctx.lineTo(-149, -520); ctx.fill();
-      ctx.fillRect(164, -620, 5, 110);
+      ctx.fillRect(-170, -390, 45, 130);
+      ctx.fillStyle = "#ffd966";
+      ctx.beginPath(); ctx.moveTo(-170, -350); ctx.lineTo(-147, -330); ctx.lineTo(-125, -350); ctx.lineTo(-125, -370); ctx.lineTo(-147, -350); ctx.lineTo(-170, -370); ctx.closePath(); ctx.fill();
+
       ctx.fillStyle = "#2c6fb3";
-      ctx.beginPath(); ctx.moveTo(169, -620); ctx.lineTo(225, -605 + Math.sin(S.time * 3.5) * 6); ctx.lineTo(169, -590); ctx.fill();
+      ctx.fillRect(130, -450, 50, 140);
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath(); ctx.arc(155, -390, 16, 0, 6.283); ctx.fill();
+
+      ctx.fillStyle = "#2a221b"; ctx.fillRect(-156, -560, 6, 120);
+      ctx.fillStyle = "#b5242c";
+      ctx.beginPath(); ctx.moveTo(-150, -560); ctx.lineTo(-90, -545 + Math.sin(S.time * 3) * 6); ctx.lineTo(-150, -530); ctx.fill();
+
+      ctx.fillStyle = "#2a221b"; ctx.fillRect(164, -630, 6, 120);
+      ctx.fillStyle = "#2c6fb3";
+      ctx.beginPath(); ctx.moveTo(170, -630); ctx.lineTo(235, -612 + Math.sin(S.time * 3.5) * 7); ctx.lineTo(170, -595); ctx.fill();
+
+      function drawTorch(tx, ty) {
+        ctx.fillStyle = "#3a2a1a"; ctx.fillRect(tx - 4, ty - 25, 8, 30);
+        ctx.fillStyle = "#c78a3a"; ctx.beginPath(); ctx.arc(tx, ty - 25, 7, 0, 6.283); ctx.fill();
+        var fv = Math.sin(S.time * 15 + tx) * 4;
+        var trGlow = S.rgrad(tx, ty - 45, 4, 90, [[0, "rgba(255,180,60,0.8)"], [1, "rgba(255,100,20,0)"]]);
+        ctx.fillStyle = trGlow; ctx.fillRect(tx - 50, ty - 90, 100, 100);
+        ctx.fillStyle = "#ffaa33"; ctx.beginPath(); ctx.moveTo(tx - 6, ty - 28); ctx.quadraticCurveTo(tx + fv, ty - 55, tx + 2, ty - 65); ctx.quadraticCurveTo(tx + 8, ty - 45, tx + 6, ty - 28); ctx.fill();
+      }
+      drawTorch(-80, -220);
+      drawTorch(90, -260);
     });
 
-    // Layer 3: Foreground houses & fortifications (true scale house: 560w x 620 wall+roof proportion, parallax 0.75)
+    // Layer 3: Foreground market stalls, houses, banners, torches (parallax 0.75)
     S.layer(0.75, function () {
-      ctx.fillStyle = "rgba(0,0,0,0.3)";
-      ctx.beginPath(); ctx.ellipse(-480, -45, 190, 19, 0, 0, 6.283); ctx.fill();
-      ctx.beginPath(); ctx.ellipse(450, -45, 210, 21, 0, 0, 6.283); ctx.fill();
+      ctx.fillStyle = "rgba(0,0,0,0.32)";
+      ctx.beginPath(); ctx.ellipse(-480, -45, 200, 20, 0, 0, 6.283); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(450, -45, 220, 22, 0, 0, 6.283); ctx.fill();
 
-      for (var i = 0; i < 2; i++) {
-        var hx = i === 0 ? -520 : 380, hw = 260, hh = 220;
-        ctx.fillStyle = "#a87d54";
-        ctx.fillRect(hx, -hh, hw, hh);
-        ctx.fillStyle = "#8a3a24";
-        ctx.beginPath(); ctx.moveTo(hx - 25, -hh); ctx.lineTo(hx + hw / 2, -hh - 130); ctx.lineTo(hx + hw + 25, -hh); ctx.closePath(); ctx.fill();
-        ctx.fillStyle = "#3a2212";
-        ctx.fillRect(hx + hw / 2 - 22, -110, 44, 110); // door
-        ctx.fillStyle = "#ffb84d";
-        ctx.fillRect(hx + 35, -hh + 35, 34, 34); // window
+      var hx1 = -520, hw1 = 280, hh1 = 230;
+      ctx.fillStyle = "#a87d54";
+      ctx.fillRect(hx1, -hh1, hw1, hh1);
+      ctx.fillStyle = "#8a3a24";
+      ctx.beginPath(); ctx.moveTo(hx1 - 30, -hh1); ctx.lineTo(hx1 + hw1 / 2, -hh1 - 140); ctx.lineTo(hx1 + hw1 + 30, -hh1); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "#3a2212";
+      ctx.fillRect(hx1 + hw1 / 2 - 24, -120, 48, 120);
+      ctx.fillStyle = "#ffb84d";
+      ctx.fillRect(hx1 + 40, -hh1 + 40, 38, 38);
+
+      var msx = 380, msw = 240, msh = 160;
+      ctx.fillStyle = "#8a5a36";
+      ctx.fillRect(msx - msw / 2, -msh, msw, msh);
+      ctx.fillStyle = "#c84028";
+      ctx.beginPath(); ctx.moveTo(msx - msw / 2 - 20, -msh); ctx.lineTo(msx + msw / 2 + 20, -msh); ctx.lineTo(msx + msw / 2 + 30, -msh + 50); ctx.lineTo(msx - msw / 2 - 30, -msh + 50); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "#fdebc4";
+      for (var st = msx - msw / 2; st < msx + msw / 2; st += 35) {
+        ctx.fillRect(st, -msh, 18, 50);
       }
+      ctx.fillStyle = "#d49b28";
+      ctx.fillRect(msx - msw / 2 + 20, -85, msw - 40, 85);
+      ctx.fillStyle = "#b5242c";
+      ctx.beginPath(); ctx.arc(msx - 40, -50, 14, 0, 6.283); ctx.fill();
+      ctx.beginPath(); ctx.arc(msx, -45, 12, 0, 6.283); ctx.fill();
+      ctx.beginPath(); ctx.arc(msx + 45, -48, 15, 0, 6.283); ctx.fill();
     });
 
     W.ground(1, -50, "#85a363", "#557038");
 
     S.layer(1, function () {
       var v = S.viewRect(1);
-      ctx.fillStyle = "#b59868";
-      ctx.beginPath(); ctx.moveTo(-180, -50); ctx.lineTo(180, -50); ctx.lineTo(340, 300); ctx.lineTo(-340, 300); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "#a89068";
+      ctx.beginPath(); ctx.moveTo(-200, -50); ctx.lineTo(200, -50); ctx.lineTo(380, 320); ctx.lineTo(-380, 320); ctx.closePath(); ctx.fill();
       var R = rng(79);
       ctx.fillStyle = "#4a6230";
-      for (var i = 0; i < 18; i++) {
-        var sx = -1000 + R() * 2000, sy = -45 + R() * 320;
-        ctx.beginPath(); ctx.ellipse(sx, sy, 14 + R() * 20, 7 + R() * 9, 0, 0, 6.283); ctx.fill();
+      for (var i = 0; i < 20; i++) {
+        var sx = -1100 + R() * 2200, sy = -45 + R() * 340;
+        ctx.beginPath(); ctx.ellipse(sx, sy, 16 + R() * 22, 8 + R() * 10, 0, 0, 6.283); ctx.fill();
       }
     });
   }

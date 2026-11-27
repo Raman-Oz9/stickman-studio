@@ -51,7 +51,46 @@ def prompt_for(p, i):
             f"Setting: {p.get('location','')} at {p.get('tod','day')}, weather {p.get('weather','none')}, mood {p.get('mood','calm')}, era {p.get('era','')}.\n"
             f"Characters: {' and '.join(who)}. Every person and noun in the sentence must be visible, and the stickman must be physically PERFORMING the action of the sentence with hands touching the key objects.{extra}")
 
+def gen_or(prompt):
+    k = os.environ.get("OPENROUTER_API_KEY", "").strip()
+    if not k: return None
+    for model in ["google/gemini-2.5-flash-image", "google/gemini-3.1-flash-image-preview"]:
+        try:
+            content = [{"type": "text", "text": prompt}]
+            for f in sorted(glob.glob(os.path.join(REFDIR, "*.jpg")))[:3]:
+                content.append({"type": "image_url", "image_url": {"url": "data:image/jpeg;base64," + base64.b64encode(open(f, "rb").read()).decode()}})
+            r = requests.post("https://openrouter.ai/api/v1/chat/completions", headers={"Authorization": "Bearer " + k},
+                              json={"model": model, "modalities": ["image", "text"], "messages": [{"role": "user", "content": content}]}, timeout=240)
+            if r.status_code != 200: print("  openrouter", model, r.status_code, r.text[:120]); continue
+            for im in r.json()["choices"][0]["message"].get("images", []):
+                u = im["image_url"]["url"]; return Image.open(io.BytesIO(base64.b64decode(u.split(",", 1)[1]))).convert("RGB")
+        except Exception as e: print("  openrouter err", e)
+    return None
+
+def gen_cf(prompt):
+    tok, acc = os.environ.get("CLOUDFLARE_API_TOKEN", "").strip(), os.environ.get("CLOUDFLARE_ACCOUNT_ID", "").strip()
+    if not tok or not acc: return None
+    short = prompt.split("Scene")[0][-400:] + prompt[prompt.index("Illustrate"):][:700]
+    for model in ["@cf/black-forest-labs/flux-1-schnell"]:
+        try:
+            r = requests.post(f"https://api.cloudflare.com/client/v4/accounts/{acc}/ai/run/{model}", headers={"Authorization": "Bearer " + tok},
+                              json={"prompt": short[:2000], "steps": 6}, timeout=240)
+            if r.status_code != 200: print("  cloudflare", r.status_code, r.text[:120]); continue
+            im = Image.open(io.BytesIO(base64.b64decode(r.json()["result"]["image"]))).convert("RGB")
+            return im.resize((768, 1344), Image.LANCZOS) if im.width > im.height * 0.8 else im
+        except Exception as e: print("  cloudflare err", e)
+    return None
+
 def gen(prompt, extra_ref=None):
+    for k in [os.environ.get("GEMINI_API_KEY", ""), os.environ.get("GEMINI_API_KEY_2", "")]:
+        if k.strip():
+            global KEY; KEY = k.strip(); im = gen_g(prompt, extra_ref)
+            if im is not None: return im
+    im = gen_or(prompt)
+    if im is not None: return im
+    return gen_cf(prompt)
+
+def gen_g(prompt, extra_ref=None):
     parts = [{"text": prompt}] + refs()
     if extra_ref: parts.append({"text": "Keep the main stickman character design consistent with this previous frame:"}); parts.append(extra_ref)
     for model in [m.strip() for m in MODELS if m.strip()]:

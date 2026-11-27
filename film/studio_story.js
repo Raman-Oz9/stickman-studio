@@ -468,6 +468,7 @@
     var BG = { sea: function (m, u) { bgSea({ farShips: true }); W.ship(0.5, lerp(-260, 220, u) * 0.5, -100, 0.62, S.time); }, beach: bgBeach, egypt: bgEgypt, plain: bgPlain, temple: bgTempleFront, hall: bgHall, night: function (m, u) { bgNight(lerp(900, 4200, u)); campfire(330); }, cliff: bgCliff };
     var POSE = { walk: "walk", march: "march", fight: "fight", kneel: "kneel", point: "point", sit: "sit", cheer: "cheer", talk: "talk", look: "look", idle: "idle", hold: "hold", run: "march" };
     var ERAKEY = window.ERAS || {};
+    var lastTag = null;
     plan.forEach(function (p, idx) {
       var loc = p.location || "plain", era = p.era || "ancient", act = ((p.characters && p.characters[0] && p.characters[0].action) || "talk"), pose = POSE[act] || "talk";
       var low = p.text.toLowerCase(), pickS = null;
@@ -476,6 +477,8 @@
         var T0 = function (rx) { return rx.test(low); };
         pickS = T0(/\b(clash|clashed|battle|armies)\b/) ? BUILT[4] : T0(/\b(crown|knelt)\b/) ? BUILT[5] : T0(/\b(council|halls?)\b/) ? BUILT[6] : (p.quote && T0(/\b(she|queen)\b/)) ? BUILT[3] : T0(/\b(pyramids?|egypt)\b/) ? BUILT[2] : T0(/\b(march|marched|desert)\b/) ? BUILT[7] : T0(/\b(cliff|looked over)\b/) ? BUILT[8] : T0(/\b(died|forever|night)\b/) ? BUILT[9] : T0(/\b(shore|beach|sand)\b/) ? BUILT[1] : T0(/\b(sea|fleet|ship|sail)\b/) ? BUILT[0] : null;
       }
+      if (pickS && pickS.tags && pickS.tags === lastTag) pickS = null; // never repeat the same set piece back-to-back: fall to the generic builder
+      lastTag = pickS ? pickS.tags : null;
       if (pickS) { SCENES.push(Object.assign({}, pickS, { text: p.quote ? p.text.replace(/\s*"[^"]*"\s*/g, " ").replace(/\s+$/, "") : p.text, quote: p.quote || null, speaker: p.speaker || null })); return; }
       var moving = pose === "walk" || pose === "march";
       var fighting = pose === "fight" || /\b(fight|fought|battle|clash|clashed|war)\b/i.test(p.text);
@@ -507,7 +510,7 @@
           ALLC.forEach(function (c) { if (c.show && !fighting) { c.item = null; c.shield = false; } }); if (fighting) { A.item = "sword"; }
           if (rk) { var kk = CH.KIND[rk]; ALLC.forEach(function (c) { c.shield = false; if (c.show) c.item = (c === A || /^(firefighter|police|soldier|pirate|miner|builder|mechanic|farmer|chef)$/.test(rk)) ? (kk.item || (rk === "soldier" ? "rifle" : null)) : null; }); if (rk === "soldier") ALLC.forEach(function (c) { if (c.show) c.item = "rifle"; }); if (fighting && rk !== "soldier" && !kk.item) A.item = null; }
         },
-        update: function (u, dt) { if (moving) ALLC.forEach(function (c) { if (c.show && c.pose === pose) c.x += 74 * dt * (c.face || 1); }); if (A.pose === "talk" || pose === "talk") { A.talk = true; } },
+        update: function (u, dt) { if (moving) ALLC.forEach(function (c) { if (c.show && c.pose === pose) c.x += 120 * dt * (c.face || 1); }); if (A.pose === "talk" || pose === "talk") { A.talk = true; } },
         world: function (m, u) { bgf(m, u); },
         shots: shotSet.map(function (n, i) { return mkShot(n, i, shotSet.length); }) });
     });
@@ -566,6 +569,8 @@
   function tick(dt) {
     S.time += dt; var sc = SCENES[si]; st += dt; var u = clamp(st / sc.dur, 0, 0.9999);
     if (sc.update) sc.update.call(sc, u, dt);
+    // distance-locked gait: leg phase advances with ground covered (no foot sliding / moonwalk), and walkers face the way they move
+    ALLC.forEach(function (c) { if (c._px == null) c._px = c.x; var d = c.x - c._px; c._px = c.x; var ad = Math.abs(d); if (c.show && (c.pose === "walk" || c.pose === "march") && ad > 0.02 && ad < 80) { c._gait = (c._gait || 0) + ad * 0.0247 / (c.s || 1); c._gmove = 0.2; if (ad > 0.25) c.face = d > 0 ? 1 : -1; } else if (c._gmove > 0) c._gmove -= dt; });
     // shot selection
     var idx = 0; for (var k = 0; k < sc.shots.length; k++) if (u >= sc.shots[k].a) idx = k;
     var sh = sc.shots[idx], nxt = sc.shots[idx + 1] ? sc.shots[idx + 1].a : 1, v = clamp((u - sh.a) / Math.max(0.001, nxt - sh.a), 0, 1);

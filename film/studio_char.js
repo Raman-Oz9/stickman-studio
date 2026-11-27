@@ -348,7 +348,7 @@ var CH = (function () {
     headBackLayer(k);
     var hg = S.rgrad(-14 * ls, -16, 6, HEAD_R + 8, [[0, lt(skinC, 0.22)], [0.7, skinC], [1, dk(skinC, 0.2)]]); ctx.fillStyle = INK ? HEADW : hg; ctx.beginPath(); ctx.ellipse(0, 4, HEAD_R - 2, HEAD_R + 2, 0, 0, 6.283); ctx.fill();
     ctx.strokeStyle = INK ? INKC : dk(skinC, 0.3); ctx.lineWidth = INK ? 4.2 : 2.2; ctx.stroke();
-    var backV = view === "back";
+    var backV = view === "back" && !INK;
     var talkAmt = c.talk ? (0.5 + 0.5 * Math.abs(Math.sin(c.t * 10.5))) * (0.55 + 0.45 * Math.sin(c.t * 3.3 + 1)) : 0;
     var ex = c.ex || "neutral"; if (c.pose === "down" && (c.fall || 0) > 0.2) ex = "shock";
     if (backV) { var hc = (k.style === "helm" || k.style === "turban") ? tint(k.helm) : k.style === "bald" ? skinC : tint(k.hair); var bgx = S.rgrad(-10 * ls, -14, 6, HEAD_R + 8, [[0, lt(hc, 0.18)], [1, dk(hc, 0.3)]]); ctx.fillStyle = bgx; ctx.beginPath(); ctx.ellipse(0, 4, HEAD_R, HEAD_R + 3, 0, 0, 6.283); ctx.fill(); ctx.strokeStyle = dk(hc, 0.4); ctx.lineWidth = 2.4; ctx.stroke(); if (k.helmet === "brass") { ctx.fillStyle = S.rgrad(-14, -20, 6, HEAD_R + 22, [[0, "#f2d38a"], [0.5, "#c9923a"], [1, "#7a5220"]]); ctx.beginPath(); ctx.arc(0, 2, HEAD_R + 20, 0, 6.283); ctx.fill(); ctx.strokeStyle = "#5a3a12"; ctx.lineWidth = 3; ctx.stroke(); ball(0, -HEAD_R - 22, 7, "#d9a84a"); } else if (k.helmet === "bubble") { ctx.strokeStyle = tint("#eef1f5"); ctx.lineWidth = 9; ctx.beginPath(); ctx.arc(0, 4, HEAD_R + 14, 0, 6.283); ctx.stroke(); } else if (k.helmet === "combat") { ctx.fillStyle = tint(k.helm || "#4f5c36"); ctx.beginPath(); ctx.ellipse(0, -4, HEAD_R + 6, HEAD_R + 2, 0, 0, 6.283); ctx.fill(); ctx.strokeStyle = "#2a2a22"; ctx.lineWidth = 2.4; ctx.stroke(); }

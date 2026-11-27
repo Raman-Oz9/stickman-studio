@@ -544,7 +544,7 @@
       if (rk) { heroKey = rk; palKey = CH.KIND[rk + "2"] ? rk + "2" : rk; }
       var rk2 = p.role2 && CH.KIND[p.role2] ? p.role2 : null;
       var others = (p.characters || []).slice(1);
-      var bgf = (era === "space" || era === "ocean") ? function () { window.PL[era]({ t: S.time }); } : BG[loc] || (window.PL && window.PL[loc] ? function () { window.PL[loc]({ t: S.time }); } : bgPlain);
+      var bgf = era === "ocean" ? (function (dd) { return function () { darkOcean(dd); }; })(/\b(dark|darkness|deep|deeper|trench|bottom|night|abyss)\b/i.test(p.text) ? 0.72 : /\b(sunlight|surface|shallow|reef)\b/i.test(p.text) ? 0.05 : 0.3) : era === "space" ? function () { window.PL[era]({ t: S.time }); } : BG[loc] || (window.PL && window.PL[loc] ? function () { window.PL[loc]({ t: S.time }); } : bgPlain);
       var shotSet = (p.shots && p.shots.length ? p.shots : ["wide", "follow", "closeup"]);
       function mkShot(name, i, n) {
         var a = i / n, o = { a: a };

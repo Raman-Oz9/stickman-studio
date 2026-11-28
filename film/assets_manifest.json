@@ -1,0 +1,35 @@
+{
+ "style_prop": "flat 2D cartoon game asset, thick black ink outline, vivid clean colours with soft cel shading and a glossy highlight, polished vector illustration, single object centered, full object visible, plain pure white background, no shadow, no text, no watermark",
+ "style_tex": "seamless tileable flat 2D cartoon texture, hand painted, vivid colours, thick ink lines, top-down flat, no objects, no text",
+ "style_bg": "wide flat 2D cartoon background illustration, layered, painterly with thick ink outlines, vivid colours, atmospheric depth, no characters, no text",
+ "props": {
+  "car_sedan": "side view of a red sedan car", "car_rusty": "side view of an old rusty vintage car", "bus": "side view of a yellow city bus", "truck": "side view of a delivery truck",
+  "bank": "front view of a classical stone bank building with columns and a gold dollar sign", "skyscraper": "front view of a tall glass skyscraper",
+  "house": "front view of a cozy two storey house with red roof", "office_desk": "side view of an executive wooden desk with a computer monitor and papers",
+  "money_stack": "a tall stack of green dollar bills tied with a band", "coin_pile": "a big pile of shiny gold coins", "gold_bars": "a stack of shiny gold bars",
+  "briefcase": "a brown leather briefcase", "factory_machine": "an industrial factory machine with gears, pipes and a red lever",
+  "factory": "front view of a brick factory with smokestacks", "whiteboard": "a whiteboard on a stand with a green rising arrow chart",
+  "street_lamp": "a tall vintage street lamp", "tree_oak": "a big leafy oak tree", "tree_pine": "a snowy pine tree", "palm_tree": "a palm tree with coconuts",
+  "castle": "front view of a medieval stone castle with towers and flags", "pyramid": "a great sandstone pyramid", "temple": "a greek marble temple with columns",
+  "sword": "a steel sword with golden hilt", "shield": "a round bronze shield with a lion emblem", "treasure_chest": "an open wooden treasure chest full of gold",
+  "horse": "side view of a brown horse with saddle", "sailboat": "side view of a wooden sailing ship", "submarine": "side view of a modern research submarine",
+  "whale": "side view of a blue whale", "fish_school": "a small school of colourful tropical fish", "jellyfish": "a glowing jellyfish",
+  "rocket": "a tall white and red space rocket with fins", "rover": "side view of a mars rover with six wheels", "satellite": "a space satellite with solar panels",
+  "space_station": "an orbital space station with solar panels", "telescope": "a big white telescope on a tripod", "planet_mars": "the planet mars with craters",
+  "piggy_bank": "a pink piggy bank with a coin", "clock": "a round wall clock", "phone": "a modern smartphone", "laptop": "an open laptop", "bed": "a cozy bed with blanket",
+  "campfire": "a campfire with logs and flames", "crown": "a golden royal crown with jewels", "barrel": "a wooden barrel with metal rings", "book_stack": "a stack of colourful books"
+ },
+ "textures": {
+  "cobblestone": "cobblestone street pavement", "brick": "red brick wall", "wood_planks": "wooden floor planks", "grass": "green grass with tiny flowers",
+  "sand": "desert sand dunes ripples", "rock": "rough grey rock surface", "asphalt": "dark asphalt road with fine cracks", "marble": "white marble floor with veins",
+  "mars_soil": "red martian dusty soil with pebbles", "seabed": "sandy ocean floor with pebbles and shells", "snow": "snow with sparkles", "metal_panel": "white spaceship metal panels with rivets",
+  "concrete": "grey concrete wall", "carpet": "blue office carpet", "stone_wall": "medieval castle stone wall"
+ },
+ "backgrounds": {
+  "city_day": "a big modern city skyline at day with blue sky, buildings of many shapes", "city_night": "a city skyline at night with lit windows and a moon",
+  "mountains": "layered misty mountain ranges at dawn", "desert_pyramids": "desert with pyramids and palm trees at sunset", "underwater": "deep blue underwater scene with coral reef and light rays",
+  "nebula": "a colourful space nebula with stars and a spiral galaxy", "mars_surface": "red mars landscape with canyon and two small moons in the sky",
+  "forest": "a dense green forest with light shafts", "castle_hills": "rolling green hills with a distant castle", "office_interior": "a bright modern office interior with big windows",
+  "factory_interior": "a factory interior with conveyor belts and machines", "snow_mountains": "snowy mountains and pine forest at dusk"
+ }
+}

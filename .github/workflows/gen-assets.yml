@@ -1,31 +1,24 @@
-name: gen-assets
-# Generates textures/skies with free image APIs (Cloudflare Workers AI if secrets exist, else Pollinations) and commits them to remotion/public/tex/
+name: Generate 2D assets (Cloudflare flux)
 on:
   workflow_dispatch:
     inputs:
-      names: { description: "space separated names, empty = all missing", required: false, default: "" }
-      only: { description: "force one provider: cloudflare | ovh | horde (empty = auto)", required: false, default: "" }
-permissions: { contents: write }
+      only: { description: "optional name filters, space separated", required: false, default: "" }
+permissions:
+  contents: write
 jobs:
   gen:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
-    env:
-      ONLY: ${{ github.event.inputs.only }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
-        with: { ref: main }
-      - uses: actions/setup-python@v5
-        with: { python-version: "3.11" }
-      - name: Install image validation dependency
-        run: python3 -m pip install --disable-pip-version-check Pillow
-      - run: python3 remotion/scripts/gen_assets.py ${{ github.event.inputs.names }}
-      - name: Commit
+      - run: pip install pillow numpy requests
+      - name: Generate
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: python3 film/gen_assets.py ${{ inputs.only }}
+      - name: Commit assets
         run: |
-          git config user.name "gen-assets"; git config user.email "agents@users.noreply.github.com"
-          git add remotion/public/tex
-          git diff --cached --quiet && { echo "nothing new"; exit 0; }
-          git commit -qm "assets: generated textures/skies"
-          for t in 1 2 3 4; do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep 4; done
+          git config user.name "asset-bot"; git config user.email "bot@users.noreply.github.com"
+          git add film/assets && (git diff --cached --quiet || git commit -qm "Generated 2D assets (props, textures, backgrounds) via Cloudflare flux")
+          for i in 1 2 3; do git pull -q --rebase origin main && git push -q origin HEAD:main && break || sleep 5; done

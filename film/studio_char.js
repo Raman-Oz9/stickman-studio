@@ -149,6 +149,7 @@ var CH = (function () {
     var my = 24, mx = side ? 28 : ox + 1, open = talkAmt; if (side) { talkAmt = talkAmt * 0.8; }
     ctx.lineWidth = INK ? 4 : 3; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = INK ? INKC : "#5a2020";
     function mouthShape(w, h, teeth, tongue, roundO) {
+      teeth = false; tongue = false; /* never draw teeth or tongue: small clean mouth only */ if (!roundO) { w *= 0.72; h *= 0.8; }
       ctx.save(); ctx.beginPath();
       if (roundO) { ctx.arc(mx, my - 2, w * 0.85, 0, 6.283); } else {
         ctx.moveTo(mx - w, my); ctx.quadraticCurveTo(mx, my - h * 0.35, mx + w, my); ctx.quadraticCurveTo(mx + w * 0.8, my + h * 1.5, mx, my + h * 1.6); ctx.quadraticCurveTo(mx - w * 0.8, my + h * 1.5, mx - w, my);

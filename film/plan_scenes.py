@@ -137,7 +137,6 @@ def plan(text):
         # Split sentence into 1-3 beats based on clauses (commas or conjunctions)
         sub_clauses = [c.strip() for c in re.split(r",|\b(?:and|but|then|while|as|where|when)\b", s) if c.strip()]
         if not sub_clauses: sub_clauses = [s]
-        if not __import__('os').environ.get('BEATS'): sub_clauses = [s]  # one scene per sentence by default: set-piece rules need the whole sentence (comma beats broke them)
         # Limit to 1-3 beats per sentence
         if len(sub_clauses) > 3:
             sub_clauses = [sub_clauses[0], " ".join(sub_clauses[1:-1]), sub_clauses[-1]]
@@ -148,6 +147,7 @@ def plan(text):
                 mid = len(words) // 2
                 sub_clauses = [" ".join(words[:mid]), " ".join(words[mid:])]
 
+        if not __import__('os').environ.get('BEATS'): sub_clauses = [s]  # one scene per sentence by default: set-piece rules need the whole sentence
         for b_idx, clause in enumerate(sub_clauses):
             low = clause.lower()
             loc = pick(LOC, low, prev_loc)

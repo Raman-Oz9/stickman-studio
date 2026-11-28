@@ -531,8 +531,65 @@
     world: function (m, u) { var g = ease(u); mCity("dusk", true); S.layer(1, function () { ctx.fillStyle = "#3d5a80"; var th = 220 + g * 1500; ctx.fillRect(-420, -th, 240, th); ctx.fillStyle = "rgba(255,230,160,.75)"; for (var yy = -th + 24; yy < -20; yy += 42) for (var xx = -400; xx < -200; xx += 56) ctx.fillRect(xx, yy, 24, 22); mText("$ " + (1 + Math.floor(g * 99)) + "x", -300, -th - 24, 34, "#7be39a"); ctx.fillStyle = "#8a6a4a"; ctx.fillRect(140, -170 - g * 14, 190, 170 + g * 14); ctx.fillStyle = "#7a4a3a"; ctx.beginPath(); ctx.moveTo(130, -170 - g * 14); ctx.lineTo(235, -250 - g * 14); ctx.lineTo(340, -170 - g * 14); ctx.fill(); mText("salary", 235, -280 - g * 14, 24, "#ffd6a0"); if (u > 0.75) { var k = clamp((u - 0.75) / 0.2, 0, 1); for (var i = 0; i < 4; i++) { ctx.save(); ctx.globalAlpha = k; mStack(380 + i * 54, -10, 3 + i); ctx.restore(); } mText("OWN ASSETS", 470, -300 - k * 20, 34, "#7be39a"); } }); },
     shots: [{ a: 0, cam: function (v) { return { x: 0, y: -260, z: 0.62 }; } }, { a: 0.4, cam: function (v) { return { x: lerp(-100, 0, v), y: lerp(-500, -700, ease(v)), z: lerp(0.5, 0.36, ease(v)) }; } }, { a: 0.72, cam: function (v) { return { x: lerp(120, 300, ease(v)), y: lerp(-500, -230, ease(v)), z: lerp(0.55, 0.9, ease(v)) }; } }] });
 
+
+
+  // ---- space set pieces: orbital station interior, telescope under a nebula, six-wheel rover on Mars ----
+  function nebulaSky(t) {
+    var W = S.VW, H = S.VH, vr = S.viewRect(0.15); ctx.fillStyle = "#070a1c"; ctx.fillRect(vr.l - 50, vr.t - 50, vr.r - vr.l + 100, vr.b - vr.t + 100);
+    var cols = ["rgba(120,60,200,.35)", "rgba(40,140,230,.30)", "rgba(230,80,140,.28)", "rgba(60,220,200,.22)"];
+    for (var i = 0; i < 14; i++) { var cx = vr.l + ((i * 241) % 900) / 900 * (vr.r - vr.l), cy = vr.t + ((i * 137) % 600) / 600 * (vr.b - vr.t) * 0.8, r = 220 + (i * 53) % 260; var g = ctx.createRadialGradient(cx, cy, 10, cx, cy, r); g.addColorStop(0, cols[i % 4]); g.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = g; ctx.fillRect(cx - r, cy - r, r * 2, r * 2); }
+    var rr = S.rng(11); for (var k = 0; k < 160; k++) { var sx = vr.l + rr() * (vr.r - vr.l), sy = vr.t + rr() * (vr.b - vr.t); ctx.fillStyle = "rgba(255,255,255," + (0.35 + 0.5 * Math.abs(Math.sin(t * 1.4 + k))) + ")"; ctx.fillRect(sx, sy, 2 + (k % 3 === 0), 2 + (k % 3 === 0)); }
+    // spiral galaxy
+    ctx.save(); ctx.translate(vr.l + (vr.r - vr.l) * 0.72, vr.t + (vr.b - vr.t) * 0.22); ctx.rotate(t * 0.03); for (var a = 0; a < 5; a++) { ctx.rotate(1.2566); var gg = ctx.createRadialGradient(80, 0, 4, 80, 0, 90); gg.addColorStop(0, "rgba(255,240,200,.5)"); gg.addColorStop(1, "rgba(255,240,200,0)"); ctx.fillStyle = gg; ctx.beginPath(); ctx.ellipse(80, 0, 100, 26, 0.5, 0, 6.283); ctx.fill(); } ctx.fillStyle = "rgba(255,250,230,.9)"; ctx.beginPath(); ctx.arc(0, 0, 14, 0, 6.283); ctx.fill(); ctx.restore();
+  }
+  function telescopeDraw(x, y, t) {
+    ctx.save(); ctx.translate(x, y); ctx.strokeStyle = "#3c4452"; ctx.lineWidth = 9; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(0, -190); ctx.lineTo(-90, 0); ctx.moveTo(0, -190); ctx.lineTo(95, 0); ctx.moveTo(0, -190); ctx.lineTo(10, 0); ctx.stroke();
+    ctx.translate(0, -210); ctx.rotate(-0.95); var tg = ctx.createLinearGradient(0, -34, 0, 34); tg.addColorStop(0, "#f4f6fa"); tg.addColorStop(1, "#a5b0bf"); ctx.fillStyle = tg; ctx.strokeStyle = "#566275"; ctx.lineWidth = 4; S.rrect(-50, -32, 420, 64, 14); ctx.fill(); ctx.stroke(); ctx.fillStyle = "#ff7a1a"; ctx.fillRect(40, -32, 20, 64); ctx.fillStyle = "#1c2530"; ctx.beginPath(); ctx.ellipse(370, 0, 12, 32, 0, 0, 6.283); ctx.fill(); ctx.fillStyle = "#6fd0ff"; ctx.beginPath(); ctx.ellipse(366, 0, 6, 22, 0, 0, 6.283); ctx.fill(); ctx.fillStyle = "#4b5663"; S.rrect(-82, -14, 44, 28, 6); ctx.fill(); ctx.restore();
+  }
+  function roverDraw(x, y, t, dir) {
+    ctx.save(); ctx.translate(x, y); ctx.scale(dir || 1, 1);
+    for (var w = 0; w < 6; w++) { var wx = -130 + (w % 3) * 130, wy = (w < 3 ? 0 : 0); }
+    ctx.fillStyle = "#cfd6de"; ctx.strokeStyle = "#4a5565"; ctx.lineWidth = 4; S.rrect(-150, -150, 300, 70, 12); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#ff7a1a"; ctx.fillRect(-150, -118, 300, 12); ctx.fillStyle = "#2c3a4a"; ctx.fillRect(40, -142, 90, 40); ctx.fillStyle = "#7fc8ee"; ctx.fillRect(46, -136, 78, 28);
+    ctx.strokeStyle = "#4a5565"; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(-90, -150); ctx.lineTo(-90, -230); ctx.stroke(); ctx.fillStyle = "#e9edf2"; ctx.beginPath(); ctx.ellipse(-90, -240, 46, 18, -0.3, 0, 6.283); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(110, -150); ctx.lineTo(110, -210); ctx.stroke(); ctx.fillStyle = "#222"; ctx.beginPath(); ctx.arc(112, -214, 9, 0, 6.283); ctx.fill();
+    for (var i = 0; i < 6; i++) { var wx = -120 + (i % 3) * 120, wy = -34 + (i < 3 ? 0 : 0); var side = i < 3 ? 1 : 0; ctx.save(); ctx.translate(wx + (side ? 0 : 0), -34); ctx.fillStyle = "#23272e"; ctx.beginPath(); ctx.arc(0, 0, 34, 0, 6.283); ctx.fill(); ctx.rotate(t * 3 * (dir || 1)); ctx.fillStyle = "#8d98a8"; ctx.beginPath(); ctx.arc(0, 0, 18, 0, 6.283); ctx.fill(); ctx.strokeStyle = "#23272e"; ctx.lineWidth = 4; for (var sp = 0; sp < 4; sp++) { ctx.rotate(1.5708); ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 32); ctx.stroke(); } ctx.restore(); ctx.strokeStyle = "#4a5565"; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(wx, -34); ctx.lineTo(wx, -86); ctx.stroke(); }
+    ctx.restore();
+  }
+  // station interior
+  scene({ text: "", dur: 8, chapter: "Station", tod: "night", tags: "s_station",
+    setup: function () { A.key = "astro"; put(A, -40, 1, { pose: "swim", ex: "happy", item: null, act: null, rotv: 0.1 }); this.t = 0; },
+    update: function (u, dt) { this.t += dt; A.x = -80 + Math.sin(this.t * 0.7) * 60; A.y = -330 + Math.sin(this.t * 1.1) * 40; A.rotv = 0.25 + Math.sin(this.t * 0.6) * 0.5; A.ex = "happy"; },
+    world: function () {
+      var vr = S.viewRect(0.2); var g = ctx.createLinearGradient(0, vr.t, 0, vr.b); g.addColorStop(0, "#c8d0da"); g.addColorStop(1, "#8f9aa8"); ctx.fillStyle = g; ctx.fillRect(vr.l - 50, vr.t - 50, vr.r - vr.l + 100, vr.b - vr.t + 100);
+      S.layer(0.5, function () { for (var i = -6; i < 8; i++) { ctx.fillStyle = i % 2 ? "#b4bdc9" : "#c0c8d3"; ctx.fillRect(i * 200, -900, 196, 1300); ctx.strokeStyle = "#7d8896"; ctx.lineWidth = 3; ctx.strokeRect(i * 200 + 20, -820, 156, 520); ctx.fillStyle = "#ff7a1a"; ctx.fillRect(i * 200 + 30, -280, 136, 10); }
+        // round window with Earth
+        var wx = 300, wy = -480; ctx.fillStyle = "#4b5663"; ctx.beginPath(); ctx.arc(wx, wy, 190, 0, 6.283); ctx.fill(); ctx.save(); ctx.beginPath(); ctx.arc(wx, wy, 160, 0, 6.283); ctx.clip(); ctx.fillStyle = "#060a1e"; ctx.fillRect(wx - 170, wy - 170, 340, 340); var eg = ctx.createRadialGradient(wx - 20, wy + 170, 40, wx, wy + 200, 300); eg.addColorStop(0, "#58b4ff"); eg.addColorStop(0.8, "#1c5ec0"); eg.addColorStop(1, "#0a2a70"); ctx.fillStyle = eg; ctx.beginPath(); ctx.arc(wx, wy + 330, 280, 0, 6.283); ctx.fill(); ctx.fillStyle = "rgba(255,255,255,.55)"; ctx.beginPath(); ctx.ellipse(wx - 60, wy + 120, 60, 12, 0, 0, 6.283); ctx.fill(); ctx.restore(); ctx.strokeStyle = "#e9edf2"; ctx.lineWidth = 10; ctx.beginPath(); ctx.arc(wx, wy, 165, 0, 6.283); ctx.stroke(); });
+      S.layer(1, function () { var t = S.time; // floating tools, bottle, cables
+        function item(x, y, a, fn) { ctx.save(); ctx.translate(x + Math.sin(t * 0.8 + a) * 14, y + Math.cos(t * 0.6 + a) * 18); ctx.rotate(a + t * 0.25); fn(); ctx.restore(); }
+        item(-320, -380, 1, function () { ctx.fillStyle = "#6fd0ff"; S.rrect(-12, -34, 24, 68, 8); ctx.fill(); ctx.strokeStyle = "#2a3a4a"; ctx.lineWidth = 3; ctx.stroke(); });
+        item(380, -300, 2, function () { ctx.fillStyle = "#ff7a1a"; S.rrect(-40, -9, 80, 18, 5); ctx.fill(); ctx.fillStyle = "#555"; ctx.fillRect(30, -14, 22, 28); });
+        item(-120, -560, 3, function () { ctx.fillStyle = "#f4f6fa"; S.rrect(-30, -22, 60, 44, 6); ctx.fill(); ctx.strokeStyle = "#556"; ctx.lineWidth = 3; ctx.stroke(); ctx.fillStyle = "#3a4a5a"; ctx.fillRect(-20, -12, 40, 24); });
+        item(560, -520, 4, function () { ctx.fillStyle = "#ffd24a"; ctx.beginPath(); ctx.arc(0, 0, 18, 0, 6.283); ctx.fill(); ctx.strokeStyle = "#8a6a10"; ctx.lineWidth = 3; ctx.stroke(); });
+        ctx.strokeStyle = "#2a2f38"; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(-700, -700); ctx.bezierCurveTo(-400, -520 + Math.sin(t) * 20, 200, -820, 700, -620); ctx.stroke(); });
+    },
+    shots: [{ a: 0, cam: function (v) { return { x: A.x + 40, y: A.y - 60, z: lerp(0.8, 1.2, v) }; } }, { a: 0.5, cam: function (v) { return { x: A.x, y: A.y - 100, z: lerp(1.3, 2.2, ease(v)) }; } }, { a: 0.82, cam: function (v) { return { x: A.x - 30, y: A.y - 120, z: lerp(2.2, 1.0, ease(v)) }; } }] });
+  // telescope under a nebula
+  scene({ text: "", dur: 8, chapter: "Telescope", tod: "night", tags: "s_telescope",
+    setup: function () { A.key = "astro"; put(A, -220, 1, { pose: "look", ex: "shock", item: null, act: null }); this.t = 0; this.look = [0.6, -0.8]; },
+    update: function (u, dt) { this.t += dt; A.pose = u < 0.5 ? "look" : "point"; A.ex = u < 0.5 ? "neutral" : "shock"; A.look = [0.7, -0.8]; },
+    world: function () { var t = S.time; S.layer(0.1, function () { nebulaSky(t); }); S.layer(0.8, function () { ctx.fillStyle = "#4a2a2a"; ctx.beginPath(); ctx.moveTo(-1200, 0); for (var x = -1200; x <= 1400; x += 120) ctx.lineTo(x, -40 - ((Math.abs(x) * 7) % 90)); ctx.lineTo(1400, 0); ctx.closePath(); ctx.fill(); }); S.layer(1, function () { ctx.fillStyle = "#7a3a2e"; ctx.fillRect(-1500, -4, 3000, 400); telescopeDraw(120, 0, S.time); }); },
+    shots: [{ a: 0, cam: function (v) { return { x: 60, y: -300, z: lerp(0.55, 0.8, v) }; } }, { a: 0.5, cam: function (v) { return { x: 20, y: -330, z: lerp(0.9, 1.6, ease(v)) }; } }, { a: 0.8, cam: function (v) { return { x: -60, y: -400, z: lerp(1.6, 0.7, ease(v)) }; } }] });
+  // rover crossing the Martian desert
+  scene({ text: "", dur: 8, chapter: "Rover", tod: "day", tags: "s_rover",
+    setup: function () { A.key = "astro"; put(A, 280, -1, { pose: "cheer", ex: "happy", item: null, act: null }); this.t = 0; this.rx = -900; },
+    update: function (u, dt) { this.t += dt; this.rx = lerp(-900, 520, u); if (Math.random() < 0.5) puff(this.rx - 140, -20, 1, "#c98a62", 14, -20); A.pose = u < 0.7 ? "cheer" : "idle"; A.x = 420; },
+    world: function (m, u) { window.PL.space({ t: S.time }); var self = this; S.layer(1, function () { roverDraw(self.rx, 0, S.time * 1.2, 1); }); },
+    shots: [{ a: 0, cam: function (v) { return { x: lerp(-500, -100, v), y: -250, z: lerp(0.75, 0.95, v) }; } }, { a: 0.45, cam: function (v) { return { x: lerp(-100, 380, v), y: -250, z: lerp(1.0, 1.4, ease(v)) }; } }, { a: 0.8, cam: function (v) { return { x: 420, y: -330, z: lerp(1.4, 2.0, ease(v)) }; } }] });
+
   var LIBSET = {}; SCENES.slice(10).forEach(function (sc) { LIBSET[sc.tags] = sc; }); SCENES.length = 10;
   var LIBRULES = [
+    ["space", /\b(space station|orbiting|weightless)/i, "s_station"], ["space", /\b(telescope|galax|nebula)/i, "s_telescope"], ["space", /\b(rovers?|martian desert|dusty red)/i, "s_rover"],
     ["modern", /\b(gap|own assets|asset|assets|salary)\b/i, "m_gap"], ["modern", /\b(children|taught|families|kids)\b/i, "m_kids"], ["modern", /\b(crisis|lost his job|rescued|fired)\b/i, "m_fired"],
     ["modern", /\b(bank|borrowed|borrow|debts?|buildings)\b/i, "m_bank"], ["modern", /\b(saved|prices)\b/i, "m_rent"], ["modern", /\b(said with a smile|money makes)\b/i, "m_talk"],
     ["modern", /\b(owned|slept|while he slept)\b/i, "m_sleep"], ["modern", /\b(work harder|did not work)\b/i, "m_relax"], ["modern", /\b(office|counting|profits?)\b/i, "m_office"],

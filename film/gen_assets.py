@@ -12,7 +12,7 @@ only = sys.argv[1:]
 def gen(prompt, seed):
     for att in range(4):
         r = requests.post(f"https://api.cloudflare.com/client/v4/accounts/{acc}/ai/run/@cf/black-forest-labs/flux-1-schnell",
-                          headers={"Authorization": "Bearer " + tok}, json={"prompt": prompt[:1900], "steps": 8, "seed": seed}, timeout=240)
+                          headers={"Authorization": "Bearer " + tok}, json={"prompt": prompt[:1900], "steps": 8}, timeout=240)
         if r.status_code == 200:
             return Image.open(io.BytesIO(base64.b64decode(r.json()["result"]["image"]))).convert("RGB")
         print("  http", r.status_code, r.text[:100]); time.sleep(6 * (att + 1))

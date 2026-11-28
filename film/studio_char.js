@@ -112,6 +112,13 @@ var CH = (function () {
     (side ? [1] : [-1, 1]).forEach(function (s) {
       var ex0 = side ? 20 : ox + s * 15.5, ey = -2;
       if (blink) { ctx.strokeStyle = dk(skin, 0.6); ctx.lineWidth = 3.2; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(ex0 - 7, ey); ctx.lineTo(ex0 + 7, ey + 1); ctx.stroke(); return; }
+      if (INK) { // minimal ink-explainer eyes: solid black ovals, tiny glint, white ring only for shock
+        var big = (ex === "shock" || ex === "O"), sq = (ex === "happy" || ex === "smile") ? 0.72 : ex === "smug" ? 0.5 : ex === "sad" ? 0.9 : 1;
+        var dx = look[0] * 2.5, dy = look[1] * 2;
+        if (big) { ctx.fillStyle = "#fff"; ctx.strokeStyle = INKC; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(ex0, ey, 10, 12, 0, 0, 6.283); ctx.fill(); ctx.stroke(); }
+        ctx.fillStyle = INKC; ctx.beginPath(); ctx.ellipse(ex0 + dx, ey + dy, big ? 3.6 : 5.4, (big ? 3.6 : 7.4) * sq, 0, 0, 6.283); ctx.fill();
+        if (!big) { ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(ex0 + dx + 1.6, ey + dy - 2.4 * sq, 1.5, 0, 6.283); ctx.fill(); }
+        return; }
       var ew = INK ? 13 : (s > 0 ? 9.5 : 8.5);
       var eh = (ex === "shock" || ex === "O") ? 13 : ex === "sad" ? 10 : ex === "smug" ? 7 : (ex === "happy" || ex === "smile") ? 8.5 : ex === "angry" ? 8.5 : 11;
       if (INK) eh *= 1.25; ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.ellipse(ex0, ey, ew, eh, 0, 0, 6.283); ctx.fill();
@@ -132,8 +139,10 @@ var CH = (function () {
     if (side) { ctx.beginPath(); ctx.moveTo(6, by + bl[0]); ctx.quadraticCurveTo(20, by + Math.min(bl[0], bl[1]) - 5, 32, by + bl[1]); ctx.stroke(); } else
     ctx.beginPath(); ctx.moveTo(ox - 26, by + bl[0]); ctx.quadraticCurveTo(ox - 16, by + Math.min(bl[0], bl[1]) - 5, ox - 6, by + bl[1]); ctx.moveTo(ox + 6, by + br[0]); ctx.quadraticCurveTo(ox + 16, by + Math.min(br[0], br[1]) - 5, ox + 26, by + br[1]); ctx.stroke();
     // nose
+    if (!INK) {
     if (side) { ctx.fillStyle = skin; ctx.beginPath(); ctx.moveTo(HEAD_R - 6, -4); ctx.quadraticCurveTo(HEAD_R + 12, 10, HEAD_R - 2, 17); ctx.lineTo(HEAD_R - 8, 16); ctx.closePath(); ctx.fill(); ctx.strokeStyle = dk(skin, 0.4); ctx.lineWidth = 2.2; ctx.stroke(); } else {
     ctx.strokeStyle = dk(skin, 0.38); ctx.lineWidth = 2.6; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(ox + 1, 6); ctx.quadraticCurveTo(ox + 9, 13, ox + 2, 16); ctx.stroke(); }
+    }
     // cheeks (blush)
     ctx.fillStyle = INK ? "rgba(0,0,0,0)" : "rgba(235,100,105,0.28)"; ctx.beginPath(); if (side) ctx.ellipse(22, 14, 8, 5, 0, 0, 6.283); else { ctx.ellipse(ox - 27, 13, 8, 5, 0, 0, 6.283); ctx.ellipse(ox + 27, 13, 8, 5, 0, 0, 6.283); } ctx.fill();
     // mouth

@@ -658,7 +658,7 @@
   // ink-world look: desaturate the painted world to greys, add pencil hatching + paper grain; characters/accents stay coloured on top
   var hatch = null;
   function inkWorld() {
-    if (window.__noInk) return;
+    if (!window.__inkWorld) return; // warm colourful world is the reference look; greyscale ink world is opt-in
     ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.globalCompositeOperation = "saturation"; ctx.fillStyle = "#808080"; ctx.globalAlpha = 0.86; ctx.fillRect(0, 0, S.cv.width, S.cv.height);
     ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;

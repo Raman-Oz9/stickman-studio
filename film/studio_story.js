@@ -658,6 +658,8 @@
         else if (name === "side") { o.views = { A: "side" }; o.cam = follow(A, 1.2, 1.4, 140, -170); }
         else if (name === "back" || name === "dolly") { o.views = { A: "back" }; o.cam = function (v) { return { x: A.x + lerp(-40, 20, ease(v)), y: -205, z: lerp(1.3, 1.6, ease(v)) }; }; }
         else if (name === "ots") { o.views = { A: "back" }; o.fg = [{ id: "A", dx: -130, view: "back", layer: 1.35, s: 1.12 }]; o.cam = function (v) { return { x: A.x + 35, y: -210, z: lerp(1.4, 1.7, ease(v)) }; }; }
+        else if (name === "orbit") { o.yaw = function (v) { return lerp(-0.75, 0.75, ease(v)); }; o.orbit = true; o.cam = function (v) { return { x: A.x, y: -200, z: lerp(1.2, 1.5, ease(v)) }; }; }
+        else if (name === "approach") { o.approach = true; o.views = { A: "front" }; o.cam = function (v) { return { x: A.ax || 0, y: -200, z: lerp(0.9, 1.35, ease(v)) }; }; }
         else if (name === "crane") o.cam = function (v) { return { x: A.x, y: lerp(-190, -420, ease(v)), z: lerp(1.2, 0.7, ease(v)) }; };
         else if (name === "pan" || name === "whip") o.cam = function (v) { return { x: lerp(A.x - 180, A.x + 180, ease(v)), y: -190, z: 1.0 }; };
         else o.cam = fixed(A.x, -190, 1.1);
@@ -737,7 +739,11 @@
     // characters, back to front by layer then x
     var list = shot.nochars ? [] : ALLC.filter(function (c) { return c.show && !(shot.fg && shot.fg.some(function (f) { return f.id === c.id; })); }).sort(function (a, b) { return a.layer - b.layer; });
     var byLayer = {}; list.forEach(function (c) { (byLayer[c.layer] = byLayer[c.layer] || []).push(c); });
-    Object.keys(byLayer).sort().forEach(function (p) { S.layer(+p, function () { byLayer[p].forEach(function (c) { c.t += dt; CH.draw(c); }); }); });
+    Object.keys(byLayer).sort().forEach(function (p) { S.layer(+p, function () { byLayer[p].sort(function (a, b) { return (a.zd || 0) - (b.zd || 0); }).forEach(function (c) {
+      c.t += dt; var zd = c.zd || 0, yw = cam.yaw || 0, s0 = c.s, y0 = c.y, v0 = c.view, f0 = c.face;
+      if (zd) { c.s = (s0 || 1) * (1 + 0.55 * zd); c.y = (y0 || 0) + zd * 90; }
+      if (c.orbit) { /* camera orbit: the character turns with the camera (front -> 3/4 -> side) */ if (Math.abs(yw) > 0.45) { c.view = "side"; c.face = yw > 0 ? -1 : 1; } else c.view = "front"; }
+      CH.draw(c); c.s = s0; c.y = y0; c.view = v0; c.face = f0; }); }); });
     // crown flight in the coronation
     if (sc.chapter === "Crown" && u > 0.46 && u < 0.6) { var f = ease((u - 0.46) / 0.14); S.layer(1, function () { var sx = Q.x - 36, sy = -300, ex = A.x + 4, ey = -300; var x = lerp(sx, ex, f), y = lerp(sy, ey, f) - Math.sin(f * Math.PI) * 60, g = ctx.createLinearGradient(0, y - 30, 0, y + 10); g.addColorStop(0, "#fff1b0"); g.addColorStop(1, "#c8962a"); ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(x - 30, y + 8); ctx.lineTo(x - 32, y - 18); ctx.lineTo(x - 17, y - 4); ctx.lineTo(x - 8, y - 30); ctx.lineTo(x, y - 8); ctx.lineTo(x + 8, y - 30); ctx.lineTo(x + 17, y - 4); ctx.lineTo(x + 32, y - 18); ctx.lineTo(x + 30, y + 8); ctx.closePath(); ctx.fill(); ctx.strokeStyle = "#7a5a1a"; ctx.lineWidth = 2; ctx.stroke(); ctx.save(); ctx.globalCompositeOperation = "lighter"; var gl = S.rgrad(x, y - 10, 4, 90, [[0, "rgba(255,230,140,.7)"], [1, "rgba(255,230,140,0)"]]); ctx.fillStyle = gl; ctx.fillRect(x - 100, y - 110, 200, 200); ctx.restore(); }); }
     S.layer(1, function () { drawSparks(dt); });
@@ -764,6 +770,11 @@
     var idx = 0; for (var k = 0; k < sc.shots.length; k++) if (u >= sc.shots[k].a) idx = k;
     var sh = sc.shots[idx], nxt = sc.shots[idx + 1] ? sc.shots[idx + 1].a : 1, v = clamp((u - sh.a) / Math.max(0.001, nxt - sh.a), 0, 1);
     ALLC.forEach(function (c) { c.view = null; }); if (sh.views) for (var vk in sh.views) chars[vk].view = sh.views[vk]; ALLC.forEach(function (c) { if (c.show && c._gmove > 0 && !c.view) c.view = "side"; });
+    // depth: walking toward the camera, and orbit (camera sweeps around the subject)
+    ALLC.forEach(function (c) { c.zd = 0; c.orbit = false; });
+    if (sh.approach && A.show) { A.ax = 0; A.x = 0; A.zd = lerp(-0.9, 0.7, ease(v)); A.pose = "walk"; A._gmove = 0.2; A._gait = (A._gait || 0) + dt * 7.4; A.view = "front"; }
+    if (sh.orbit && A.show) A.orbit = true;
+    cam.yaw += ((sh.yaw ? sh.yaw(v) : 0) - cam.yaw) * Math.min(1, dt * 3.5);
     var tg = sh.cam(v); tg = { x: tg.x, y: tg.y, z: Math.min(tg.z, 2.6) };
     // auto-framing applied to the TARGET (never fights the spring => no shake): everyone on stage stays in frame unless it is a deliberate close-up
     (function () { var shown = ALLC.filter(function (c) { return c.show && !(sh.nochars) && !(sh.fg && sh.fg.some(function (f) { return chars[f.id] === c; })); }); if (!shown.length) return; var VWd = S.VW, VHd = S.VH, lo = VWd * 0.14, hi = VWd * 0.86;

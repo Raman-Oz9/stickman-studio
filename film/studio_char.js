@@ -35,6 +35,7 @@ var CH = (function () {
       P.hf = s * 0.5; P.hb = s2 * 0.5; P.kf = Math.max(0, Math.cos(ph)) * 0.9; P.kb = Math.max(0, -Math.cos(ph)) * 0.9;
       P.sf = s2 * 0.5 + 0.1; P.sb = s * 0.5 - 0.1; P.ef = 0.35 + Math.max(0, s2) * 0.3; P.eb = 0.3 + Math.max(0, s) * 0.3; P.bob = Math.abs(Math.cos(ph)) * 7; P.lean = 0.05 + Math.sin(ph) * 0.025; P.head = Math.sin(ph) * 0.02 - Math.cos(ph * 2) * 0.012;
       if (c.item === "spear") { P.sf = 0.35; P.ef = 0.25; }
+      if ((c.view || "front") === "front") { /* walking toward the camera: legs foreshortened, knees lift, body sways */ P.hf *= 0.28; P.hb *= 0.28; P.kf = Math.max(0, Math.cos(ph)) * 0.75; P.kb = Math.max(0, -Math.cos(ph)) * 0.75; P.sf *= 0.55; P.sb *= 0.55; P.bob = Math.abs(Math.cos(ph)) * 9; P.lean = Math.sin(ph) * 0.05; }
     } else if (nm === "talk" || nm === "point") {
       var g = Math.sin(t * 3.2) * 0.5 + 0.5, g2 = Math.sin(t * 2.1 + 1) * 0.5 + 0.5;
       P.sf = 1.1 + g * 0.5; P.ef = 0.9 - g * 0.5; P.sb = 0.15 + g2 * 0.5; P.eb = 0.5 + g2 * 0.4; P.bob = Math.sin(t * 2.2) * 2.5; P.head = Math.sin(t * 2.6) * 0.07 + Math.sin(t * 5.1) * 0.015; P.lean = 0.03 + Math.sin(t * 1.4) * 0.025;

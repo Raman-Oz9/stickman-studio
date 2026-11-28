@@ -95,10 +95,10 @@ def pick(tbl, t, default):
 def shots_for(loc, act, i, quote):
     if quote: return ["ots", "closeup", "side"]
     if act == "fight": return ["wide", "ots", "closeup"]
-    if act in ("march", "explore"): return ["side", "follow", "back"]
+    if act in ("march", "explore"): return ["approach", "orbit", "back"]
     if act == "kneel": return ["back", "closeup", "crane"]
-    if loc in ("cliff", "space", "ocean"): return ["back", "side", "crane"]
-    cyc = [["wide", "follow", "closeup"], ["crane", "side", "closeup"], ["back", "ots", "wide"], ["follow", "side", "closeup"]]
+    if loc in ("cliff", "space", "ocean"): return ["orbit", "back", "crane"]
+    cyc = [["wide", "approach", "closeup"], ["crane", "orbit", "closeup"], ["back", "ots", "wide"], ["follow", "orbit", "closeup"]]
     return cyc[i % 4]
 
 def speaker_of(s, era, role=None):

@@ -26,7 +26,7 @@ var ST = (function () {
   function noise1(x, seed) { var s = seed || 1; return Math.sin(x * 1.0 + s) * 0.5 + Math.sin(x * 2.13 + s * 1.7) * 0.28 + Math.sin(x * 4.37 + s * 2.9) * 0.14 + Math.sin(x * 8.9 + s * 0.3) * 0.06; }
 
   // ---- camera ----
-  var cam = { x: 0, y: -170, z: 1.2, roll: 0, shake: 0 };
+  var cam = { x: 0, y: -170, z: 1.2, roll: 0, shake: 0, yaw: 0 };
   var time = 0;
   var HOR = 0.46; // screen anchor of the camera point
   // run fn in the coordinate frame of a parallax layer p (0 = infinitely far, 1 = character plane, >1 foreground)
@@ -34,7 +34,7 @@ var ST = (function () {
     ctx.save();
     var zl = 1 + (cam.z - 1) * (0.25 + 0.75 * Math.min(1.2, p));
     var sh = cam.shake, sx = sh ? Math.sin(time * 61) * sh : 0, sy = sh ? Math.cos(time * 53) * sh : 0;
-    ctx.translate(VW / 2 + sx, VH * HOR + sy); if (cam.roll) ctx.rotate(cam.roll);
+    ctx.translate(VW / 2 + sx - (cam.yaw || 0) * 760 * (p - 1) * (p < 1 ? 1 : 1.4), VH * HOR + sy); if (cam.roll) ctx.rotate(cam.roll);
     ctx.scale(zl, zl); ctx.translate(-cam.x * p, -cam.y * p);
     fn(); ctx.restore();
   }

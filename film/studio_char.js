@@ -92,7 +92,7 @@ var CH = (function () {
   // ---- face ----
   function face(c, k, P, ex, talkAmt) {
     var r = HEAD_R, skin = INK ? HEADW : tint(k.skin), look = c.look || [1, 0], blink = (Math.sin(c.t * 1.3 + (c.phase || 0) * 3) > 0.985) || c.blink;
-    var ox = 5, side = c.vw === "side";
+    var ox = 5, side = c.vw === "side" && !INK; /* ink: always 3/4-front face, both eyes toward camera */
     // ears
     if (INK) { /* no ears in ink style */ } else if (side) {
       ctx.fillStyle = dk(skin, 0.08);
@@ -353,7 +353,7 @@ var CH = (function () {
     // neck
     var skinC = tint(k.skin); ctx.fillStyle = dk(skinC, 0.12); ctx.fillRect(-9, shY - 16, 18, 20);
     // head
-    ctx.save(); ctx.translate(2, shY - 50); ctx.rotate(P.head); ctx.scale(INK ? 1.2 : 0.93, INK ? 1.2 : 0.93);
+    ctx.save(); ctx.translate(INK && view === "side" ? 9 : 2, shY - 50); ctx.rotate(P.head); ctx.scale(INK ? 1.2 : 0.93, INK ? 1.2 : 0.93);
     headBackLayer(k);
     var hg = S.rgrad(-14 * ls, -16, 6, HEAD_R + 8, [[0, lt(skinC, 0.22)], [0.7, skinC], [1, dk(skinC, 0.2)]]); ctx.fillStyle = INK ? HEADW : hg; ctx.beginPath(); ctx.ellipse(0, 4, HEAD_R - 2, HEAD_R + 2, 0, 0, 6.283); ctx.fill();
     ctx.strokeStyle = INK ? INKC : dk(skinC, 0.3); ctx.lineWidth = INK ? 4.2 : 2.2; ctx.stroke();

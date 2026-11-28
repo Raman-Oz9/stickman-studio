@@ -116,8 +116,8 @@ var CH = (function () {
         var big = (ex === "shock" || ex === "O"), sq = (ex === "happy" || ex === "smile") ? 0.72 : ex === "smug" ? 0.5 : ex === "sad" ? 0.9 : 1;
         var dx = look[0] * 2.5, dy = look[1] * 2;
         if (big) { ctx.fillStyle = "#fff"; ctx.strokeStyle = INKC; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(ex0, ey, 10, 12, 0, 0, 6.283); ctx.fill(); ctx.stroke(); }
-        ctx.fillStyle = INKC; ctx.beginPath(); ctx.ellipse(ex0 + dx, ey + dy, big ? 3.6 : 5.4, (big ? 3.6 : 7.4) * sq, 0, 0, 6.283); ctx.fill();
-        if (!big) { ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(ex0 + dx + 1.6, ey + dy - 2.4 * sq, 1.5, 0, 6.283); ctx.fill(); }
+        ctx.fillStyle = INKC; ctx.beginPath(); ctx.ellipse(ex0 + dx, ey + dy, big ? 4.2 : 6.8, (big ? 4.2 : 9.2) * sq, 0, 0, 6.283); ctx.fill();
+        if (!big) { ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(ex0 + dx + 2, ey + dy - 3 * sq, 1.9, 0, 6.283); ctx.fill(); }
         return; }
       var ew = INK ? 13 : (s > 0 ? 9.5 : 8.5);
       var eh = (ex === "shock" || ex === "O") ? 13 : ex === "sad" ? 10 : ex === "smug" ? 7 : (ex === "happy" || ex === "smile") ? 8.5 : ex === "angry" ? 8.5 : 11;
@@ -185,7 +185,7 @@ var CH = (function () {
     else if (k.style === "bob") { ctx.fillStyle = hair; ctx.beginPath(); ctx.moveTo(-46, 4); ctx.quadraticCurveTo(-52, -52, 0, -54); ctx.quadraticCurveTo(52, -52, 46, 4); ctx.lineTo(40, -14); ctx.lineTo(-40, -14); ctx.closePath(); ctx.fill(); ctx.fillStyle = "rgba(255,255,255,.14)"; ctx.beginPath(); ctx.ellipse(-12, -40, 22, 5, -0.15, 0, 6.283); ctx.fill();
       ctx.fillStyle = tint(k.trim2); ctx.fillRect(-44, -26, 88, 7); ctx.fillStyle = tint(k.trim); for (var j = -3; j <= 3; j++) ctx.fillRect(j * 12 - 3, -26, 6, 7); }
     else if (k.style === "helm") { var hm = tint(k.helm); ctx.fillStyle = hm; ctx.beginPath(); ctx.moveTo(-47, 10); ctx.quadraticCurveTo(-52, -56, 0, -58); ctx.quadraticCurveTo(52, -56, 47, 10); ctx.lineTo(36, 14); ctx.lineTo(34, -17); ctx.lineTo(-34, -17); ctx.lineTo(-36, 14); ctx.closePath(); ctx.fill(); ctx.strokeStyle = dk(hm, 0.35); ctx.lineWidth = 3; ctx.stroke(); ctx.fillStyle = "rgba(255,245,200,.35)"; ctx.beginPath(); ctx.ellipse(-14, -42, 16, 6, -0.3, 0, 6.283); ctx.fill(); ctx.fillStyle = dk(hm, 0.3); ctx.fillRect(-4, -57, 8, 40); }
-    else if (k.style === "short") { ctx.fillStyle = hair; ctx.beginPath(); ctx.moveTo(-44, -2); ctx.quadraticCurveTo(-50, -56, 0, -54); ctx.quadraticCurveTo(50, -56, 44, -2); ctx.quadraticCurveTo(30, -26, 0, -28); ctx.quadraticCurveTo(-30, -26, -44, -2); ctx.fill(); }
+    else if (k.style === "short") { ctx.fillStyle = hair; ctx.beginPath(); ctx.moveTo(-46, 6); ctx.bezierCurveTo(-58, -34, -34, -64, 2, -62); ctx.bezierCurveTo(40, -62, 60, -34, 46, 6); ctx.bezierCurveTo(44, -10, 36, -26, 18, -32); ctx.bezierCurveTo(2, -20, -22, -26, -32, -34); ctx.bezierCurveTo(-40, -26, -44, -14, -46, 6); ctx.closePath(); ctx.fill(); ctx.strokeStyle = INK ? INKC : dk(hair, 0.4); ctx.lineWidth = INK ? 3.4 : 2; ctx.stroke(); ctx.fillStyle = "rgba(255,255,255,.18)"; ctx.beginPath(); ctx.ellipse(-12, -48, 20, 5, -0.2, 0, 6.283); ctx.fill(); }
     else if (k.style === "turban") { var tb = tint(k.helm); ctx.fillStyle = tb; ctx.beginPath(); ctx.moveTo(-48, -2); ctx.quadraticCurveTo(-54, -62, 0, -64); ctx.quadraticCurveTo(54, -62, 48, -2); ctx.quadraticCurveTo(0, -18, -48, -2); ctx.fill(); ctx.strokeStyle = dk(tb, 0.35); ctx.lineWidth = 2.5; for (var q = 0; q < 4; q++) { ctx.beginPath(); ctx.moveTo(-46 + q * 4, -8 - q * 12); ctx.quadraticCurveTo(0, -22 - q * 12, 46 - q * 4, -8 - q * 12); ctx.stroke(); } ball(8, -50, 6, tint("#e8c14a")); }
     if (k.beard) { ctx.fillStyle = tint(k.beard); ctx.beginPath(); ctx.moveTo(-38, 10); ctx.quadraticCurveTo(-30, 62, 0, 66); ctx.quadraticCurveTo(30, 62, 38, 10); ctx.quadraticCurveTo(22, 30, 0, 26); ctx.quadraticCurveTo(-22, 30, -38, 10); ctx.fill(); }
     // regalia
